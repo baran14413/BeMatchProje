@@ -6,6 +6,10 @@
  */
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
+import {firebase} from "firebase-admin/lib/firebase-namespace-api";
+import App = firebase.app.App;
+
+import { moderateImage } from './flows/moderate-image-flow';
 
 export const ai = genkit({
   plugins: [
@@ -14,4 +18,5 @@ export const ai = genkit({
       // environment variable.
     }),
   ],
+  flows: [moderateImage],
 });

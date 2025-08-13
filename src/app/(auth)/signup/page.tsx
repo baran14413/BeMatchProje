@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,12 +15,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Camera, UserCheck, AlertTriangle, Loader, Eye, EyeOff, Sparkles, Shuffle, ShieldCheck } from 'lucide-react';
+import { Camera, AlertTriangle, Loader, Eye, EyeOff, Sparkles, Shuffle, ShieldCheck, Upload, Ban } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { moderateImage, ModerateImageOutput } from '@/ai/flows/moderate-image-flow';
+import Image from 'next/image';
+
 
 const HOBBIES = [
   'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi', 
@@ -34,10 +37,8 @@ const CAPTCHA_OPTIONS = [
   { icon: '⚡', name: 'şimşek' },
 ];
 
-type VerificationStatus = 'idle' | 'verifying' | 'success' | 'fail';
-type FailureReason = 'no_face' | 'gender_mismatch' | 'not_live';
 type PasswordStrength = 'yok' | 'zayıf' | 'orta' | 'güçlü';
-
+type ModerationStatus = 'idle' | 'checking' | 'safe' | 'unsafe';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -53,7 +54,7 @@ export default function SignupPage() {
     hobbies: [] as string[],
     password: '',
     confirmPassword: '',
-    profilePicture: null as string | null, // Changed to string for data URI
+    profilePicture: null as string | null,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>('yok');
@@ -61,106 +62,49 @@ export default function SignupPage() {
   const [captchaTarget, setCaptchaTarget] = useState(CAPTCHA_OPTIONS[0]);
   const [captchaSelected, setCaptchaSelected] = useState<string | null>(null);
 
-  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
-  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('idle');
-  const [failureReason, setFailureReason] = useState<FailureReason | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [moderationStatus, setModerationStatus] = useState<ModerationStatus>('idle');
+  const [moderationResult, setModerationResult] = useState<ModerateImageOutput | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
 
-  const captureFrame = () => {
-    if (videoRef.current) {
-        const canvas = document.createElement('canvas');
-        canvas.width = videoRef.current.videoWidth;
-        canvas.height = videoRef.current.videoHeight;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-            // Flip the image horizontally to act as a mirror
-            ctx.scale(-1, 1);
-            ctx.drawImage(videoRef.current, 0, 0, -canvas.width, canvas.height);
-            const frame = canvas.toDataURL('image/jpeg');
-            setFormData(prev => ({...prev, profilePicture: frame}));
-        }
+
+  const handleProfilePictureChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setModerationStatus('idle');
+      setModerationResult(null);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUri = event.target?.result as string;
+        setFormData((prev) => ({ ...prev, profilePicture: dataUri }));
+      };
+      reader.readAsDataURL(file);
     }
-  }
-
-  const handleVerification = () => {
-    if (verificationStatus === 'verifying' || verificationStatus === 'success') return;
-    setVerificationStatus('verifying');
-    setFailureReason(null);
-    if (verificationTimeoutRef.current) { clearTimeout(verificationTimeoutRef.current); }
-    
-    verificationTimeoutRef.current = setTimeout(() => {
-        const mockFaceFound = Math.random() > 0.1; 
-        const mockIsLive = Math.random() > 0.2; 
-        // We'll simulate that the camera always detects a "male" for testing purposes.
-        const mockDetectedGender = 'male'; 
-        
-        if (!mockFaceFound) { setFailureReason('no_face'); setVerificationStatus('fail'); return; }
-        if (!mockIsLive) { setFailureReason('not_live'); setVerificationStatus('fail'); return; }
-
-        // Check for gender mismatch only if a gender is selected
-        if ((formData.gender === 'female' && mockDetectedGender === 'male') || (formData.gender === 'male' && mockDetectedGender === 'female')) {
-            setFailureReason('gender_mismatch');
-            setVerificationStatus('fail');
-            toast({ variant: 'destructive', title: 'Cinsiyet Uyuşmazlığı', description: 'Belirttiğiniz cinsiyetle doğrulama eşleşmedi. 5 saniye içinde önceki adıma yönlendiriliyorsunuz.' });
-            setTimeout(() => { 
-                setVerificationStatus('idle'); 
-                setFailureReason(null); 
-                prevStep(); // Go to previous step (gender selection)
-                prevStep(); // Go to previous step (age/hobbies)
-                prevStep(); // Go to previous step (password)
-                prevStep(); // Go to previous step (captcha)
-            }, 5000);
-            return;
-        }
-
-        setVerificationStatus('success');
-        captureFrame(); // Capture the frame on success
-        setTimeout(() => nextStep(), 1500); // Move to next step after success animation
-    }, 3000); // 3-second simulation
   };
-  
-  const retryVerification = () => {
-    setVerificationStatus('idle');
-    setFailureReason(null);
-    // Automatically restart verification
-    handleVerification();
+
+  const handleModerateImage = async () => {
+    if (!formData.profilePicture) return;
+    setModerationStatus('checking');
+    try {
+      const result = await moderateImage({ photoDataUri: formData.profilePicture });
+      setModerationResult(result);
+      if (result.isSafe) {
+        setModerationStatus('safe');
+      } else {
+        setModerationStatus('unsafe');
+      }
+    } catch (error) {
+      console.error("Moderation failed", error);
+      toast({
+        variant: 'destructive',
+        title: 'Denetleme Başarısız',
+        description: 'Fotoğraf denetlenirken bir hata oluştu. Lütfen tekrar deneyin.'
+      });
+      setModerationStatus('idle');
+    }
   };
-  
-  useEffect(() => {
-    const getCameraPermission = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        setHasCameraPermission(true);
-        if (videoRef.current) { videoRef.current.srcObject = stream; }
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-        setHasCameraPermission(false);
-        toast({ variant: 'destructive', title: 'Kamera Erişimi Reddedildi', description: 'Lütfen tarayıcı ayarlarından kamera iznini etkinleştirin.' });
-      }
-    };
-    if (step === 5) { getCameraPermission(); } 
-    else {
-      // Clean up camera stream when leaving the step
-      if (verificationTimeoutRef.current) { clearTimeout(verificationTimeoutRef.current); }
-      setVerificationStatus('idle');
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-      }
-    }
-  }, [step, toast]);
-  
-  // Auto-start verification when camera is ready
-  useEffect(() => {
-    if (step === 5 && hasCameraPermission && verificationStatus === 'idle') {
-        handleVerification();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, hasCameraPermission, verificationStatus]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -210,14 +154,11 @@ export default function SignupPage() {
     setCaptchaSelected(null);
   };
 
-  useEffect(() => { if (step === 4) { shuffleCaptcha(); } }, [step]);
-
   const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.username || !formData.email;
   const isStep2Invalid = !formData.age || !formData.gender || formData.hobbies.length < 3;
   const isStep3Invalid = !formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf';
   const isStep4Invalid = captchaSelected !== captchaTarget.name;
-  const isStep6Invalid = !formData.profilePicture;
-
+  const isStep5Invalid = !formData.profilePicture || moderationStatus !== 'safe';
 
   const isNextButtonDisabled = (currentStep: number) => {
     switch (currentStep) {
@@ -229,25 +170,7 @@ export default function SignupPage() {
     }
   };
 
-  const progress = (step / 7) * 100;
-
-  const getFailureMessage = () => {
-    switch(failureReason) {
-        case 'no_face': return 'Yüz algılanamadı. Lütfen yüzünüzü dairenin içine ortalayın.';
-        case 'not_live': return 'Canlılık algılanamadı. Lütfen bir fotoğraf yerine kendinizi gösterin.';
-        case 'gender_mismatch': return 'Cinsiyetinizle belirttiğiniz bilgi uyuşmuyor. Lütfen kontrol edin.';
-        default: return 'Doğrulama başarısız oldu. Lütfen tekrar deneyin.';
-    }
-  }
-
-  const getBorderColorClass = () => {
-    switch (verificationStatus) {
-        case 'verifying': return 'border-primary/50 animate-pulse';
-        case 'success': return 'border-green-500';
-        case 'fail': return 'border-destructive';
-        default: return 'border-primary/50';
-    }
-  };
+  const progress = (step / 6) * 100;
 
   const getPasswordStrengthColor = () => {
     switch (passwordStrength) {
@@ -267,8 +190,8 @@ export default function SignupPage() {
           {step === 2 && "Sizi daha iyi tanımamıza yardımcı olun."}
           {step === 3 && "Güçlü bir şifre oluşturun."}
           {step === 4 && "Doğrulamayı tamamlayın."}
-          {step === 5 && "Kimliğinizi doğrulamak için yüzünüzü taratın."}
-          {step === 6 && "Profil fotoğrafınızı onaylayın."}
+          {step === 5 && "Profil fotoğrafınızı yükleyin ve denetleyin."}
+          {step === 6 && "Harika! Kaydı tamamlamak üzeresiniz."}
         </CardDescription>
         <Progress value={progress} className="w-full mt-2" />
       </CardHeader>
@@ -360,47 +283,77 @@ export default function SignupPage() {
           </div>
         )}
         {step === 5 && (
-          <div className="flex flex-col items-center gap-4">
-            <div className="relative w-64 h-64 sm:w-80 sm:h-80 mx-auto">
-                 <div className={`relative w-full h-full rounded-full bg-muted overflow-hidden flex items-center justify-center border-8 border-dashed transition-colors duration-500 ${getBorderColorClass()}`}>
-                     <video ref={videoRef} className="w-full h-full object-cover scale-x-[-1]" autoPlay muted playsInline />
-                     {hasCameraPermission === false && (<div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white p-4"><Camera className="w-16 h-16 mb-4"/><p className="text-center font-medium">Kamera Erişimi Gerekli</p></div>)}
-                    {verificationStatus === 'verifying' && (<div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-10"><Loader className="w-16 h-16 text-primary animate-spin"/><p className="mt-4 text-primary-foreground font-semibold">Doğrulanıyor...</p></div>)}
-                    {verificationStatus === 'success' && (<div className="absolute inset-0 flex flex-col items-center justify-center bg-green-500/80 z-10"><UserCheck className="w-16 h-16 text-white"/><p className="mt-4 text-white font-semibold">Doğrulama Başarılı</p></div>)}
-                 </div>
+            <div className="flex flex-col items-center gap-4">
+              <p className="font-medium text-center">Lütfen profil fotoğrafınızı yükleyin.</p>
+              <div
+                className="relative w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-muted flex items-center justify-center overflow-hidden border-4 border-dashed border-primary/50 cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                  <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept="image/png, image/jpeg, image/webp"
+                      onChange={handleProfilePictureChange}
+                  />
+                  {formData.profilePicture ? (
+                    <Image src={formData.profilePicture} alt="Profil fotoğrafı önizlemesi" layout="fill" objectFit="cover" />
+                  ) : (
+                    <div className="text-center text-muted-foreground p-4 flex flex-col items-center">
+                        <Upload className="w-12 h-12 mb-2" />
+                        <p className="text-sm">Fotoğraf Yükle</p>
+                    </div>
+                  )}
+              </div>
+              
+              {formData.profilePicture && (
+                <Button onClick={handleModerateImage} disabled={moderationStatus === 'checking'}>
+                  {moderationStatus === 'checking' && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+                  {moderationStatus === 'checking' ? 'Denetleniyor...' : 'Fotoğrafı Denetle'}
+                </Button>
+              )}
+
+              {moderationStatus === 'unsafe' && (
+                <Alert variant="destructive" className="mt-4">
+                  <Ban className="h-4 w-4" />
+                  <AlertTitle>Uygunsuz İçerik Tespit Edildi</AlertTitle>
+                  <AlertDescription>
+                    {moderationResult?.reason || 'Lütfen kurallarımıza uygun başka bir fotoğraf yükleyin.'}
+                  </AlertDescription>
+                </Alert>
+              )}
+              {moderationStatus === 'safe' && (
+                <Alert variant="default" className="mt-4 border-green-500 text-green-700">
+                  <ShieldCheck className="h-4 w-4 text-green-500" />
+                  <AlertTitle>Fotoğraf Uygun</AlertTitle>
+                  <AlertDescription>
+                    Harika bir seçim! Devam etmek için ileri'ye tıkla.
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
-            {verificationStatus === 'fail' && (<Alert variant="destructive" className="mt-4"><AlertTriangle className="h-4 w-4" /><AlertTitle>Doğrulama Başarısız</AlertTitle><AlertDescription>{getFailureMessage()}{failureReason !== 'gender_mismatch' && (<Button variant="link" className="p-0 h-auto mt-2" onClick={retryVerification}>Tekrar Dene</Button>)}</AlertDescription></Alert>)}
-            {hasCameraPermission && verificationStatus !== 'fail' && (<p className="text-sm text-muted-foreground text-center mt-2 h-10">Lütfen yüzünüzü dairenin içine ortalayın. Doğrulama otomatik olarak başlayacaktır.</p>)}
-          </div>
         )}
         {step === 6 && (
-            <div className="flex flex-col items-center gap-4">
-                <p className="font-medium text-center">Bu fotoğraf profil resminiz olarak kullanılacaktır.</p>
-                <div className="relative w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-muted flex items-center justify-center overflow-hidden border-4 border-dashed border-primary/50">
-                    {formData.profilePicture ? (
-                        <img src={formData.profilePicture} alt="Profil fotoğrafı önizlemesi" className="w-full h-full object-cover" />
-                    ) : (
-                        <div className="text-center text-muted-foreground p-4">
-                            <p className="mt-2 text-sm">Doğrulama sırasında fotoğraf alınamadı.</p>
-                        </div>
-                    )}
-                </div>
-                 <Alert>
-                    <ShieldCheck className="h-4 w-4" />
-                    <AlertTitle>Onay</AlertTitle>
-                    <AlertDescription>
-                        Bu fotoğrafın profilinizde görünmesini onaylıyor musunuz?
-                    </AlertDescription>
-                </Alert>
-            </div>
+          <div className="flex flex-col items-center justify-center text-center gap-4">
+            <ShieldCheck className="w-24 h-24 text-green-500" />
+            <h2 className="text-2xl font-bold font-headline">Neredeyse Bitti!</h2>
+            <p className="text-muted-foreground">
+              Tüm bilgilerinizi aldık. BeMatch'e hoş geldin!
+            </p>
+            <p className="text-muted-foreground">
+              Hesabını oluşturmak için "Kaydı Bitir" butonuna tıkla.
+            </p>
+          </div>
         )}
+
       </CardContent>
        <CardFooter className="flex flex-col gap-4">
         <div className="flex w-full justify-between">
             {step > 1 && <Button variant="outline" onClick={prevStep}>Geri</Button>}
             <div className="flex-grow" />
             {step < 5 && <Button onClick={nextStep} disabled={isNextButtonDisabled(step)}>İleri</Button>}
-            {step === 6 && <Button onClick={handleFinishSignup} disabled={isStep6Invalid}>Onayla ve Bitir</Button>}
+            {step === 5 && <Button onClick={() => { if (moderationStatus === 'safe') nextStep() }} disabled={isStep5Invalid}>İleri</Button>}
+            {step === 6 && <Button onClick={handleFinishSignup}>Kaydı Bitir</Button>}
         </div>
         <div className="mt-2 text-center text-sm">
             Zaten bir hesabınız var mı?{' '}
