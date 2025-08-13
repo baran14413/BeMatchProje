@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { X, Heart, Star, Zap } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { X, Heart, Star } from 'lucide-react';
 
 const mockUsers = [
   {
@@ -32,7 +32,7 @@ export default function MatchPage() {
 
   return (
     <div className="flex flex-col items-center justify-center h-full p-4 relative overflow-hidden pb-28 md:pb-4">
-        <Card className="w-full max-w-sm rounded-2xl overflow-hidden shadow-lg">
+        <Card className="w-full max-w-sm rounded-2xl overflow-hidden shadow-lg border">
             <div className="relative w-full aspect-[3/4.5]">
                 <Image
                     key={currentUser.id}
@@ -41,8 +41,9 @@ export default function MatchPage() {
                     fill
                     className="object-cover"
                     data-ai-hint={currentUser.aiHint}
+                    priority
                 />
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
                     <h2 className="text-3xl font-bold text-white font-headline">{currentUser.name}</h2>
                 </div>
             </div>
@@ -53,10 +54,10 @@ export default function MatchPage() {
                 <X className="w-8 h-8" />
             </Button>
              <Button variant="outline" size="icon" className="w-20 h-20 rounded-full bg-white shadow-xl text-green-500 border-gray-200 hover:bg-green-50">
-                <Heart className="w-10 h-10" />
+                <Heart className="w-10 h-10 fill-current" />
             </Button>
             <Button variant="outline" size="icon" className="w-16 h-16 rounded-full bg-white shadow-lg text-blue-500 border-gray-200 hover:bg-blue-50">
-                <Star className="w-8 h-8" />
+                <Star className="w-8 h-8 fill-current"/>
             </Button>
         </div>
     </div>
