@@ -34,11 +34,12 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const isCreatePage = pathname === '/create';
+  const isChatPage = pathname.startsWith('/chat');
   
   // This is the check to see if a specific chat is open on mobile
-  const chatViewOpen = pathname.startsWith('/chat') && isChatViewOpen(children);
+  const chatViewOpen = isChatPage && isChatViewOpen(children);
 
-  const showNavs = !isCreatePage && !chatViewOpen;
+  const showNavs = !isCreatePage && !isChatPage;
 
   useEffect(() => {
     const handleScroll = () => {

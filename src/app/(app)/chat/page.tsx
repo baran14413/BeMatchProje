@@ -2,13 +2,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import Link from 'next/link';
 
 type Message = {
     id: number;
@@ -57,6 +58,7 @@ const initialConversations: Conversation[] = [
 ];
 
 export default function ChatPage() {
+  const router = useRouter();
   const [conversations, setConversations] = useState(initialConversations);
   const [activeChat, setActiveChat] = useState<Conversation | null>(null);
   const [messageInput, setMessageInput] = useState('');
@@ -107,51 +109,61 @@ export default function ChatPage() {
     <div className="flex h-full bg-background text-foreground">
       {/* Sidebar with Conversation List */}
       <aside className={cn(
-        "w-full md:w-1/3 md:flex flex-col border-r",
-        isChatViewOpen && "hidden md:flex",
+        "w-full flex flex-col h-full",
+        isChatViewOpen && "hidden",
       )}>
-        <div className="p-4 border-b">
-            <h2 className="text-2xl font-bold font-headline">Sohbetler</h2>
-            <div className="relative mt-2">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Ara..." className="pl-8" />
+        <header className="flex items-center gap-4 p-3 border-b bg-card shrink-0 sticky top-0">
+             <Link href="/match">
+                <Button variant="ghost" size="icon" className="rounded-full">
+                    <ArrowLeft className="w-5 h-5"/>
+                </Button>
+            </Link>
+            <h2 className="text-xl font-bold font-headline">Sohbetler</h2>
+        </header>
+
+        <div className='flex-1 flex flex-col'>
+            <div className="p-4 border-b">
+                <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input placeholder="Ara..." className="pl-8" />
+                </div>
             </div>
+            <ScrollArea className="flex-1">
+            {conversations.map((convo) => (
+                <div
+                key={convo.id}
+                className={cn(
+                    'flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50',
+                    activeChat?.id === convo.id && 'bg-muted/50'
+                )}
+                onClick={() => handleSetActiveChat(convo)}
+                >
+                <div className='relative'>
+                    <Avatar className='w-12 h-12'>
+                    <AvatarImage src={convo.avatar} data-ai-hint={convo.aiHint} />
+                    <AvatarFallback>{convo.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    {convo.isOnline && <div className='absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background'/>}
+                </div>
+                <div className="flex-1 overflow-hidden">
+                    <p className="font-semibold truncate">{convo.name}</p>
+                    <p className="text-sm text-muted-foreground truncate">{convo.lastMessage}</p>
+                </div>
+                </div>
+            ))}
+            </ScrollArea>
         </div>
-        <ScrollArea className="flex-1">
-          {conversations.map((convo) => (
-            <div
-              key={convo.id}
-              className={cn(
-                'flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50',
-                 activeChat?.id === convo.id && 'bg-muted/50 border-l-4 border-primary'
-              )}
-              onClick={() => handleSetActiveChat(convo)}
-            >
-              <div className='relative'>
-                <Avatar className='w-12 h-12'>
-                  <AvatarImage src={convo.avatar} data-ai-hint={convo.aiHint} />
-                  <AvatarFallback>{convo.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                {convo.isOnline && <div className='absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background'/>}
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <p className="font-semibold truncate">{convo.name}</p>
-                <p className="text-sm text-muted-foreground truncate">{convo.lastMessage}</p>
-              </div>
-            </div>
-          ))}
-        </ScrollArea>
       </aside>
 
       {/* Main Chat Area */}
       <main className={cn(
-          "w-full md:w-2/3 flex-col h-full",
-          isChatViewOpen ? "flex" : "hidden md:flex"
+          "w-full flex-col h-full",
+          isChatViewOpen ? "flex" : "hidden"
       )}>
         {activeChat ? (
           <>
-            <header className="flex items-center gap-4 p-3 border-b bg-card shrink-0">
-               <Button variant="ghost" size="icon" className="rounded-full md:hidden" onClick={handleBackToList}>
+            <header className="flex items-center gap-4 p-3 border-b bg-card shrink-0 sticky top-0">
+               <Button variant="ghost" size="icon" className="rounded-full" onClick={handleBackToList}>
                     <ArrowLeft className="w-5 h-5"/>
                 </Button>
               <Avatar>
@@ -227,15 +239,7 @@ export default function ChatPage() {
               </form>
             </footer>
           </>
-        ) : (
-          <div className="hidden md:flex items-center justify-center flex-1">
-             <div className="text-center text-muted-foreground">
-                <MessageCircle className="w-16 h-16 mx-auto mb-4" />
-                <p className="text-lg">Başlamak için bir sohbet seçin</p>
-                <p className="text-sm">Mesajlarınız burada görünecek.</p>
-            </div>
-          </div>
-        )}
+        ) : null}
       </main>
     </div>
   );
