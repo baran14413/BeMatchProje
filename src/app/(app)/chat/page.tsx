@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile } from 'lucide-react';
+import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
@@ -58,6 +58,7 @@ export default function ChatPage() {
   const [conversations, setConversations] = useState(initialConversations);
   const [activeChat, setActiveChat] = useState<Conversation | null>(conversations[0]);
   const [messageInput, setMessageInput] = useState('');
+  const [isChatViewOpen, setIsChatViewOpen] = useState(false); // For mobile view management
 
   const handleSendMessage = () => {
     if (!messageInput.trim() || !activeChat) return;
@@ -93,12 +94,17 @@ export default function ChatPage() {
 
   const handleSetActiveChat = (convo: Conversation) => {
     setActiveChat(conversations.find(c => c.id === convo.id) || null);
+    setIsChatViewOpen(true);
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-background text-foreground">
+    <div className="flex h-[calc(100vh-4rem)] bg-background text-foreground overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-full md:w-1/3 border-r flex flex-col">
+      <aside className={cn(
+        "w-full md:w-1/3 border-r flex flex-col transition-transform duration-300 ease-in-out",
+        "md:translate-x-0",
+        isChatViewOpen && "-translate-x-full"
+      )}>
         <div className="p-4 border-b">
             <h2 className="text-2xl font-bold font-headline">Sohbetler</h2>
             <div className="relative mt-2">
@@ -111,8 +117,8 @@ export default function ChatPage() {
             <div
               key={convo.id}
               className={cn(
-                'flex items-center gap-3 p-4 cursor-pointer hover:bg-accent',
-                activeChat?.id === convo.id && 'bg-accent'
+                'flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50 border-l-4',
+                activeChat?.id === convo.id ? 'border-primary bg-muted/30' : 'border-transparent'
               )}
               onClick={() => handleSetActiveChat(convo)}
             >
@@ -133,10 +139,17 @@ export default function ChatPage() {
       </aside>
 
       {/* Main Chat Area */}
-      <main className="w-2/3 flex-col hidden md:flex">
+      <main className={cn(
+          "w-full md:w-2/3 flex flex-col absolute md:static inset-0 transition-transform duration-300 ease-in-out",
+          "md:translate-x-0",
+          !isChatViewOpen ? "translate-x-full" : "translate-x-0"
+      )}>
         {activeChat ? (
           <>
             <header className="flex items-center gap-4 p-3 border-b bg-card">
+               <Button variant="ghost" size="icon" className="rounded-full md:hidden" onClick={() => setIsChatViewOpen(false)}>
+                    <ArrowLeft className="w-5 h-5"/>
+                </Button>
               <Avatar>
                  <AvatarImage src={activeChat.avatar} data-ai-hint={activeChat.aiHint} />
                  <AvatarFallback>{activeChat.name.charAt(0)}</AvatarFallback>
@@ -212,7 +225,11 @@ export default function ChatPage() {
           </>
         ) : (
           <div className="flex items-center justify-center flex-1">
-            <p className="text-muted-foreground">Başlamak için bir sohbet seçin</p>
+             <div className="text-center text-muted-foreground">
+                <MessageCircle className="w-16 h-16 mx-auto mb-4" />
+                <p className="text-lg">Başlamak için bir sohbet seçin</p>
+                <p className="text-sm">Mesajlarınız burada görünecek.</p>
+            </div>
           </div>
         )}
       </main>
