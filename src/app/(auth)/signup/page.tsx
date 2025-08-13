@@ -45,6 +45,9 @@ export default function SignupPage() {
     email: '',
     age: '',
     gender: '',
+    country: '',
+    city: '',
+    district: '',
     hobbies: [] as string[],
     password: '',
     confirmPassword: '',
@@ -212,7 +215,7 @@ export default function SignupPage() {
     checkPasswordStrength(password);
   };
 
-  const handleGenderChange = (value: string) => setFormData((prev) => ({ ...prev, gender: value }));
+  const handleSelectChange = (id: string, value: string) => setFormData((prev) => ({ ...prev, [id]: value }));
   const toggleHobby = (hobby: string) => {
     setFormData((prev) => {
       const newHobbies = prev.hobbies.includes(hobby) ? prev.hobbies.filter((h) => h !== hobby) : [...prev.hobbies, hobby];
@@ -221,7 +224,7 @@ export default function SignupPage() {
   };
 
   const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.username || !formData.email;
-  const isStep2Invalid = !formData.age || !formData.gender || formData.hobbies.length < 3;
+  const isStep2Invalid = !formData.age || !formData.gender || !formData.country || !formData.city || !formData.district || formData.hobbies.length < 3;
   const isStep3Invalid = !formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf';
   const isStep4Invalid = !formData.profilePicture || moderationStatus !== 'safe';
   const isStep5Invalid = verificationStatus !== 'verified';
@@ -232,7 +235,6 @@ export default function SignupPage() {
         case 2: return isStep2Invalid;
         case 3: return isStep3Invalid;
         case 4: return isStep4Invalid;
-        // Step 5 is automatic, but we keep the logic just in case.
         case 5: return isStep5Invalid;
         default: return false;
     }
@@ -294,22 +296,36 @@ export default function SignupPage() {
           </div>
         )}
         {step === 2 && (
-            <div className="grid gap-6">
-                <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4">
+                 <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
                         <Label htmlFor="age">Yaş</Label>
                         <Input id="age" type="number" placeholder="25" value={formData.age} onChange={handleChange} required />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="gender">Cinsiyet</Label>
-                        <Select onValueChange={handleGenderChange} value={formData.gender}>
-                        <SelectTrigger id="gender"><SelectValue placeholder="Seçiniz" /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="female">Kadın</SelectItem>
-                            <SelectItem value="male">Erkek</SelectItem>
-                            <SelectItem value="other">Diğer</SelectItem>
-                        </SelectContent>
+                        <Select onValueChange={(v) => handleSelectChange('gender', v)} value={formData.gender}>
+                            <SelectTrigger id="gender"><SelectValue placeholder="Seçiniz" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="female">Kadın</SelectItem>
+                                <SelectItem value="male">Erkek</SelectItem>
+                                <SelectItem value="other">Diğer</SelectItem>
+                            </SelectContent>
                         </Select>
+                    </div>
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="country">Ülke</Label>
+                    <Input id="country" placeholder="Türkiye" value={formData.country} onChange={handleChange} required />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="city">Şehir</Label>
+                        <Input id="city" placeholder="İstanbul" value={formData.city} onChange={handleChange} required />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="district">İlçe</Label>
+                        <Input id="district" placeholder="Kadıköy" value={formData.district} onChange={handleChange} required />
                     </div>
                 </div>
                  <div className="grid gap-2">
