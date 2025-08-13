@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,9 +14,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = (event: React.FormEvent) => {
     event.preventDefault();
@@ -37,9 +40,18 @@ export default function LoginPage() {
             <Label htmlFor="email">E-posta</Label>
             <Input id="email" type="email" placeholder="ornek@mail.com" required />
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-2 relative">
             <Label htmlFor="password">Şifre</Label>
-            <Input id="password" type="password" required />
+            <Input id="password" type={showPassword ? 'text' : 'password'} required />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute right-1 top-7 h-7 w-7"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </Button>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col">

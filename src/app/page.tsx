@@ -1,26 +1,22 @@
-import { Button } from '@/components/ui/button';
-import { Heart } from 'lucide-react';
-import Link from 'next/link';
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Geliştirme sırasında doğrudan /match sayfasına yönlendirme
+    router.replace('/match');
+  }, [router]);
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-8">
-      <div className="text-center">
-        <Heart className="mx-auto h-16 w-16 text-primary" />
-        <h1 className="mt-4 text-5xl font-bold tracking-tight text-primary sm:text-6xl font-headline">
-          BeMatch
-        </h1>
-        <p className="mt-6 text-lg leading-8 text-foreground/80">
-          Hayalinizdeki partneri bulmanın en modern yolu.
-        </p>
-        <div className="mt-10 flex items-center justify-center gap-x-6">
-          <Button asChild size="lg">
-            <Link href="/login">Giriş Yap</Link>
-          </Button>
-          <Button asChild variant="outline" size="lg">
-            <Link href="/signup">Kayıt Ol</Link>
-          </Button>
-        </div>
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="text-lg text-muted-foreground">Yönlendiriliyor...</p>
       </div>
     </main>
   );
