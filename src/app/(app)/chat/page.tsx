@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, MessageCircle } from 'lucide-react';
+import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -64,15 +64,16 @@ export default function ChatPage() {
   const [activeChat, setActiveChat] = useState<Conversation | null>(null);
   const [messageInput, setMessageInput] = useState('');
 
-  const isChatViewOpen = activeChat !== null;
+  // A chat view is open if a userId is present in the URL
+  const isChatViewOpen = searchParams.has('userId');
 
   useEffect(() => {
     const userId = searchParams.get('userId');
     if (userId) {
       const chatToOpen = conversations.find(c => c.id === parseInt(userId, 10));
-      if (chatToOpen) {
-        setActiveChat(chatToOpen);
-      }
+      setActiveChat(chatToOpen || null);
+    } else {
+        setActiveChat(null);
     }
   }, [searchParams, conversations]);
 
@@ -110,23 +111,19 @@ export default function ChatPage() {
   };
 
   const handleSetActiveChat = (convo: Conversation) => {
-    setActiveChat(conversations.find(c => c.id === convo.id) || null);
+    router.push(`/chat?userId=${convo.id}`);
   }
 
   const handleBackToList = () => {
-      setActiveChat(null);
-      // If we came directly via a query param, going back should take us to the main match page.
-      if (searchParams.get('userId')) {
-          router.push('/match');
-      }
+      router.push('/chat');
   }
 
   return (
     <div className="flex h-full bg-background text-foreground">
       {/* Sidebar with Conversation List */}
       <aside className={cn(
-        "w-full flex flex-col h-full",
-        isChatViewOpen && "hidden",
+        "w-full flex-col h-full",
+        isChatViewOpen ? "hidden" : "flex",
       )}>
         <header className="flex items-center gap-4 p-3 border-b bg-card shrink-0 sticky top-0">
              <Link href="/match">

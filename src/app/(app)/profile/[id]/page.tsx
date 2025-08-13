@@ -24,6 +24,7 @@ import Link from 'next/link';
 // In a real app, you would fetch user data based on the `id` param.
 // For this example, we'll use a hardcoded user object.
 const userProfile = {
+  id: 1, // Added id for dynamic linking
   name: 'Elif',
   age: 28,
   avatarUrl: 'https://placehold.co/128x128.png',
@@ -70,7 +71,7 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
                 </p>
               </div>
               <div className="mt-4 flex gap-2 w-full">
-                <Link href={`/chat?userId=1`} className="flex-1">
+                <Link href={`/chat?userId=${params.id}`} className="flex-1">
                   <Button className="w-full">
                     <MessageSquare className="mr-2 h-4 w-4" /> Mesaj Gönder
                   </Button>
@@ -154,3 +155,4 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
     </div>
   );
 }
+

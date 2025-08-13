@@ -3,45 +3,24 @@
 
 import React, { type ReactNode, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe, ArrowLeft } from 'lucide-react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
-// Helper to determine if a specific chat is open on mobile
-function isChatViewOpen(children: ReactNode): boolean {
-  if (React.isValidElement(children) && (children.props as any)) {
-    try {
-        const pageProps = (children.props as any)?.childProp?.parallelRoutes?.children?.props?.childProp?.segment === '__PAGE__'
-        ? (children.props as any).childProp.parallelRoutes.children.props.childProp.segment.__PAGE__.props
-        : null;
-        
-      if (pageProps?.searchParams?.chatId) {
-          return true
-      }
-      
-      const activeChat = (children as any)?.props?.children?.props?.activeChat;
-      if (activeChat) return true;
-
-    } catch (e) {
-      return false;
-    }
-  }
-  return false;
-}
-
-
 export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const isChatPage = pathname.startsWith('/chat');
+  // A chat view is considered open if we are on the /chat page AND a specific userId is in the query params.
+  const isChatPage = pathname === '/chat';
+  const isChatViewOpen = isChatPage && searchParams.has('userId');
   const isCreatePage = pathname === '/create';
   
-  const chatViewOpen = isChatPage && isChatViewOpen(children);
-
-  const showNavs = !chatViewOpen && !isCreatePage;
+  // Show navs unless it's the create page or a specific chat is open.
+  const showNavs = !isCreatePage && !isChatViewOpen;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -88,7 +67,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <span className="font-bold">BeMatch</span>
         </Link>
         <div className="flex items-center gap-2">
-            <Link href="/profile">
+            <Link href="/profile/edit">
                 <Button variant="ghost" size="icon" className="rounded-full">
                     <User className="w-5 h-5" />
                     <span className="sr-only">Profil</span>
@@ -121,8 +100,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Bottom Navigation for Mobile */}
       <nav className={cn(
-        "fixed bottom-0 left-0 right-0 z-40 md:hidden transition-transform duration-300",
-        "h-[var(--bottom-nav-height)]",
+        "fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-sm md:hidden transition-transform duration-300",
+        "h-[var(--bottom-nav-height)] border-t border-border/50",
         !showNavs && "hidden",
         isScrolling && showNavs && "translate-y-full"
       )}>
