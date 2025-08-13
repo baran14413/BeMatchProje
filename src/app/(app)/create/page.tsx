@@ -61,43 +61,54 @@ function centerAspectCrop(
   );
 }
 
-function getCroppedImg(
+// This is a replacement for getCroppedImg to fix the cropping issue.
+function canvasPreview(
   image: HTMLImageElement,
-  crop: PixelCrop,
-): Promise<string> {
-  const canvas = document.createElement('canvas');
-  const scaleX = image.naturalWidth / image.width;
-  const scaleY = image.naturalHeight / image.height;
-  canvas.width = crop.width;
-  canvas.height = crop.height;
+  canvas: HTMLCanvasElement,
+  crop: PixelCrop
+) {
   const ctx = canvas.getContext('2d');
 
   if (!ctx) {
-    return Promise.reject(new Error('2D context not available'));
+    throw new Error('No 2d context');
   }
 
+  const scaleX = image.naturalWidth / image.width;
+  const scaleY = image.naturalHeight / image.height;
+  
   const pixelRatio = window.devicePixelRatio;
-  canvas.width = crop.width * pixelRatio;
-  canvas.height = crop.height * pixelRatio;
-  ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+  canvas.width = Math.floor(crop.width * scaleX * pixelRatio);
+  canvas.height = Math.floor(crop.height * scaleY * pixelRatio);
+
+  ctx.scale(pixelRatio, pixelRatio);
   ctx.imageSmoothingQuality = 'high';
 
+  const cropX = crop.x * scaleX;
+  const cropY = crop.y * scaleY;
+
+  const centerX = image.naturalWidth / 2;
+  const centerY = image.naturalHeight / 2;
+
+  ctx.save();
+  
+  ctx.translate(-cropX, -cropY);
+  ctx.translate(centerX, centerY);
+  ctx.translate(-centerX, -centerY);
   ctx.drawImage(
     image,
-    crop.x * scaleX,
-    crop.y * scaleY,
-    crop.width * scaleX,
-    crop.height * scaleY,
     0,
     0,
-    crop.width,
-    crop.height
+    image.naturalWidth,
+    image.naturalHeight,
+    0,
+    0,
+    image.naturalWidth,
+    image.naturalHeight
   );
 
-  return new Promise((resolve) => {
-    resolve(canvas.toDataURL('image/jpeg', 0.9));
-  });
+  ctx.restore();
 }
+
 
 
 export default function CreatePostPage() {
@@ -112,6 +123,7 @@ export default function CreatePostPage() {
 
   const imgRef = useRef<HTMLImageElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -128,43 +140,38 @@ export default function CreatePostPage() {
   };
 
   useEffect(() => {
-    if (imgRef.current) {
-        const { width, height } = imgRef.current;
-        if (width > 0 && height > 0) {
-            const newCrop = centerAspectCrop(width, height, aspect || (width/height));
-            setCrop(newCrop);
-            setCompletedCrop(newCrop);
-        }
+    if (
+      completedCrop?.width &&
+      completedCrop?.height &&
+      imgRef.current &&
+      previewCanvasRef.current
+    ) {
+      canvasPreview(imgRef.current, previewCanvasRef.current, completedCrop);
     }
-  }, [aspect, imgSrc]);
+  }, [completedCrop]);
 
 
   const handleApplyCropAndContinue = async () => {
-    if (!completedCrop || !imgRef.current) {
-        toast({
-            variant: 'destructive',
-            title: 'Kırpma Hatası',
-            description: 'Lütfen önce bir alan seçin ve kırpma işleminin tamamlanmasını bekleyin.',
-        });
-        return;
+    const image = imgRef.current;
+    const previewCanvas = previewCanvasRef.current;
+    if (!image || !previewCanvas || !completedCrop) {
+      toast({
+        variant: 'destructive',
+        title: 'Kırpma Hatası',
+        description: 'Lütfen önce bir alan seçin ve kırpma işleminin tamamlanmasını bekleyin.',
+      });
+      return;
     }
-    try {
-        const croppedDataUrl = await getCroppedImg(imgRef.current, completedCrop);
-        setImgSrc(croppedDataUrl);
-        toast({
-            title: 'Başarılı',
-            description: 'Fotoğraf başarıyla kırpıldı.',
-            className: 'bg-green-500 text-white',
-        });
-        setStep(3); // Move to the next step
-    } catch (e) {
-        console.error(e);
-        toast({
-            variant: 'destructive',
-            title: 'Kırpma Hatası',
-            description: 'Fotoğraf kırpılırken bir hata oluştu.',
-        });
-    }
+
+    const dataUrl = previewCanvas.toDataURL('image/jpeg', 0.9);
+    setImgSrc(dataUrl);
+
+    toast({
+        title: 'Başarılı',
+        description: 'Fotoğraf başarıyla kırpıldı.',
+        className: 'bg-green-500 text-white',
+    });
+    setStep(3); // Move to the next step
   };
 
   const handleApplyStyle = async () => {
@@ -251,10 +258,12 @@ export default function CreatePostPage() {
   };
   
   function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
-    const { width, height } = e.currentTarget;
-    const newCrop = centerAspectCrop(width, height, aspect || 1 / 1);
-    setCrop(newCrop);
-    setCompletedCrop(newCrop);
+    if (aspect) {
+      const { width, height } = e.currentTarget;
+      const newCrop = centerAspectCrop(width, height, aspect);
+      setCrop(newCrop);
+      setCompletedCrop(newCrop);
+    }
   }
 
   const Step1 = () => (
@@ -429,6 +438,16 @@ export default function CreatePostPage() {
 
   return (
     <div className="container mx-auto max-w-lg p-4 flex items-center justify-center min-h-[80vh]">
+      {/* Hidden canvas for preview */}
+      <canvas
+        ref={previewCanvasRef}
+        style={{
+          display: 'none',
+          objectFit: 'contain',
+          width: completedCrop?.width,
+          height: completedCrop?.height,
+        }}
+      />
       {step === 1 && <Step1 />}
       {step === 2 && <Step2 />}
       {step === 3 && <Step3 />}
