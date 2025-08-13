@@ -62,16 +62,16 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                     <span className="sr-only">Mesajlar</span>
                 </Button>
             </Link>
-            <Link href="#">
+             <Link href="#">
                 <Button variant="ghost" size="icon" className="rounded-full">
-                    <Search className="w-5 h-5" />
-                    <span className="sr-only">Ara</span>
+                    <Bell className="w-5 h-5" />
+                    <span className="sr-only">Bildirimler</span>
                 </Button>
             </Link>
             <Link href="#">
                 <Button variant="ghost" size="icon" className="rounded-full">
-                    <Bell className="w-5 h-5" />
-                    <span className="sr-only">Bildirimler</span>
+                    <Search className="w-5 h-5" />
+                    <span className="sr-only">Ara</span>
                 </Button>
             </Link>
         </div>
