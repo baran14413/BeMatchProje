@@ -3,7 +3,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Edit } from 'lucide-react';
-import ProfileImprovement from '@/components/profile-improvement';
 
 // Mock data for the user profile
 const userProfile = {
@@ -57,12 +56,6 @@ export default function ProfilePage() {
               ))}
             </CardContent>
           </Card>
-          
-          <ProfileImprovement
-            currentProfile={userProfile.bio}
-            currentInterests={userProfile.interests.join(', ')}
-          />
-
         </div>
       </div>
     </div>
