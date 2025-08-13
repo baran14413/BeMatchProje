@@ -22,7 +22,6 @@ export default function LoginPage() {
 
   const handleLogin = (event: React.FormEvent) => {
     event.preventDefault();
-    // Mock login logic
     router.push('/match');
   };
 
@@ -51,6 +50,7 @@ export default function LoginPage() {
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              <span className="sr-only">{showPassword ? "Şifreyi gizle" : "Şifreyi göster"}</span>
             </Button>
           </div>
         </CardContent>

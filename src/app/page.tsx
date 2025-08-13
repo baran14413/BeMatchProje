@@ -8,7 +8,6 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // Geliştirme sırasında doğrudan /match sayfasına yönlendirme
     router.replace('/match');
   }, [router]);
 
