@@ -6,11 +6,38 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, MessageCircle, Bookmark, Plus, Send, Smile } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, Send, Smile, Loader2 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+import { translateText } from '@/ai/flows/translate-text-flow';
 
-const initialPosts = [
+type Comment = {
+  id: number;
+  user: { name: string; avatar: string; aiHint: string };
+  text: string;
+  lang?: string;
+  translation?: string;
+  isTranslating?: boolean;
+  likes: number;
+  liked: boolean;
+};
+
+type Post = {
+  id: number;
+  user: { name: string; avatar: string; aiHint: string };
+  image: string;
+  aiHint: string;
+  caption: string;
+  likes: number;
+  commentsCount: number;
+  liked: boolean;
+  comments: Comment[];
+};
+
+
+const initialPosts: Post[] = [
   {
     id: 1,
     user: {
@@ -22,11 +49,13 @@ const initialPosts = [
     aiHint: 'cityscape night lights',
     caption: 'Şehrin ışıkları ✨',
     likes: 124,
-    commentsCount: 12,
+    commentsCount: 15, // Updated count
     liked: false,
     comments: [
-        { id: 1, user: { name: 'Ahmet', avatar: 'https://placehold.co/40x40.png', aiHint: 'man portrait' }, text: 'Harika bir fotoğraf!', likes: 15 },
-        { id: 2, user: { name: 'Zeynep', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman portrait' }, text: 'Neresi burası? 😍', likes: 3 },
+        { id: 1, user: { name: 'Ahmet', avatar: 'https://placehold.co/40x40.png', aiHint: 'man portrait' }, text: 'Harika bir fotoğraf!', likes: 15, liked: false },
+        { id: 2, user: { name: 'Zeynep', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman portrait' }, text: 'Neresi burası? 😍', likes: 3, liked: true },
+        { id: 3, user: { name: 'John', avatar: 'https://placehold.co/40x40.png', aiHint: 'man portrait smiling' }, text: 'This looks amazing! Great shot.', lang: 'en', likes: 8, liked: false },
+        { id: 4, user: { name: 'Maria', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman portrait laughing' }, text: '¡Qué bonita vista!', lang: 'es', likes: 5, liked: false },
     ]
   },
   {
@@ -40,10 +69,11 @@ const initialPosts = [
     aiHint: 'beach sunset waves',
     caption: 'Huzur dolu bir akşam.',
     likes: 256,
-    commentsCount: 34,
-    liked: true, // Example of already liked post
+    commentsCount: 35, // Updated count
+    liked: true, 
     comments: [
-        { id: 1, user: { name: 'Can', avatar: 'https://placehold.co/40x40.png', aiHint: 'person portrait' }, text: 'Çok güzel görünüyor!', likes: 22 },
+        { id: 1, user: { name: 'Can', avatar: 'https://placehold.co/40x40.png', aiHint: 'person portrait' }, text: 'Çok güzel görünüyor!', likes: 22, liked: false },
+        { id: 2, user: { name: 'Satoshi', avatar: 'https://placehold.co/40x40.png', aiHint: 'man portrait serious' }, text: '美しい夕日ですね。', lang: 'ja', likes: 12, liked: false },
     ]
   },
   {
@@ -65,6 +95,7 @@ const initialPosts = [
 
 export default function ExplorePage() {
     const [posts, setPosts] = useState(initialPosts);
+    const [commentInput, setCommentInput] = useState('');
 
     const handleLikeClick = (postId: number) => {
         setPosts(posts.map(post => 
@@ -72,6 +103,60 @@ export default function ExplorePage() {
             ? { ...post, liked: !post.liked, likes: post.liked ? post.likes - 1 : post.likes + 1 } 
             : post
         ));
+    };
+
+    const handleCommentLikeClick = (postId: number, commentId: number) => {
+        setPosts(posts.map(post => {
+            if (post.id === postId) {
+                return {
+                    ...post,
+                    comments: post.comments.map(comment => {
+                        if (comment.id === commentId) {
+                            return {
+                                ...comment,
+                                liked: !comment.liked,
+                                likes: comment.liked ? comment.likes - 1 : comment.likes + 1
+                            };
+                        }
+                        return comment;
+                    })
+                };
+            }
+            return post;
+        }));
+    };
+    
+    const onEmojiClick = (emojiData: EmojiClickData) => {
+      setCommentInput(prevInput => prevInput + emojiData.emoji);
+    };
+
+    const handleTranslate = async (postId: number, commentId: number) => {
+        const post = posts.find(p => p.id === postId);
+        const comment = post?.comments.find(c => c.id === commentId);
+
+        if (!comment || !comment.text || comment.translation) return;
+
+        // Set translating state
+        setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
+            ...p,
+            comments: p.comments.map(c => c.id === commentId ? { ...c, isTranslating: true } : c)
+        } : p));
+
+        try {
+            const translatedText = await translateText({ textToTranslate: comment.text });
+            // Set translation result
+             setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
+                ...p,
+                comments: p.comments.map(c => c.id === commentId ? { ...c, translation: translatedText.translatedText, isTranslating: false } : c)
+            } : p));
+        } catch (error) {
+            console.error("Translation failed:", error);
+             // Reset translating state on error
+            setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
+                ...p,
+                comments: p.comments.map(c => c.id === commentId ? { ...c, isTranslating: false } : c)
+            } : p));
+        }
     };
 
 
@@ -115,7 +200,7 @@ export default function ExplorePage() {
                         </SheetTrigger>
                     </div>
                     <Button variant="ghost" size="icon">
-                    <Bookmark className="w-6 h-6" />
+                        <Bookmark className="w-6 h-6" />
                     </Button>
                 </div>
 
@@ -151,13 +236,24 @@ export default function ExplorePage() {
                                         <AvatarFallback>{comment.user.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1 text-sm">
-                                        <p><span className="font-semibold">{comment.user.name}</span> {comment.text}</p>
+                                        <p className="font-semibold">{comment.user.name}</p>
+                                        <p>{comment.text}</p>
+                                        {comment.isTranslating && <p className="text-xs text-muted-foreground flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</p>}
+                                        {comment.translation && <p className="text-sm text-primary p-2 bg-primary/10 rounded-md mt-1">{comment.translation}</p>}
                                         <div className="flex gap-4 text-xs text-muted-foreground mt-1">
-                                            <span>Yanıtla</span>
+                                            <span className="cursor-pointer hover:underline">Yanıtla</span>
+                                            {comment.lang && comment.lang !== 'tr' && !comment.translation && (
+                                                <span onClick={() => handleTranslate(post.id, comment.id)} className="cursor-pointer hover:underline">Çevirisine bak</span>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center gap-0.5">
-                                        <Heart className="w-4 h-4 cursor-pointer" />
+                                        <Heart 
+                                            className="w-4 h-4 cursor-pointer" 
+                                            fill={comment.liked ? 'hsl(var(--destructive))' : 'transparent'} 
+                                            stroke={comment.liked ? 'hsl(var(--destructive))' : 'currentColor'}
+                                            onClick={() => handleCommentLikeClick(post.id, comment.id)}
+                                        />
                                         <span className="text-xs text-muted-foreground">{comment.likes}</span>
                                     </div>
                                 </div>
@@ -173,9 +269,24 @@ export default function ExplorePage() {
                             <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="current user portrait" />
                             <AvatarFallback>B</AvatarFallback>
                         </Avatar>
-                        <Input placeholder="Konuşmayı başlat..." className="flex-1 bg-muted border-none rounded-full px-4" />
+                        <Input 
+                            placeholder="Yorum ekle..." 
+                            className="flex-1 bg-muted border-none rounded-full px-4" 
+                            value={commentInput}
+                            onChange={(e) => setCommentInput(e.target.value)}
+                        />
+                         <Popover>
+                            <PopoverTrigger asChild>
+                                <Button size="icon" variant="ghost">
+                                    <Smile className="h-5 w-5" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0 border-none">
+                               <EmojiPicker onEmojiClick={onEmojiClick} />
+                            </PopoverContent>
+                        </Popover>
                         <Button size="icon" variant="ghost">
-                            <Smile className="h-5 w-5" />
+                            <Send className="h-5 w-5" />
                         </Button>
                     </div>
                 </div>
