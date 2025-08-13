@@ -18,7 +18,8 @@ const TranslateTextInputSchema = z.object({
 export type TranslateTextInput = z.infer<typeof TranslateTextInputSchema>;
 
 const TranslateTextOutputSchema = z.object({
-  translatedText: z.string().describe('The translated text in Turkish.'),
+  translatedText: z.string().optional().describe('The translated text in Turkish.'),
+  error: z.string().optional().describe('An error message if translation failed.'),
 });
 export type TranslateTextOutput = z.infer<typeof TranslateTextOutputSchema>;
 
@@ -45,7 +46,12 @@ const translateTextFlow = ai.defineFlow(
     outputSchema: TranslateTextOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    try {
+      const {output} = await prompt(input);
+      return output!;
+    } catch (e: any) {
+        console.error("Translation flow failed", e);
+        return { error: 'Çeviri modeli şu anda yoğun. Lütfen daha sonra tekrar deneyin.' };
+    }
   }
 );

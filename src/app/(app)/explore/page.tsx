@@ -165,23 +165,28 @@ export default function ExplorePage() {
     
         try {
             const translatedData = await translateText({ textToTranslate: comment.text });
+
+            if (translatedData.error || !translatedData.translatedText) {
+                throw new Error(translatedData.error || 'Çeviri sırasında bilinmeyen bir hata oluştu.');
+            }
+
             // Store original text, replace with translation, and set flags
             setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
                 ...p,
                 comments: p.comments.map(c => c.id === commentId ? {
                     ...c,
-                    text: translatedData.translatedText,
+                    text: translatedData.translatedText!,
                     originalText: c.text, // Save original text
                     isTranslated: true, // Mark as translated
                     isTranslating: false
                 } : c)
             } : p));
-        } catch (error) {
+        } catch (error: any) {
             console.error("Translation failed:", error);
             toast({
                 variant: 'destructive',
                 title: 'Çeviri Başarısız',
-                description: 'Model şu anda yoğun. Lütfen daha sonra tekrar deneyin.',
+                description: error.message || 'Model şu anda yoğun. Lütfen daha sonra tekrar deneyin.',
             });
             // Reset translating state on error
             setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
