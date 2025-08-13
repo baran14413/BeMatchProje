@@ -93,7 +93,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <Link href="/match" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/match' ? 'text-primary' : '')}>
                 <Home className={cn('w-6 h-6')} />
             </Link>
-             <Link href="#" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary')}>
+             <Link href="/explore" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/explore' ? 'text-primary' : '')}>
                 <Globe className={cn('w-6 h-6')} />
             </Link>
         </div>
