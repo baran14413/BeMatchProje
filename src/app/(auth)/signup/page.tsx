@@ -224,7 +224,7 @@ export default function SignupPage() {
     }
   };
 
-  const progress = (step / 7) * 100;
+  const progress = (step / 6) * 100;
 
   const getPasswordStrengthColor = () => {
     switch (passwordStrength) {
