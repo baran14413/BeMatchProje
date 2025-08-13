@@ -30,9 +30,12 @@ import {
   Wand2,
   Crop as CropIcon,
   Check,
+  Ban,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { stylizeImage } from '@/ai/flows/stylize-image-flow';
+import { moderateImage } from '@/ai/flows/moderate-image-flow';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 function centerAspectCrop(
   mediaWidth: number,
@@ -125,14 +128,13 @@ export default function CreatePostPage() {
         toast({
             variant: 'destructive',
             title: 'Kırpma Hatası',
-            description: 'Lütfen önce bir alan seçin.',
+            description: 'Lütfen önce bir alan seçin ve kırpma işleminin tamamlanmasını bekleyin.',
         });
         return;
     }
     try {
         const croppedDataUrl = await getCroppedImg(imgRef.current, completedCrop);
         setImgSrc(croppedDataUrl);
-        setCompletedCrop(undefined);
         toast({
             title: 'Başarılı',
             description: 'Fotoğraf başarıyla kırpıldı.',
@@ -185,7 +187,7 @@ export default function CreatePostPage() {
     }
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
      if (!caption) {
       toast({
         variant: 'destructive',
@@ -195,10 +197,37 @@ export default function CreatePostPage() {
       return;
     }
     setIsProcessing(true);
+    
+    // Moderation check
+    try {
+        const moderationResult = await moderateImage({ photoDataUri: imgSrc });
+        if (!moderationResult.isSafe) {
+            toast({
+                variant: 'destructive',
+                title: 'Uygunsuz İçerik',
+                description: `Yapay zeka bu görseli onaylamadı: ${moderationResult.reason}`,
+                duration: 5000,
+            });
+            setIsProcessing(false);
+            return;
+        }
+
+    } catch(e) {
+        console.error("Moderation check failed", e);
+        toast({
+            variant: 'destructive',
+            title: 'Denetleme Hatası',
+            description: 'İçerik denetimi sırasında bir hata oluştu. Lütfen tekrar deneyin.',
+        });
+        setIsProcessing(false);
+        return;
+    }
+    
     toast({
         title: 'Paylaşılıyor...',
         description: 'Gönderiniz oluşturuluyor ve arkadaşlarınızla paylaşılıyor.',
     });
+    
     setTimeout(() => {
         setIsProcessing(false);
         router.push('/explore');
@@ -274,7 +303,7 @@ export default function CreatePostPage() {
         <Button variant="outline" onClick={() => setStep(1)}>
           <ChevronLeft className="mr-2 h-4 w-4" /> Geri
         </Button>
-        <Button onClick={handleApplyCropAndContinue}>
+        <Button onClick={handleApplyCropAndContinue} disabled={!completedCrop?.width}>
           Kırp ve Devam Et <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
@@ -309,7 +338,7 @@ export default function CreatePostPage() {
             />
             <Button
                 onClick={handleApplyStyle}
-                disabled={isProcessing}
+                disabled={isProcessing || !stylePrompt}
                 className="w-full"
             >
                 {isProcessing ? (
