@@ -9,8 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Heart, MessageCircle, Bookmark, Plus, Send, Smile, Loader2 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { translateText } from '@/ai/flows/translate-text-flow';
 
 type Comment = {
@@ -94,6 +92,9 @@ const initialPosts: Post[] = [
   },
 ];
 
+const quickEmojis = ['❤️', '🙌', '🔥', '👏', '😢', '😍', '😮', '😂'];
+
+
 export default function ExplorePage() {
     const [posts, setPosts] = useState(initialPosts);
     const [commentInput, setCommentInput] = useState('');
@@ -127,8 +128,8 @@ export default function ExplorePage() {
         }));
     };
     
-    const onEmojiClick = (emojiData: EmojiClickData) => {
-      setCommentInput(prevInput => prevInput + emojiData.emoji);
+    const handleAddEmoji = (emoji: string) => {
+      setCommentInput(prevInput => prevInput + emoji);
     };
 
     const handleTranslate = async (postId: number, commentId: number) => {
@@ -293,41 +294,28 @@ export default function ExplorePage() {
                         )}
                     </div>
                 </ScrollArea>
-                <div className="p-2 bg-background border-t">
-                     <div className="flex items-center gap-2">
+                 <div className="p-2 bg-background border-t">
+                     <div className="flex items-center gap-4 px-2 py-1">
+                        {quickEmojis.map(emoji => (
+                            <span key={emoji} className="text-2xl cursor-pointer" onClick={() => handleAddEmoji(emoji)}>{emoji}</span>
+                        ))}
+                    </div>
+                     <div className="flex items-center gap-2 mt-2">
                         <Avatar className="w-8 h-8">
                             <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="current user portrait" />
                             <AvatarFallback>B</AvatarFallback>
                         </Avatar>
-                        <Input 
-                            placeholder="Yorum ekle..." 
-                            className="flex-1 bg-muted border-none rounded-full px-4" 
-                            value={commentInput}
-                            onChange={(e) => setCommentInput(e.target.value)}
-                        />
-                         <Popover>
-                            <PopoverTrigger asChild>
-                                <Button size="icon" variant="ghost">
-                                    <Smile className="h-5 w-5" />
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-full max-w-sm p-0 border-none">
-                               <EmojiPicker
-                                   onEmojiClick={onEmojiClick}
-                                   autoFocusSearch={false}
-                                   height={350}
-                                   width="100%"
-                                   searchDisabled={false}
-                                   searchPlaceHolder="Ara..."
-                                   previewConfig={{
-                                      showPreview: false
-                                   }}
-                               />
-                            </PopoverContent>
-                        </Popover>
-                        <Button size="icon" variant="ghost">
-                            <Send className="h-5 w-5" />
-                        </Button>
+                        <div className="relative flex-1">
+                            <Input 
+                                placeholder="Yorum ekle..." 
+                                className="bg-muted border-none rounded-full px-4 pr-10" 
+                                value={commentInput}
+                                onChange={(e) => setCommentInput(e.target.value)}
+                            />
+                            <Button size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full">
+                                <Send className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </SheetContent>
