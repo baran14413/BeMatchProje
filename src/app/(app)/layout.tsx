@@ -11,25 +11,31 @@ import { useState, useEffect, useRef } from 'react';
 export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(true);
-  const lastScrollY = useRef(0);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
-        // Scrolling down
-        setIsVisible(false);
-      } else {
-        // Scrolling up
-        setIsVisible(true);
+      // Hide bars on scroll
+      setIsVisible(false);
+
+      // Clear the previous timeout if it exists
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
       }
-      lastScrollY.current = currentScrollY;
+
+      // Set a new timeout to show the bars after scrolling has stopped
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsVisible(true);
+      }, 250); // Adjust timeout as needed (250ms is a good starting point)
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
     };
   }, []);
 
