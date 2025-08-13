@@ -207,11 +207,6 @@ export default function ChatPage() {
                 </>
             ) : (
                  <>
-                    <Link href="/match">
-                        <Button variant="ghost" size="icon" className="rounded-full">
-                            <ArrowLeft className="w-5 h-5"/>
-                        </Button>
-                    </Link>
                     <h2 className="text-xl font-bold font-headline flex-1">Sohbetler</h2>
                     <Button variant="ghost" size="icon" className="rounded-full" onClick={handleToggleEditMode}>
                         <Pencil className="w-5 h-5"/>
@@ -355,3 +350,4 @@ export default function ChatPage() {
   );
 }
 
+    
