@@ -67,8 +67,8 @@ export default function SignupPage() {
         const mockFaceFound = Math.random() > 0.1; // 90% chance to "find" a face
         const mockIsLive = Math.random() > 0.2; // 80% chance of being "live"
         
-        // Mock detected gender to be the opposite of the selected one to test failure.
-        const mockDetectedGender = formData.gender === 'male' ? 'female' : 'male';
+        // Mock detected gender to be the same as the selected one to simulate success.
+        const mockDetectedGender = formData.gender;
 
         if (!mockFaceFound) {
             setFailureReason('no_face');
@@ -81,7 +81,8 @@ export default function SignupPage() {
             setVerificationStatus('fail');
             return;
         }
-
+        
+        // This check will now only fail if something unexpected happens with the mock.
         if (formData.gender && formData.gender !== 'other' && formData.gender !== mockDetectedGender) {
             setFailureReason('gender_mismatch');
             setVerificationStatus('fail');
