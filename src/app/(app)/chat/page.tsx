@@ -1,15 +1,18 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useMemo } from 'react';
+import { useRouter, useSearchParams }from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft } from 'lucide-react';
+import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, Pencil, Trash2, BellOff, Pin, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
+
 
 type Message = {
     id: number;
@@ -26,6 +29,8 @@ type Conversation = {
     messages: Message[];
     lastMessage: string;
     isOnline: boolean;
+    isPinned: boolean;
+    isMuted: boolean;
 };
 
 
@@ -43,6 +48,8 @@ const initialConversations: Conversation[] = [
       { id: 4, text: 'İyiyim, teşekkürler! Henüz bir planım yok. Kahve harika fikir! Nerede buluşabiliriz?', sender: 'me', timestamp: '10:35' },
     ],
     lastMessage: 'İyiyim, teşekkürler! Henüz bir planım yok...',
+    isPinned: false,
+    isMuted: false,
   },
   {
     id: 2,
@@ -54,15 +61,23 @@ const initialConversations: Conversation[] = [
         { id: 1, text: 'Yürüyüş rotaları hakkında konuşabiliriz belki?', sender: 'other', timestamp: 'Dün' },
     ],
     lastMessage: 'Yürüyüş rotaları hakkında konuşabiliriz belki?',
+    isPinned: false,
+    isMuted: false,
   },
 ];
 
 export default function ChatPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toast } = useToast();
+
   const [conversations, setConversations] = useState(initialConversations);
   const [activeChat, setActiveChat] = useState<Conversation | null>(null);
   const [messageInput, setMessageInput] = useState('');
+  
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+
 
   // A chat view is open if a userId is present in the URL
   const isChatViewOpen = searchParams.has('userId');
@@ -109,14 +124,58 @@ export default function ChatPage() {
 
     setMessageInput('');
   };
+  
+  const handleItemClick = (convo: Conversation) => {
+    if (isEditMode) {
+      const newSelectedIds = new Set(selectedIds);
+      if (newSelectedIds.has(convo.id)) {
+        newSelectedIds.delete(convo.id);
+      } else {
+        newSelectedIds.add(convo.id);
+      }
+      setSelectedIds(newSelectedIds);
+    } else {
+      router.push(`/chat?userId=${convo.id}`);
+    }
+  };
 
-  const handleSetActiveChat = (convo: Conversation) => {
-    router.push(`/chat?userId=${convo.id}`);
-  }
 
   const handleBackToList = () => {
       router.push('/chat');
   }
+  
+  const handleToggleEditMode = () => {
+    setIsEditMode(!isEditMode);
+    setSelectedIds(new Set()); // Exit edit mode clears selection
+  };
+  
+  const handleDelete = () => {
+    setConversations(prev => prev.filter(c => !selectedIds.has(c.id)));
+    toast({ title: `${selectedIds.size} sohbet silindi.` });
+    setIsEditMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleMute = () => {
+    toast({ title: "Sohbet sessize alındı." });
+    setIsEditMode(false);
+    setSelectedIds(new Set());
+  };
+  
+  const handlePin = () => {
+    toast({ title: "Sohbet başa tutturuldu." });
+    setIsEditMode(false);
+    setSelectedIds(new Set());
+  };
+
+
+  const sortedConversations = useMemo(() => {
+    return [...conversations].sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return 0; // In a real app, you'd sort by date here
+    });
+  }, [conversations]);
 
   return (
     <div className="flex h-full bg-background text-foreground">
@@ -126,12 +185,39 @@ export default function ChatPage() {
         isChatViewOpen ? "hidden" : "flex",
       )}>
         <header className="flex items-center gap-4 p-3 border-b bg-card shrink-0 sticky top-0">
-             <Link href="/match">
-                <Button variant="ghost" size="icon" className="rounded-full">
-                    <ArrowLeft className="w-5 h-5"/>
-                </Button>
-            </Link>
-            <h2 className="text-xl font-bold font-headline">Sohbetler</h2>
+            {isEditMode ? (
+                <>
+                   <div className='flex items-center gap-2'>
+                       <Button variant="ghost" size="icon" className="rounded-full" onClick={handleDelete} disabled={selectedIds.size === 0}>
+                           <Trash2 className="w-5 h-5"/>
+                       </Button>
+                        <Button variant="ghost" size="icon" className="rounded-full" onClick={handleMute} disabled={selectedIds.size !== 1}>
+                           <BellOff className="w-5 h-5"/>
+                       </Button>
+                        <Button variant="ghost" size="icon" className="rounded-full" onClick={handlePin} disabled={selectedIds.size !== 1}>
+                           <Pin className="w-5 h-5"/>
+                       </Button>
+                   </div>
+                   <div className='flex-1 text-center font-semibold'>
+                        {selectedIds.size > 0 ? `${selectedIds.size} seçildi` : "Öğe seçin"}
+                   </div>
+                   <Button variant="ghost" size="icon" className="rounded-full" onClick={handleToggleEditMode}>
+                       <X className="w-5 h-5"/>
+                   </Button>
+                </>
+            ) : (
+                 <>
+                    <Link href="/match">
+                        <Button variant="ghost" size="icon" className="rounded-full">
+                            <ArrowLeft className="w-5 h-5"/>
+                        </Button>
+                    </Link>
+                    <h2 className="text-xl font-bold font-headline flex-1">Sohbetler</h2>
+                    <Button variant="ghost" size="icon" className="rounded-full" onClick={handleToggleEditMode}>
+                        <Pencil className="w-5 h-5"/>
+                    </Button>
+                 </>
+            )}
         </header>
 
         <div className='flex-1 flex flex-col'>
@@ -142,14 +228,22 @@ export default function ChatPage() {
                 </div>
             </div>
             <ScrollArea className="flex-1">
-            {conversations.map((convo) => (
+            {sortedConversations.map((convo) => (
                 <div
                 key={convo.id}
                 className={cn(
-                    'flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50'
+                    'flex items-center gap-3 p-4 cursor-pointer transition-colors',
+                    selectedIds.has(convo.id) ? 'bg-primary/20' : 'hover:bg-muted/50'
                 )}
-                onClick={() => handleSetActiveChat(convo)}
+                onClick={() => handleItemClick(convo)}
                 >
+                {isEditMode && (
+                  <Checkbox
+                    checked={selectedIds.has(convo.id)}
+                    onCheckedChange={() => handleItemClick(convo)}
+                    className="h-5 w-5"
+                  />
+                )}
                 <div className='relative'>
                     <Avatar className='w-12 h-12'>
                     <AvatarImage src={convo.avatar} data-ai-hint={convo.aiHint} />
@@ -158,9 +252,13 @@ export default function ChatPage() {
                     {convo.isOnline && <div className='absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background'/>}
                 </div>
                 <div className="flex-1 overflow-hidden">
-                    <p className="font-semibold truncate">{convo.name}</p>
+                    <div className="flex items-center gap-2">
+                        {convo.isPinned && <Pin className="w-4 h-4 text-muted-foreground" />}
+                        <p className="font-semibold truncate">{convo.name}</p>
+                    </div>
                     <p className="text-sm text-muted-foreground truncate">{convo.lastMessage}</p>
                 </div>
+                 {convo.isMuted && <BellOff className="w-4 h-4 text-muted-foreground" />}
                 </div>
             ))}
             </ScrollArea>
@@ -256,3 +354,4 @@ export default function ChatPage() {
     </div>
   );
 }
+
