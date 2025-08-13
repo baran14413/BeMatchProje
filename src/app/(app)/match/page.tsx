@@ -90,8 +90,8 @@ export default function MatchPage() {
   };
 
   const outOfFrame = (name: string, idx: number) => {
-    // Bu fonksiyon, kart tamamen ekrandan çıktığında tetiklenir.
-    // Gelecekte burada bir işlem yapmak isterseniz kullanabilirsiniz.
+    // This function is triggered when a card is completely out of the frame.
+    // You can use it if you want to perform an action here in the future.
   };
 
   const swipe = async (dir: 'left' | 'right') => {
@@ -117,7 +117,7 @@ export default function MatchPage() {
             key={character.name}
             onSwipe={(dir) => swiped(dir, character.name, index)}
             onCardLeftScreen={() => outOfFrame(character.name, index)}
-            preventSwipe={['up', 'down']} // Sadece sağa ve sola kaydırmayı etkinleştirir
+            preventSwipe={['up', 'down']} // Only allows swiping left and right
           >
             <div className="relative w-[350px] h-[580px] rounded-2xl overflow-hidden shadow-2xl bg-card border">
               <Image
