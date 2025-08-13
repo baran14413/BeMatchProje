@@ -42,6 +42,7 @@ const userProfile = {
 export default function UserProfilePage({ params }: { params: { id: string } }) {
   // You can use params.id to fetch the specific user's data
   // For now, we'll just display the placeholder data.
+  const { id } = params;
 
   return (
     <div className="container mx-auto max-w-3xl p-4 md:p-8">
@@ -71,7 +72,7 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
                 </p>
               </div>
               <div className="mt-4 flex gap-2 w-full">
-                <Link href={`/chat?userId=${params.id}`} className="flex-1">
+                <Link href={`/chat?userId=${id}`} className="flex-1">
                   <Button className="w-full">
                     <MessageSquare className="mr-2 h-4 w-4" /> Mesaj Gönder
                   </Button>
@@ -155,4 +156,3 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
     </div>
   );
 }
-
