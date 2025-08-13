@@ -25,7 +25,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                {/* Using a simple heart icon for the logo now */}
                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-heart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
             </div>
-            <span className="text-xl font-bold font-headline">BeMatch</span>
+            <span className="text-xl font-bold font-headline text-primary">BeMatch</span>
         </Link>
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" className="rounded-full">
@@ -48,22 +48,19 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       {/* Bottom Navigation for Mobile */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 h-16 border-t bg-background/95 backdrop-blur-sm md:hidden">
         <div className="grid h-full grid-cols-3">
-            <Link href="/match" className={cn('flex flex-col items-center justify-center gap-1 text-muted-foreground transition-colors hover:text-primary', pathname === '/match' ? 'text-primary' : '')}>
-                <Shuffle className={cn('w-5 h-5', pathname === '/match' ? 'text-primary' : '')} strokeWidth={pathname === '/match' ? 2.5 : 2} />
-                <span className="text-xs">Rastgele</span>
+            <Link href="/match" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/match' ? 'text-primary' : '')}>
+                <Shuffle className={cn('w-5 h-5')} />
             </Link>
-            <Link href="/match" className={cn('flex flex-col items-center justify-center gap-1 text-muted-foreground transition-colors hover:text-primary', pathname === '/match' ? 'text-primary' : '')}>
+            <Link href="/match" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/match' ? 'text-primary' : '')}>
                 <div className={cn('flex items-center justify-center w-12 h-12 rounded-full transition-all', pathname === '/match' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
                     <Home className="w-6 h-6" />
                 </div>
-                 <span className="text-xs absolute bottom-1.5">Ana Sayfa</span>
             </Link>
-             <Link href="/chat" className={cn('flex flex-col items-center justify-center gap-1 text-muted-foreground transition-colors hover:text-primary', pathname.startsWith('/chat') ? 'text-primary' : '')}>
+             <Link href="/chat" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname.startsWith('/chat') ? 'text-primary' : '')}>
                 <div className="relative">
-                    <MessageCircle className={cn('w-5 h-5', pathname.startsWith('/chat') ? 'text-primary' : '')} strokeWidth={pathname.startsWith('/chat') ? 2.5 : 2} />
+                    <MessageCircle className={cn('w-5 h-5')} />
                     <span className="absolute -top-0.5 -right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-background" />
                 </div>
-                <span className="text-xs">Mesajlar</span>
             </Link>
         </div>
       </nav>
