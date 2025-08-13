@@ -31,7 +31,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isScrolledDown, setIsScrolledDown] = useState(false);
   const lastScrollY = useRef(0);
-  const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const isChatPage = pathname.startsWith('/chat');
   const isCreatePage = pathname === '/create';
@@ -47,17 +46,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       const currentScrollY = window.scrollY;
 
       if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
-        setIsScrolledDown(true);
-      } 
-      
-      if (scrollTimeout.current) {
-        clearTimeout(scrollTimeout.current);
+        setIsScrolledDown(true); // Hide on scroll down
+      } else if (currentScrollY < lastScrollY.current) {
+        setIsScrolledDown(false); // Show on scroll up
       }
-
-      scrollTimeout.current = setTimeout(() => {
-        setIsScrolledDown(false);
-      }, 150);
-
 
       lastScrollY.current = currentScrollY;
     };
@@ -70,9 +62,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
    
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      if (scrollTimeout.current) {
-        clearTimeout(scrollTimeout.current);
-      }
     };
   }, [showNavs]);
 
@@ -86,7 +75,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         } as React.CSSProperties}
     >
        <header className={cn(
-        "fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 bg-background/80 backdrop-blur-sm md:px-6 transition-transform duration-300",
+        "fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-6 transition-transform duration-300",
         "h-[var(--header-height)]",
         !showNavs && "hidden",
         isScrolledDown && showNavs && "-translate-y-full"
@@ -129,7 +118,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Bottom Navigation for Mobile */}
       <nav className={cn(
-        "fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-sm md:hidden transition-transform duration-300",
+        "fixed bottom-0 left-0 right-0 z-40 md:hidden transition-transform duration-300",
         "h-[var(--bottom-nav-height)]",
         !showNavs && "hidden",
         isScrolledDown && showNavs && "translate-y-full"
