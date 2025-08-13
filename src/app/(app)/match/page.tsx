@@ -84,29 +84,27 @@ const db = [
 
 export default function MatchPage() {
   return (
-    <div className="container mx-auto max-w-2xl py-4 md:py-8 h-full">
-       <h1 className="text-2xl font-bold px-4 mb-4 font-headline">Sana Uygun Kişiler</h1>
-      <ScrollArea className="h-[calc(100vh-180px)] px-4">
-        <div className="flex flex-col gap-4">
+    <div className="flex flex-col h-full">
+      <h1 className="text-2xl font-bold px-4 pt-4 pb-2 font-headline">Sana Uygun Kişiler</h1>
+      <ScrollArea className="flex-1">
+        <div className="flex flex-col">
           {db.map((user) => (
             <Link href="/profile" key={user.id} className="block">
-              <Card className="hover:bg-accent transition-colors">
-                <CardContent className="p-4 flex items-center gap-4">
-                  <Avatar className="w-16 h-16 border">
-                    <AvatarImage src={user.image} alt={user.name} data-ai-hint={user.aiHint} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-baseline gap-2">
-                        <h3 className="text-xl font-bold">{user.name},</h3>
-                        <p className="text-lg text-muted-foreground">{user.age}</p>
-                    </div>
+              <div className="p-4 flex items-center gap-4 border-b hover:bg-accent transition-colors">
+                <Avatar className="w-16 h-16 border">
+                  <AvatarImage src={user.image} alt={user.name} data-ai-hint={user.aiHint} />
+                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="flex items-baseline gap-2">
+                    <h3 className="text-xl font-bold">{user.name},</h3>
+                    <p className="text-lg text-muted-foreground">{user.age}</p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </Link>
           ))}
-           {!db.length && (
+          {!db.length && (
             <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-10">
               <h3 className="text-xl font-bold">Görünüşe Göre Etrafta Kimse Kalmadı</h3>
               <p className="mt-2">Daha fazla kişi görmek için daha sonra tekrar kontrol et.</p>
