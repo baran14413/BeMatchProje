@@ -282,8 +282,12 @@ export default function ExplorePage() {
                                         <AvatarFallback>{comment.user.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1 text-sm">
-                                        <p>
-                                            <span className="font-semibold mr-1">{comment.user.name}</span>
+                                         <div className="flex items-baseline gap-2">
+                                            <span className="font-semibold">{comment.user.name}</span>
+                                            <span className="text-xs text-muted-foreground font-mono">{formatRelativeTime(comment.createdAt)}</span>
+                                        </div>
+                                        
+                                        <p className="mt-1">
                                             {comment.isTranslating ? (
                                                 <span className="text-sm text-muted-foreground italic flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</span>
                                             ) : (
@@ -291,8 +295,7 @@ export default function ExplorePage() {
                                             )}
                                         </p>
 
-                                        <div className="flex gap-4 text-xs text-muted-foreground mt-1 items-center">
-                                            <span className="font-mono">{formatRelativeTime(comment.createdAt)}</span>
+                                        <div className="flex gap-4 text-xs text-muted-foreground mt-2 items-center">
                                             <span className="cursor-pointer hover:underline" onClick={() => handleReply(comment.user.name)}>Yanıtla</span>
                                             {(comment.lang && comment.lang !== 'tr') || comment.isTranslated ? (
                                                 <span onClick={() => handleTranslate(post.id, comment.id)} className="cursor-pointer hover:underline">
@@ -354,5 +357,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-    
