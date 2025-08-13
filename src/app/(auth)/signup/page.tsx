@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Camera, AlertTriangle, Loader, Eye, EyeOff, Sparkles, Ban, Upload, ShieldCheck, UserCheck, RefreshCw } from 'lucide-react';
+import { Camera, AlertTriangle, Loader, Eye, EyeOff, Sparkles, Ban, Upload, ShieldCheck, UserCheck } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -65,8 +65,16 @@ export default function SignupPage() {
   const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const nextStep = () => setStep((prev) => prev + 1);
-  const prevStep = () => setStep((prev) => prev - 1);
-
+  const prevStep = () => {
+    // When going back from step 6, stop any running verification logic
+    if (step === 6) {
+       if (verificationTimeoutRef.current) {
+        clearTimeout(verificationTimeoutRef.current);
+      }
+    }
+    setStep((prev) => prev - 1);
+  };
+  
   const startVerification = () => {
       setVerificationStatus('checking');
       setVerificationError(null);
@@ -74,11 +82,23 @@ export default function SignupPage() {
       if (verificationTimeoutRef.current) {
         clearTimeout(verificationTimeoutRef.current);
       }
-
-      // Simulate a successful verification for the chosen gender.
+      
+      // Simulate a verification check where the camera always detects a 'male' person.
       verificationTimeoutRef.current = setTimeout(() => {
-        setVerificationStatus('verified');
-        setTimeout(() => nextStep(), 1500); // Wait a bit on success then proceed
+        const detectedGender = 'male'; // The simulated gender detected by the camera
+        
+        if (formData.gender === detectedGender) {
+            setVerificationStatus('verified');
+            setTimeout(() => nextStep(), 1500); // Wait a bit on success then proceed
+        } else {
+            setVerificationStatus('failed');
+            setVerificationError(`Cinsiyetiniz "${formData.gender === 'female' ? 'Kadın' : 'Diğer'}" olarak seçildi, ancak kamerada bir erkek yüzü algılandı. Lütfen cinsiyetinizi doğru girin.`);
+            
+            // Redirect back to step 2 after a delay
+            setTimeout(() => {
+                setStep(2);
+            }, 5000);
+        }
       }, 2000); // Simulate a 2-second check
   };
 
@@ -228,7 +248,7 @@ export default function SignupPage() {
         default: return 'bg-muted';
     }
   };
-
+  
   const getVerificationBorderColor = () => {
       if (verificationStatus === 'verified') return 'border-green-500';
       if (verificationStatus === 'failed') return 'border-red-500';
@@ -439,7 +459,7 @@ export default function SignupPage() {
       </CardContent>
        <CardFooter className="flex flex-col gap-4">
         <div className="flex w-full justify-between">
-            {step > 1 && step !== 5 && <Button variant="outline" onClick={prevStep}>Geri</Button>}
+            {step > 1 && step < 5 && <Button variant="outline" onClick={prevStep}>Geri</Button>}
             <div className="flex-grow" />
             {step < 5 && <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>}
             {step === 6 && <Button onClick={handleFinishSignup}>Kaydı Bitir</Button>}
