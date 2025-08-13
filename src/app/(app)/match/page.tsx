@@ -91,7 +91,6 @@ export default function MatchPage() {
 
   const outOfFrame = (name: string, idx: number) => {
     // This function is triggered when a card is completely out of the frame.
-    // You can use it if you want to perform an action here in the future.
   };
 
   const swipe = async (dir: 'left' | 'right') => {
@@ -117,7 +116,7 @@ export default function MatchPage() {
             key={character.name}
             onSwipe={(dir) => swiped(dir, character.name, index)}
             onCardLeftScreen={() => outOfFrame(character.name, index)}
-            preventSwipe={['up', 'down']} // Only allows swiping left and right
+            preventSwipe={['up', 'down', 'left', 'right']} // Prevent manual swiping
           >
             <div className="relative w-[350px] h-[580px] rounded-2xl overflow-hidden shadow-2xl bg-card border">
               <Image
@@ -162,7 +161,7 @@ export default function MatchPage() {
             onClick={() => swipe('left')}
             variant="outline"
             size="icon"
-            className="w-16 h-16 rounded-full border-2 border-red-500 text-red-500 hover:bg-red-100 hover:text-red-600 disabled:bg-gray-200"
+            className="w-16 h-16 rounded-full border-2 border-red-500 text-red-500 hover:bg-red-100 hover:text-red-600 disabled:opacity-50"
             disabled={!canSwipe}
         >
             <X className="w-8 h-8" />
@@ -171,7 +170,7 @@ export default function MatchPage() {
             onClick={() => goBack()}
             variant="outline"
             size="icon"
-            className="w-12 h-12 rounded-full border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-100 hover:text-yellow-600 disabled:bg-gray-200"
+            className="w-12 h-12 rounded-full border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-100 hover:text-yellow-600 disabled:opacity-50"
             disabled={!canGoBack}
         >
             <Undo className="w-6 h-6" />
@@ -180,7 +179,7 @@ export default function MatchPage() {
             onClick={() => swipe('right')}
             variant="outline"
             size="icon"
-            className="w-16 h-16 rounded-full border-2 border-green-500 text-green-500 hover:bg-green-100 hover:text-green-600 disabled:bg-gray-200"
+            className="w-16 h-16 rounded-full border-2 border-green-500 text-green-500 hover:bg-green-100 hover:text-green-600 disabled:opacity-50"
             disabled={!canSwipe}
         >
             <Heart className="w-8 h-8" />
