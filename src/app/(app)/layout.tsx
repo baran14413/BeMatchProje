@@ -14,9 +14,14 @@ import { Button } from '@/components/ui/button';
 function isChatViewOpen(children: ReactNode): boolean {
   if (React.isValidElement(children) && (children.props as any)) {
     try {
-      const pageProps = (children.props as any).childProp.parallelRoutes.children.props.childProp.segment.__PAGE__.props;
+      // This complex path is needed to navigate the props structure in Next.js layout system.
+      // It might need adjustment if Next.js changes its internal structure.
+      const pageProps = (children.props as any)?.childProp?.parallelRoutes?.children?.props?.childProp?.segment === '__PAGE__'
+        ? (children.props as any).childProp.parallelRoutes.children.props.childProp.segment.__PAGE__.props
+        : null;
+
       // The `activeChat` prop is specific to our ChatPage component
-      if ('activeChat' in pageProps && pageProps.activeChat !== null) {
+      if (pageProps && 'activeChat' in pageProps && pageProps.activeChat !== null) {
         return true;
       }
     } catch (e) {
@@ -34,29 +39,38 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const isCreatePage = pathname === '/create';
-  const isChatPage = pathname.startsWith('/chat');
+  // Check if we are on any page that is part of the chat feature
+  const isChatFeature = pathname.startsWith('/chat');
   
   // This is the check to see if a specific chat is open on mobile
-  const chatViewOpen = isChatPage && isChatViewOpen(children);
+  const chatViewOpen = isChatFeature && isChatViewOpen(children);
 
-  const showNavs = !isCreatePage && !isChatPage;
+  // Navs should be hidden on the create page or when a specific chat is open on mobile.
+  const showNavs = !isCreatePage && !chatViewOpen;
 
   useEffect(() => {
     const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // Always hide immediately on scroll down
+      if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
+        setIsScrolledDown(true);
+      } else {
+        // If scrolling up, we don't immediately show the nav.
+        // We let the timeout handle it.
+      }
+      
+      // Clear the previous timeout
       if (scrollTimeout.current) {
         clearTimeout(scrollTimeout.current);
       }
 
-      const currentScrollY = window.scrollY;
-      // Hide immediately on scroll down
-      if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
-        setIsScrolledDown(true);
-      } else if (currentScrollY < lastScrollY.current) {
-         // Show only when scrolling stops
-         scrollTimeout.current = setTimeout(() => {
-           setIsScrolledDown(false);
-         }, 150);
-      }
+      // Set a new timeout to show the navs after scrolling has stopped
+      scrollTimeout.current = setTimeout(() => {
+        setIsScrolledDown(false);
+      }, 150);
+
+
       lastScrollY.current = currentScrollY;
     };
 
