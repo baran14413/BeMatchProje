@@ -31,7 +31,7 @@ const prompt = ai.definePrompt({
   name: 'translateTextPrompt',
   input: {schema: TranslateTextInputSchema},
   output: {schema: TranslateTextOutputSchema},
-  model: 'googleai/gemini-1.5-pro',
+  model: 'googleai/gemini-1.5-flash',
   system: `You are an expert translator. Your task is to translate the given text into Turkish.
   Provide only the translated text as output.`,
   prompt: `Please translate the following text to Turkish:
