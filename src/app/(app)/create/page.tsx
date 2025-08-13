@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, ChangeEvent, useEffect } from 'react';
+import { useState, useRef, ChangeEvent } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -25,6 +25,165 @@ import {
 import { stylizeImage } from '@/ai/flows/stylize-image-flow';
 import { moderateImage } from '@/ai/flows/moderate-image-flow';
 
+// Step 1 Component
+const Step1 = ({ onFileSelect }: { onFileSelect: (e: ChangeEvent<HTMLInputElement>) => void }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <Card className="w-full max-w-lg">
+      <CardHeader>
+        <CardTitle>Yeni Gönderi Oluştur</CardTitle>
+        <CardDescription>
+          Bugünün anısını paylaşarak arkadaşlarını etkile.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div
+          className="flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <UploadCloud className="w-16 h-16 text-muted-foreground" />
+          <p className="mt-4 text-lg font-semibold">Fotoğraf Yükle</p>
+          <p className="text-sm text-muted-foreground">
+            Sürükleyip bırakın veya tıklayın
+          </p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={onFileSelect}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Step 2 Component
+const Step2 = ({
+  imgSrc,
+  stylePrompt,
+  setStylePrompt,
+  isProcessing,
+  handleApplyStyle,
+  onBack,
+  onNext,
+}: {
+  imgSrc: string;
+  stylePrompt: string;
+  setStylePrompt: (value: string) => void;
+  isProcessing: boolean;
+  handleApplyStyle: () => void;
+  onBack: () => void;
+  onNext: () => void;
+}) => (
+  <Card className="w-full max-w-lg">
+    <CardHeader>
+      <CardTitle>Adım 2: Yapay Zeka İle Stilizasyon</CardTitle>
+      <CardDescription>
+        İsterseniz fotoğrafınıza sanatsal bir dokunuş katın.
+      </CardDescription>
+    </CardHeader>
+    <CardContent className="flex flex-col items-center gap-4">
+      {imgSrc && (
+        <Image
+          alt="Styled Preview"
+          src={imgSrc}
+          width={500}
+          height={500}
+          className="max-h-[50vh] object-contain rounded-md"
+        />
+      )}
+      <div className="w-full space-y-2">
+        <Textarea
+          placeholder="Örn: bir Van Gogh tablosu gibi yap..."
+          value={stylePrompt}
+          onChange={(e) => setStylePrompt(e.target.value)}
+          disabled={isProcessing}
+          className="min-h-[80px]"
+        />
+        <Button
+          onClick={handleApplyStyle}
+          disabled={isProcessing || !stylePrompt}
+          className="w-full"
+        >
+          {isProcessing ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Wand2 className="mr-2 h-4 w-4" />
+          )}
+          Stil Uygula
+        </Button>
+      </div>
+    </CardContent>
+    <CardFooter className="flex justify-between">
+      <Button variant="outline" onClick={onBack}>
+        <ChevronLeft className="mr-2 h-4 w-4" /> Geri
+      </Button>
+      <Button onClick={onNext}>
+        İleri <ChevronRight className="ml-2 h-4 w-4" />
+      </Button>
+    </CardFooter>
+  </Card>
+);
+
+// Step 3 Component
+const Step3 = ({
+  imgSrc,
+  caption,
+  setCaption,
+  isProcessing,
+  handleShare,
+  onBack,
+}: {
+  imgSrc: string;
+  caption: string;
+  setCaption: (value: string) => void;
+  isProcessing: boolean;
+  handleShare: () => void;
+  onBack: () => void;
+}) => (
+  <Card className="w-full max-w-lg">
+    <CardHeader>
+      <CardTitle>Adım 3: Açıklama Ekle ve Paylaş</CardTitle>
+      <CardDescription>
+        Harika fotoğrafınız için bir başlık yazın.
+      </CardDescription>
+    </CardHeader>
+    <CardContent className="flex flex-col items-center gap-4">
+      {imgSrc && (
+        <Image
+          alt="Final Preview"
+          src={imgSrc}
+          width={500}
+          height={500}
+          className="max-h-[50vh] object-contain rounded-md"
+        />
+      )}
+      <Textarea
+        placeholder="Bir şeyler yazın..."
+        value={caption}
+        onChange={(e) => setCaption(e.target.value)}
+        className="min-h-[100px]"
+      />
+    </CardContent>
+    <CardFooter className="flex justify-between">
+      <Button variant="outline" onClick={onBack}>
+        <ChevronLeft className="mr-2 h-4 w-4" /> Geri
+      </Button>
+      <Button onClick={handleShare} disabled={isProcessing}>
+        {isProcessing ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <Check className="mr-2 h-4 w-4" />
+        )}
+        Paylaş
+      </Button>
+    </CardFooter>
+  </Card>
+);
+
 export default function CreatePostPage() {
   const [step, setStep] = useState(1);
   const [imgSrc, setImgSrc] = useState('');
@@ -32,7 +191,6 @@ export default function CreatePostPage() {
   const [caption, setCaption] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -128,139 +286,41 @@ export default function CreatePostPage() {
     }, 2000);
   };
 
-  const Step1 = () => (
-    <Card className="w-full max-w-lg">
-      <CardHeader>
-        <CardTitle>Yeni Gönderi Oluştur</CardTitle>
-        <CardDescription>
-          Bugünün anısını paylaşarak arkadaşlarını etkile.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div
-          className="flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <UploadCloud className="w-16 h-16 text-muted-foreground" />
-          <p className="mt-4 text-lg font-semibold">Fotoğraf Yükle</p>
-          <p className="text-sm text-muted-foreground">
-            Sürükleyip bırakın veya tıklayın
-          </p>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={onSelectFile}
+  const renderStep = () => {
+    switch (step) {
+      case 1:
+        return <Step1 onFileSelect={onSelectFile} />;
+      case 2:
+        return (
+          <Step2
+            imgSrc={imgSrc}
+            stylePrompt={stylePrompt}
+            setStylePrompt={setStylePrompt}
+            isProcessing={isProcessing}
+            handleApplyStyle={handleApplyStyle}
+            onBack={() => setStep(1)}
+            onNext={() => setStep(3)}
           />
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const Step2 = () => (
-    <Card className="w-full max-w-lg">
-      <CardHeader>
-        <CardTitle>Adım 2: Yapay Zeka İle Stilizasyon</CardTitle>
-        <CardDescription>
-          İsterseniz fotoğrafınıza sanatsal bir dokunuş katın.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center gap-4">
-        {imgSrc && (
-          <Image
-            alt="Styled Preview"
-            src={imgSrc}
-            width={500}
-            height={500}
-            className="max-h-[50vh] object-contain rounded-md"
+        );
+      case 3:
+        return (
+          <Step3
+            imgSrc={imgSrc}
+            caption={caption}
+            setCaption={setCaption}
+            isProcessing={isProcessing}
+            handleShare={handleShare}
+            onBack={() => setStep(2)}
           />
-        )}
-        <div className="w-full space-y-2">
-          <Textarea
-            placeholder="Örn: bir Van Gogh tablosu gibi yap..."
-            value={stylePrompt}
-            onChange={(e) => setStylePrompt(e.target.value)}
-            disabled={isProcessing}
-            className="min-h-[80px]"
-          />
-          <Button
-            onClick={handleApplyStyle}
-            disabled={isProcessing || !stylePrompt}
-            className="w-full"
-          >
-            {isProcessing ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Wand2 className="mr-2 h-4 w-4" />
-            )}
-            Stil Uygula
-          </Button>
-        </div>
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button variant="outline" onClick={() => setStep(1)}>
-          <ChevronLeft className="mr-2 h-4 w-4" /> Geri
-        </Button>
-        <Button onClick={() => setStep(3)}>
-          İleri <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-
-  const Step3 = () => (
-    <Card className="w-full max-w-lg">
-      <CardHeader>
-        <CardTitle>Adım 3: Açıklama Ekle ve Paylaş</CardTitle>
-        <CardDescription>
-          Harika fotoğrafınız için bir başlık yazın.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center gap-4">
-        {imgSrc && (
-          <Image
-            alt="Final Preview"
-            src={imgSrc}
-            width={500}
-            height={500}
-            className="max-h-[50vh] object-contain rounded-md"
-          />
-        )}
-        <Textarea
-          placeholder="Bir şeyler yazın..."
-          value={caption}
-          onChange={(e) => setCaption(e.target.value)}
-          className="min-h-[100px]"
-        />
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button variant="outline" onClick={() => setStep(2)}>
-          <ChevronLeft className="mr-2 h-4 w-4" /> Geri
-        </Button>
-        <Button onClick={handleShare} disabled={isProcessing}>
-          {isProcessing ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Check className="mr-2 h-4 w-4" />
-          )}
-          Paylaş
-        </Button>
-      </CardFooter>
-    </Card>
-  );
+        );
+      default:
+        return <Step1 onFileSelect={onSelectFile} />;
+    }
+  };
 
   return (
     <div className="container mx-auto max-w-lg p-4 flex items-center justify-center min-h-[80vh]">
-      <div style={{ display: step === 1 ? 'block' : 'none' }} className="w-full">
-        <Step1 />
-      </div>
-      <div style={{ display: step === 2 ? 'block' : 'none' }} className="w-full">
-        <Step2 />
-      </div>
-      <div style={{ display: step === 3 ? 'block' : 'none' }} className="w-full">
-        <Step3 />
-      </div>
+      {renderStep()}
     </div>
   );
 }

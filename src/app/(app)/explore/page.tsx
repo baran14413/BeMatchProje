@@ -269,7 +269,7 @@ export default function ExplorePage() {
                 </CardContent>
             </Card>
             <SheetContent side="bottom" className="rounded-t-xl h-[80vh] flex flex-col p-0">
-                 <SheetHeader className="text-center p-4 border-b">
+                 <SheetHeader className="text-center p-4 border-b shrink-0">
                     <SheetTitle>Yorumlar</SheetTitle>
                      <SheetClose className="absolute left-4 top-1/2 -translate-y-1/2" />
                 </SheetHeader>
@@ -321,7 +321,7 @@ export default function ExplorePage() {
                         )}
                     </div>
                 </ScrollArea>
-                 <div className="p-2 bg-background border-t">
+                 <div className="p-2 bg-background border-t shrink-0">
                      <div className="flex items-center gap-4 px-2 py-1">
                         {quickEmojis.map(emoji => (
                             <span key={emoji} className="text-2xl cursor-pointer" onClick={() => handleAddEmoji(emoji)}>{emoji}</span>
