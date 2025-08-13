@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, ChangeEvent } from 'react';
@@ -13,6 +14,7 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
@@ -254,13 +256,10 @@ const Step2TextWrite = ({
             </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
-            <div className={cn("w-full aspect-square rounded-md flex items-center justify-center p-8 text-center", backgroundStyle)}>
-                <Textarea
-                    placeholder="Aklındakileri yaz..."
-                    value={textContent}
-                    onChange={(e) => setTextContent(e.target.value)}
-                    className={cn("bg-transparent border-none text-2xl resize-none text-center focus-visible:ring-0 shadow-none", fontStyle, backgroundStyle.includes('gray-800') ? 'text-white placeholder:text-gray-400' : 'text-black placeholder:text-gray-600')}
-                />
+             <div className={cn("w-full aspect-square rounded-md flex items-center justify-center p-8 text-center", backgroundStyle)}>
+                <p className={cn("text-2xl break-words", fontStyle, backgroundStyle.includes('gray-800') ? 'text-white' : 'text-black')}>
+                    {textContent || 'Aklındakileri yaz...'}
+                </p>
             </div>
             <div className='w-full space-y-4'>
                 <div>
@@ -282,6 +281,15 @@ const Step2TextWrite = ({
                             </Button>
                         ))}
                     </div>
+                </div>
+                 <div>
+                    <Label className="text-sm font-medium mb-2 block">Metin</Label>
+                    <Input 
+                        placeholder="Buraya yaz..." 
+                        value={textContent}
+                        onChange={(e) => setTextContent(e.target.value)}
+                        className="w-full"
+                    />
                 </div>
             </div>
         </CardContent>
