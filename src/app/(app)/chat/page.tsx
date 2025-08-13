@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft } from 'lucide-react';
+import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
@@ -56,9 +56,11 @@ const initialConversations: Conversation[] = [
 
 export default function ChatPage() {
   const [conversations, setConversations] = useState(initialConversations);
-  const [activeChat, setActiveChat] = useState<Conversation | null>(conversations[0]);
+  const [activeChat, setActiveChat] = useState<Conversation | null>(null);
   const [messageInput, setMessageInput] = useState('');
-  const [isChatViewOpen, setIsChatViewOpen] = useState(false); // For mobile view management
+  
+  // On mobile, this will control whether the conversation list or a chat is visible.
+  const isChatViewOpen = activeChat !== null; 
 
   const handleSendMessage = () => {
     if (!messageInput.trim() || !activeChat) return;
@@ -94,16 +96,20 @@ export default function ChatPage() {
 
   const handleSetActiveChat = (convo: Conversation) => {
     setActiveChat(conversations.find(c => c.id === convo.id) || null);
-    setIsChatViewOpen(true);
+  }
+  
+  const handleBackToList = () => {
+      setActiveChat(null);
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-background text-foreground overflow-hidden">
-      {/* Sidebar */}
+    <div className="flex h-full bg-background text-foreground overflow-hidden">
+      {/* Sidebar with Conversation List */}
       <aside className={cn(
-        "w-full md:w-1/3 border-r flex flex-col transition-transform duration-300 ease-in-out",
+        "w-full md:w-1/3 md:flex flex-col border-r transition-transform duration-300 ease-in-out",
         "md:translate-x-0",
-        isChatViewOpen && "-translate-x-full"
+        isChatViewOpen && "-translate-x-full absolute", // Hide on mobile when chat is open
+        !isChatViewOpen && "translate-x-0"
       )}>
         <div className="p-4 border-b">
             <h2 className="text-2xl font-bold font-headline">Sohbetler</h2>
@@ -117,8 +123,7 @@ export default function ChatPage() {
             <div
               key={convo.id}
               className={cn(
-                'flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50 border-l-4',
-                activeChat?.id === convo.id ? 'border-primary bg-muted/30' : 'border-transparent'
+                'flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50'
               )}
               onClick={() => handleSetActiveChat(convo)}
             >
@@ -140,14 +145,14 @@ export default function ChatPage() {
 
       {/* Main Chat Area */}
       <main className={cn(
-          "w-full md:w-2/3 flex flex-col absolute md:static inset-0 transition-transform duration-300 ease-in-out",
+          "w-full md:w-2/3 flex flex-col absolute md:static inset-0 transition-transform duration-300 ease-in-out h-full",
           "md:translate-x-0",
           !isChatViewOpen ? "translate-x-full" : "translate-x-0"
       )}>
         {activeChat ? (
           <>
-            <header className="flex items-center gap-4 p-3 border-b bg-card">
-               <Button variant="ghost" size="icon" className="rounded-full md:hidden" onClick={() => setIsChatViewOpen(false)}>
+            <header className="flex items-center gap-4 p-3 border-b bg-card shrink-0">
+               <Button variant="ghost" size="icon" className="rounded-full" onClick={handleBackToList}>
                     <ArrowLeft className="w-5 h-5"/>
                 </Button>
               <Avatar>
@@ -197,7 +202,7 @@ export default function ChatPage() {
                 ))}
               </div>
             </ScrollArea>
-            <footer className="p-4 border-t bg-card">
+            <footer className="p-4 border-t bg-card shrink-0">
               <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex items-center gap-2">
                  <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0">
                     <ImageIcon className="w-5 h-5" />
@@ -224,7 +229,7 @@ export default function ChatPage() {
             </footer>
           </>
         ) : (
-          <div className="flex items-center justify-center flex-1">
+          <div className="hidden md:flex items-center justify-center flex-1">
              <div className="text-center text-muted-foreground">
                 <MessageCircle className="w-16 h-16 mx-auto mb-4" />
                 <p className="text-lg">Başlamak için bir sohbet seçin</p>

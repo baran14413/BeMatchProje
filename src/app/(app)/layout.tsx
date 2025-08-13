@@ -13,8 +13,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
 
+  const isChatPage = pathname === '/chat';
+
   // This will hide navbars on scroll down and show on scroll up
   const handleScroll = () => {
+      if (isChatPage) {
+        setIsVisible(false);
+        return;
+      }
       const currentScrollY = window.scrollY;
       if (currentScrollY > lastScrollY.current && currentScrollY > 100) { // Scrolling down
           setIsVisible(false);
@@ -30,24 +36,35 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         setIsVisible(false);
         return;
     }
+     if (isChatPage) {
+        setIsVisible(false);
+        return;
+    }
+
 
     window.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [pathname]);
+  }, [pathname, isChatPage]);
+  
+  const showNavs = !isChatPage && isVisible;
 
   if (pathname === '/create') {
     return <main className="flex-1 w-full">{children}</main>;
   }
 
+  // If it's the chat page, we render children directly to allow it to control its own layout
+  if (isChatPage) {
+    return <main className="h-screen bg-background">{children}</main>;
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
        <header className={cn(
         "sticky top-0 z-50 flex items-center justify-between h-16 px-4 border-b shrink-0 bg-background/95 backdrop-blur-sm md:px-6 transition-transform duration-300",
-        !isVisible && "-translate-y-full"
+        !showNavs && "-translate-y-full"
        )}>
         <Link href="/match" className="flex items-center gap-2 font-semibold text-lg">
             <Heart className="w-7 h-7 text-primary" />
@@ -87,8 +104,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Bottom Navigation for Mobile */}
       <nav className={cn(
-        "fixed bottom-0 left-0 right-0 z-40 h-16 bg-background/80 backdrop-blur-sm md:hidden transition-transform duration-300",
-        !isVisible && "translate-y-full"
+        "fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-sm md:hidden transition-transform duration-300 h-16",
+        !showNavs && "translate-y-full"
       )}>
         <div className="grid h-full grid-cols-3">
             <Link href="#" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary')}>
