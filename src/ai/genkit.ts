@@ -9,9 +9,6 @@ import {googleAI} from '@genkit-ai/googleai';
 import {firebase} from "firebase-admin/lib/firebase-namespace-api";
 import App = firebase.app.App;
 
-import { moderateImage } from './flows/moderate-image-flow';
-import { verifyFace } from './flows/verify-face-flow';
-
 export const ai = genkit({
   plugins: [
     googleAI({
@@ -19,5 +16,7 @@ export const ai = genkit({
       // environment variable.
     }),
   ],
-  flows: [moderateImage, verifyFace],
+  // Flows are now auto-registered, so we don't need to list them here.
+  // This breaks the circular dependency between this file and the flow files.
+  flows: [],
 });
