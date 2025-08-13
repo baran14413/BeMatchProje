@@ -31,19 +31,33 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isScrolledDown, setIsScrolledDown] = useState(false);
   const lastScrollY = useRef(0);
+  const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const isCreatePage = pathname === '/create';
-  const chatViewOpen = isChatViewOpen(children);
+  // Note: This check relies on internal Next.js props and might be fragile.
+  // A more robust solution might involve a global state manager (like Zustand or Redux).
+  const chatViewOpen = pathname.startsWith('/chat') && React.isValidElement(children) && (children.props as any).childProp?.parallelRoutes?.children?.props?.childProp?.segment?.__PAGE__?.props?.activeChat !== null;
+
 
   const showNavs = !isCreatePage && !(pathname === '/chat' && chatViewOpen);
 
   useEffect(() => {
     const handleScroll = () => {
+      // Clear the timeout on every scroll event
+      if (scrollTimeout.current) {
+        clearTimeout(scrollTimeout.current);
+      }
+
       const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY.current && currentScrollY > 80) { // Scrolling down
+      // Hide immediately on scroll down
+      if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
         setIsScrolledDown(true);
-      } else { // Scrolling up
-        setIsScrolledDown(false);
+      } else if (currentScrollY < lastScrollY.current) {
+        // When scrolling up, set a timeout to show the navbars
+        // This makes them appear only when scrolling stops
+         scrollTimeout.current = setTimeout(() => {
+           setIsScrolledDown(false);
+         }, 150);
       }
       lastScrollY.current = currentScrollY;
     };
@@ -51,11 +65,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     if (showNavs) {
        window.addEventListener('scroll', handleScroll, { passive: true });
     } else {
-        setIsScrolledDown(false);
+        setIsScrolledDown(false); // Reset on pages where navs are hidden
     }
    
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeout.current) {
+        clearTimeout(scrollTimeout.current);
+      }
     };
   }, [showNavs]);
 
