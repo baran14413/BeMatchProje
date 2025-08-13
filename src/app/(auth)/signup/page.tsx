@@ -47,8 +47,12 @@ export default function SignupPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const nextStep = () => setStep((prev) => prev + 1);
+  const prevStep = () => setStep((prev) => prev - 1);
+
   const handleVerification = () => {
-    if (verificationStatus !== 'idle') return;
+    // Allow retry on fail
+    if (verificationStatus === 'verifying' || verificationStatus === 'success') return;
 
     setVerificationStatus('verifying');
     setFailureReason(null);
@@ -79,6 +83,14 @@ export default function SignupPage() {
         if (formData.gender && formData.gender !== 'other' && formData.gender !== mockDetectedGender) {
             setFailureReason('gender_mismatch');
             setVerificationStatus('fail');
+            toast({
+                variant: 'destructive',
+                title: 'Cinsiyet Uyuşmazlığı',
+                description: 'Belirttiğiniz cinsiyetle doğrulama eşleşmedi. 5 saniye içinde önceki adıma yönlendiriliyorsunuz.',
+            });
+            setTimeout(() => {
+                prevStep();
+            }, 5000);
             return;
         }
 
@@ -134,6 +146,7 @@ export default function SignupPage() {
     if (step === 3 && hasCameraPermission) {
         handleVerification();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, hasCameraPermission]);
 
 
@@ -154,9 +167,6 @@ export default function SignupPage() {
       return { ...prev, hobbies: newHobbies };
     });
   };
-
-  const nextStep = () => setStep((prev) => prev + 1);
-  const prevStep = () => setStep((prev) => prev - 1);
 
   const progress = (step / 3) * 100;
 
@@ -255,7 +265,7 @@ export default function SignupPage() {
          {step === 3 && (
           <div className="flex flex-col items-center gap-4">
             <div className="relative w-64 h-64 sm:w-80 sm:h-80 mx-auto">
-                 <div className={`relative w-full h-full rounded-full bg-muted overflow-hidden flex items-center justify-center border-4 border-dashed transition-colors duration-500 ${getBorderColorClass()}`}>
+                 <div className={`relative w-full h-full rounded-full bg-muted overflow-hidden flex items-center justify-center border-8 border-dashed transition-colors duration-500 ${getBorderColorClass()}`}>
                      <video ref={videoRef} className="w-full h-full object-cover scale-x-[-1]" autoPlay muted playsInline />
                      {hasCameraPermission === false && (
                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white p-4">
@@ -284,7 +294,9 @@ export default function SignupPage() {
                     <AlertTitle>Doğrulama Başarısız</AlertTitle>
                     <AlertDescription>
                        {getFailureMessage()}
-                       <Button variant="link" className="p-0 h-auto mt-2" onClick={handleVerification}>Tekrar Dene</Button>
+                       {failureReason !== 'gender_mismatch' && (
+                         <Button variant="link" className="p-0 h-auto mt-2" onClick={handleVerification}>Tekrar Dene</Button>
+                       )}
                     </AlertDescription>
                 </Alert>
             )}
