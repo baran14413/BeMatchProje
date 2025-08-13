@@ -137,12 +137,12 @@ export default function ExplorePage() {
                 </div>
                 </CardContent>
             </Card>
-            <SheetContent side="bottom" className="rounded-t-xl h-[80vh]">
-                 <SheetHeader className="text-center">
+            <SheetContent side="bottom" className="rounded-t-xl h-[80vh] flex flex-col p-0">
+                 <SheetHeader className="text-center p-4 border-b">
                     <SheetTitle>Yorumlar</SheetTitle>
                 </SheetHeader>
-                <ScrollArea className="flex-1 h-[calc(100%-8rem)] p-4">
-                    <div className="flex flex-col gap-4">
+                <ScrollArea className="flex-1">
+                    <div className="flex flex-col gap-4 p-4">
                         {post.comments.length > 0 ? (
                              post.comments.map(comment => (
                                 <div key={comment.id} className="flex items-start gap-3">
@@ -156,11 +156,11 @@ export default function ExplorePage() {
                                 </div>
                             ))
                         ) : (
-                            <p className="text-center text-muted-foreground">Henüz yorum yok. İlk yorumu sen yap!</p>
+                            <p className="text-center text-muted-foreground py-10">Henüz yorum yok. İlk yorumu sen yap!</p>
                         )}
                     </div>
                 </ScrollArea>
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-background border-t">
+                <div className="p-4 bg-background border-t">
                      <div className="relative">
                         <Input placeholder="Yorum ekle..." className="pr-12" />
                         <Button size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
