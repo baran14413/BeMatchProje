@@ -41,12 +41,12 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
       
-      <main className="flex-1 w-full overflow-y-auto">
+      <main className="flex-1 w-full overflow-y-auto pb-20 md:pb-0">
           {children}
       </main>
 
       {/* Bottom Navigation for Mobile */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 h-20 border-t bg-background/95 backdrop-blur-sm md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 h-16 border-t bg-background/95 backdrop-blur-sm md:hidden">
         <div className="grid h-full grid-cols-3">
           {menuItems.map((item, index) => {
             const isActive = pathname.startsWith(item.href) && (item.href !== '/match' || pathname === '/match' || (index === 0 && pathname !== '/chat'));
@@ -61,28 +61,28 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 )}
               >
                 {index === 1 && (
-                  <div className="absolute flex items-center justify-center w-16 h-16 transition-all duration-300 transform -translate-x-1/2 -translate-y-1/2 border-4 rounded-full shadow-lg bg-background border-background left-1/2 top-1/2">
+                  <div className="absolute flex items-center justify-center w-14 h-14 transition-all duration-300 transform -translate-x-1/2 -translate-y-1/2 border-4 rounded-full shadow-lg bg-background border-background left-1/2 top-1/2">
                      <div className={cn(
                        "flex items-center justify-center w-full h-full rounded-full bg-primary text-primary-foreground",
                        isActive ? "scale-110" : ""
                      )}>
-                        <item.icon className="w-7 h-7" strokeWidth={2.5} />
+                        <item.icon className="w-6 h-6" strokeWidth={2.5} />
                      </div>
                   </div>
                 )}
                 
                 {index !== 1 && (
                     <div className="relative">
-                        <item.icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
+                        <item.icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
                          {item.notification && (
-                            <span className="absolute -top-1 -right-1.5 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-background" />
+                            <span className="absolute -top-0.5 -right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-background" />
                          )}
                     </div>
                 )}
 
                 <span className={cn(
-                    "text-xs mt-1",
-                     index === 1 ? 'absolute bottom-1.5' : ''
+                    "text-xs",
+                     index === 1 ? 'absolute bottom-1' : ''
                 )}>{item.label}</span>
               </Link>
             )
