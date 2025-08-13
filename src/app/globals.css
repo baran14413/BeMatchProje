@@ -71,5 +71,7 @@
   }
   body {
     @apply bg-background text-foreground;
+     /* Add padding to the bottom to account for the mobile nav bar */
+    @apply pb-16 md:pb-0;
   }
 }

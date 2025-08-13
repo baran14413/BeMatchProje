@@ -87,7 +87,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Bottom Navigation for Mobile */}
       <nav className={cn(
-        "fixed bottom-0 left-0 right-0 z-40 h-16 border-t bg-background/95 backdrop-blur-sm md:hidden transition-transform duration-300",
+        "fixed bottom-0 left-0 right-0 z-40 h-16 bg-background/80 backdrop-blur-sm md:hidden transition-transform duration-300",
         !isVisible && "translate-y-full"
       )}>
         <div className="grid h-full grid-cols-3">
