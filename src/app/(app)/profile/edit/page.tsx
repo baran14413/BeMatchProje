@@ -32,7 +32,7 @@ export default function EditProfilePage() {
 
                 {/* BeWalk Premium Card */}
                 <Card className="bg-gradient-to-br from-purple-500 to-blue-600 text-white overflow-hidden">
-                    <CardHeader>
+                     <CardHeader>
                         <div className="flex items-center gap-3">
                             <Gem className="w-8 h-8"/>
                             <CardTitle className="text-2xl text-white">BeWalk Premium</CardTitle>
@@ -42,9 +42,11 @@ export default function EditProfilePage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button className="bg-white text-purple-600 hover:bg-gray-100 w-full font-bold">
-                            Premium'u Keşfet
-                        </Button>
+                        <Link href="/premium">
+                             <Button className="bg-white text-purple-600 hover:bg-gray-100 w-full font-bold">
+                                Premium'u Keşfet
+                            </Button>
+                        </Link>
                     </CardContent>
                 </Card>
 
@@ -59,21 +61,21 @@ export default function EditProfilePage() {
                                 icon={<User className="w-5 h-5 text-foreground" />}
                                 title="Kişisel Bilgiler"
                                 description="Ad, yaş, bio gibi temel bilgilerinizi güncelleyin."
-                                href="#"
+                                href="/profile/edit/personal"
                             />
                              <Separator />
                              <SettingsItem
                                 icon={<Camera className="w-5 h-5 text-foreground" />}
                                 title="Fotoğrafları Yönet"
                                 description="Profil ve galeri fotoğraflarınızı ekleyin veya kaldırın."
-                                href="#"
+                                href="/profile/edit/photos"
                             />
                              <Separator />
                             <SettingsItem
                                 icon={<KeyRound className="w-5 h-5 text-foreground" />}
                                 title="Şifre ve Güvenlik"
                                 description="Şifrenizi değiştirin ve hesap güvenliğinizi artırın."
-                                href="#"
+                                href="/profile/edit/security"
                             />
                        </div>
                     </CardContent>
@@ -90,21 +92,21 @@ export default function EditProfilePage() {
                                 icon={<SlidersHorizontal className="w-5 h-5 text-foreground" />}
                                 title="Keşfet Ayarları"
                                 description="Yaş aralığı ve mesafe gibi eşleşme kriterlerinizi değiştirin."
-                                href="#"
+                                href="/profile/edit/discovery"
                             />
                              <Separator />
                             <SettingsItem
                                 icon={<Bell className="w-5 h-5 text-foreground" />}
                                 title="Bildirim Ayarları"
                                 description="Anlık bildirim tercihlerinizi yönetin."
-                                href="#"
+                                href="/profile/edit/notifications"
                             />
                              <Separator />
                             <SettingsItem
                                 icon={<Shield className="w-5 h-5 text-foreground" />}
                                 title="Gizlilik ve İzinler"
                                 description="Hesap gizliliği ve veri paylaşımı ayarlarınızı kontrol edin."
-                                href="#"
+                                href="/profile/edit/privacy"
                             />
                        </div>
                     </CardContent>
