@@ -6,10 +6,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, MessageCircle, Bookmark, Plus, Send, Smile, Loader2 } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { translateText } from '@/ai/flows/translate-text-flow';
+import { useToast } from '@/hooks/use-toast';
 
 type Comment = {
   id: number;
@@ -98,6 +99,7 @@ const quickEmojis = ['❤️', '👏', '😢', '😘', '😠'];
 export default function ExplorePage() {
     const [posts, setPosts] = useState(initialPosts);
     const [commentInput, setCommentInput] = useState('');
+    const { toast } = useToast();
 
     const handleLikeClick = (postId: number) => {
         setPosts(posts.map(post => 
@@ -176,6 +178,11 @@ export default function ExplorePage() {
             } : p));
         } catch (error) {
             console.error("Translation failed:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Çeviri Başarısız',
+                description: 'Model şu anda yoğun. Lütfen daha sonra tekrar deneyin.',
+            });
             // Reset translating state on error
             setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
                 ...p,
@@ -331,3 +338,5 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    
