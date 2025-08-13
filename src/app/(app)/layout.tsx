@@ -12,13 +12,17 @@ import { Button } from '@/components/ui/button';
 function isChatViewOpen(children: ReactNode): boolean {
   if (React.isValidElement(children) && (children.props as any)) {
     try {
-      const pageProps = (children.props as any)?.childProp?.parallelRoutes?.children?.props?.childProp?.segment === '__PAGE__'
+        const pageProps = (children.props as any)?.childProp?.parallelRoutes?.children?.props?.childProp?.segment === '__PAGE__'
         ? (children.props as any).childProp.parallelRoutes.children.props.childProp.segment.__PAGE__.props
         : null;
-
-      if (pageProps?.activeChat) {
+        
+      if (pageProps?.searchParams?.chatId) {
           return true
       }
+      
+      const activeChat = (children as any)?.props?.children?.props?.activeChat;
+      if (activeChat) return true;
+
     } catch (e) {
       return false;
     }
@@ -29,39 +33,38 @@ function isChatViewOpen(children: ReactNode): boolean {
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [isScrolledDown, setIsScrolledDown] = useState(false);
-  const lastScrollY = useRef(0);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const isChatPage = pathname.startsWith('/chat');
   const isCreatePage = pathname === '/create';
   
-  // This is the check to see if a specific chat is open on mobile
   const chatViewOpen = isChatPage && isChatViewOpen(children);
 
-  // Navs should be hidden on the create page or when a specific chat is open on mobile.
-  const showNavs = !isChatPage && !isCreatePage;
+  const showNavs = !chatViewOpen && !isCreatePage;
 
   useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
-        setIsScrolledDown(true); // Hide on scroll down
-      } else if (currentScrollY < lastScrollY.current) {
-        setIsScrolledDown(false); // Show on scroll up
+      setIsScrolling(true);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
       }
-
-      lastScrollY.current = currentScrollY;
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsScrolling(false);
+      }, 150); 
     };
 
     if (showNavs) {
        window.addEventListener('scroll', handleScroll, { passive: true });
     } else {
-        setIsScrolledDown(false);
+        setIsScrolling(false);
     }
    
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
     };
   }, [showNavs]);
 
@@ -70,15 +73,15 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     <div 
         className="flex flex-col min-h-screen bg-background text-foreground"
         style={{
-            paddingTop: 'var(--header-height)',
-            paddingBottom: 'var(--bottom-nav-height)',
+            paddingTop: showNavs ? 'var(--header-height)' : '0',
+            paddingBottom: showNavs ? 'var(--bottom-nav-height)' : '0',
         } as React.CSSProperties}
     >
        <header className={cn(
         "fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-6 transition-transform duration-300",
         "h-[var(--header-height)]",
         !showNavs && "hidden",
-        isScrolledDown && showNavs && "-translate-y-full"
+        isScrolling && showNavs && "-translate-y-full"
        )}>
         <Link href="/match" className="flex items-center gap-2 font-semibold text-lg">
             <Heart className="w-7 h-7 text-primary" />
@@ -112,7 +115,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
       
-      <main className="flex-1 w-full">
+      <main className="flex-1 w-full h-full">
           {children}
       </main>
 
@@ -121,7 +124,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         "fixed bottom-0 left-0 right-0 z-40 md:hidden transition-transform duration-300",
         "h-[var(--bottom-nav-height)]",
         !showNavs && "hidden",
-        isScrolledDown && showNavs && "translate-y-full"
+        isScrolling && showNavs && "translate-y-full"
       )}>
         <div className="grid h-full grid-cols-3">
             <Link href="#" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary')}>
