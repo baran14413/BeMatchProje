@@ -53,7 +53,7 @@ const stylizeImageFlow = ai.defineFlow(
           {text: `Apply the following style to the image: ${prompt}`},
         ],
         config: {
-          responseModalities: ['IMAGE'],
+          responseModalities: ['TEXT', 'IMAGE'],
         },
       });
 
