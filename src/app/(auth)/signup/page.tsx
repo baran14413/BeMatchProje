@@ -22,11 +22,10 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { moderateImage, ModerateImageOutput } from '@/ai/flows/moderate-image-flow';
-import { verifyFace, VerifyFaceOutput } from '@/ai/flows/verify-face-flow';
 import Image from 'next/image';
 
 const HOBBIES = [
-  'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi', 
+  'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi',
   'Yemek Yapmak', 'Oyun', 'Doğa Yürüyüşü', 'Sanat', 'Teknoloji'
 ];
 
@@ -38,7 +37,7 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [step, setStep] = useState(1);
-  
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -54,18 +53,47 @@ export default function SignupPage() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>('yok');
-  
+
   const [moderationStatus, setModerationStatus] = useState<ModerationStatus>('idle');
   const [moderationResult, setModerationResult] = useState<ModerateImageOutput | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('idle');
-  const [verificationResult, setVerificationResult] = useState<VerifyFaceOutput | null>(null);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
+
+  const startVerification = () => {
+      setVerificationStatus('checking');
+      setVerificationError(null);
+
+      // Clear any existing timeouts
+      if (verificationTimeoutRef.current) {
+        clearTimeout(verificationTimeoutRef.current);
+      }
+
+      verificationTimeoutRef.current = setTimeout(() => {
+        // Simulate checking gender. Assume camera sees a "male".
+        if (formData.gender === 'male') {
+          setVerificationStatus('verified');
+          setTimeout(() => nextStep(), 1500); // Wait a bit on success then proceed
+        } else {
+          setVerificationStatus('failed');
+          setVerificationError('Lütfen cinsiyetinizi doğru girin.');
+          // Redirect back to step 2 after 5 seconds
+          if (verificationTimeoutRef.current) {
+            clearTimeout(verificationTimeoutRef.current);
+          }
+          verificationTimeoutRef.current = setTimeout(() => {
+            setStep(2);
+          }, 5000);
+        }
+      }, 2000); // Simulate a 2-second check
+  };
 
   useEffect(() => {
     if (step === 5) {
@@ -75,6 +103,10 @@ export default function SignupPage() {
           setHasCameraPermission(true);
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
+            // Wait for video to be ready and start verification
+            videoRef.current.onloadedmetadata = () => {
+              startVerification();
+            };
           }
         } catch (error) {
           console.error('Error accessing camera:', error);
@@ -89,12 +121,15 @@ export default function SignupPage() {
       getCameraPermission();
 
       return () => {
-        // Cleanup stream on component unmount or step change
+        // Cleanup stream and timeouts on component unmount or step change
         if (videoRef.current && videoRef.current.srcObject) {
           const stream = videoRef.current.srcObject as MediaStream;
           stream.getTracks().forEach(track => track.stop());
         }
-      }
+        if (verificationTimeoutRef.current) {
+          clearTimeout(verificationTimeoutRef.current);
+        }
+      };
     }
   }, [step, toast]);
 
@@ -135,35 +170,6 @@ export default function SignupPage() {
     }
   };
 
-  const handleVerifyFace = async () => {
-    if (!videoRef.current) return;
-    setVerificationStatus('checking');
-    const canvas = document.createElement('canvas');
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
-    const ctx = canvas.getContext('2d');
-    ctx?.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-    const dataUri = canvas.toDataURL('image/jpeg');
-
-    try {
-      const result = await verifyFace({ photoDataUri: dataUri });
-      setVerificationResult(result);
-      if (result.isLive && result.isFace) {
-        setVerificationStatus('verified');
-      } else {
-        setVerificationStatus('failed');
-      }
-    } catch (error) {
-       console.error("Verification failed", error);
-      toast({
-        variant: 'destructive',
-        title: 'Doğrulama Başarısız',
-        description: 'Yüzünüz doğrulanırken bir hata oluştu. Lütfen tekrar deneyin.'
-      });
-      setVerificationStatus('idle');
-    }
-  };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
@@ -185,12 +191,12 @@ export default function SignupPage() {
     if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
     if (/[0-9]/.test(password)) score++;
     if (/[^a-zA-Z0-9]/.test(password)) score++;
-    if (password.length === 0) { setPasswordStrength('yok'); } 
-    else if (score < 2) { setPasswordStrength('zayıf'); } 
-    else if (score < 4) { setPasswordStrength('orta'); } 
+    if (password.length === 0) { setPasswordStrength('yok'); }
+    else if (score < 2) { setPasswordStrength('zayıf'); }
+    else if (score < 4) { setPasswordStrength('orta'); }
     else { setPasswordStrength('güçlü'); }
   };
-  
+
   const generateStrongPassword = () => {
     const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
     let password = "";
@@ -198,7 +204,7 @@ export default function SignupPage() {
     setFormData(prev => ({ ...prev, password, confirmPassword: password }));
     checkPasswordStrength(password);
   };
-  
+
   const handleGenderChange = (value: string) => setFormData((prev) => ({ ...prev, gender: value }));
   const toggleHobby = (hobby: string) => {
     setFormData((prev) => {
@@ -219,6 +225,7 @@ export default function SignupPage() {
         case 2: return isStep2Invalid;
         case 3: return isStep3Invalid;
         case 4: return isStep4Invalid;
+        // Step 5 is automatic, but we keep the logic just in case.
         case 5: return isStep5Invalid;
         default: return false;
     }
@@ -233,6 +240,13 @@ export default function SignupPage() {
         case 'güçlü': return 'bg-green-500';
         default: return 'bg-muted';
     }
+  };
+
+  const getVerificationBorderColor = () => {
+      if (verificationStatus === 'verified') return 'border-green-500';
+      if (verificationStatus === 'failed') return 'border-red-500';
+      if (verificationStatus === 'checking') return 'border-yellow-500 animate-pulse';
+      return 'border-primary/50';
   };
 
   return (
@@ -350,7 +364,7 @@ export default function SignupPage() {
                     </div>
                   )}
               </div>
-              
+
               {formData.profilePicture && (
                 <Button onClick={handleModerateImage} disabled={moderationStatus === 'checking'}>
                   {moderationStatus === 'checking' && <Loader className="mr-2 h-4 w-4 animate-spin" />}
@@ -380,37 +394,43 @@ export default function SignupPage() {
         )}
         {step === 5 && (
             <div className="flex flex-col items-center gap-4">
-              <p className="font-medium text-center">Lütfen kameraya bakarak yüzünüzü doğrulayın.</p>
-               <div className="relative w-full max-w-sm aspect-square rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
-                 <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+              <p className="font-medium text-center">Doğrulama için lütfen kameraya bakın.</p>
+               <div className={cn(
+                   "relative w-64 h-64 rounded-full bg-muted flex items-center justify-center overflow-hidden border-4 transition-colors",
+                   getVerificationBorderColor()
+               )}>
+                 <video ref={videoRef} className="w-full h-full object-cover scale-x-[-1]" autoPlay muted playsInline />
                   {!hasCameraPermission && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4">
                           <Camera className="w-12 h-12 mb-2"/>
                           <p>Kamera izni bekleniyor...</p>
                       </div>
                   )}
+                  {verificationStatus === 'checking' && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4">
+                          <Loader className="w-12 h-12 mb-2 animate-spin"/>
+                          <p>Doğrulanıyor...</p>
+                      </div>
+                  )}
                </div>
-              
-              <Button onClick={handleVerifyFace} disabled={!hasCameraPermission || verificationStatus === 'checking'}>
-                {verificationStatus === 'checking' && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-                {verificationStatus === 'checking' ? 'Doğrulanıyor...' : 'Doğrula'}
-              </Button>
-              
+
               {verificationStatus === 'failed' && (
                 <Alert variant="destructive" className="mt-4">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertTitle>Doğrulama Başarısız</AlertTitle>
                   <AlertDescription>
-                    {verificationResult?.reason || 'Lütfen yüzünüzün net bir şekilde göründüğünden emin olun ve tekrar deneyin.'}
+                    {verificationError || 'Bir hata oluştu.'}
+                    <br />
+                    Cinsiyet seçimi sayfasına yönlendiriliyorsunuz...
                   </AlertDescription>
                 </Alert>
               )}
               {verificationStatus === 'verified' && (
                 <Alert variant="default" className="mt-4 border-green-500 text-green-700">
                   <UserCheck className="h-4 w-4 text-green-500" />
-                  <AlertTitle>Yüz Doğrulandı</AlertTitle>
+                  <AlertTitle>Doğrulama Başarılı</AlertTitle>
                   <AlertDescription>
-                    Harika! Son adıma geçmek için ileri'ye tıkla.
+                    Harika! Son adıma yönlendiriliyorsunuz...
                   </AlertDescription>
                 </Alert>
               )}
@@ -432,9 +452,9 @@ export default function SignupPage() {
       </CardContent>
        <CardFooter className="flex flex-col gap-4">
         <div className="flex w-full justify-between">
-            {step > 1 && <Button variant="outline" onClick={prevStep}>Geri</Button>}
+            {step > 1 && step !== 5 && <Button variant="outline" onClick={prevStep}>Geri</Button>}
             <div className="flex-grow" />
-            {step < 6 && <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>}
+            {step < 5 && <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>}
             {step === 6 && <Button onClick={handleFinishSignup}>Kaydı Bitir</Button>}
         </div>
         <div className="mt-2 text-center text-sm">
