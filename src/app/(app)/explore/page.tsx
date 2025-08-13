@@ -17,8 +17,10 @@ type Comment = {
   id: number;
   user: { name: string; avatar: string; aiHint: string };
   text: string;
+  originalText?: string;
   lang?: string;
   isTranslating?: boolean;
+  isTranslated?: boolean;
   likes: number;
   liked: boolean;
 };
@@ -132,25 +134,48 @@ export default function ExplorePage() {
     const handleTranslate = async (postId: number, commentId: number) => {
         const post = posts.find(p => p.id === postId);
         const comment = post?.comments.find(c => c.id === commentId);
+    
+        if (!comment) return;
+    
+        // If the comment is already translated, revert to the original text
+        if (comment.isTranslated && comment.originalText) {
+            setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
+                ...p,
+                comments: p.comments.map(c => c.id === commentId ? {
+                    ...c,
+                    text: c.originalText!,
+                    isTranslated: false,
+                    originalText: undefined
+                } : c)
+            } : p));
+            return;
+        }
 
-        if (!comment || !comment.text || !comment.lang || comment.lang === 'tr') return;
+        if (!comment.text || !comment.lang || comment.lang === 'tr') return;
 
+    
         // Set translating state
         setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
             ...p,
             comments: p.comments.map(c => c.id === commentId ? { ...c, isTranslating: true } : c)
         } : p));
-
+    
         try {
             const translatedData = await translateText({ textToTranslate: comment.text });
-            // Replace original text with translation
-             setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
+            // Store original text, replace with translation, and set flags
+            setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
                 ...p,
-                comments: p.comments.map(c => c.id === commentId ? { ...c, text: translatedData.translatedText, isTranslating: false, lang: 'tr' } : c)
+                comments: p.comments.map(c => c.id === commentId ? {
+                    ...c,
+                    text: translatedData.translatedText,
+                    originalText: c.text, // Save original text
+                    isTranslated: true, // Mark as translated
+                    isTranslating: false
+                } : c)
             } : p));
         } catch (error) {
             console.error("Translation failed:", error);
-             // Reset translating state on error
+            // Reset translating state on error
             setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
                 ...p,
                 comments: p.comments.map(c => c.id === commentId ? { ...c, isTranslating: false } : c)
@@ -245,9 +270,11 @@ export default function ExplorePage() {
 
                                         <div className="flex gap-4 text-xs text-muted-foreground mt-1">
                                             <span className="cursor-pointer hover:underline">Yanıtla</span>
-                                            {comment.lang && comment.lang !== 'tr' && (
-                                                <span onClick={() => handleTranslate(post.id, comment.id)} className="cursor-pointer hover:underline">Çevirisine bak</span>
-                                            )}
+                                            {(comment.lang && comment.lang !== 'tr') || comment.isTranslated ? (
+                                                <span onClick={() => handleTranslate(post.id, comment.id)} className="cursor-pointer hover:underline">
+                                                    {comment.isTranslated ? 'Aslına bak' : 'Çevirisine bak'}
+                                                </span>
+                                            ) : null}
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center gap-0.5">
