@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -5,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SendHorizonal, Search } from 'lucide-react';
+import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
@@ -13,6 +14,7 @@ type Message = {
     id: number;
     text: string;
     sender: 'me' | 'other';
+    timestamp: string;
 };
 
 type Conversation = {
@@ -22,6 +24,7 @@ type Conversation = {
     aiHint: string;
     messages: Message[];
     lastMessage: string;
+    isOnline: boolean;
 };
 
 
@@ -31,9 +34,10 @@ const initialConversations: Conversation[] = [
     name: 'Elif',
     avatar: 'https://placehold.co/40x40.png',
     aiHint: 'woman portrait',
+    isOnline: true,
     messages: [
-      { id: 1, text: 'Merhaba! Profilin çok ilgimi çekti.', sender: 'other' },
-      { id: 2, text: 'Merhaba Elif! Teşekkür ederim, senin de.', sender: 'me' },
+      { id: 1, text: 'Merhaba! Profilin çok ilgimi çekti.', sender: 'other', timestamp: '10:30' },
+      { id: 2, text: 'Merhaba Elif! Teşekkür ederim, senin de.', sender: 'me', timestamp: '10:31' },
     ],
     lastMessage: 'Merhaba Elif! Teşekkür ederim, senin de.',
   },
@@ -42,8 +46,9 @@ const initialConversations: Conversation[] = [
     name: 'Mehmet',
     avatar: 'https://placehold.co/40x40.png',
     aiHint: 'man portrait',
+    isOnline: false,
     messages: [
-        { id: 1, text: 'Yürüyüş rotaları hakkında konuşabiliriz belki?', sender: 'other' },
+        { id: 1, text: 'Yürüyüş rotaları hakkında konuşabiliriz belki?', sender: 'other', timestamp: 'Dün' },
     ],
     lastMessage: 'Yürüyüş rotaları hakkında konuşabiliriz belki?',
   },
@@ -61,6 +66,7 @@ export default function ChatPage() {
       id: Date.now(),
       text: messageInput.trim(),
       sender: 'me',
+      timestamp: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
     };
 
     const updatedConversations = conversations.map(convo => {
@@ -77,7 +83,6 @@ export default function ChatPage() {
 
     setConversations(updatedConversations);
     
-    // Also update the activeChat state to trigger re-render
     const updatedActiveChat = updatedConversations.find(c => c.id === activeChat.id);
     if (updatedActiveChat) {
         setActiveChat(updatedActiveChat);
@@ -91,8 +96,9 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-screen bg-background text-foreground">
-      <aside className="w-1/3 border-r flex flex-col">
+    <div className="flex h-[calc(100vh-4rem)] bg-background text-foreground">
+      {/* Sidebar */}
+      <aside className="w-full md:w-1/3 border-r flex flex-col">
         <div className="p-4 border-b">
             <h2 className="text-2xl font-bold font-headline">Sohbetler</h2>
             <div className="relative mt-2">
@@ -110,10 +116,13 @@ export default function ChatPage() {
               )}
               onClick={() => handleSetActiveChat(convo)}
             >
-              <Avatar>
-                <AvatarImage src={convo.avatar} data-ai-hint={convo.aiHint} />
-                <AvatarFallback>{convo.name.charAt(0)}</AvatarFallback>
-              </Avatar>
+              <div className='relative'>
+                <Avatar className='w-12 h-12'>
+                  <AvatarImage src={convo.avatar} data-ai-hint={convo.aiHint} />
+                  <AvatarFallback>{convo.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                {convo.isOnline && <div className='absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background'/>}
+              </div>
               <div className="flex-1 overflow-hidden">
                 <p className="font-semibold truncate">{convo.name}</p>
                 <p className="text-sm text-muted-foreground truncate">{convo.lastMessage}</p>
@@ -122,51 +131,82 @@ export default function ChatPage() {
           ))}
         </ScrollArea>
       </aside>
-      <main className="w-2/3 flex flex-col">
+
+      {/* Main Chat Area */}
+      <main className="w-2/3 flex-col hidden md:flex">
         {activeChat ? (
           <>
-            <header className="flex items-center gap-4 p-4 border-b bg-card">
+            <header className="flex items-center gap-4 p-3 border-b bg-card">
               <Avatar>
                  <AvatarImage src={activeChat.avatar} data-ai-hint={activeChat.aiHint} />
                  <AvatarFallback>{activeChat.name.charAt(0)}</AvatarFallback>
               </Avatar>
-              <h3 className="text-lg font-semibold">{activeChat.name}</h3>
+              <div className='flex-1'>
+                 <h3 className="text-lg font-semibold">{activeChat.name}</h3>
+                 {activeChat.isOnline && <p className='text-xs text-green-500'>Çevrimiçi</p>}
+              </div>
+              <div className='flex items-center gap-2'>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                    <Phone className="w-5 h-5"/>
+                </Button>
+                 <Button variant="ghost" size="icon" className="rounded-full">
+                    <Video className="w-5 h-5"/>
+                </Button>
+              </div>
             </header>
-            <ScrollArea className="flex-1 p-6">
+            <ScrollArea className="flex-1 p-6 bg-muted/30">
               <div className="flex flex-col gap-4">
                 {activeChat.messages.map((message) => (
                   <div
                     key={message.id}
                     className={cn(
-                      'flex items-end gap-2 max-w-xs',
+                      'flex items-end gap-2 max-w-md',
                       message.sender === 'me' ? 'self-end flex-row-reverse' : 'self-start'
                     )}
                   >
                     <div
                       className={cn(
-                        'rounded-lg px-4 py-2',
+                        'rounded-xl px-4 py-2 text-sm',
                         message.sender === 'me'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-card border'
+                          ? 'bg-primary text-primary-foreground rounded-br-none'
+                          : 'bg-card border rounded-bl-none'
                       )}
                     >
                       <p>{message.text}</p>
+                      <p className={cn(
+                        'text-xs mt-1',
+                        message.sender === 'me' ? 'text-primary-foreground/70' : 'text-muted-foreground/70'
+                      )}>
+                        {message.timestamp}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
             </ScrollArea>
             <footer className="p-4 border-t bg-card">
-              <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="relative">
+              <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex items-center gap-2">
+                 <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0">
+                    <ImageIcon className="w-5 h-5" />
+                 </Button>
+                 <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0">
+                    <Smile className="w-5 h-5" />
+                 </Button>
                 <Input 
                     placeholder="Bir mesaj yaz..." 
-                    className="pr-12"
+                    className="flex-1 bg-muted border-none rounded-full"
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
                 />
-                <Button type="submit" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
-                  <SendHorizonal className="h-4 w-4" />
-                </Button>
+                 {messageInput ? (
+                    <Button type="submit" size="icon" className="rounded-full bg-primary text-primary-foreground shrink-0">
+                        <SendHorizonal className="h-5 w-5" />
+                    </Button>
+                 ) : (
+                    <Button type="button" size="icon" className="rounded-full bg-primary text-primary-foreground shrink-0">
+                        <Mic className="h-5 w-5" />
+                    </Button>
+                 )}
               </form>
             </footer>
           </>
