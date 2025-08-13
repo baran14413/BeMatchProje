@@ -61,7 +61,7 @@ export default function MatchPage() {
     };
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 md:p-8 md:pl-24 h-full">
+    <div className="flex flex-col items-center justify-center p-4 md:p-8 h-full">
       <div className="w-full max-w-sm mx-auto">
         <Card className="relative w-full aspect-[3/4.5] rounded-3xl overflow-hidden shadow-2xl group transition-all duration-300 ease-in-out">
             <Image
