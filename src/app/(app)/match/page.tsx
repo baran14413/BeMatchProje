@@ -91,8 +91,8 @@ export default function MatchPage() {
           {db.map((user) => (
             <Link href="/profile" key={user.id} className="block">
               <Card className="hover:bg-accent transition-colors">
-                <CardContent className="p-4 flex items-start gap-4">
-                  <Avatar className="w-20 h-20 border">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <Avatar className="w-16 h-16 border">
                     <AvatarImage src={user.image} alt={user.name} data-ai-hint={user.aiHint} />
                     <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                   </Avatar>
@@ -100,18 +100,6 @@ export default function MatchPage() {
                     <div className="flex items-baseline gap-2">
                         <h3 className="text-xl font-bold">{user.name},</h3>
                         <p className="text-lg text-muted-foreground">{user.age}</p>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">
-                        <MapPin className="w-4 h-4" />
-                        <span>{user.city}</span>
-                    </div>
-                    <p className="text-sm text-foreground/80 mt-2 line-clamp-2">{user.bio}</p>
-                     <div className="flex flex-wrap gap-2 mt-3">
-                        {user.hobbies.slice(0, 3).map((hobby) => (
-                        <Badge key={hobby} variant="secondary">
-                            {hobby}
-                        </Badge>
-                        ))}
                     </div>
                   </div>
                 </CardContent>
