@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Camera, UserCheck, UserX, AlertTriangle, Loader } from 'lucide-react';
+import { Camera, UserCheck, AlertTriangle, Loader } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -51,24 +51,21 @@ export default function SignupPage() {
   const prevStep = () => setStep((prev) => prev - 1);
 
   const handleVerification = () => {
-    // Allow retry on fail
     if (verificationStatus === 'verifying' || verificationStatus === 'success') return;
 
     setVerificationStatus('verifying');
     setFailureReason(null);
 
-    // Clear any existing timeout
     if (verificationTimeoutRef.current) {
         clearTimeout(verificationTimeoutRef.current);
     }
 
     verificationTimeoutRef.current = setTimeout(() => {
-        // This is a mock verification. In a real app, you'd use a face detection/verification API.
         const mockFaceFound = Math.random() > 0.1; // 90% chance to "find" a face
         const mockIsLive = Math.random() > 0.2; // 80% chance of being "live"
         
-        // Mock detected gender to be the same as the selected one to simulate success.
-        const mockDetectedGender = formData.gender;
+        // MOCK: Simulate detecting "male" from the camera to test the logic.
+        const mockDetectedGender = 'male';
 
         if (!mockFaceFound) {
             setFailureReason('no_face');
@@ -82,7 +79,6 @@ export default function SignupPage() {
             return;
         }
         
-        // This check will now only fail if something unexpected happens with the mock.
         if (formData.gender && formData.gender !== 'other' && formData.gender !== mockDetectedGender) {
             setFailureReason('gender_mismatch');
             setVerificationStatus('fail');
@@ -134,11 +130,10 @@ export default function SignupPage() {
     if (step === 3) {
       getCameraPermission();
     } else {
-      // Cleanup camera stream and verification timeout when leaving step 3
       if (verificationTimeoutRef.current) {
         clearTimeout(verificationTimeoutRef.current);
       }
-      setVerificationStatus('idle'); // Reset status when leaving page
+      setVerificationStatus('idle');
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
@@ -146,13 +141,12 @@ export default function SignupPage() {
     }
   }, [step, toast]);
   
-  // Automatically start verification when camera is ready
   useEffect(() => {
     if (step === 3 && hasCameraPermission && verificationStatus === 'idle') {
         handleVerification();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, hasCameraPermission, verificationStatus]);
+  }, [step, hasCameraPermission]);
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
