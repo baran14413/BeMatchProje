@@ -8,6 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 
 const ModerateImageInputSchema = z.object({
@@ -33,6 +34,7 @@ const prompt = ai.definePrompt({
   name: 'moderateImagePrompt',
   input: {schema: ModerateImageInputSchema},
   output: {schema: ModerateImageOutputSchema},
+  model: googleAI.model('gemini-1.5-flash'),
   prompt: `You are an image moderation expert for a dating app. Your task is to determine if the given image is appropriate for a user's profile picture.
 
 Check for the following violations:
