@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React from 'react';
 import Image from 'next/image';
-import TinderCard from 'react-tinder-card';
-import { Heart, X, Undo, MapPin } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { MapPin } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const db = [
   {
@@ -16,7 +17,7 @@ const db = [
     city: 'İstanbul',
     hobbies: ['Sinema', 'Yoga', 'Seyahat'],
     bio: 'Hayatı keşfetmeyi seven, enerjik biriyim.',
-    image: 'https://placehold.co/600x800.png',
+    image: 'https://placehold.co/128x128.png',
     aiHint: 'portrait woman smiling',
   },
   {
@@ -26,7 +27,7 @@ const db = [
     city: 'Ankara',
     hobbies: ['Doğa Yürüyüşü', 'Kitap', 'Müzik'],
     bio: 'Hafta sonları kendimi doğaya atarım.',
-    image: 'https://placehold.co/600x800.png',
+    image: 'https://placehold.co/128x128.png',
     aiHint: 'portrait man hiking',
   },
   {
@@ -36,7 +37,7 @@ const db = [
     city: 'İzmir',
     hobbies: ['Fotoğrafçılık', 'Dans', 'Hayvanlar'],
     bio: 'Gördüğüm her güzel anı ölümsüzleştirmeye çalışırım.',
-    image: 'https://placehold.co/600x800.png',
+    image: 'https://placehold.co/128x128.png',
     aiHint: 'portrait woman beach',
   },
   {
@@ -46,7 +47,7 @@ const db = [
     city: 'İstanbul',
     hobbies: ['Teknoloji', 'Basketbol', 'Yemek'],
     bio: 'Yazılım mühendisiyim ve teknolojiyle iç içeyim.',
-    image: 'https://placehold.co/600x800.png',
+    image: 'https://placehold.co/128x128.png',
     aiHint: 'portrait man professional',
   },
   {
@@ -56,138 +57,75 @@ const db = [
     city: 'Bursa',
     hobbies: ['Kahve', 'Sanat', 'Tarih'],
     bio: 'Üçüncü nesil kahve dükkanlarını keşfetmeyi severim.',
-    image: 'https://placehold.co/600x800.png',
+    image: 'https://placehold.co/128x128.png',
     aiHint: 'portrait woman drinking coffee',
+  },
+   {
+    id: 6,
+    name: 'Ahmet',
+    age: 35,
+    city: 'Antalya',
+    hobbies: ['Yüzme', 'Gitar', 'Kamp'],
+    bio: 'Macerayı ve yeni yerler keşfetmeyi severim.',
+    image: 'https://placehold.co/128x128.png',
+    aiHint: 'portrait man beach sunset',
+  },
+  {
+    id: 7,
+    name: 'Selin',
+    age: 27,
+    city: 'İzmir',
+    hobbies: ['Gurme', 'Tiyatro', 'Bisiklet'],
+    bio: 'Lezzetli yemekler ve sanatla dolu bir hayat.',
+    image: 'https://placehold.co/128x128.png',
+    aiHint: 'portrait woman city night',
   },
 ];
 
-type TinderCardRef = {
-  swipe(dir: 'left' | 'right' | 'up' | 'down'): Promise<void>;
-  restoreCard(): Promise<void>;
-};
-
 export default function MatchPage() {
-  const [currentIndex, setCurrentIndex] = useState(db.length - 1);
-  const currentIndexRef = useRef(currentIndex);
-
-  const childRefs = useMemo(
-    () =>
-      Array(db.length)
-        .fill(0)
-        .map(() => React.createRef<TinderCardRef>()),
-    [db.length]
-  );
-
-  const updateCurrentIndex = (val: number) => {
-    setCurrentIndex(val);
-    currentIndexRef.current = val;
-  };
-
-  const canGoBack = currentIndex < db.length - 1;
-  const canSwipe = currentIndex >= 0;
-
-  const swiped = (direction: string, nameToDelete: string, index: number) => {
-    updateCurrentIndex(index - 1);
-  };
-
-  const outOfFrame = (name: string, idx: number) => {
-     // You can handle what happens when a card is swiped out, e.g. a toast message.
-  };
-
-  const swipe = async (dir: 'left' | 'right') => {
-    if (canSwipe && currentIndex < db.length) {
-      await childRefs[currentIndex].current?.swipe(dir);
-    }
-  };
-
-  const goBack = async () => {
-    if (!canGoBack) return;
-    const newIndex = currentIndex + 1;
-    updateCurrentIndex(newIndex);
-    await childRefs[newIndex].current?.restoreCard();
-  };
-
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center p-4 pb-20 md:pb-4">
-      <div className="w-full h-full flex flex-col items-center justify-center flex-grow relative">
-        <div className="relative w-full max-w-[350px] h-[580px] flex-shrink-0">
-          {db.map((character, index) => (
-            <TinderCard
-              ref={childRefs[index]}
-              className="absolute"
-              key={character.name}
-              onSwipe={(dir) => swiped(dir, character.name, index)}
-              onCardLeftScreen={() => outOfFrame(character.name, index)}
-              preventSwipe={['up', 'down']}
-            >
-              <div className="relative w-[350px] h-[580px] rounded-2xl overflow-hidden shadow-2xl bg-card border">
-                <Image
-                  src={character.image}
-                  alt={character.name}
-                  fill
-                  className="object-cover"
-                  data-ai-hint={character.aiHint}
-                  priority={index === db.length - 1}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                  <h3 className="text-3xl font-bold">
-                    {character.name}, {character.age}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <MapPin className="w-4 h-4" />
-                    <p>{character.city}</p>
+    <div className="container mx-auto max-w-2xl py-4 md:py-8 h-full">
+       <h1 className="text-2xl font-bold px-4 mb-4 font-headline">Sana Uygun Kişiler</h1>
+      <ScrollArea className="h-[calc(100vh-180px)] px-4">
+        <div className="flex flex-col gap-4">
+          {db.map((user) => (
+            <Link href="/profile" key={user.id} className="block">
+              <Card className="hover:bg-accent transition-colors">
+                <CardContent className="p-4 flex items-start gap-4">
+                  <Avatar className="w-20 h-20 border">
+                    <AvatarImage src={user.image} alt={user.name} data-ai-hint={user.aiHint} />
+                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-baseline gap-2">
+                        <h3 className="text-xl font-bold">{user.name},</h3>
+                        <p className="text-lg text-muted-foreground">{user.age}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">
+                        <MapPin className="w-4 h-4" />
+                        <span>{user.city}</span>
+                    </div>
+                    <p className="text-sm text-foreground/80 mt-2 line-clamp-2">{user.bio}</p>
+                     <div className="flex flex-wrap gap-2 mt-3">
+                        {user.hobbies.slice(0, 3).map((hobby) => (
+                        <Badge key={hobby} variant="secondary">
+                            {hobby}
+                        </Badge>
+                        ))}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {character.hobbies.map((hobby) => (
-                      <Badge key={hobby} variant="secondary" className="bg-white/20 text-white border-none backdrop-blur-sm">
-                        {hobby}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </TinderCard>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
-
-          {!canSwipe && (
-            <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground bg-secondary rounded-2xl">
-              <h3 className="text-xl font-bold">Bugünlük Herkesi Gördün</h3>
-              <p className="mt-2">Daha fazla kişi görmek için yarın tekrar gel.</p>
+           {!db.length && (
+            <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-10">
+              <h3 className="text-xl font-bold">Görünüşe Göre Etrafta Kimse Kalmadı</h3>
+              <p className="mt-2">Daha fazla kişi görmek için daha sonra tekrar kontrol et.</p>
             </div>
           )}
         </div>
-      </div>
-      
-      <div className="flex items-center justify-center gap-4 mt-6 flex-shrink-0">
-        <Button
-          onClick={() => swipe('left')}
-          variant="outline"
-          size="icon"
-          className="w-20 h-20 rounded-full border-4 shadow-lg bg-white border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 disabled:bg-gray-100"
-          disabled={!canSwipe}
-        >
-          <X className="w-10 h-10" />
-        </Button>
-        <Button
-          onClick={() => goBack()}
-          variant="outline"
-          size="icon"
-          className="w-16 h-16 rounded-full border-4 shadow-lg bg-white border-yellow-200 text-yellow-500 hover:bg-yellow-50 hover:text-yellow-600 disabled:opacity-50 disabled:bg-gray-100"
-          disabled={!canGoBack}
-        >
-          <Undo className="w-8 h-8" />
-        </Button>
-        <Button
-          onClick={() => swipe('right')}
-          variant="outline"
-          size="icon"
-          className="w-20 h-20 rounded-full border-4 shadow-lg bg-white border-green-200 text-green-500 hover:bg-green-50 hover:text-green-600 disabled:opacity-50 disabled:bg-gray-100"
-          disabled={!canSwipe}
-        >
-          <Heart className="w-10 h-10" />
-        </Button>
-      </div>
+      </ScrollArea>
     </div>
   );
 }
