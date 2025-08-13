@@ -71,27 +71,14 @@ export default function SignupPage() {
       setVerificationStatus('checking');
       setVerificationError(null);
 
-      // Clear any existing timeouts
       if (verificationTimeoutRef.current) {
         clearTimeout(verificationTimeoutRef.current);
       }
 
+      // Simulate a successful verification for the chosen gender.
       verificationTimeoutRef.current = setTimeout(() => {
-        // Simulate checking gender. Assume camera sees a "male".
-        if (formData.gender === 'male') {
-          setVerificationStatus('verified');
-          setTimeout(() => nextStep(), 1500); // Wait a bit on success then proceed
-        } else {
-          setVerificationStatus('failed');
-          setVerificationError('Lütfen cinsiyetinizi doğru girin.');
-          // Redirect back to step 2 after 5 seconds
-          if (verificationTimeoutRef.current) {
-            clearTimeout(verificationTimeoutRef.current);
-          }
-          verificationTimeoutRef.current = setTimeout(() => {
-            setStep(2);
-          }, 5000);
-        }
+        setVerificationStatus('verified');
+        setTimeout(() => nextStep(), 1500); // Wait a bit on success then proceed
       }, 2000); // Simulate a 2-second check
   };
 
