@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Camera } from 'lucide-react';
+import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect, useRef } from 'react';
@@ -45,26 +45,38 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         "sticky top-0 z-50 flex items-center justify-between h-16 px-4 border-b shrink-0 bg-background/95 backdrop-blur-sm md:px-6 transition-transform duration-300",
         !isVisible && "-translate-y-full"
        )}>
+        <div className="flex items-center gap-2">
+            <Link href="/profile">
+                <Button variant="ghost" size="icon" className="rounded-full">
+                    <User className="w-6 h-6" />
+                    <span className="sr-only">Profil</span>
+                </Button>
+            </Link>
+             <Link href="/chat">
+                <Button variant="ghost" size="icon" className="rounded-full">
+                    <MessageCircle className="w-5 h-5" />
+                    <span className="sr-only">Mesajlar</span>
+                </Button>
+            </Link>
+            <Link href="#">
+                <Button variant="ghost" size="icon" className="rounded-full">
+                    <Search className="w-5 h-5" />
+                    <span className="sr-only">Ara</span>
+                </Button>
+            </Link>
+            <Link href="#">
+                <Button variant="ghost" size="icon" className="rounded-full">
+                    <Bell className="w-5 h-5" />
+                    <span className="sr-only">Bildirimler</span>
+                </Button>
+            </Link>
+        </div>
         <Link href="/match" className="flex items-center gap-2 font-semibold">
            <Button variant="ghost" size="icon" className="rounded-full">
-              <Shuffle className="w-6 h-6 text-primary" />
-              <span className="sr-only">Rastgele Eşleş</span>
+              <Heart className="w-6 h-6 text-primary" />
+              <span className="sr-only">BeMatch</span>
             </Button>
         </Link>
-        <div className="flex items-center gap-4">
-           <Link href="#">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Bell className="w-5 h-5" />
-              <span className="sr-only">Bildirimler</span>
-            </Button>
-          </Link>
-          <Link href="/chat">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <MessageCircle className="w-5 h-5" />
-              <span className="sr-only">Mesajlar</span>
-            </Button>
-          </Link>
-        </div>
       </header>
       
       <main className="flex-1 w-full">
@@ -84,7 +96,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 <Home className={cn('w-6 h-6')} />
             </Link>
              <Link href="#" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary')}>
-                <Camera className={cn('w-6 h-6')} />
+                <Globe className={cn('w-6 h-6')} />
             </Link>
         </div>
       </nav>
