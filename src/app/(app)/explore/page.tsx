@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -11,6 +11,16 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { translateText } from '@/ai/flows/translate-text-flow';
 import { useToast } from '@/hooks/use-toast';
+import { formatDistanceToNowStrict } from 'date-fns';
+import { tr } from 'date-fns/locale';
+
+
+const formatRelativeTime = (date: Date) => {
+    return formatDistanceToNowStrict(date, {
+        addSuffix: true,
+        locale: tr,
+    });
+};
 
 type Comment = {
   id: number;
@@ -22,6 +32,7 @@ type Comment = {
   isTranslated?: boolean;
   likes: number;
   liked: boolean;
+  createdAt: Date;
 };
 
 type Post = {
@@ -49,13 +60,13 @@ const initialPosts: Post[] = [
     aiHint: 'cityscape night lights',
     caption: 'Şehrin ışıkları ✨',
     likes: 124,
-    commentsCount: 15, // Updated count
+    commentsCount: 15,
     liked: false,
     comments: [
-        { id: 1, user: { name: 'Ahmet', avatar: 'https://placehold.co/40x40.png', aiHint: 'man portrait' }, text: 'Harika bir fotoğraf!', likes: 15, liked: false },
-        { id: 2, user: { name: 'Zeynep', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman portrait' }, text: 'Neresi burası? 😍', likes: 3, liked: true },
-        { id: 3, user: { name: 'John', avatar: 'https://placehold.co/40x40.png', aiHint: 'man portrait smiling' }, text: 'This looks amazing! Great shot.', lang: 'en', likes: 8, liked: false },
-        { id: 4, user: { name: 'Maria', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman portrait laughing' }, text: '¡Qué bonita vista!', lang: 'es', likes: 5, liked: false },
+        { id: 1, user: { name: 'Ahmet', avatar: 'https://placehold.co/40x40.png', aiHint: 'man portrait' }, text: 'Harika bir fotoğraf!', likes: 15, liked: false, createdAt: new Date(new Date().setHours(new Date().getHours() - 2)) },
+        { id: 2, user: { name: 'Zeynep', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman portrait' }, text: 'Neresi burası? 😍', likes: 3, liked: true, createdAt: new Date(new Date().setDate(new Date().getDate() - 1)) },
+        { id: 3, user: { name: 'John', avatar: 'https://placehold.co/40x40.png', aiHint: 'man portrait smiling' }, text: 'This looks amazing! Great shot.', lang: 'en', likes: 8, liked: false, createdAt: new Date(new Date().setDate(new Date().getDate() - 3)) },
+        { id: 4, user: { name: 'Maria', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman portrait laughing' }, text: '¡Qué bonita vista!', lang: 'es', likes: 5, liked: false, createdAt: new Date(new Date().setMonth(new Date().getMonth() - 1)) },
     ]
   },
   {
@@ -69,11 +80,11 @@ const initialPosts: Post[] = [
     aiHint: 'beach sunset waves',
     caption: 'Huzur dolu bir akşam.',
     likes: 256,
-    commentsCount: 35, // Updated count
+    commentsCount: 35,
     liked: true, 
     comments: [
-        { id: 1, user: { name: 'Can', avatar: 'https://placehold.co/40x40.png', aiHint: 'person portrait' }, text: 'Çok güzel görünüyor!', likes: 22, liked: false },
-        { id: 2, user: { name: 'Satoshi', avatar: 'https://placehold.co/40x40.png', aiHint: 'man portrait serious' }, text: '美しい夕日ですね。', lang: 'ja', likes: 12, liked: false },
+        { id: 1, user: { name: 'Can', avatar: 'https://placehold.co/40x40.png', aiHint: 'person portrait' }, text: 'Çok güzel görünüyor!', likes: 22, liked: false, createdAt: new Date(new Date().setMinutes(new Date().getMinutes() - 10)) },
+        { id: 2, user: { name: 'Satoshi', avatar: 'https://placehold.co/40x40.png', aiHint: 'man portrait serious' }, text: '美しい夕日ですね。', lang: 'ja', likes: 12, liked: false, createdAt: new Date(new Date().setFullYear(new Date().getFullYear() - 1)) },
     ]
   },
   {
@@ -99,6 +110,7 @@ const quickEmojis = ['❤️', '👏', '😢', '😘', '😠'];
 export default function ExplorePage() {
     const [posts, setPosts] = useState(initialPosts);
     const [commentInput, setCommentInput] = useState('');
+    const commentInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
 
     const handleLikeClick = (postId: number) => {
@@ -134,13 +146,18 @@ export default function ExplorePage() {
       setCommentInput(prevInput => prevInput + emoji);
     };
 
+    const handleReply = (username: string) => {
+        setCommentInput(prev => `@${username} ${prev}`);
+        commentInputRef.current?.focus();
+    };
+
+
     const handleTranslate = async (postId: number, commentId: number) => {
         const post = posts.find(p => p.id === postId);
         const comment = post?.comments.find(c => c.id === commentId);
     
         if (!comment) return;
     
-        // If the comment is already translated, revert to the original text
         if (comment.isTranslated && comment.originalText) {
             setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
                 ...p,
@@ -156,8 +173,6 @@ export default function ExplorePage() {
 
         if (!comment.text || !comment.lang || comment.lang === 'tr') return;
 
-    
-        // Set translating state
         setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
             ...p,
             comments: p.comments.map(c => c.id === commentId ? { ...c, isTranslating: true } : c)
@@ -170,14 +185,13 @@ export default function ExplorePage() {
                 throw new Error(translatedData.error || 'Çeviri sırasında bilinmeyen bir hata oluştu.');
             }
 
-            // Store original text, replace with translation, and set flags
             setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
                 ...p,
                 comments: p.comments.map(c => c.id === commentId ? {
                     ...c,
                     text: translatedData.translatedText!,
-                    originalText: c.text, // Save original text
-                    isTranslated: true, // Mark as translated
+                    originalText: c.text,
+                    isTranslated: true,
                     isTranslating: false
                 } : c)
             } : p));
@@ -188,7 +202,6 @@ export default function ExplorePage() {
                 title: 'Çeviri Başarısız',
                 description: error.message || 'Model şu anda yoğun. Lütfen daha sonra tekrar deneyin.',
             });
-            // Reset translating state on error
             setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
                 ...p,
                 comments: p.comments.map(c => c.id === commentId ? { ...c, isTranslating: false } : c)
@@ -204,7 +217,6 @@ export default function ExplorePage() {
           <Sheet key={post.id}>
             <Card className="rounded-xl overflow-hidden">
                 <CardContent className="p-0">
-                {/* Post Header */}
                 <div className="flex items-center gap-3 p-3">
                     <Avatar className="w-8 h-8">
                     <AvatarImage src={post.user.avatar} data-ai-hint={post.user.aiHint} />
@@ -213,7 +225,6 @@ export default function ExplorePage() {
                     <span className="font-semibold text-sm">{post.user.name}</span>
                 </div>
 
-                {/* Post Image */}
                 <div className="relative w-full aspect-square">
                     <Image
                     src={post.image}
@@ -224,7 +235,6 @@ export default function ExplorePage() {
                     />
                 </div>
 
-                {/* Post Actions */}
                 <div className="flex items-center justify-between p-3">
                     <div className='flex items-center gap-3'>
                         <Button variant="ghost" size="icon" onClick={() => handleLikeClick(post.id)}>
@@ -241,7 +251,6 @@ export default function ExplorePage() {
                     </Button>
                 </div>
 
-                {/* Post Info */}
                 <div className="px-3 pb-3 text-sm">
                     <p className="font-semibold">{post.likes.toLocaleString()} beğeni</p>
                     <p>
@@ -273,16 +282,18 @@ export default function ExplorePage() {
                                         <AvatarFallback>{comment.user.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1 text-sm">
-                                        <p className="font-semibold">{comment.user.name}</p>
-                                        
-                                        {comment.isTranslating ? (
-                                             <p className="text-sm text-muted-foreground italic flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</p>
-                                        ) : (
-                                            <p>{comment.text}</p>
-                                        )}
+                                        <p>
+                                            <span className="font-semibold mr-1">{comment.user.name}</span>
+                                            {comment.isTranslating ? (
+                                                <span className="text-sm text-muted-foreground italic flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</span>
+                                            ) : (
+                                                <span>{comment.text}</span>
+                                            )}
+                                        </p>
 
-                                        <div className="flex gap-4 text-xs text-muted-foreground mt-1">
-                                            <span className="cursor-pointer hover:underline">Yanıtla</span>
+                                        <div className="flex gap-4 text-xs text-muted-foreground mt-1 items-center">
+                                            <span className="font-mono">{formatRelativeTime(comment.createdAt)}</span>
+                                            <span className="cursor-pointer hover:underline" onClick={() => handleReply(comment.user.name)}>Yanıtla</span>
                                             {(comment.lang && comment.lang !== 'tr') || comment.isTranslated ? (
                                                 <span onClick={() => handleTranslate(post.id, comment.id)} className="cursor-pointer hover:underline">
                                                     {comment.isTranslated ? 'Aslına bak' : 'Çevirisine bak'}
@@ -297,7 +308,7 @@ export default function ExplorePage() {
                                             stroke={comment.liked ? 'hsl(var(--destructive))' : 'currentColor'}
                                             onClick={() => handleCommentLikeClick(post.id, comment.id)}
                                         />
-                                        <span className="text-xs text-muted-foreground">{comment.likes}</span>
+                                        <span className="text-xs text-muted-foreground">{comment.likes > 0 ? comment.likes : ''}</span>
                                     </div>
                                 </div>
                             ))
@@ -319,6 +330,7 @@ export default function ExplorePage() {
                         </Avatar>
                         <div className="relative flex-1">
                             <Input 
+                                ref={commentInputRef}
                                 placeholder="Yorum ekle..." 
                                 className="bg-muted border-none rounded-full px-4 pr-10" 
                                 value={commentInput}
@@ -335,7 +347,6 @@ export default function ExplorePage() {
         ))}
       </div>
       
-      {/* Floating Action Button to Add Post */}
        <Button className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg" size="icon">
             <Plus className="h-8 w-8" />
             <span className="sr-only">Yeni Gönderi Ekle</span>
