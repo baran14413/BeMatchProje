@@ -18,7 +18,6 @@ type Comment = {
   user: { name: string; avatar: string; aiHint: string };
   text: string;
   lang?: string;
-  translation?: string;
   isTranslating?: boolean;
   likes: number;
   liked: boolean;
@@ -134,7 +133,7 @@ export default function ExplorePage() {
         const post = posts.find(p => p.id === postId);
         const comment = post?.comments.find(c => c.id === commentId);
 
-        if (!comment || !comment.text || comment.translation) return;
+        if (!comment || !comment.text || !comment.lang || comment.lang === 'tr') return;
 
         // Set translating state
         setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
@@ -143,11 +142,11 @@ export default function ExplorePage() {
         } : p));
 
         try {
-            const translatedText = await translateText({ textToTranslate: comment.text });
-            // Set translation result
+            const translatedData = await translateText({ textToTranslate: comment.text });
+            // Replace original text with translation
              setPosts(prevPosts => prevPosts.map(p => p.id === postId ? {
                 ...p,
-                comments: p.comments.map(c => c.id === commentId ? { ...c, translation: translatedText.translatedText, isTranslating: false } : c)
+                comments: p.comments.map(c => c.id === commentId ? { ...c, text: translatedData.translatedText, isTranslating: false, lang: 'tr' } : c)
             } : p));
         } catch (error) {
             console.error("Translation failed:", error);
@@ -237,12 +236,16 @@ export default function ExplorePage() {
                                     </Avatar>
                                     <div className="flex-1 text-sm">
                                         <p className="font-semibold">{comment.user.name}</p>
-                                        <p>{comment.text}</p>
-                                        {comment.isTranslating && <p className="text-xs text-muted-foreground flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</p>}
-                                        {comment.translation && <p className="text-sm text-primary p-2 bg-primary/10 rounded-md mt-1">{comment.translation}</p>}
+                                        
+                                        {comment.isTranslating ? (
+                                             <p className="text-sm text-muted-foreground italic flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</p>
+                                        ) : (
+                                            <p>{comment.text}</p>
+                                        )}
+
                                         <div className="flex gap-4 text-xs text-muted-foreground mt-1">
                                             <span className="cursor-pointer hover:underline">Yanıtla</span>
-                                            {comment.lang && comment.lang !== 'tr' && !comment.translation && (
+                                            {comment.lang && comment.lang !== 'tr' && (
                                                 <span onClick={() => handleTranslate(post.id, comment.id)} className="cursor-pointer hover:underline">Çevirisine bak</span>
                                             )}
                                         </div>
