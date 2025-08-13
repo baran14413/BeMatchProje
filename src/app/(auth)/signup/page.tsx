@@ -21,6 +21,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { moderateImage, ModerateImageOutput } from '@/ai/flows/moderate-image-flow';
+
 
 const HOBBIES = [
   'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi', 
@@ -38,7 +40,7 @@ type VerificationStatus = 'idle' | 'verifying' | 'success' | 'fail';
 type FailureReason = 'no_face' | 'gender_mismatch' | 'not_live';
 type PasswordStrength = 'yok' | 'zayıf' | 'orta' | 'güçlü';
 type ModerationStatus = 'idle' | 'checking' | 'safe' | 'unsafe';
-type ModerationResult = { isSafe: boolean; reason?: string };
+
 
 export default function SignupPage() {
   const router = useRouter();
@@ -70,7 +72,7 @@ export default function SignupPage() {
 
   const [profilePicPreview, setProfilePicPreview] = useState<string | null>(null);
   const [moderationStatus, setModerationStatus] = useState<ModerationStatus>('idle');
-  const [moderationResult, setModerationResult] = useState<ModerationResult | null>(null);
+  const [moderationResult, setModerationResult] = useState<ModerateImageOutput | null>(null);
   
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
@@ -86,7 +88,7 @@ export default function SignupPage() {
         const mockDetectedGender = 'male'; // Simulate always detecting male
         if (!mockFaceFound) { setFailureReason('no_face'); setVerificationStatus('fail'); return; }
         if (!mockIsLive) { setFailureReason('not_live'); setVerificationStatus('fail'); return; }
-        if (formData.gender && formData.gender !== 'other' && formData.gender !== mockDetectedGender) {
+        if (formData.gender && formData.gender !== 'other' && formData.gender === mockDetectedGender) {
             setFailureReason('gender_mismatch');
             setVerificationStatus('fail');
             toast({ variant: 'destructive', title: 'Cinsiyet Uyuşmazlığı', description: 'Belirttiğiniz cinsiyetle doğrulama eşleşmedi. 5 saniye içinde önceki adıma yönlendiriliyorsunuz.' });
@@ -101,6 +103,7 @@ export default function SignupPage() {
   const retryVerification = () => {
     setVerificationStatus('idle');
     setFailureReason(null);
+    handleVerification();
   };
   
   useEffect(() => {
@@ -157,12 +160,15 @@ export default function SignupPage() {
     if (!profilePicPreview) return;
     setModerationStatus('checking');
     
-    // Simulate a successful check without AI
-    setTimeout(() => {
-        const result = { isSafe: true };
+    try {
+        const result = await moderateImage({ photoDataUri: profilePicPreview });
         setModerationResult(result);
-        setModerationStatus('safe');
-    }, 1500);
+        setModerationStatus(result.isSafe ? 'safe' : 'unsafe');
+    } catch(e) {
+        console.error(e);
+        toast({ variant: 'destructive', title: 'Denetim Hatası', description: 'Yapay zeka denetimi sırasında bir hata oluştu. Lütfen tekrar deneyin.' });
+        setModerationStatus('idle');
+    }
   };
 
   const handleFinishSignup = () => {
