@@ -1,18 +1,12 @@
 import type { Metadata } from 'next';
 import { Toaster } from "@/components/ui/toaster"
 import './globals.css';
-import { Lora, Inter } from 'next/font/google';
+import { Inter as FontSans } from 'next/font/google';
+import { cn } from '@/lib/utils';
 
-const lora = Lora({
+const fontSans = FontSans({
   subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-lora',
-});
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
+  variable: '--font-sans',
 });
 
 export const metadata: Metadata = {
@@ -26,10 +20,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${lora.variable} ${inter.variable}`}>
-      <head>
-      </head>
-      <body className="font-body antialiased">
+    <html lang="en" suppressHydrationWarning>
+      <head />
+      <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
         {children}
         <Toaster />
       </body>
