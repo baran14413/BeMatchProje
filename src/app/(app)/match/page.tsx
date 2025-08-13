@@ -89,8 +89,8 @@ export default function MatchPage() {
       <ScrollArea className="flex-1">
         <div className="flex flex-col">
           {db.map((user) => (
-            <Link href="/profile" key={user.id} className="block">
-              <div className="p-4 flex items-center gap-4 border-b hover:bg-accent transition-colors">
+            <Link href={`/profile/${user.id}`} key={user.id} className="block">
+              <div className="p-4 flex items-center gap-4 border-b transition-colors">
                 <Avatar className="w-16 h-16 border">
                   <AvatarImage src={user.image} alt={user.name} data-ai-hint={user.aiHint} />
                   <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
