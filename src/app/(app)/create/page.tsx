@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import ReactCrop, {
@@ -127,6 +127,18 @@ export default function CreatePostPage() {
     }
   };
 
+  useEffect(() => {
+    if (imgRef.current) {
+        const { width, height } = imgRef.current;
+        if (width > 0 && height > 0) {
+            const newCrop = centerAspectCrop(width, height, aspect || (width/height));
+            setCrop(newCrop);
+            setCompletedCrop(newCrop);
+        }
+    }
+  }, [aspect, imgSrc]);
+
+
   const handleApplyCropAndContinue = async () => {
     if (!completedCrop || !imgRef.current) {
         toast({
@@ -240,7 +252,9 @@ export default function CreatePostPage() {
   
   function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
     const { width, height } = e.currentTarget;
-    setCrop(centerAspectCrop(width, height, aspect || 1 / 1));
+    const newCrop = centerAspectCrop(width, height, aspect || 1 / 1);
+    setCrop(newCrop);
+    setCompletedCrop(newCrop);
   }
 
   const Step1 = () => (
