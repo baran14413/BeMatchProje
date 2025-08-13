@@ -2,8 +2,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit, Camera, ShieldCheck } from 'lucide-react';
+import { Edit, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const userProfile = {
   name: 'Can Yılmaz',
@@ -22,7 +23,7 @@ const userProfile = {
 
 export default function ProfilePage() {
   return (
-    <div className="container mx-auto max-w-3xl p-4 md:p-8 md:pl-24">
+    <div className="container mx-auto max-w-3xl p-4 md:p-8">
       <div className="flex flex-col gap-8">
 
         {/* Profile Header */}
@@ -35,9 +36,6 @@ export default function ProfilePage() {
                         {userProfile.name.charAt(0)}
                         </AvatarFallback>
                     </Avatar>
-                     <Button size="icon" className="absolute bottom-2 right-2 rounded-full h-9 w-9">
-                        <Camera className="w-4 h-4"/>
-                     </Button>
                  </div>
                 <div className="flex-1 text-center sm:text-left">
                     <h1 className="text-3xl font-bold font-headline">{userProfile.name}, {userProfile.age}</h1>
@@ -45,9 +43,11 @@ export default function ProfilePage() {
                         <ShieldCheck className="w-5 h-5 text-green-500" />
                         <p className="text-sm font-medium text-green-600">Doğrulanmış Profil</p>
                     </div>
-                    <Button variant="outline" className="mt-4 w-full sm:w-auto">
-                        <Edit className="mr-2 h-4 w-4" /> Profili Düzenle
-                    </Button>
+                     <Link href="/profile/edit">
+                        <Button variant="outline" className="mt-4 w-full sm:w-auto">
+                            <Edit className="mr-2 h-4 w-4" /> Profili Düzenle
+                        </Button>
+                    </Link>
                 </div>
             </CardContent>
         </Card>
@@ -85,7 +85,7 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {userProfile.gallery.map(image => (
                         <div key={image.id} className="relative aspect-[3/4] rounded-lg overflow-hidden group">
-                           <Image 
+                           <Image
                                 src={image.url}
                                 alt={`Fotoğraf ${image.id}`}
                                 fill
