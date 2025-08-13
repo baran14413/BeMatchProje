@@ -92,7 +92,7 @@ const initialPosts: Post[] = [
   },
 ];
 
-const quickEmojis = ['❤️', '🙌', '🔥', '👏', '😢', '😍', '😮', '😂'];
+const quickEmojis = ['❤️', '👏', '😢', '😘', '😠'];
 
 
 export default function ExplorePage() {
