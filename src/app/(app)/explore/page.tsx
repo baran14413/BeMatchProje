@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -7,8 +6,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, MessageCircle, Bookmark, Plus, Send } from 'lucide-react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Heart, MessageCircle, Bookmark, Plus, Send, Smile } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const initialPosts = [
@@ -26,8 +25,8 @@ const initialPosts = [
     commentsCount: 12,
     liked: false,
     comments: [
-        { id: 1, user: 'Ahmet', text: 'Harika bir fotoğraf!' },
-        { id: 2, user: 'Zeynep', text: 'Neresi burası? 😍' },
+        { id: 1, user: { name: 'Ahmet', avatar: 'https://placehold.co/40x40.png', aiHint: 'man portrait' }, text: 'Harika bir fotoğraf!', likes: 15 },
+        { id: 2, user: { name: 'Zeynep', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman portrait' }, text: 'Neresi burası? 😍', likes: 3 },
     ]
   },
   {
@@ -44,7 +43,7 @@ const initialPosts = [
     commentsCount: 34,
     liked: true, // Example of already liked post
     comments: [
-        { id: 1, user: 'Can', text: 'Çok güzel görünüyor!' },
+        { id: 1, user: { name: 'Can', avatar: 'https://placehold.co/40x40.png', aiHint: 'person portrait' }, text: 'Çok güzel görünüyor!', likes: 22 },
     ]
   },
   {
@@ -70,7 +69,7 @@ export default function ExplorePage() {
     const handleLikeClick = (postId: number) => {
         setPosts(posts.map(post => 
             post.id === postId 
-            ? { ...post, liked: !post.liked, likes: post.liked ? post.likes -1 : post.likes + 1 } 
+            ? { ...post, liked: !post.liked, likes: post.liked ? post.likes - 1 : post.likes + 1 } 
             : post
         ));
     };
@@ -140,6 +139,7 @@ export default function ExplorePage() {
             <SheetContent side="bottom" className="rounded-t-xl h-[80vh] flex flex-col p-0">
                  <SheetHeader className="text-center p-4 border-b">
                     <SheetTitle>Yorumlar</SheetTitle>
+                     <SheetClose className="absolute left-4 top-1/2 -translate-y-1/2" />
                 </SheetHeader>
                 <ScrollArea className="flex-1">
                     <div className="flex flex-col gap-4 p-4">
@@ -147,11 +147,18 @@ export default function ExplorePage() {
                              post.comments.map(comment => (
                                 <div key={comment.id} className="flex items-start gap-3">
                                     <Avatar className="w-8 h-8">
-                                        <AvatarImage src={`https://placehold.co/40x40.png`} data-ai-hint="person portrait" />
-                                        <AvatarFallback>{comment.user.charAt(0)}</AvatarFallback>
+                                        <AvatarImage src={comment.user.avatar} data-ai-hint={comment.user.aiHint} />
+                                        <AvatarFallback>{comment.user.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
-                                    <div className="flex-1">
-                                        <p><span className="font-semibold">{comment.user}</span> {comment.text}</p>
+                                    <div className="flex-1 text-sm">
+                                        <p><span className="font-semibold">{comment.user.name}</span> {comment.text}</p>
+                                        <div className="flex gap-4 text-xs text-muted-foreground mt-1">
+                                            <span>Yanıtla</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col items-center gap-0.5">
+                                        <Heart className="w-4 h-4 cursor-pointer" />
+                                        <span className="text-xs text-muted-foreground">{comment.likes}</span>
                                     </div>
                                 </div>
                             ))
@@ -160,11 +167,15 @@ export default function ExplorePage() {
                         )}
                     </div>
                 </ScrollArea>
-                <div className="p-4 bg-background border-t">
-                     <div className="relative">
-                        <Input placeholder="Yorum ekle..." className="pr-12" />
-                        <Button size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
-                            <Send className="h-4 w-4" />
+                <div className="p-2 bg-background border-t">
+                     <div className="flex items-center gap-2">
+                        <Avatar className="w-8 h-8">
+                            <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="current user portrait" />
+                            <AvatarFallback>B</AvatarFallback>
+                        </Avatar>
+                        <Input placeholder="Konuşmayı başlat..." className="flex-1 bg-muted border-none rounded-full px-4" />
+                        <Button size="icon" variant="ghost">
+                            <Smile className="h-5 w-5" />
                         </Button>
                     </div>
                 </div>
