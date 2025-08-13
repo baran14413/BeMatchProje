@@ -157,13 +157,21 @@ export default function ChatPage() {
   };
 
   const handleMute = () => {
-    toast({ title: "Sohbet sessize alındı." });
+    const [idToMute] = selectedIds;
+    setConversations(prev =>
+        prev.map(c => (c.id === idToMute ? { ...c, isMuted: !c.isMuted } : c))
+    );
+    toast({ title: "Sohbet sessize alındı/açıldı." });
     setIsEditMode(false);
     setSelectedIds(new Set());
   };
   
   const handlePin = () => {
-    toast({ title: "Sohbet başa tutturuldu." });
+    const [idToPin] = selectedIds;
+    setConversations(prev =>
+        prev.map(c => (c.id === idToPin ? { ...c, isPinned: !c.isPinned } : c))
+    );
+    toast({ title: "Sohbet başa tutturuldu/kaldırıldı." });
     setIsEditMode(false);
     setSelectedIds(new Set());
   };
