@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { ReactNode } from 'react';
@@ -8,19 +9,33 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect, useRef } from 'react';
 
+// Pass children to determine if the chat view is open
+function isChatViewOpen(children: ReactNode): boolean {
+  if (React.isValidElement(children) && children.props) {
+    const pageProps = children.props.childProp?.segment === 'chat' ? children.props.childProp.parallelRoutes.children.props.childProp.segment.__PAGE__ : null;
+    if (pageProps) {
+        return pageProps.activeChat !== null;
+    }
+  }
+  return false;
+}
+
+
 export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
 
-  const isChatPage = pathname === '/chat';
+  const isCreatePage = pathname === '/create';
+  
+  // This is a bit of a hack to check if the chat detail view is open on mobile
+  // A better solution would involve a global state manager (like Zustand or Context)
+  const chatViewOpen = isChatViewOpen(children);
+  const isMobileChatView = pathname === '/chat' && chatViewOpen;
+
 
   // This will hide navbars on scroll down and show on scroll up
   const handleScroll = () => {
-      if (isChatPage) {
-        setIsVisible(false);
-        return;
-      }
       const currentScrollY = window.scrollY;
       if (currentScrollY > lastScrollY.current && currentScrollY > 100) { // Scrolling down
           setIsVisible(false);
@@ -31,39 +46,28 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Hide nav on create page, because it has its own navigation
-    if (pathname === '/create') {
-        setIsVisible(false);
-        return;
-    }
-     if (isChatPage) {
-        setIsVisible(false);
-        return;
-    }
-
-
     window.addEventListener('scroll', handleScroll, { passive: true });
-
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [pathname, isChatPage]);
+  }, []);
   
-  const showNavs = !isChatPage && isVisible;
+  // Determine if navs should be shown based on page and scroll direction
+  const showNavs = isVisible && !isCreatePage && !isMobileChatView;
 
-  if (pathname === '/create') {
+
+  if (isCreatePage) {
     return <main className="flex-1 w-full">{children}</main>;
   }
-
-  // If it's the chat page, we render children directly to allow it to control its own layout
-  if (isChatPage) {
-    return <main className="h-screen bg-background">{children}</main>;
-  }
+  
+  const headerHeight = 'h-16';
+  const bottomNavHeight = 'h-16';
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
        <header className={cn(
-        "sticky top-0 z-50 flex items-center justify-between h-16 px-4 border-b shrink-0 bg-background/95 backdrop-blur-sm md:px-6 transition-transform duration-300",
+        "sticky top-0 z-50 flex items-center justify-between px-4 border-b shrink-0 bg-background/95 backdrop-blur-sm md:px-6 transition-transform duration-300",
+        headerHeight,
         !showNavs && "-translate-y-full"
        )}>
         <Link href="/match" className="flex items-center gap-2 font-semibold text-lg">
@@ -98,13 +102,26 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
       
-      <main className="flex-1 w-full">
+      <main className={cn(
+        "flex-1 w-full",
+        // This is a trick to make the main content area fill the space between the header and bottom nav
+        // It's not perfect and might need adjustment based on your specific layout needs
+        // The CSS variables are set here and used in chat/page.tsx
+        `h-[calc(100vh_-_var(--header-height)_-_var(--bottom-nav-height))]`
+      )}
+       style={{
+        // @ts-ignore
+        '--header-height': showNavs ? '4rem' : '0rem', 
+        '--bottom-nav-height': showNavs ? '4rem' : '0rem',
+      }}
+      >
           {children}
       </main>
 
       {/* Bottom Navigation for Mobile */}
       <nav className={cn(
-        "fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-sm md:hidden transition-transform duration-300 h-16",
+        "fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-sm border-t md:hidden transition-transform duration-300",
+        bottomNavHeight,
         !showNavs && "translate-y-full"
       )}>
         <div className="grid h-full grid-cols-3">

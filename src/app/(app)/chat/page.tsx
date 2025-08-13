@@ -58,9 +58,8 @@ export default function ChatPage() {
   const [conversations, setConversations] = useState(initialConversations);
   const [activeChat, setActiveChat] = useState<Conversation | null>(null);
   const [messageInput, setMessageInput] = useState('');
-  
-  // On mobile, this will control whether the conversation list or a chat is visible.
-  const isChatViewOpen = activeChat !== null; 
+
+  const isChatViewOpen = activeChat !== null;
 
   const handleSendMessage = () => {
     if (!messageInput.trim() || !activeChat) return;
@@ -85,31 +84,29 @@ export default function ChatPage() {
     });
 
     setConversations(updatedConversations);
-    
+
     const updatedActiveChat = updatedConversations.find(c => c.id === activeChat.id);
     if (updatedActiveChat) {
         setActiveChat(updatedActiveChat);
     }
-    
+
     setMessageInput('');
   };
 
   const handleSetActiveChat = (convo: Conversation) => {
     setActiveChat(conversations.find(c => c.id === convo.id) || null);
   }
-  
+
   const handleBackToList = () => {
       setActiveChat(null);
   }
 
   return (
-    <div className="flex h-full bg-background text-foreground overflow-hidden">
+    <div className="flex h-full bg-background text-foreground">
       {/* Sidebar with Conversation List */}
       <aside className={cn(
-        "w-full md:w-1/3 md:flex flex-col border-r transition-transform duration-300 ease-in-out",
-        "md:translate-x-0",
-        isChatViewOpen && "-translate-x-full absolute", // Hide on mobile when chat is open
-        !isChatViewOpen && "translate-x-0"
+        "w-full md:w-1/3 md:flex flex-col border-r",
+        isChatViewOpen && "hidden md:flex",
       )}>
         <div className="p-4 border-b">
             <h2 className="text-2xl font-bold font-headline">Sohbetler</h2>
@@ -145,14 +142,13 @@ export default function ChatPage() {
 
       {/* Main Chat Area */}
       <main className={cn(
-          "w-full md:w-2/3 flex flex-col absolute md:static inset-0 transition-transform duration-300 ease-in-out h-full",
-          "md:translate-x-0",
-          !isChatViewOpen ? "translate-x-full" : "translate-x-0"
+          "w-full md:w-2/3 flex-col h-full",
+          isChatViewOpen ? "flex fixed md:static inset-0 bg-background" : "hidden md:flex"
       )}>
         {activeChat ? (
           <>
             <header className="flex items-center gap-4 p-3 border-b bg-card shrink-0">
-               <Button variant="ghost" size="icon" className="rounded-full" onClick={handleBackToList}>
+               <Button variant="ghost" size="icon" className="rounded-full md:hidden" onClick={handleBackToList}>
                     <ArrowLeft className="w-5 h-5"/>
                 </Button>
               <Avatar>
@@ -210,8 +206,8 @@ export default function ChatPage() {
                  <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0">
                     <Smile className="w-5 h-5" />
                  </Button>
-                <Input 
-                    placeholder="Bir mesaj yaz..." 
+                <Input
+                    placeholder="Bir mesaj yaz..."
                     className="flex-1 bg-muted border-none rounded-full"
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
