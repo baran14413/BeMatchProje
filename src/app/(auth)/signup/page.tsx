@@ -15,15 +15,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Camera, UserCheck, AlertTriangle, Loader, Eye, EyeOff, Sparkles, Shuffle, Upload, ShieldCheck, ShieldAlert, Image as ImageIcon } from 'lucide-react';
+import { Camera, UserCheck, AlertTriangle, Loader, Eye, EyeOff, Sparkles, Shuffle, ShieldCheck } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { moderateImage, ModerateImageOutput } from '@/ai/flows/moderate-image-flow';
-import { verifyFace, VerifyFaceOutput } from '@/ai/flows/verify-face-flow';
-
 
 const HOBBIES = [
   'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi', 
@@ -40,7 +37,6 @@ const CAPTCHA_OPTIONS = [
 type VerificationStatus = 'idle' | 'verifying' | 'success' | 'fail';
 type FailureReason = 'no_face' | 'gender_mismatch' | 'not_live';
 type PasswordStrength = 'yok' | 'zayıf' | 'orta' | 'güçlü';
-type ModerationStatus = 'idle' | 'checking' | 'safe' | 'unsafe';
 
 
 export default function SignupPage() {
@@ -57,7 +53,7 @@ export default function SignupPage() {
     hobbies: [] as string[],
     password: '',
     confirmPassword: '',
-    profilePicture: null as File | null,
+    profilePicture: null as string | null, // Changed to string for data URI
   });
   const [showPassword, setShowPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>('yok');
@@ -70,11 +66,6 @@ export default function SignupPage() {
   const [failureReason, setFailureReason] = useState<FailureReason | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [capturedFrame, setCapturedFrame] = useState<string | null>(null);
-
-  const [profilePicPreview, setProfilePicPreview] = useState<string | null>(null);
-  const [moderationStatus, setModerationStatus] = useState<ModerationStatus>('idle');
-  const [moderationResult, setModerationResult] = useState<(ModerateImageOutput & VerifyFaceOutput) | null>(null);
   
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
@@ -86,9 +77,11 @@ export default function SignupPage() {
         canvas.height = videoRef.current.videoHeight;
         const ctx = canvas.getContext('2d');
         if (ctx) {
+            // Flip the image horizontally to act as a mirror
             ctx.scale(-1, 1);
             ctx.drawImage(videoRef.current, 0, 0, -canvas.width, canvas.height);
-            setCapturedFrame(canvas.toDataURL('image/jpeg'));
+            const frame = canvas.toDataURL('image/jpeg');
+            setFormData(prev => ({...prev, profilePicture: frame}));
         }
     }
   }
@@ -98,28 +91,42 @@ export default function SignupPage() {
     setVerificationStatus('verifying');
     setFailureReason(null);
     if (verificationTimeoutRef.current) { clearTimeout(verificationTimeoutRef.current); }
+    
     verificationTimeoutRef.current = setTimeout(() => {
-        const mockFaceFound = Math.random() > 0.1;
-        const mockIsLive = Math.random() > 0.2;
+        const mockFaceFound = Math.random() > 0.1; 
+        const mockIsLive = Math.random() > 0.2; 
+        // We'll simulate that the camera always detects a "male" for testing purposes.
         const mockDetectedGender = 'male'; 
+        
         if (!mockFaceFound) { setFailureReason('no_face'); setVerificationStatus('fail'); return; }
         if (!mockIsLive) { setFailureReason('not_live'); setVerificationStatus('fail'); return; }
-        if (formData.gender && formData.gender === 'female' && mockDetectedGender === 'male') {
+
+        // Check for gender mismatch only if a gender is selected
+        if ((formData.gender === 'female' && mockDetectedGender === 'male') || (formData.gender === 'male' && mockDetectedGender === 'female')) {
             setFailureReason('gender_mismatch');
             setVerificationStatus('fail');
             toast({ variant: 'destructive', title: 'Cinsiyet Uyuşmazlığı', description: 'Belirttiğiniz cinsiyetle doğrulama eşleşmedi. 5 saniye içinde önceki adıma yönlendiriliyorsunuz.' });
-            setTimeout(() => { setVerificationStatus('idle'); setFailureReason(null); setStep(2); }, 5000);
+            setTimeout(() => { 
+                setVerificationStatus('idle'); 
+                setFailureReason(null); 
+                prevStep(); // Go to previous step (gender selection)
+                prevStep(); // Go to previous step (age/hobbies)
+                prevStep(); // Go to previous step (password)
+                prevStep(); // Go to previous step (captcha)
+            }, 5000);
             return;
         }
-        setVerificationStatus('success');
-        captureFrame();
-        setTimeout(() => nextStep(), 1500);
-    }, 3000);
-  };
 
+        setVerificationStatus('success');
+        captureFrame(); // Capture the frame on success
+        setTimeout(() => nextStep(), 1500); // Move to next step after success animation
+    }, 3000); // 3-second simulation
+  };
+  
   const retryVerification = () => {
     setVerificationStatus('idle');
     setFailureReason(null);
+    // Automatically restart verification
     handleVerification();
   };
   
@@ -137,6 +144,7 @@ export default function SignupPage() {
     };
     if (step === 5) { getCameraPermission(); } 
     else {
+      // Clean up camera stream when leaving the step
       if (verificationTimeoutRef.current) { clearTimeout(verificationTimeoutRef.current); }
       setVerificationStatus('idle');
       if (videoRef.current && videoRef.current.srcObject) {
@@ -146,6 +154,7 @@ export default function SignupPage() {
     }
   }, [step, toast]);
   
+  // Auto-start verification when camera is ready
   useEffect(() => {
     if (step === 5 && hasCameraPermission && verificationStatus === 'idle') {
         handleVerification();
@@ -157,42 +166,6 @@ export default function SignupPage() {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
     if (id === 'password') { checkPasswordStrength(value); }
-  };
-
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData(prev => ({...prev, profilePicture: file}));
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePicPreview(reader.result as string);
-        setModerationStatus('idle');
-        setModerationResult(null);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleImageModeration = async () => {
-    if (!profilePicPreview || !capturedFrame) return;
-    setModerationStatus('checking');
-    
-    try {
-        const [modResult, faceResult] = await Promise.all([
-             moderateImage({ photoDataUri: profilePicPreview }),
-             verifyFace({ livePhotoDataUri: capturedFrame, profilePhotoDataUri: profilePicPreview })
-        ]);
-
-        const combinedResult = { ...modResult, ...faceResult };
-        setModerationResult(combinedResult);
-        const isSafe = modResult.isSafe && faceResult.isSamePerson;
-        setModerationStatus(isSafe ? 'safe' : 'unsafe');
-
-    } catch(e) {
-        console.error(e);
-        toast({ variant: 'destructive', title: 'Denetim Hatası', description: 'Yapay zeka denetimi sırasında bir hata oluştu. Lütfen tekrar deneyin.' });
-        setModerationStatus('idle');
-    }
   };
 
   const handleFinishSignup = () => {
@@ -243,14 +216,20 @@ export default function SignupPage() {
   const isStep2Invalid = !formData.age || !formData.gender || formData.hobbies.length < 3;
   const isStep3Invalid = !formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf';
   const isStep4Invalid = captchaSelected !== captchaTarget.name;
-  const isStep6Invalid = !formData.profilePicture || moderationStatus !== 'safe';
+  const isStep6Invalid = !formData.profilePicture;
 
-  const isNextButtonDisabled = (step === 1 && isStep1Invalid) || 
-                              (step === 2 && isStep2Invalid) || 
-                              (step === 3 && isStep3Invalid) ||
-                              (step === 4 && isStep4Invalid);
 
-  const progress = (step / 6) * 100;
+  const isNextButtonDisabled = (currentStep: number) => {
+    switch (currentStep) {
+        case 1: return isStep1Invalid;
+        case 2: return isStep2Invalid;
+        case 3: return isStep3Invalid;
+        case 4: return isStep4Invalid;
+        default: return false;
+    }
+  };
+
+  const progress = (step / 7) * 100;
 
   const getFailureMessage = () => {
     switch(failureReason) {
@@ -259,17 +238,6 @@ export default function SignupPage() {
         case 'gender_mismatch': return 'Cinsiyetinizle belirttiğiniz bilgi uyuşmuyor. Lütfen kontrol edin.';
         default: return 'Doğrulama başarısız oldu. Lütfen tekrar deneyin.';
     }
-  }
-
-  const getModerationFailureMessage = () => {
-      if (!moderationResult) return "Bu fotoğraf profil resmi olarak kullanılamaz. Lütfen başka bir fotoğraf deneyin.";
-      if (!moderationResult.isSamePerson) {
-          return moderationResult.reason || "Yüzünüz, doğrulama sırasındaki yüzle eşleşmiyor. Lütfen kendinize ait bir fotoğraf yükleyin.";
-      }
-      if (!moderationResult.isSafe) {
-          return moderationResult.reason || "Bu fotoğraf profil resmi olarak uygun değil. Lütfen başka bir fotoğraf deneyin.";
-      }
-      return "Bilinmeyen bir nedenle denetim başarısız oldu.";
   }
 
   const getBorderColorClass = () => {
@@ -300,7 +268,7 @@ export default function SignupPage() {
           {step === 3 && "Güçlü bir şifre oluşturun."}
           {step === 4 && "Doğrulamayı tamamlayın."}
           {step === 5 && "Kimliğinizi doğrulamak için yüzünüzü taratın."}
-          {step === 6 && "Harika bir profil fotoğrafı seçin."}
+          {step === 6 && "Profil fotoğrafınızı onaylayın."}
         </CardDescription>
         <Progress value={progress} className="w-full mt-2" />
       </CardHeader>
@@ -407,41 +375,23 @@ export default function SignupPage() {
         )}
         {step === 6 && (
             <div className="flex flex-col items-center gap-4">
+                <p className="font-medium text-center">Bu fotoğraf profil resminiz olarak kullanılacaktır.</p>
                 <div className="relative w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-muted flex items-center justify-center overflow-hidden border-4 border-dashed border-primary/50">
-                    {profilePicPreview ? (
-                        <img src={profilePicPreview} alt="Profil fotoğrafı önizlemesi" className="w-full h-full object-cover" />
+                    {formData.profilePicture ? (
+                        <img src={formData.profilePicture} alt="Profil fotoğrafı önizlemesi" className="w-full h-full object-cover" />
                     ) : (
                         <div className="text-center text-muted-foreground p-4">
-                            <ImageIcon className="w-16 h-16 mx-auto" />
-                            <p className="mt-2 text-sm">Fotoğrafınızı seçin</p>
+                            <p className="mt-2 text-sm">Doğrulama sırasında fotoğraf alınamadı.</p>
                         </div>
                     )}
                 </div>
-                 <Button asChild variant="outline">
-                    <label htmlFor="profile-pic-upload">
-                        <Upload className="mr-2 h-4 w-4" /> Fotoğraf Seç
-                        <input id="profile-pic-upload" type="file" className="sr-only" accept="image/png, image/jpeg, image/webp" onChange={handleFileChange} />
-                    </label>
-                </Button>
-                {profilePicPreview && (
-                    <div className="w-full space-y-4">
-                         <Button onClick={handleImageModeration} disabled={moderationStatus === 'checking'} className="w-full">
-                            {moderationStatus === 'checking' && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-                            {moderationStatus === 'idle' && "Fotoğrafı Denetle"}
-                            {moderationStatus === 'safe' && <><ShieldCheck className="mr-2 h-4 w-4"/> Güvenli</>}
-                             {moderationStatus === 'unsafe' && <><ShieldAlert className="mr-2 h-4 w-4"/> Uygun Değil</>}
-                        </Button>
-                         {moderationStatus === 'unsafe' && (
-                             <Alert variant="destructive">
-                                <AlertTriangle className="h-4 w-4" />
-                                <AlertTitle>Denetim Başarısız</AlertTitle>
-                                <AlertDescription>
-                                   {getModerationFailureMessage()}
-                                </AlertDescription>
-                            </Alert>
-                         )}
-                    </div>
-                )}
+                 <Alert>
+                    <ShieldCheck className="h-4 w-4" />
+                    <AlertTitle>Onay</AlertTitle>
+                    <AlertDescription>
+                        Bu fotoğrafın profilinizde görünmesini onaylıyor musunuz?
+                    </AlertDescription>
+                </Alert>
             </div>
         )}
       </CardContent>
@@ -449,8 +399,8 @@ export default function SignupPage() {
         <div className="flex w-full justify-between">
             {step > 1 && <Button variant="outline" onClick={prevStep}>Geri</Button>}
             <div className="flex-grow" />
-            {step < 5 && <Button onClick={nextStep} disabled={isNextButtonDisabled}>İleri</Button>}
-            {step === 6 && <Button onClick={handleFinishSignup} disabled={isStep6Invalid}>Kayıt Ol ve Bitir</Button>}
+            {step < 5 && <Button onClick={nextStep} disabled={isNextButtonDisabled(step)}>İleri</Button>}
+            {step === 6 && <Button onClick={handleFinishSignup} disabled={isStep6Invalid}>Onayla ve Bitir</Button>}
         </div>
         <div className="mt-2 text-center text-sm">
             Zaten bir hesabınız var mı?{' '}
