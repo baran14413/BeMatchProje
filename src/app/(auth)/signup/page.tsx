@@ -66,7 +66,9 @@ export default function SignupPage() {
         // This is a mock verification. In a real app, you'd use a face detection/verification API.
         const mockFaceFound = Math.random() > 0.1; // 90% chance to "find" a face
         const mockIsLive = Math.random() > 0.2; // 80% chance of being "live"
-        const mockDetectedGender = Math.random() > 0.5 ? 'male' : 'female'; // Mock detected gender
+        
+        // Mock detected gender to be the opposite of the selected one to test failure.
+        const mockDetectedGender = formData.gender === 'male' ? 'female' : 'male';
 
         if (!mockFaceFound) {
             setFailureReason('no_face');
@@ -89,6 +91,8 @@ export default function SignupPage() {
                 description: 'Belirttiğiniz cinsiyetle doğrulama eşleşmedi. 5 saniye içinde önceki adıma yönlendiriliyorsunuz.',
             });
             setTimeout(() => {
+                setVerificationStatus('idle');
+                setFailureReason(null);
                 prevStep();
             }, 5000);
             return;
@@ -143,11 +147,11 @@ export default function SignupPage() {
   
   // Automatically start verification when camera is ready
   useEffect(() => {
-    if (step === 3 && hasCameraPermission) {
+    if (step === 3 && hasCameraPermission && verificationStatus === 'idle') {
         handleVerification();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, hasCameraPermission]);
+  }, [step, hasCameraPermission, verificationStatus]);
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -295,7 +299,7 @@ export default function SignupPage() {
                     <AlertDescription>
                        {getFailureMessage()}
                        {failureReason !== 'gender_mismatch' && (
-                         <Button variant="link" className="p-0 h-auto mt-2" onClick={handleVerification}>Tekrar Dene</Button>
+                         <Button variant="link" className="p-0 h-auto mt-2" onClick={() => setVerificationStatus('idle')}>Tekrar Dene</Button>
                        )}
                     </AlertDescription>
                 </Alert>
