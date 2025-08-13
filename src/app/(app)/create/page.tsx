@@ -1,11 +1,9 @@
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 import {
   Card,
   CardContent,
@@ -14,6 +12,8 @@ import {
   CardDescription,
   CardFooter,
 } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import {
   ChevronLeft,
   ChevronRight,
@@ -22,7 +22,6 @@ import {
   Wand2,
   Check,
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { stylizeImage } from '@/ai/flows/stylize-image-flow';
 import { moderateImage } from '@/ai/flows/moderate-image-flow';
 
@@ -40,11 +39,13 @@ export default function CreatePostPage() {
   const onSelectFile = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const reader = new FileReader();
-      reader.addEventListener('load', () =>
-        setImgSrc(reader.result?.toString() || '')
-      );
+      reader.addEventListener('load', () => {
+        if (reader.result) {
+          setImgSrc(reader.result.toString());
+          setStep(2);
+        }
+      });
       reader.readAsDataURL(e.target.files[0]);
-      setStep(2);
     }
   };
 
@@ -85,7 +86,7 @@ export default function CreatePostPage() {
   };
 
   const handleShare = async () => {
-     if (!caption) {
+    if (!caption) {
       toast({
         variant: 'destructive',
         title: 'Açıklama Gerekli',
@@ -94,43 +95,39 @@ export default function CreatePostPage() {
       return;
     }
     setIsProcessing(true);
-    
-    // Moderation check
     try {
-        const moderationResult = await moderateImage({ photoDataUri: imgSrc });
-        if (!moderationResult.isSafe) {
-            toast({
-                variant: 'destructive',
-                title: 'Uygunsuz İçerik',
-                description: `Yapay zeka bu görseli onaylamadı: ${moderationResult.reason}`,
-                duration: 5000,
-            });
-            setIsProcessing(false);
-            return;
-        }
-
-    } catch(e) {
-        console.error("Moderation check failed", e);
+      const moderationResult = await moderateImage({ photoDataUri: imgSrc });
+      if (!moderationResult.isSafe) {
         toast({
-            variant: 'destructive',
-            title: 'Denetleme Hatası',
-            description: 'İçerik denetimi sırasında bir hata oluştu. Lütfen tekrar deneyin.',
+          variant: 'destructive',
+          title: 'Uygunsuz İçerik',
+          description: `Yapay zeka bu görseli onaylamadı: ${moderationResult.reason}`,
+          duration: 5000,
         });
         setIsProcessing(false);
         return;
+      }
+    } catch (e) {
+      console.error('Moderation check failed', e);
+      toast({
+        variant: 'destructive',
+        title: 'Denetleme Hatası',
+        description:
+          'İçerik denetimi sırasında bir hata oluştu. Lütfen tekrar deneyin.',
+      });
+      setIsProcessing(false);
+      return;
     }
-    
     toast({
-        title: 'Paylaşılıyor...',
-        description: 'Gönderiniz oluşturuluyor ve arkadaşlarınızla paylaşılıyor.',
+      title: 'Paylaşılıyor...',
+      description: 'Gönderiniz oluşturuluyor ve arkadaşlarınızla paylaşılıyor.',
     });
-    
     setTimeout(() => {
-        setIsProcessing(false);
-        router.push('/explore');
+      setIsProcessing(false);
+      router.push('/explore');
     }, 2000);
   };
-  
+
   const Step1 = () => (
     <Card className="w-full max-w-lg">
       <CardHeader>
@@ -163,51 +160,51 @@ export default function CreatePostPage() {
 
   const Step2 = () => (
     <Card className="w-full max-w-lg">
-        <CardHeader>
-            <CardTitle>Adım 2: Yapay Zeka İle Stilizasyon</CardTitle>
-            <CardDescription>
-            İsterseniz fotoğrafınıza sanatsal bir dokunuş katın.
-            </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center gap-4">
-            {imgSrc && (
-            <Image
-                alt="Styled Preview"
-                src={imgSrc}
-                width={500}
-                height={500}
-                className="max-h-[50vh] object-contain rounded-md"
-            />
+      <CardHeader>
+        <CardTitle>Adım 2: Yapay Zeka İle Stilizasyon</CardTitle>
+        <CardDescription>
+          İsterseniz fotoğrafınıza sanatsal bir dokunuş katın.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col items-center gap-4">
+        {imgSrc && (
+          <Image
+            alt="Styled Preview"
+            src={imgSrc}
+            width={500}
+            height={500}
+            className="max-h-[50vh] object-contain rounded-md"
+          />
+        )}
+        <div className="w-full space-y-2">
+          <Textarea
+            placeholder="Örn: bir Van Gogh tablosu gibi yap..."
+            value={stylePrompt}
+            onChange={(e) => setStylePrompt(e.target.value)}
+            disabled={isProcessing}
+            className="min-h-[80px]"
+          />
+          <Button
+            onClick={handleApplyStyle}
+            disabled={isProcessing || !stylePrompt}
+            className="w-full"
+          >
+            {isProcessing ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Wand2 className="mr-2 h-4 w-4" />
             )}
-            <div className="w-full space-y-2">
-            <Textarea
-                placeholder="Örn: bir Van Gogh tablosu gibi yap..."
-                value={stylePrompt}
-                onChange={(e) => setStylePrompt(e.target.value)}
-                disabled={isProcessing}
-                className="min-h-[80px]"
-            />
-            <Button
-                onClick={handleApplyStyle}
-                disabled={isProcessing || !stylePrompt}
-                className="w-full"
-            >
-                {isProcessing ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                <Wand2 className="mr-2 h-4 w-4" />
-                )}
-                Stil Uygula
-            </Button>
-            </div>
-        </CardContent>
-        <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={() => setStep(1)}>
-            <ChevronLeft className="mr-2 h-4 w-4" /> Geri
-            </Button>
-            <Button onClick={() => setStep(3)}>
-            İleri <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
+            Stil Uygula
+          </Button>
+        </div>
+      </CardContent>
+      <CardFooter className="flex justify-between">
+        <Button variant="outline" onClick={() => setStep(1)}>
+          <ChevronLeft className="mr-2 h-4 w-4" /> Geri
+        </Button>
+        <Button onClick={() => setStep(3)}>
+          İleri <ChevronRight className="ml-2 h-4 w-4" />
+        </Button>
       </CardFooter>
     </Card>
   );
@@ -255,9 +252,15 @@ export default function CreatePostPage() {
 
   return (
     <div className="container mx-auto max-w-lg p-4 flex items-center justify-center min-h-[80vh]">
-      {step === 1 && <Step1 />}
-      {step === 2 && <Step2 />}
-      {step === 3 && <Step3 />}
+      <div style={{ display: step === 1 ? 'block' : 'none' }} className="w-full">
+        <Step1 />
+      </div>
+      <div style={{ display: step === 2 ? 'block' : 'none' }} className="w-full">
+        <Step2 />
+      </div>
+      <div style={{ display: step === 3 ? 'block' : 'none' }} className="w-full">
+        <Step3 />
+      </div>
     </div>
   );
 }
