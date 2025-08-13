@@ -41,7 +41,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
       
-      <main className="flex-1 w-full overflow-y-auto pb-20 md:pb-0">
+      <main className="flex-1 w-full pb-16 md:pb-0">
           {children}
       </main>
 
@@ -59,6 +59,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
              <Link href="/chat" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname.startsWith('/chat') ? 'text-primary' : '')}>
                 <div className="relative">
                     <MessageCircle className={cn('w-5 h-5')} />
+                    {/* Notification dot */}
                     <span className="absolute -top-0.5 -right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-background" />
                 </div>
             </Link>

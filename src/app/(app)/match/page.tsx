@@ -31,7 +31,7 @@ export default function MatchPage() {
     };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full p-4 relative overflow-hidden pb-28 md:pb-4">
+    <div className="flex flex-col items-center justify-center h-full p-4">
         <Card className="w-full max-w-sm rounded-2xl overflow-hidden shadow-lg border">
             <div className="relative w-full aspect-[3/4.5]">
                 <Image
