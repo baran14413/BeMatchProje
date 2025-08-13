@@ -4,33 +4,28 @@
 import React, { type ReactNode, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe } from 'lucide-react';
+import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
-// Helper function to check if the chat view is open by inspecting React props.
-// This is a bit of a hack and might break with future Next.js updates.
-// A more robust solution would involve a global state manager (e.g., Zustand, Redux).
+// Helper to determine if a specific chat is open on mobile
 function isChatViewOpen(children: ReactNode): boolean {
   if (React.isValidElement(children) && (children.props as any)) {
     try {
-      // This complex path is needed to navigate the props structure in Next.js layout system.
-      // It might need adjustment if Next.js changes its internal structure.
       const pageProps = (children.props as any)?.childProp?.parallelRoutes?.children?.props?.childProp?.segment === '__PAGE__'
         ? (children.props as any).childProp.parallelRoutes.children.props.childProp.segment.__PAGE__.props
         : null;
 
-      // The `activeChat` prop is specific to our ChatPage component
-      if (pageProps && 'activeChat' in pageProps && pageProps.activeChat !== null) {
-        return true;
+      if (pageProps?.activeChat) {
+          return true
       }
     } catch (e) {
-      // It's normal for this to fail on other pages, so we ignore the error.
       return false;
     }
   }
   return false;
 }
+
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -38,34 +33,27 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const lastScrollY = useRef(0);
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
+  const isChatPage = pathname.startsWith('/chat');
   const isCreatePage = pathname === '/create';
-  // Check if we are on any page that is part of the chat feature
-  const isChatFeature = pathname.startsWith('/chat');
   
   // This is the check to see if a specific chat is open on mobile
-  const chatViewOpen = isChatFeature && isChatViewOpen(children);
+  const chatViewOpen = isChatPage && isChatViewOpen(children);
 
   // Navs should be hidden on the create page or when a specific chat is open on mobile.
-  const showNavs = !isCreatePage && !chatViewOpen;
+  const showNavs = !isChatPage && !isCreatePage;
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      // Always hide immediately on scroll down
       if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
         setIsScrolledDown(true);
-      } else {
-        // If scrolling up, we don't immediately show the nav.
-        // We let the timeout handle it.
-      }
+      } 
       
-      // Clear the previous timeout
       if (scrollTimeout.current) {
         clearTimeout(scrollTimeout.current);
       }
 
-      // Set a new timeout to show the navs after scrolling has stopped
       scrollTimeout.current = setTimeout(() => {
         setIsScrolledDown(false);
       }, 150);
@@ -77,7 +65,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     if (showNavs) {
        window.addEventListener('scroll', handleScroll, { passive: true });
     } else {
-        setIsScrolledDown(false); // Reset on pages where navs are hidden
+        setIsScrolledDown(false);
     }
    
     return () => {
@@ -89,14 +77,17 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   }, [showNavs]);
 
 
-  const headerHeight = 'h-16';
-  const bottomNavHeight = 'h-16';
-
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
+    <div 
+        className="flex flex-col min-h-screen bg-background text-foreground"
+        style={{
+            paddingTop: 'var(--header-height)',
+            paddingBottom: 'var(--bottom-nav-height)',
+        } as React.CSSProperties}
+    >
        <header className={cn(
-        "sticky top-0 z-50 flex items-center justify-between px-4 border-b shrink-0 bg-background/95 backdrop-blur-sm md:px-6 transition-transform duration-300",
-        headerHeight,
+        "fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 bg-background/80 backdrop-blur-sm md:px-6 transition-transform duration-300",
+        "h-[var(--header-height)]",
         !showNavs && "hidden",
         isScrolledDown && showNavs && "-translate-y-full"
        )}>
@@ -138,8 +129,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Bottom Navigation for Mobile */}
       <nav className={cn(
-        "fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t md:hidden transition-transform duration-300",
-        bottomNavHeight,
+        "fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-sm md:hidden transition-transform duration-300",
+        "h-[var(--bottom-nav-height)]",
         !showNavs && "hidden",
         isScrolledDown && showNavs && "translate-y-full"
       )}>
