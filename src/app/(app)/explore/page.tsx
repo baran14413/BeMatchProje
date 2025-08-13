@@ -13,6 +13,7 @@ import { translateText } from '@/ai/flows/translate-text-flow';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
+import Link from 'next/link';
 
 
 const formatRelativeTime = (date: Date) => {
@@ -350,10 +351,12 @@ export default function ExplorePage() {
         ))}
       </div>
       
-       <Button className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg" size="icon">
-            <Plus className="h-8 w-8" />
-            <span className="sr-only">Yeni Gönderi Ekle</span>
-       </Button>
+       <Link href="/create">
+        <Button className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg" size="icon">
+                <Plus className="h-8 w-8" />
+                <span className="sr-only">Yeni Gönderi Ekle</span>
+        </Button>
+       </Link>
     </div>
   );
 }

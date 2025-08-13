@@ -11,33 +11,37 @@ import { useState, useEffect, useRef } from 'react';
 export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(true);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastScrollY = useRef(0);
+
+  // This will hide navbars on scroll down and show on scroll up
+  const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY.current && currentScrollY > 100) { // Scrolling down
+          setIsVisible(false);
+      } else { // Scrolling up
+          setIsVisible(true);
+      }
+      lastScrollY.current = currentScrollY;
+  };
 
   useEffect(() => {
-    const handleScroll = () => {
-      // Hide bars on scroll
-      setIsVisible(false);
-
-      // Clear the previous timeout if it exists
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-
-      // Set a new timeout to show the bars after scrolling has stopped
-      scrollTimeoutRef.current = setTimeout(() => {
-        setIsVisible(true);
-      }, 250); // Adjust timeout as needed (250ms is a good starting point)
-    };
+    // Hide nav on create page, because it has its own navigation
+    if (pathname === '/create') {
+        setIsVisible(false);
+        return;
+    }
 
     window.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
     };
-  }, []);
+  }, [pathname]);
+
+  if (pathname === '/create') {
+    return <main className="flex-1 w-full">{children}</main>;
+  }
+
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -47,7 +51,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
        )}>
         <Link href="/match" className="flex items-center gap-2 font-semibold text-lg">
             <Heart className="w-7 h-7 text-primary" />
-            <span className="font-bold">BeWalk</span>
+            <span className="font-bold">BeMatch</span>
         </Link>
         <div className="flex items-center gap-2">
             <Link href="/profile">
