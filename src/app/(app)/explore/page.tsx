@@ -311,8 +311,18 @@ export default function ExplorePage() {
                                     <Smile className="h-5 w-5" />
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0 border-none">
-                               <EmojiPicker onEmojiClick={onEmojiClick} />
+                            <PopoverContent className="w-full max-w-sm p-0 border-none">
+                               <EmojiPicker
+                                   onEmojiClick={onEmojiClick}
+                                   autoFocusSearch={false}
+                                   height={350}
+                                   width="100%"
+                                   searchDisabled={false}
+                                   searchPlaceHolder="Ara..."
+                                   previewConfig={{
+                                      showPreview: false
+                                   }}
+                               />
                             </PopoverContent>
                         </Popover>
                         <Button size="icon" variant="ghost">
