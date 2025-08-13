@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,11 +59,23 @@ const initialConversations: Conversation[] = [
 
 export default function ChatPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [conversations, setConversations] = useState(initialConversations);
   const [activeChat, setActiveChat] = useState<Conversation | null>(null);
   const [messageInput, setMessageInput] = useState('');
 
   const isChatViewOpen = activeChat !== null;
+
+  useEffect(() => {
+    const userId = searchParams.get('userId');
+    if (userId) {
+      const chatToOpen = conversations.find(c => c.id === parseInt(userId, 10));
+      if (chatToOpen) {
+        setActiveChat(chatToOpen);
+      }
+    }
+  }, [searchParams, conversations]);
+
 
   const handleSendMessage = () => {
     if (!messageInput.trim() || !activeChat) return;
@@ -103,6 +115,10 @@ export default function ChatPage() {
 
   const handleBackToList = () => {
       setActiveChat(null);
+      // If we came directly via a query param, going back should take us to the main match page.
+      if (searchParams.get('userId')) {
+          router.push('/match');
+      }
   }
 
   return (
@@ -133,8 +149,7 @@ export default function ChatPage() {
                 <div
                 key={convo.id}
                 className={cn(
-                    'flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50',
-                    activeChat?.id === convo.id && 'bg-muted/50'
+                    'flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50'
                 )}
                 onClick={() => handleSetActiveChat(convo)}
                 >

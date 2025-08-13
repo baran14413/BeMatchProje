@@ -69,8 +69,8 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
                   Doğrulanmış Profil
                 </p>
               </div>
-              <div className="mt-4 flex flex-col sm:flex-row gap-2 w-full">
-                <Link href="/chat" className="flex-1">
+              <div className="mt-4 flex gap-2 w-full">
+                <Link href={`/chat?userId=1`} className="flex-1">
                   <Button className="w-full">
                     <MessageSquare className="mr-2 h-4 w-4" /> Mesaj Gönder
                   </Button>
