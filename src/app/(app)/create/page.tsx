@@ -31,11 +31,15 @@ import {
   Crop as CropIcon,
   Check,
   Ban,
+  RectangleHorizontal,
+  RectangleVertical,
+  Square,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { stylizeImage } from '@/ai/flows/stylize-image-flow';
 import { moderateImage } from '@/ai/flows/moderate-image-flow';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
+
 
 function centerAspectCrop(
   mediaWidth: number,
@@ -244,7 +248,7 @@ export default function CreatePostPage() {
       <CardHeader>
         <CardTitle>Yeni Gönderi Oluştur</CardTitle>
         <CardDescription>
-          Paylaşmak için bilgisayarınızdan bir fotoğraf seçin.
+          Bugünün anısını paylaşarak arkadaşlarını etkile.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -274,7 +278,7 @@ export default function CreatePostPage() {
       <CardHeader>
         <CardTitle>Adım 2: Fotoğrafı Kırp</CardTitle>
         <CardDescription>
-          Paylaşmak istediğiniz alanı seçin.
+          Paylaşmak istediğiniz alanı seçin ve en boy oranını ayarlayın.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
@@ -285,6 +289,7 @@ export default function CreatePostPage() {
               onChange={(_, percentCrop) => setCrop(percentCrop)}
               onComplete={(c) => setCompletedCrop(c)}
               aspect={aspect}
+              className="max-h-[50vh]"
             >
               <Image
                 ref={imgRef}
@@ -293,11 +298,17 @@ export default function CreatePostPage() {
                 width={500}
                 height={500}
                 onLoad={onImageLoad}
-                className="max-h-[60vh] object-contain"
+                className="object-contain"
               />
             </ReactCrop>
           </div>
         )}
+        <div className="w-full flex justify-center gap-2">
+            <Button variant={aspect === 1 / 1 ? 'default' : 'outline'} size="icon" onClick={() => setAspect(1/1)}><Square /></Button>
+            <Button variant={aspect === 4 / 5 ? 'default' : 'outline'} size="icon" onClick={() => setAspect(4/5)}><RectangleVertical /></Button>
+            <Button variant={aspect === 16 / 9 ? 'default' : 'outline'} size="icon" onClick={() => setAspect(16/9)}><RectangleHorizontal /></Button>
+            <Button variant={aspect === undefined ? 'default' : 'outline'} size="icon" onClick={() => setAspect(undefined)}><CropIcon /></Button>
+        </div>
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={() => setStep(1)}>
