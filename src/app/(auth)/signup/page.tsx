@@ -22,6 +22,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { moderateImage, ModerateImageOutput } from '@/ai/flows/moderate-image-flow';
+import { verifyFace, VerifyFaceOutput } from '@/ai/flows/verify-face-flow';
 
 
 const HOBBIES = [
@@ -69,13 +70,28 @@ export default function SignupPage() {
   const [failureReason, setFailureReason] = useState<FailureReason | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [capturedFrame, setCapturedFrame] = useState<string | null>(null);
 
   const [profilePicPreview, setProfilePicPreview] = useState<string | null>(null);
   const [moderationStatus, setModerationStatus] = useState<ModerationStatus>('idle');
-  const [moderationResult, setModerationResult] = useState<ModerateImageOutput | null>(null);
+  const [moderationResult, setModerationResult] = useState<(ModerateImageOutput & VerifyFaceOutput) | null>(null);
   
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
+
+  const captureFrame = () => {
+    if (videoRef.current) {
+        const canvas = document.createElement('canvas');
+        canvas.width = videoRef.current.videoWidth;
+        canvas.height = videoRef.current.videoHeight;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            ctx.scale(-1, 1);
+            ctx.drawImage(videoRef.current, 0, 0, -canvas.width, canvas.height);
+            setCapturedFrame(canvas.toDataURL('image/jpeg'));
+        }
+    }
+  }
 
   const handleVerification = () => {
     if (verificationStatus === 'verifying' || verificationStatus === 'success') return;
@@ -85,10 +101,10 @@ export default function SignupPage() {
     verificationTimeoutRef.current = setTimeout(() => {
         const mockFaceFound = Math.random() > 0.1;
         const mockIsLive = Math.random() > 0.2;
-        const mockDetectedGender = 'male'; // Simulate always detecting male
+        const mockDetectedGender = 'male'; 
         if (!mockFaceFound) { setFailureReason('no_face'); setVerificationStatus('fail'); return; }
         if (!mockIsLive) { setFailureReason('not_live'); setVerificationStatus('fail'); return; }
-        if (formData.gender && formData.gender !== 'other' && formData.gender === mockDetectedGender) {
+        if (formData.gender && formData.gender === 'female' && mockDetectedGender === 'male') {
             setFailureReason('gender_mismatch');
             setVerificationStatus('fail');
             toast({ variant: 'destructive', title: 'Cinsiyet Uyuşmazlığı', description: 'Belirttiğiniz cinsiyetle doğrulama eşleşmedi. 5 saniye içinde önceki adıma yönlendiriliyorsunuz.' });
@@ -96,6 +112,7 @@ export default function SignupPage() {
             return;
         }
         setVerificationStatus('success');
+        captureFrame();
         setTimeout(() => nextStep(), 1500);
     }, 3000);
   };
@@ -157,13 +174,20 @@ export default function SignupPage() {
   };
 
   const handleImageModeration = async () => {
-    if (!profilePicPreview) return;
+    if (!profilePicPreview || !capturedFrame) return;
     setModerationStatus('checking');
     
     try {
-        const result = await moderateImage({ photoDataUri: profilePicPreview });
-        setModerationResult(result);
-        setModerationStatus(result.isSafe ? 'safe' : 'unsafe');
+        const [modResult, faceResult] = await Promise.all([
+             moderateImage({ photoDataUri: profilePicPreview }),
+             verifyFace({ livePhotoDataUri: capturedFrame, profilePhotoDataUri: profilePicPreview })
+        ]);
+
+        const combinedResult = { ...modResult, ...faceResult };
+        setModerationResult(combinedResult);
+        const isSafe = modResult.isSafe && faceResult.isSamePerson;
+        setModerationStatus(isSafe ? 'safe' : 'unsafe');
+
     } catch(e) {
         console.error(e);
         toast({ variant: 'destructive', title: 'Denetim Hatası', description: 'Yapay zeka denetimi sırasında bir hata oluştu. Lütfen tekrar deneyin.' });
@@ -235,6 +259,17 @@ export default function SignupPage() {
         case 'gender_mismatch': return 'Cinsiyetinizle belirttiğiniz bilgi uyuşmuyor. Lütfen kontrol edin.';
         default: return 'Doğrulama başarısız oldu. Lütfen tekrar deneyin.';
     }
+  }
+
+  const getModerationFailureMessage = () => {
+      if (!moderationResult) return "Bu fotoğraf profil resmi olarak kullanılamaz. Lütfen başka bir fotoğraf deneyin.";
+      if (!moderationResult.isSamePerson) {
+          return moderationResult.reason || "Yüzünüz, doğrulama sırasındaki yüzle eşleşmiyor. Lütfen kendinize ait bir fotoğraf yükleyin.";
+      }
+      if (!moderationResult.isSafe) {
+          return moderationResult.reason || "Bu fotoğraf profil resmi olarak uygun değil. Lütfen başka bir fotoğraf deneyin.";
+      }
+      return "Bilinmeyen bir nedenle denetim başarısız oldu.";
   }
 
   const getBorderColorClass = () => {
@@ -401,7 +436,7 @@ export default function SignupPage() {
                                 <AlertTriangle className="h-4 w-4" />
                                 <AlertTitle>Denetim Başarısız</AlertTitle>
                                 <AlertDescription>
-                                   {moderationResult?.reason || "Bu fotoğraf profil resmi olarak kullanılamaz. Lütfen başka bir fotoğraf deneyin."}
+                                   {getModerationFailureMessage()}
                                 </AlertDescription>
                             </Alert>
                          )}
