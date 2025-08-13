@@ -6,6 +6,7 @@ import TinderCard from 'react-tinder-card';
 import { Heart, X, Undo, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 const db = [
   {
@@ -74,7 +75,7 @@ export default function MatchPage() {
       Array(db.length)
         .fill(0)
         .map(() => React.createRef<TinderCardRef>()),
-    []
+    [db.length]
   );
 
   const updateCurrentIndex = (val: number) => {
@@ -90,7 +91,7 @@ export default function MatchPage() {
   };
 
   const outOfFrame = (name: string, idx: number) => {
-    // This function is triggered when a card is completely out of the frame.
+     // You can handle what happens when a card is swiped out, e.g. a toast message.
   };
 
   const swipe = async (dir: 'left' | 'right') => {
@@ -107,82 +108,86 @@ export default function MatchPage() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center pt-4 pb-20">
-      <div className="relative w-full max-w-[350px] h-[580px]">
-        {db.map((character, index) => (
-          <TinderCard
-            ref={childRefs[index]}
-            className="absolute"
-            key={character.name}
-            onSwipe={(dir) => swiped(dir, character.name, index)}
-            onCardLeftScreen={() => outOfFrame(character.name, index)}
-            preventSwipe={['up', 'down', 'left', 'right']} // Prevent manual swiping
-          >
-            <div className="relative w-[350px] h-[580px] rounded-2xl overflow-hidden shadow-2xl bg-card border">
-              <Image
-                src={character.image}
-                alt={character.name}
-                layout="fill"
-                className="object-cover"
-                data-ai-hint={character.aiHint}
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                <h3 className="text-3xl font-bold">
-                  {character.name}, {character.age}
-                </h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <MapPin className="w-4 h-4" />
-                  <p>{character.city}</p>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {character.hobbies.map((hobby) => (
-                    <Badge key={hobby} variant="secondary" className="bg-white/20 text-white border-none backdrop-blur-sm">
-                      {hobby}
-                    </Badge>
-                  ))}
+    <div className="w-full h-full flex flex-col items-center justify-center p-4 pb-20 md:pb-4">
+      <div className="w-full h-full flex flex-col items-center justify-center flex-grow relative">
+        {/* This is the container for the cards */}
+        <div className="relative w-full max-w-[350px] h-[580px] flex-shrink-0">
+          {db.map((character, index) => (
+            <TinderCard
+              ref={childRefs[index]}
+              className="absolute"
+              key={character.name}
+              onSwipe={(dir) => swiped(dir, character.name, index)}
+              onCardLeftScreen={() => outOfFrame(character.name, index)}
+              preventSwipe={['up', 'down']}
+            >
+              <div className="relative w-[350px] h-[580px] rounded-2xl overflow-hidden shadow-2xl bg-card border">
+                <Image
+                  src={character.image}
+                  alt={character.name}
+                  fill
+                  className="object-cover"
+                  data-ai-hint={character.aiHint}
+                  priority={index === db.length - 1}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                  <h3 className="text-3xl font-bold">
+                    {character.name}, {character.age}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <MapPin className="w-4 h-4" />
+                    <p>{character.city}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {character.hobbies.map((hobby) => (
+                      <Badge key={hobby} variant="secondary" className="bg-white/20 text-white border-none backdrop-blur-sm">
+                        {hobby}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               </div>
+            </TinderCard>
+          ))}
+
+          {!canSwipe && (
+            <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground bg-secondary rounded-2xl">
+              <h3 className="text-xl font-bold">Bugünlük Herkesi Gördün</h3>
+              <p className="mt-2">Daha fazla kişi görmek için yarın tekrar gel.</p>
             </div>
-          </TinderCard>
-        ))}
-
-        {!canSwipe && (
-          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-            <h3 className="text-xl font-bold">Bugünlük Herkesi Gördün</h3>
-            <p className="mt-2">Daha fazla kişi görmek için yarın tekrar gel.</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-
-      <div className="flex items-center gap-4 mt-6">
+      
+      {/* Action Buttons */}
+      <div className="flex items-center justify-center gap-4 mt-6 flex-shrink-0">
         <Button
-            onClick={() => swipe('left')}
-            variant="outline"
-            size="icon"
-            className="w-16 h-16 rounded-full border-2 border-red-500 text-red-500 hover:bg-red-100 hover:text-red-600 disabled:opacity-50"
-            disabled={!canSwipe}
+          onClick={() => swipe('left')}
+          variant="outline"
+          size="icon"
+          className="w-20 h-20 rounded-full border-4 shadow-lg bg-white border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 disabled:bg-gray-100"
+          disabled={!canSwipe}
         >
-            <X className="w-8 h-8" />
+          <X className="w-10 h-10" />
         </Button>
         <Button
-            onClick={() => goBack()}
-            variant="outline"
-            size="icon"
-            className="w-12 h-12 rounded-full border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-100 hover:text-yellow-600 disabled:opacity-50"
-            disabled={!canGoBack}
+          onClick={() => goBack()}
+          variant="outline"
+          size="icon"
+          className="w-16 h-16 rounded-full border-4 shadow-lg bg-white border-yellow-200 text-yellow-500 hover:bg-yellow-50 hover:text-yellow-600 disabled:opacity-50 disabled:bg-gray-100"
+          disabled={!canGoBack}
         >
-            <Undo className="w-6 h-6" />
+          <Undo className="w-8 h-8" />
         </Button>
         <Button
-            onClick={() => swipe('right')}
-            variant="outline"
-            size="icon"
-            className="w-16 h-16 rounded-full border-2 border-green-500 text-green-500 hover:bg-green-100 hover:text-green-600 disabled:opacity-50"
-            disabled={!canSwipe}
+          onClick={() => swipe('right')}
+          variant="outline"
+          size="icon"
+          className="w-20 h-20 rounded-full border-4 shadow-lg bg-white border-green-200 text-green-500 hover:bg-green-50 hover:text-green-600 disabled:opacity-50 disabled:bg-gray-100"
+          disabled={!canSwipe}
         >
-            <Heart className="w-8 h-8" />
+          <Heart className="w-10 h-10" />
         </Button>
       </div>
     </div>
