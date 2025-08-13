@@ -1,31 +1,31 @@
 
 'use client';
 
-import type { ReactNode } from 'react';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { type ReactNode, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
+// Helper function to check if the chat view is open by inspecting React props.
+// This is a bit of a hack and might break with future Next.js updates.
+// A more robust solution would involve a global state manager (e.g., Zustand, Redux).
 function isChatViewOpen(children: ReactNode): boolean {
-  if (React.isValidElement(children) && children.props) {
+  if (React.isValidElement(children) && (children.props as any)) {
     try {
-      const segment = children.props.childProp?.parallelRoutes.children.props.childProp.segment;
-      if (segment === 'chat') {
-        const page = children.props.childProp.parallelRoutes.children.props.childProp.segment['__PAGE__'];
-        if (page && page.props && 'activeChat' in page.props) {
-          return page.props.activeChat !== null;
-        }
+      const pageProps = (children.props as any).childProp.parallelRoutes.children.props.childProp.segment.__PAGE__.props;
+      // The `activeChat` prop is specific to our ChatPage component
+      if ('activeChat' in pageProps && pageProps.activeChat !== null) {
+        return true;
       }
     } catch (e) {
+      // It's normal for this to fail on other pages, so we ignore the error.
       return false;
     }
   }
   return false;
 }
-
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -34,16 +34,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const isCreatePage = pathname === '/create';
-  // Note: This check relies on internal Next.js props and might be fragile.
-  // A more robust solution might involve a global state manager (like Zustand or Redux).
-  const chatViewOpen = pathname.startsWith('/chat') && React.isValidElement(children) && (children.props as any).childProp?.parallelRoutes?.children?.props?.childProp?.segment?.__PAGE__?.props?.activeChat !== null;
+  
+  // This is the check to see if a specific chat is open on mobile
+  const chatViewOpen = pathname.startsWith('/chat') && isChatViewOpen(children);
 
-
-  const showNavs = !isCreatePage && !(pathname === '/chat' && chatViewOpen);
+  const showNavs = !isCreatePage && !chatViewOpen;
 
   useEffect(() => {
     const handleScroll = () => {
-      // Clear the timeout on every scroll event
       if (scrollTimeout.current) {
         clearTimeout(scrollTimeout.current);
       }
@@ -53,8 +51,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
         setIsScrolledDown(true);
       } else if (currentScrollY < lastScrollY.current) {
-        // When scrolling up, set a timeout to show the navbars
-        // This makes them appear only when scrolling stops
+         // Show only when scrolling stops
          scrollTimeout.current = setTimeout(() => {
            setIsScrolledDown(false);
          }, 150);

@@ -122,7 +122,8 @@ export default function ChatPage() {
             <div
               key={convo.id}
               className={cn(
-                'flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50'
+                'flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50',
+                 activeChat?.id === convo.id && 'bg-muted/50 border-l-4 border-primary'
               )}
               onClick={() => handleSetActiveChat(convo)}
             >
