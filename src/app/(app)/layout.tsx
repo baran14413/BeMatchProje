@@ -2,7 +2,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe } from 'lucide-react';
@@ -11,20 +11,15 @@ import { Button } from '@/components/ui/button';
 
 function isChatViewOpen(children: ReactNode): boolean {
   if (React.isValidElement(children) && children.props) {
-    // This is a hacky way to check props of a page from the layout in Next.js App Router.
-    // It's brittle and might break with Next.js updates.
-    // A more robust solution would involve using a global state manager (like Zustand or Jotai)
-    // to share state between the page and the layout.
     try {
-      const pageProps = children.props.childProp?.parallelRoutes.children.props.childProp.segment === 'chat'
-        ? children.props.childProp.parallelRoutes.children.props.childProp.segment['__PAGE__']?.props
-        : null;
-
-      if (pageProps && 'activeChat' in pageProps) {
-        return pageProps.activeChat !== null;
+      const segment = children.props.childProp?.parallelRoutes.children.props.childProp.segment;
+      if (segment === 'chat') {
+        const page = children.props.childProp.parallelRoutes.children.props.childProp.segment['__PAGE__'];
+        if (page && page.props && 'activeChat' in page.props) {
+          return page.props.activeChat !== null;
+        }
       }
     } catch (e) {
-      // This can fail if the prop structure changes, so we'll just assume the chat isn't open.
       return false;
     }
   }
@@ -34,15 +29,37 @@ function isChatViewOpen(children: ReactNode): boolean {
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const [isScrolledDown, setIsScrolledDown] = useState(false);
+  const lastScrollY = useRef(0);
 
   const isCreatePage = pathname === '/create';
-  
-  // This is a bit of a hack to check if the chat detail view is open on mobile
-  // A better solution would involve a global state manager (like Zustand or Context)
   const chatViewOpen = isChatViewOpen(children);
 
   const showNavs = !isCreatePage && !(pathname === '/chat' && chatViewOpen);
-  
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY.current && currentScrollY > 80) { // Scrolling down
+        setIsScrolledDown(true);
+      } else { // Scrolling up
+        setIsScrolledDown(false);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+
+    if (showNavs) {
+       window.addEventListener('scroll', handleScroll, { passive: true });
+    } else {
+        setIsScrolledDown(false);
+    }
+   
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [showNavs]);
+
+
   const headerHeight = 'h-16';
   const bottomNavHeight = 'h-16';
 
@@ -51,7 +68,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
        <header className={cn(
         "sticky top-0 z-50 flex items-center justify-between px-4 border-b shrink-0 bg-background/95 backdrop-blur-sm md:px-6 transition-transform duration-300",
         headerHeight,
-        !showNavs && "hidden" // Use hidden instead of transform for simplicity
+        !showNavs && "hidden",
+        isScrolledDown && showNavs && "-translate-y-full"
        )}>
         <Link href="/match" className="flex items-center gap-2 font-semibold text-lg">
             <Heart className="w-7 h-7 text-primary" />
@@ -91,9 +109,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Bottom Navigation for Mobile */}
       <nav className={cn(
-        "fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t md:hidden",
+        "fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t md:hidden transition-transform duration-300",
         bottomNavHeight,
-        !showNavs && "hidden"
+        !showNavs && "hidden",
+        isScrolledDown && showNavs && "translate-y-full"
       )}>
         <div className="grid h-full grid-cols-3">
             <Link href="#" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary')}>

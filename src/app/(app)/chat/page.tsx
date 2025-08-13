@@ -38,8 +38,10 @@ const initialConversations: Conversation[] = [
     messages: [
       { id: 1, text: 'Merhaba! Profilin çok ilgimi çekti.', sender: 'other', timestamp: '10:30' },
       { id: 2, text: 'Merhaba Elif! Teşekkür ederim, senin de.', sender: 'me', timestamp: '10:31' },
+      { id: 3, text: 'Nasılsın? Hafta sonu için bir planın var mı acaba merak ettim de? Belki bir kahve içebiliriz bir yerlerde? Ne dersin? :)', sender: 'other', timestamp: '10:32' },
+      { id: 4, text: 'İyiyim, teşekkürler! Henüz bir planım yok. Kahve harika fikir! Nerede buluşabiliriz?', sender: 'me', timestamp: '10:35' },
     ],
-    lastMessage: 'Merhaba Elif! Teşekkür ederim, senin de.',
+    lastMessage: 'İyiyim, teşekkürler! Henüz bir planım yok...',
   },
   {
     id: 2,
@@ -143,7 +145,7 @@ export default function ChatPage() {
       {/* Main Chat Area */}
       <main className={cn(
           "w-full md:w-2/3 flex-col h-full",
-          isChatViewOpen ? "flex fixed md:static inset-0 bg-background" : "hidden md:flex"
+          isChatViewOpen ? "flex" : "hidden md:flex"
       )}>
         {activeChat ? (
           <>
