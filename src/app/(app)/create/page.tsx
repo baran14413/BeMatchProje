@@ -212,86 +212,35 @@ const Step4PhotoShare = ({
   </Card>
 );
 
-const BACKGROUNDS = [
-    { name: 'Sade', class: 'bg-white' },
-    { name: 'Alaca', class: 'bg-gradient-to-r from-purple-400 via-pink-500 to-red-500' },
-    { name: 'Okyanus', class: 'bg-gradient-to-r from-blue-400 to-emerald-400' },
-    { name: 'Gün Batımı', class: 'bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500' },
-    { name: 'Gece', class: 'bg-gray-800' },
-];
-
-const FONTS = [
-    { name: 'Klasik', class: 'font-sans' },
-    { name: 'Serif', class: 'font-serif' },
-    { name: 'El Yazısı', class: 'font-mono' }, // Using mono as a proxy for a distinct style
-];
-
-// Step 2 (Text): Write and Style
+// Step 2 (Text): Write and Share (Twitter-like)
 const Step2TextWrite = ({
     textContent,
     setTextContent,
-    backgroundStyle,
-    setBackgroundStyle,
-    fontStyle,
-    setFontStyle,
     isProcessing,
     handleShare,
     onBack,
 }: {
     textContent: string;
     setTextContent: (value: string) => void;
-    backgroundStyle: string;
-    setBackgroundStyle: (value: string) => void;
-    fontStyle: string;
-    setFontStyle: (value: string) => void;
     isProcessing: boolean;
     handleShare: () => void;
     onBack: () => void;
 }) => (
     <Card className="w-full max-w-lg">
         <CardHeader>
-            <CardTitle>Adım 2: Yazını Tasarla ve Paylaş</CardTitle>
+            <CardTitle>Aklındakileri Paylaş</CardTitle>
             <CardDescription>
-                Düşüncelerini stil ile ifade et.
+                Düşüncelerini takipçilerinle paylaş.
             </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col items-center gap-4">
-             <div className={cn("w-full aspect-square rounded-md flex items-center justify-center p-8 text-center", backgroundStyle)}>
-                <p className={cn("text-2xl break-words", fontStyle, backgroundStyle.includes('gray-800') ? 'text-white' : 'text-black')}>
-                    {textContent || 'Aklındakileri yaz...'}
-                </p>
-            </div>
-            <div className='w-full space-y-4'>
-                <div>
-                    <Label className="text-sm font-medium mb-2 block">Arka Plan</Label>
-                    <div className='flex gap-2 flex-wrap'>
-                        {BACKGROUNDS.map(bg => (
-                            <Button key={bg.name} variant={backgroundStyle === bg.class ? 'default' : 'outline'} onClick={() => setBackgroundStyle(bg.class)}>
-                                {bg.name}
-                            </Button>
-                        ))}
-                    </div>
-                </div>
-                 <div>
-                    <Label className="text-sm font-medium mb-2 block">Yazı Tipi</Label>
-                    <div className='flex gap-2 flex-wrap'>
-                        {FONTS.map(font => (
-                            <Button key={font.name} variant={fontStyle === font.class ? 'default' : 'outline'} onClick={() => setFontStyle(font.class)}>
-                                {font.name}
-                            </Button>
-                        ))}
-                    </div>
-                </div>
-                 <div>
-                    <Label className="text-sm font-medium mb-2 block">Metin</Label>
-                    <Input 
-                        placeholder="Buraya yaz..." 
-                        value={textContent}
-                        onChange={(e) => setTextContent(e.target.value)}
-                        className="w-full"
-                    />
-                </div>
-            </div>
+        <CardContent>
+            <Textarea
+                placeholder="Neler oluyor?"
+                value={textContent}
+                onChange={(e) => setTextContent(e.target.value)}
+                className="min-h-[150px] text-lg"
+                autoFocus
+            />
         </CardContent>
         <CardFooter className="flex justify-between">
             <Button variant="outline" onClick={onBack}>
@@ -321,8 +270,6 @@ export default function CreatePostPage() {
   
   // Text post states
   const [textContent, setTextContent] = useState('');
-  const [backgroundStyle, setBackgroundStyle] = useState(BACKGROUNDS[0].class);
-  const [fontStyle, setFontStyle] = useState(FONTS[0].class);
   
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -499,10 +446,6 @@ export default function CreatePostPage() {
                     <Step2TextWrite 
                         textContent={textContent}
                         setTextContent={setTextContent}
-                        backgroundStyle={backgroundStyle}
-                        setBackgroundStyle={setBackgroundStyle}
-                        fontStyle={fontStyle}
-                        setFontStyle={setFontStyle}
                         isProcessing={isProcessing}
                         handleShare={handleShare}
                         onBack={goBackToTypeSelect}
@@ -522,3 +465,5 @@ export default function CreatePostPage() {
     </div>
   );
 }
+
+    
