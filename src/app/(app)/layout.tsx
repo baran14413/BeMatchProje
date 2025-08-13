@@ -45,10 +45,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         "sticky top-0 z-50 flex items-center justify-between h-16 px-4 border-b shrink-0 bg-background/95 backdrop-blur-sm md:px-6 transition-transform duration-300",
         !isVisible && "-translate-y-full"
        )}>
+        <Link href="/match" className="flex items-center gap-2 font-semibold text-lg">
+            <Heart className="w-7 h-7 text-primary" />
+            <span className="font-bold">BeWalk</span>
+        </Link>
         <div className="flex items-center gap-2">
             <Link href="/profile">
                 <Button variant="ghost" size="icon" className="rounded-full">
-                    <User className="w-6 h-6" />
+                    <User className="w-5 h-5" />
                     <span className="sr-only">Profil</span>
                 </Button>
             </Link>
@@ -71,12 +75,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 </Button>
             </Link>
         </div>
-        <Link href="/match" className="flex items-center gap-2 font-semibold">
-           <Button variant="ghost" size="icon" className="rounded-full">
-              <Heart className="w-6 h-6 text-primary" />
-              <span className="sr-only">BeMatch</span>
-            </Button>
-        </Link>
       </header>
       
       <main className="flex-1 w-full">
