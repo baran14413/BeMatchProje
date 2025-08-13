@@ -64,7 +64,6 @@ export default function SignupPage() {
         const mockFaceFound = Math.random() > 0.1; // 90% chance to "find" a face
         const mockIsLive = Math.random() > 0.2; // 80% chance of being "live"
         
-        // MOCK: Simulate detecting "male" from the camera to test the logic.
         const mockDetectedGender = 'male';
 
         if (!mockFaceFound) {
@@ -107,6 +106,11 @@ export default function SignupPage() {
 
     }, 3000);
   };
+
+  const retryVerification = () => {
+    setVerificationStatus('idle');
+    setFailureReason(null);
+  };
   
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -146,7 +150,7 @@ export default function SignupPage() {
         handleVerification();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, hasCameraPermission]);
+  }, [step, hasCameraPermission, verificationStatus]);
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -166,6 +170,10 @@ export default function SignupPage() {
       return { ...prev, hobbies: newHobbies };
     });
   };
+
+  const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.email;
+  const isStep2Invalid = !formData.age || !formData.gender || formData.hobbies.length < 3;
+  const isNextButtonDisabled = (step === 1 && isStep1Invalid) || (step === 2 && isStep2Invalid);
 
   const progress = (step / 3) * 100;
 
@@ -294,7 +302,7 @@ export default function SignupPage() {
                     <AlertDescription>
                        {getFailureMessage()}
                        {failureReason !== 'gender_mismatch' && (
-                         <Button variant="link" className="p-0 h-auto mt-2" onClick={() => setVerificationStatus('idle')}>Tekrar Dene</Button>
+                         <Button variant="link" className="p-0 h-auto mt-2" onClick={retryVerification}>Tekrar Dene</Button>
                        )}
                     </AlertDescription>
                 </Alert>
@@ -312,7 +320,7 @@ export default function SignupPage() {
         <div className="flex w-full justify-between">
             {step > 1 && <Button variant="outline" onClick={prevStep}>Geri</Button>}
             <div className="flex-grow" />
-            {step < 3 && <Button onClick={nextStep} disabled={step === 2 && formData.hobbies.length < 3}>İleri</Button>}
+            {step < 3 && <Button onClick={nextStep} disabled={isNextButtonDisabled}>İleri</Button>}
         </div>
         <div className="mt-2 text-center text-sm">
             Zaten bir hesabınız var mı?{' '}
