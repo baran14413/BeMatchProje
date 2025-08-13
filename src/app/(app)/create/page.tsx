@@ -21,20 +21,45 @@ import {
   Loader2,
   Wand2,
   Check,
+  Image as ImageIcon,
+  Type,
 } from 'lucide-react';
 import { stylizeImage } from '@/ai/flows/stylize-image-flow';
 import { moderateImage } from '@/ai/flows/moderate-image-flow';
+import { cn } from '@/lib/utils';
 
-// Step 1 Component
-const Step1 = ({ onFileSelect }: { onFileSelect: (e: ChangeEvent<HTMLInputElement>) => void }) => {
+// Step 1: Choose post type
+const Step1ChooseType = ({ onSelectType }: { onSelectType: (type: 'photo' | 'text') => void }) => (
+    <Card className="w-full max-w-lg">
+      <CardHeader>
+        <CardTitle>Yeni Gönderi Oluştur</CardTitle>
+        <CardDescription>
+          Ne tür bir gönderi paylaşmak istersin?
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Button variant="outline" className="h-32 flex flex-col gap-2" onClick={() => onSelectType('photo')}>
+            <ImageIcon className="w-8 h-8" />
+            <span className="text-lg">Fotoğraf Paylaş</span>
+        </Button>
+        <Button variant="outline" className="h-32 flex flex-col gap-2" onClick={() => onSelectType('text')}>
+            <Type className="w-8 h-8" />
+            <span className="text-lg">Yazı Yaz</span>
+        </Button>
+      </CardContent>
+    </Card>
+);
+
+// Step 2 (Photo): Upload
+const Step2PhotoUpload = ({ onFileSelect }: { onFileSelect: (e: ChangeEvent<HTMLInputElement>) => void }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <Card className="w-full max-w-lg">
       <CardHeader>
-        <CardTitle>Yeni Gönderi Oluştur</CardTitle>
+        <CardTitle>Adım 2: Fotoğraf Yükle</CardTitle>
         <CardDescription>
-          Bugünün anısını paylaşarak arkadaşlarını etkile.
+          Paylaşmak istediğin fotoğrafı seç.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -60,8 +85,8 @@ const Step1 = ({ onFileSelect }: { onFileSelect: (e: ChangeEvent<HTMLInputElemen
   );
 };
 
-// Step 2 Component
-const Step2 = ({
+// Step 3 (Photo): Stylize
+const Step3PhotoStylize = ({
   imgSrc,
   stylePrompt,
   setStylePrompt,
@@ -80,7 +105,7 @@ const Step2 = ({
 }) => (
   <Card className="w-full max-w-lg">
     <CardHeader>
-      <CardTitle>Adım 2: Yapay Zeka İle Stilizasyon</CardTitle>
+      <CardTitle>Adım 3: Yapay Zeka İle Stilizasyon</CardTitle>
       <CardDescription>
         İsterseniz fotoğrafınıza sanatsal bir dokunuş katın.
       </CardDescription>
@@ -128,8 +153,8 @@ const Step2 = ({
   </Card>
 );
 
-// Step 3 Component
-const Step3 = ({
+// Step 4 (Photo): Caption and Share
+const Step4PhotoShare = ({
   imgSrc,
   caption,
   setCaption,
@@ -146,7 +171,7 @@ const Step3 = ({
 }) => (
   <Card className="w-full max-w-lg">
     <CardHeader>
-      <CardTitle>Adım 3: Açıklama Ekle ve Paylaş</CardTitle>
+      <CardTitle>Adım 4: Açıklama Ekle ve Paylaş</CardTitle>
       <CardDescription>
         Harika fotoğrafınız için bir başlık yazın.
       </CardDescription>
@@ -184,15 +209,121 @@ const Step3 = ({
   </Card>
 );
 
+const BACKGROUNDS = [
+    { name: 'Sade', class: 'bg-white' },
+    { name: 'Alaca', class: 'bg-gradient-to-r from-purple-400 via-pink-500 to-red-500' },
+    { name: 'Okyanus', class: 'bg-gradient-to-r from-blue-400 to-emerald-400' },
+    { name: 'Gün Batımı', class: 'bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500' },
+    { name: 'Gece', class: 'bg-gray-800' },
+];
+
+const FONTS = [
+    { name: 'Klasik', class: 'font-sans' },
+    { name: 'Serif', class: 'font-serif' },
+    { name: 'El Yazısı', class: 'font-mono' }, // Using mono as a proxy for a distinct style
+];
+
+// Step 2 (Text): Write and Style
+const Step2TextWrite = ({
+    textContent,
+    setTextContent,
+    backgroundStyle,
+    setBackgroundStyle,
+    fontStyle,
+    setFontStyle,
+    isProcessing,
+    handleShare,
+    onBack,
+}: {
+    textContent: string;
+    setTextContent: (value: string) => void;
+    backgroundStyle: string;
+    setBackgroundStyle: (value: string) => void;
+    fontStyle: string;
+    setFontStyle: (value: string) => void;
+    isProcessing: boolean;
+    handleShare: () => void;
+    onBack: () => void;
+}) => (
+    <Card className="w-full max-w-lg">
+        <CardHeader>
+            <CardTitle>Adım 2: Yazını Tasarla ve Paylaş</CardTitle>
+            <CardDescription>
+                Düşüncelerini stil ile ifade et.
+            </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center gap-4">
+            <div className={cn("w-full aspect-square rounded-md flex items-center justify-center p-8 text-center", backgroundStyle)}>
+                <Textarea
+                    placeholder="Aklındakileri yaz..."
+                    value={textContent}
+                    onChange={(e) => setTextContent(e.target.value)}
+                    className={cn("bg-transparent border-none text-2xl resize-none text-center focus-visible:ring-0 shadow-none", fontStyle, backgroundStyle.includes('gray-800') ? 'text-white placeholder:text-gray-400' : 'text-black placeholder:text-gray-600')}
+                />
+            </div>
+            <div className='w-full space-y-4'>
+                <div>
+                    <Label className="text-sm font-medium mb-2 block">Arka Plan</Label>
+                    <div className='flex gap-2 flex-wrap'>
+                        {BACKGROUNDS.map(bg => (
+                            <Button key={bg.name} variant={backgroundStyle === bg.class ? 'default' : 'outline'} onClick={() => setBackgroundStyle(bg.class)}>
+                                {bg.name}
+                            </Button>
+                        ))}
+                    </div>
+                </div>
+                 <div>
+                    <Label className="text-sm font-medium mb-2 block">Yazı Tipi</Label>
+                    <div className='flex gap-2 flex-wrap'>
+                        {FONTS.map(font => (
+                            <Button key={font.name} variant={fontStyle === font.class ? 'default' : 'outline'} onClick={() => setFontStyle(font.class)}>
+                                {font.name}
+                            </Button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+            <Button variant="outline" onClick={onBack}>
+                <ChevronLeft className="mr-2 h-4 w-4" /> Geri
+            </Button>
+            <Button onClick={handleShare} disabled={isProcessing || !textContent}>
+                 {isProcessing ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                    <Check className="mr-2 h-4 w-4" />
+                )}
+                Paylaş
+            </Button>
+        </CardFooter>
+    </Card>
+);
+
+
 export default function CreatePostPage() {
   const [step, setStep] = useState(1);
+  const [postType, setPostType] = useState<'photo' | 'text' | null>(null);
+  
+  // Photo post states
   const [imgSrc, setImgSrc] = useState('');
   const [stylePrompt, setStylePrompt] = useState('');
   const [caption, setCaption] = useState('');
+  
+  // Text post states
+  const [textContent, setTextContent] = useState('');
+  const [backgroundStyle, setBackgroundStyle] = useState(BACKGROUNDS[0].class);
+  const [fontStyle, setFontStyle] = useState(FONTS[0].class);
+  
   const [isProcessing, setIsProcessing] = useState(false);
 
   const router = useRouter();
   const { toast } = useToast();
+
+  const handleSelectType = (type: 'photo' | 'text') => {
+      setPostType(type);
+      setStep(2);
+  }
 
   const onSelectFile = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -200,7 +331,7 @@ export default function CreatePostPage() {
       reader.addEventListener('load', () => {
         if (reader.result) {
           setImgSrc(reader.result.toString());
-          setStep(2);
+          setStep(3);
         }
       });
       reader.readAsDataURL(e.target.files[0]);
@@ -244,38 +375,54 @@ export default function CreatePostPage() {
   };
 
   const handleShare = async () => {
-    if (!caption) {
-      toast({
-        variant: 'destructive',
-        title: 'Açıklama Gerekli',
-        description: 'Lütfen gönderiniz için bir açıklama yazın.',
-      });
-      return;
-    }
     setIsProcessing(true);
-    try {
-      const moderationResult = await moderateImage({ photoDataUri: imgSrc });
-      if (!moderationResult.isSafe) {
-        toast({
-          variant: 'destructive',
-          title: 'Uygunsuz İçerik',
-          description: `Yapay zeka bu görseli onaylamadı: ${moderationResult.reason}`,
-          duration: 5000,
-        });
-        setIsProcessing(false);
-        return;
-      }
-    } catch (e) {
-      console.error('Moderation check failed', e);
-      toast({
-        variant: 'destructive',
-        title: 'Denetleme Hatası',
-        description:
-          'İçerik denetimi sırasında bir hata oluştu. Lütfen tekrar deneyin.',
-      });
-      setIsProcessing(false);
-      return;
+    
+    if (postType === 'photo') {
+        if (!caption) {
+          toast({
+            variant: 'destructive',
+            title: 'Açıklama Gerekli',
+            description: 'Lütfen gönderiniz için bir açıklama yazın.',
+          });
+          setIsProcessing(false);
+          return;
+        }
+        try {
+          const moderationResult = await moderateImage({ photoDataUri: imgSrc });
+          if (!moderationResult.isSafe) {
+            toast({
+              variant: 'destructive',
+              title: 'Uygunsuz İçerik',
+              description: `Yapay zeka bu görseli onaylamadı: ${moderationResult.reason}`,
+              duration: 5000,
+            });
+            setIsProcessing(false);
+            return;
+          }
+        } catch (e) {
+          console.error('Moderation check failed', e);
+          toast({
+            variant: 'destructive',
+            title: 'Denetleme Hatası',
+            description:
+              'İçerik denetimi sırasında bir hata oluştu. Lütfen tekrar deneyin.',
+          });
+          setIsProcessing(false);
+          return;
+        }
+    } else if (postType === 'text') {
+        if (!textContent.trim()) {
+            toast({
+                variant: 'destructive',
+                title: 'Metin Gerekli',
+                description: 'Lütfen bir şeyler yazın.',
+            });
+            setIsProcessing(false);
+            return;
+        }
+        // Optional: Add text moderation here if needed in the future
     }
+
     toast({
       title: 'Paylaşılıyor...',
       description: 'Gönderiniz oluşturuluyor ve arkadaşlarınızla paylaşılıyor.',
@@ -285,37 +432,79 @@ export default function CreatePostPage() {
       router.push('/explore');
     }, 2000);
   };
+  
+  const goBack = () => {
+      if (step > 1) {
+          setStep(step - 1);
+      } else {
+          setPostType(null);
+      }
+  }
+  
+  const goBackToTypeSelect = () => {
+      setPostType(null);
+      setStep(1);
+  }
 
   const renderStep = () => {
-    switch (step) {
-      case 1:
-        return <Step1 onFileSelect={onSelectFile} />;
-      case 2:
-        return (
-          <Step2
-            imgSrc={imgSrc}
-            stylePrompt={stylePrompt}
-            setStylePrompt={setStylePrompt}
-            isProcessing={isProcessing}
-            handleApplyStyle={handleApplyStyle}
-            onBack={() => setStep(1)}
-            onNext={() => setStep(3)}
-          />
-        );
-      case 3:
-        return (
-          <Step3
-            imgSrc={imgSrc}
-            caption={caption}
-            setCaption={setCaption}
-            isProcessing={isProcessing}
-            handleShare={handleShare}
-            onBack={() => setStep(2)}
-          />
-        );
-      default:
-        return <Step1 onFileSelect={onSelectFile} />;
+    if (!postType) {
+        return <Step1ChooseType onSelectType={handleSelectType} />;
     }
+
+    if (postType === 'photo') {
+        switch (step) {
+          case 2:
+            return <Step2PhotoUpload onFileSelect={onSelectFile} />;
+          case 3:
+            return (
+              <Step3PhotoStylize
+                imgSrc={imgSrc}
+                stylePrompt={stylePrompt}
+                setStylePrompt={setStylePrompt}
+                isProcessing={isProcessing}
+                handleApplyStyle={handleApplyStyle}
+                onBack={() => setStep(2)}
+                onNext={() => setStep(4)}
+              />
+            );
+          case 4:
+            return (
+              <Step4PhotoShare
+                imgSrc={imgSrc}
+                caption={caption}
+                setCaption={setCaption}
+                isProcessing={isProcessing}
+                handleShare={handleShare}
+                onBack={() => setStep(3)}
+              />
+            );
+          default:
+            return <Step1ChooseType onSelectType={handleSelectType} />;
+        }
+    }
+    
+    if (postType === 'text') {
+        switch (step) {
+            case 2:
+                return (
+                    <Step2TextWrite 
+                        textContent={textContent}
+                        setTextContent={setTextContent}
+                        backgroundStyle={backgroundStyle}
+                        setBackgroundStyle={setBackgroundStyle}
+                        fontStyle={fontStyle}
+                        setFontStyle={setFontStyle}
+                        isProcessing={isProcessing}
+                        handleShare={handleShare}
+                        onBack={goBackToTypeSelect}
+                    />
+                );
+             default:
+                return <Step1ChooseType onSelectType={handleSelectType} />;
+        }
+    }
+
+    return <Step1ChooseType onSelectType={handleSelectType} />;
   };
 
   return (
