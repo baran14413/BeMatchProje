@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { X, Camera, UserCheck, UserX } from 'lucide-react';
+import { Camera, UserCheck, UserX, AlertTriangle, Loader } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -25,6 +25,9 @@ const HOBBIES = [
   'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi', 
   'Yemek Yapmak', 'Oyun', 'Doğa Yürüyüşü', 'Sanat', 'Teknoloji'
 ];
+
+type VerificationStatus = 'idle' | 'verifying' | 'success' | 'fail';
+type FailureReason = 'no_face' | 'gender_mismatch' | 'not_live';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -39,38 +42,99 @@ export default function SignupPage() {
     hobbies: [] as string[],
   });
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [verificationResult, setVerificationResult] = useState<'success' | 'fail' | null>(null);
+  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('idle');
+  const [failureReason, setFailureReason] = useState<FailureReason | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    if (step === 3) {
-      const getCameraPermission = async () => {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-          setHasCameraPermission(true);
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-          }
-        } catch (error) {
-          console.error('Error accessing camera:', error);
-          setHasCameraPermission(false);
-          toast({
-            variant: 'destructive',
-            title: 'Kamera Erişimi Reddedildi',
-            description: 'Lütfen tarayıcı ayarlarından kamera iznini etkinleştirin.',
-          });
+  const handleVerification = () => {
+    if (verificationStatus !== 'idle') return;
+
+    setVerificationStatus('verifying');
+    setFailureReason(null);
+
+    // Clear any existing timeout
+    if (verificationTimeoutRef.current) {
+        clearTimeout(verificationTimeoutRef.current);
+    }
+
+    verificationTimeoutRef.current = setTimeout(() => {
+        // This is a mock verification. In a real app, you'd use a face detection/verification API.
+        const mockFaceFound = Math.random() > 0.1; // 90% chance to "find" a face
+        const mockIsLive = Math.random() > 0.2; // 80% chance of being "live"
+        const mockDetectedGender = Math.random() > 0.5 ? 'male' : 'female'; // Mock detected gender
+
+        if (!mockFaceFound) {
+            setFailureReason('no_face');
+            setVerificationStatus('fail');
+            return;
         }
-      };
+
+        if (!mockIsLive) {
+            setFailureReason('not_live');
+            setVerificationStatus('fail');
+            return;
+        }
+
+        if (formData.gender && formData.gender !== 'other' && formData.gender !== mockDetectedGender) {
+            setFailureReason('gender_mismatch');
+            setVerificationStatus('fail');
+            return;
+        }
+
+        setVerificationStatus('success');
+        setTimeout(() => {
+            toast({
+                title: "Doğrulama Başarılı!",
+                description: "Hesabınız başarıyla oluşturuldu. Yönlendiriliyorsunuz...",
+                className: "bg-green-500 text-white",
+            });
+            router.push('/match');
+        }, 1500);
+
+    }, 3000);
+  };
+  
+  useEffect(() => {
+    const getCameraPermission = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        setHasCameraPermission(true);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Kamera Erişimi Reddedildi',
+          description: 'Lütfen tarayıcı ayarlarından kamera iznini etkinleştirin.',
+        });
+      }
+    };
+    
+    if (step === 3) {
       getCameraPermission();
     } else {
-        // Cleanup camera stream when leaving step 3
-        if (videoRef.current && videoRef.current.srcObject) {
-            const stream = videoRef.current.srcObject as MediaStream;
-            stream.getTracks().forEach(track => track.stop());
-        }
+      // Cleanup camera stream and verification timeout when leaving step 3
+      if (verificationTimeoutRef.current) {
+        clearTimeout(verificationTimeoutRef.current);
+      }
+      setVerificationStatus('idle'); // Reset status when leaving page
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+      }
     }
   }, [step, toast]);
+  
+  // Automatically start verification when camera is ready
+  useEffect(() => {
+    if (step === 3 && hasCameraPermission) {
+        handleVerification();
+    }
+  }, [step, hasCameraPermission]);
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,68 +154,37 @@ export default function SignupPage() {
       return { ...prev, hobbies: newHobbies };
     });
   };
-  
-  const handleVerification = () => {
-    setIsVerifying(true);
-    setVerificationResult(null);
-
-    // Mock verification logic
-    setTimeout(() => {
-        // This is a mock verification. In a real app, you'd use a face detection/verification API.
-        // We'll randomly succeed or fail for demonstration.
-        const isSuccess = Math.random() > 0.3; // 70% chance of success
-        
-        if(isSuccess){
-            setVerificationResult('success');
-            setTimeout(() => {
-                 toast({
-                    title: "Doğrulama Başarılı!",
-                    description: "Hesabınız başarıyla oluşturuldu.",
-                });
-                router.push('/match');
-            }, 1500)
-        } else {
-            setVerificationResult('fail');
-        }
-
-        setIsVerifying(false);
-    }, 2500);
-  }
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
 
   const progress = (step / 3) * 100;
-  
-  const getVerificationUI = () => {
-    if (isVerifying) {
-        return (
-             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm z-10 transition-all duration-300">
-                <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
-                <p className="mt-4 text-primary-foreground font-semibold">Doğrulanıyor...</p>
-            </div>
-        );
+
+  const getFailureMessage = () => {
+    switch(failureReason) {
+        case 'no_face':
+            return 'Yüz algılanamadı. Lütfen yüzünüzü dairenin içine ortalayın.';
+        case 'not_live':
+            return 'Canlılık algılanamadı. Lütfen bir fotoğraf yerine kendinizi gösterin.';
+        case 'gender_mismatch':
+            return 'Cinsiyetinizle belirttiğiniz bilgi uyuşmuyor. Lütfen kontrol edin.';
+        default:
+            return 'Doğrulama başarısız oldu. Lütfen tekrar deneyin.';
     }
-    if (verificationResult === 'success') {
-         return (
-             <div className="absolute inset-0 flex flex-col items-center justify-center bg-green-500/80 backdrop-blur-sm z-10 transition-all duration-300">
-                <UserCheck className="w-16 h-16 text-white"/>
-                <p className="mt-4 text-white font-semibold">Doğrulama Başarılı</p>
-            </div>
-        );
-    }
-     if (verificationResult === 'fail') {
-         return (
-             <div className="absolute inset-0 flex flex-col items-center justify-center bg-destructive/80 backdrop-blur-sm z-10 transition-all duration-300">
-                <UserX className="w-16 h-16 text-destructive-foreground"/>
-                <p className="mt-4 text-destructive-foreground font-semibold">Doğrulama Başarısız</p>
-                <p className="text-xs text-destructive-foreground/80">Lütfen yüzünüzün net göründüğünden emin olun.</p>
-                 <Button variant="secondary" size="sm" className="mt-4" onClick={() => setVerificationResult(null)}>Tekrar Dene</Button>
-            </div>
-        );
-    }
-    return null;
   }
+
+  const getBorderColorClass = () => {
+    switch (verificationStatus) {
+        case 'verifying':
+            return 'border-primary/50 animate-pulse';
+        case 'success':
+            return 'border-green-500';
+        case 'fail':
+            return 'border-destructive';
+        default:
+            return 'border-primary/50';
+    }
+  };
 
   return (
     <Card className="w-full max-w-md">
@@ -222,7 +255,7 @@ export default function SignupPage() {
          {step === 3 && (
           <div className="flex flex-col items-center gap-4">
             <div className="relative w-64 h-64 sm:w-80 sm:h-80 mx-auto">
-                 <div className="absolute inset-0 rounded-full bg-muted overflow-hidden flex items-center justify-center border-4 border-dashed border-primary/50 animate-pulse">
+                 <div className={`relative w-full h-full rounded-full bg-muted overflow-hidden flex items-center justify-center border-4 border-dashed transition-colors duration-500 ${getBorderColorClass()}`}>
                      <video ref={videoRef} className="w-full h-full object-cover scale-x-[-1]" autoPlay muted playsInline />
                      {hasCameraPermission === false && (
                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white p-4">
@@ -230,22 +263,37 @@ export default function SignupPage() {
                             <p className="text-center font-medium">Kamera Erişimi Gerekli</p>
                         </div>
                     )}
+                    {verificationStatus === 'verifying' && (
+                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-10">
+                            <Loader className="w-16 h-16 text-primary animate-spin"/>
+                            <p className="mt-4 text-primary-foreground font-semibold">Doğrulanıyor...</p>
+                        </div>
+                    )}
+                    {verificationStatus === 'success' && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-green-500/80 z-10">
+                            <UserCheck className="w-16 h-16 text-white"/>
+                            <p className="mt-4 text-white font-semibold">Doğrulama Başarılı</p>
+                        </div>
+                    )}
                  </div>
-                 <div className="absolute inset-0 rounded-full shadow-[0_0_0_9999px_rgba(255,255,255,0.8)] dark:shadow-[0_0_0_9999px_rgba(10,10,10,0.8)] pointer-events-none"/>
-                 {getVerificationUI()}
             </div>
 
-            {hasCameraPermission === false && (
+            {verificationStatus === 'fail' && (
                 <Alert variant="destructive" className="mt-4">
-                    <AlertTitle>Kamera İznini Etkinleştirin</AlertTitle>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Doğrulama Başarısız</AlertTitle>
                     <AlertDescription>
-                       Yüz doğrulama için lütfen tarayıcı ayarlarından kamera erişimine izin verin.
+                       {getFailureMessage()}
+                       <Button variant="link" className="p-0 h-auto mt-2" onClick={handleVerification}>Tekrar Dene</Button>
                     </AlertDescription>
                 </Alert>
             )}
-             <p className="text-sm text-muted-foreground text-center mt-2">
-                Lütfen yüzünüzü dairenin içine ortalayın ve net bir şekilde göründüğünden emin olun.
-            </p>
+
+            {hasCameraPermission && verificationStatus !== 'fail' && (
+                 <p className="text-sm text-muted-foreground text-center mt-2 h-10">
+                    Lütfen yüzünüzü dairenin içine ortalayın. Doğrulama otomatik olarak başlayacaktır.
+                </p>
+            )}
           </div>
         )}
       </CardContent>
@@ -253,8 +301,7 @@ export default function SignupPage() {
         <div className="flex w-full justify-between">
             {step > 1 && <Button variant="outline" onClick={prevStep}>Geri</Button>}
             <div className="flex-grow" />
-            {step < 3 && <Button onClick={nextStep}>İleri</Button>}
-            {step === 3 && <Button onClick={handleVerification} disabled={!hasCameraPermission || isVerifying || verificationResult === 'success'}>Doğrula ve Bitir</Button>}
+            {step < 3 && <Button onClick={nextStep} disabled={step === 2 && formData.hobbies.length < 3}>İleri</Button>}
         </div>
         <div className="mt-2 text-center text-sm">
             Zaten bir hesabınız var mı?{' '}
