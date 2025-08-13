@@ -120,7 +120,7 @@ export default function CreatePostPage() {
     }
   };
 
-  const handleApplyCrop = async () => {
+  const handleApplyCropAndContinue = async () => {
     if (!completedCrop || !imgRef.current) {
         toast({
             variant: 'destructive',
@@ -132,12 +132,13 @@ export default function CreatePostPage() {
     try {
         const croppedDataUrl = await getCroppedImg(imgRef.current, completedCrop);
         setImgSrc(croppedDataUrl);
-        setCompletedCrop(undefined); // Reset crop selection
+        setCompletedCrop(undefined);
         toast({
             title: 'Başarılı',
             description: 'Fotoğraf başarıyla kırpıldı.',
             className: 'bg-green-500 text-white',
         });
+        setStep(3); // Move to the next step
     } catch (e) {
         console.error(e);
         toast({
@@ -242,9 +243,9 @@ export default function CreatePostPage() {
   const Step2 = () => (
     <Card className="w-full max-w-lg">
       <CardHeader>
-        <CardTitle>Fotoğrafı Düzenle</CardTitle>
+        <CardTitle>Adım 2: Fotoğrafı Kırp</CardTitle>
         <CardDescription>
-          Fotoğrafınızı kırpın veya yapay zeka ile stilize edin.
+          Paylaşmak istediğiniz alanı seçin.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
@@ -263,51 +264,78 @@ export default function CreatePostPage() {
                 width={500}
                 height={500}
                 onLoad={onImageLoad}
-                className="max-h-[50vh] object-contain"
+                className="max-h-[60vh] object-contain"
               />
             </ReactCrop>
           </div>
         )}
-        <Button onClick={handleApplyCrop} variant="outline" className='w-full'>
-            <CropIcon className="mr-2" /> Kırp
-        </Button>
-        <div className="w-full space-y-2">
-           <Textarea
-            placeholder="Örn: bir Van Gogh tablosu gibi yap..."
-            value={stylePrompt}
-            onChange={(e) => setStylePrompt(e.target.value)}
-            disabled={isProcessing}
-            className="min-h-[80px]"
-          />
-          <Button
-            onClick={handleApplyStyle}
-            disabled={isProcessing}
-            className="w-full"
-          >
-            {isProcessing ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Wand2 className="mr-2 h-4 w-4" />
-            )}
-            Stil Uygula
-          </Button>
-        </div>
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={() => setStep(1)}>
           <ChevronLeft className="mr-2 h-4 w-4" /> Geri
         </Button>
-        <Button onClick={() => setStep(3)}>
-          İleri <ChevronRight className="ml-2 h-4 w-4" />
+        <Button onClick={handleApplyCropAndContinue}>
+          Kırp ve Devam Et <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
     </Card>
   );
-
+  
   const Step3 = () => (
     <Card className="w-full max-w-lg">
+        <CardHeader>
+            <CardTitle>Adım 3: Yapay Zeka İle Stilizasyon</CardTitle>
+            <CardDescription>
+            İsterseniz fotoğrafınıza sanatsal bir dokunuş katın.
+            </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center gap-4">
+            {imgSrc && (
+            <Image
+                alt="Styled Preview"
+                src={imgSrc}
+                width={500}
+                height={500}
+                className="max-h-[50vh] object-contain rounded-md"
+            />
+            )}
+            <div className="w-full space-y-2">
+            <Textarea
+                placeholder="Örn: bir Van Gogh tablosu gibi yap..."
+                value={stylePrompt}
+                onChange={(e) => setStylePrompt(e.target.value)}
+                disabled={isProcessing}
+                className="min-h-[80px]"
+            />
+            <Button
+                onClick={handleApplyStyle}
+                disabled={isProcessing}
+                className="w-full"
+            >
+                {isProcessing ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                <Wand2 className="mr-2 h-4 w-4" />
+                )}
+                Stil Uygula
+            </Button>
+            </div>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+            <Button variant="outline" onClick={() => setStep(2)}>
+            <ChevronLeft className="mr-2 h-4 w-4" /> Geri
+            </Button>
+            <Button onClick={() => setStep(4)}>
+            İleri <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+      </CardFooter>
+    </Card>
+  );
+
+  const Step4 = () => (
+    <Card className="w-full max-w-lg">
       <CardHeader>
-        <CardTitle>Açıklama Ekle ve Paylaş</CardTitle>
+        <CardTitle>Adım 4: Açıklama Ekle ve Paylaş</CardTitle>
         <CardDescription>
           Harika fotoğrafınız için bir başlık yazın.
         </CardDescription>
@@ -330,7 +358,7 @@ export default function CreatePostPage() {
         />
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Button variant="outline" onClick={() => setStep(2)}>
+        <Button variant="outline" onClick={() => setStep(3)}>
           <ChevronLeft className="mr-2 h-4 w-4" /> Geri
         </Button>
         <Button onClick={handleShare} disabled={isProcessing}>
@@ -350,6 +378,7 @@ export default function CreatePostPage() {
       {step === 1 && <Step1 />}
       {step === 2 && <Step2 />}
       {step === 3 && <Step3 />}
+      {step === 4 && <Step4 />}
     </div>
   );
 }
