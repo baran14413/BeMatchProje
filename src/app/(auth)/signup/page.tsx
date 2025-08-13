@@ -21,7 +21,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { moderateImage, ModerateImageOutput } from '@/ai/flows/moderate-image-flow';
 
 const HOBBIES = [
   'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi', 
@@ -39,6 +38,7 @@ type VerificationStatus = 'idle' | 'verifying' | 'success' | 'fail';
 type FailureReason = 'no_face' | 'gender_mismatch' | 'not_live';
 type PasswordStrength = 'yok' | 'zayıf' | 'orta' | 'güçlü';
 type ModerationStatus = 'idle' | 'checking' | 'safe' | 'unsafe';
+type ModerationResult = { isSafe: boolean; reason?: string };
 
 export default function SignupPage() {
   const router = useRouter();
@@ -70,7 +70,7 @@ export default function SignupPage() {
 
   const [profilePicPreview, setProfilePicPreview] = useState<string | null>(null);
   const [moderationStatus, setModerationStatus] = useState<ModerationStatus>('idle');
-  const [moderationResult, setModerationResult] = useState<ModerateImageOutput | null>(null);
+  const [moderationResult, setModerationResult] = useState<ModerationResult | null>(null);
   
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
@@ -83,7 +83,7 @@ export default function SignupPage() {
     verificationTimeoutRef.current = setTimeout(() => {
         const mockFaceFound = Math.random() > 0.1;
         const mockIsLive = Math.random() > 0.2;
-        const mockDetectedGender = 'male';
+        const mockDetectedGender = 'male'; // Simulate always detecting male
         if (!mockFaceFound) { setFailureReason('no_face'); setVerificationStatus('fail'); return; }
         if (!mockIsLive) { setFailureReason('not_live'); setVerificationStatus('fail'); return; }
         if (formData.gender && formData.gender !== 'other' && formData.gender !== mockDetectedGender) {
@@ -156,24 +156,13 @@ export default function SignupPage() {
   const handleImageModeration = async () => {
     if (!profilePicPreview) return;
     setModerationStatus('checking');
-    try {
-      const result = await moderateImage({ photoDataUri: profilePicPreview });
-      setModerationResult(result);
-      if (result.isSafe) {
+    
+    // Simulate a successful check without AI
+    setTimeout(() => {
+        const result = { isSafe: true };
+        setModerationResult(result);
         setModerationStatus('safe');
-      } else {
-        setModerationStatus('unsafe');
-        toast({
-            variant: 'destructive',
-            title: 'Uygunsuz Fotoğraf',
-            description: `Bu fotoğraf şu nedenle reddedildi: ${result.reason}. Lütfen başka bir fotoğraf seçin.`
-        })
-      }
-    } catch (error) {
-      console.error("Image moderation failed:", error);
-      setModerationStatus('idle');
-      toast({ variant: 'destructive', title: 'Hata', description: 'Fotoğraf denetlenirken bir hata oluştu.'})
-    }
+    }, 1500);
   };
 
   const handleFinishSignup = () => {
