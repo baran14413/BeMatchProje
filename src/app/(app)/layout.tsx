@@ -18,10 +18,12 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <span className="text-xl font-bold font-headline text-primary">BeMatch</span>
         </Link>
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <MessageCircle className="w-5 h-5" />
-            <span className="sr-only">Mesajlar</span>
-          </Button>
+          <Link href="/chat">
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <MessageCircle className="w-5 h-5" />
+              <span className="sr-only">Mesajlar</span>
+            </Button>
+          </Link>
           <Link href="/profile">
              <Button variant="ghost" size="icon" className="rounded-full">
                 <User className="w-5 h-5" />
@@ -37,19 +39,12 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Bottom Navigation for Mobile */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 h-16 border-t bg-background/95 backdrop-blur-sm md:hidden">
-        <div className="grid h-full grid-cols-5">
-            <Link href="/match" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/match' ? 'text-primary' : '')}>
-                <Home className={cn('w-6 h-6')} />
-            </Link>
+        <div className="grid h-full grid-cols-4">
             <Link href="#" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary')}>
                 <Search className={cn('w-6 h-6')} />
             </Link>
-            <Link href="/match" className={cn('flex flex-col items-center justify-center -mt-4')}>
-                 <div className="flex items-center justify-center w-16 h-16 rounded-full bg-background shadow-md border">
-                    <div className={cn('flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground transition-all')}>
-                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-heart h-7 w-7"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                    </div>
-                </div>
+            <Link href="/match" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/match' ? 'text-primary' : '')}>
+                <Home className={cn('w-6 h-6')} />
             </Link>
              <Link href="#" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary')}>
                 <Heart className={cn('w-6 h-6')} />

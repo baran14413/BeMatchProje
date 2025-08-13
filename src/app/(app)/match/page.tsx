@@ -110,7 +110,6 @@ export default function MatchPage() {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center p-4 pb-20 md:pb-4">
       <div className="w-full h-full flex flex-col items-center justify-center flex-grow relative">
-        {/* This is the container for the cards */}
         <div className="relative w-full max-w-[350px] h-[580px] flex-shrink-0">
           {db.map((character, index) => (
             <TinderCard
@@ -160,7 +159,6 @@ export default function MatchPage() {
         </div>
       </div>
       
-      {/* Action Buttons */}
       <div className="flex items-center justify-center gap-4 mt-6 flex-shrink-0">
         <Button
           onClick={() => swipe('left')}
