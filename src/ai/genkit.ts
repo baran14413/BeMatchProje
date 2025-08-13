@@ -10,6 +10,7 @@ import {firebase} from "firebase-admin/lib/firebase-namespace-api";
 import App = firebase.app.App;
 
 import { moderateImage } from './flows/moderate-image-flow';
+import { verifyFace } from './flows/verify-face-flow';
 
 export const ai = genkit({
   plugins: [
@@ -18,5 +19,5 @@ export const ai = genkit({
       // environment variable.
     }),
   ],
-  flows: [moderateImage],
+  flows: [moderateImage, verifyFace],
 });

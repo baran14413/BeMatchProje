@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,35 +15,30 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Camera, AlertTriangle, Loader, Eye, EyeOff, Sparkles, Shuffle, ShieldCheck, Upload, Ban } from 'lucide-react';
+import { Camera, AlertTriangle, Loader, Eye, EyeOff, Sparkles, Ban, Upload, ShieldCheck, UserCheck, RefreshCw } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { moderateImage, ModerateImageOutput } from '@/ai/flows/moderate-image-flow';
+import { verifyFace, VerifyFaceOutput } from '@/ai/flows/verify-face-flow';
 import Image from 'next/image';
-
 
 const HOBBIES = [
   'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi', 
   'Yemek Yapmak', 'Oyun', 'Doğa Yürüyüşü', 'Sanat', 'Teknoloji'
 ];
 
-const CAPTCHA_OPTIONS = [
-  { icon: '❤️', name: 'kalp' },
-  { icon: '⭐', name: 'yıldız' },
-  { icon: '☀️', name: 'güneş' },
-  { icon: '⚡', name: 'şimşek' },
-];
-
 type PasswordStrength = 'yok' | 'zayıf' | 'orta' | 'güçlü';
 type ModerationStatus = 'idle' | 'checking' | 'safe' | 'unsafe';
+type VerificationStatus = 'idle' | 'checking' | 'verified' | 'failed';
 
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [step, setStep] = useState(1);
+  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -56,18 +51,52 @@ export default function SignupPage() {
     confirmPassword: '',
     profilePicture: null as string | null,
   });
+
   const [showPassword, setShowPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>('yok');
   
-  const [captchaTarget, setCaptchaTarget] = useState(CAPTCHA_OPTIONS[0]);
-  const [captchaSelected, setCaptchaSelected] = useState<string | null>(null);
-
   const [moderationStatus, setModerationStatus] = useState<ModerationStatus>('idle');
   const [moderationResult, setModerationResult] = useState<ModerateImageOutput | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('idle');
+  const [verificationResult, setVerificationResult] = useState<VerifyFaceOutput | null>(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
+
+  useEffect(() => {
+    if (step === 5) {
+      const getCameraPermission = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          setHasCameraPermission(true);
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          setHasCameraPermission(false);
+          toast({
+            variant: 'destructive',
+            title: 'Kamera İzni Reddedildi',
+            description: 'Yüz doğrulama için kamera izni vermeniz gerekiyor.',
+          });
+        }
+      };
+      getCameraPermission();
+
+      return () => {
+        // Cleanup stream on component unmount or step change
+        if (videoRef.current && videoRef.current.srcObject) {
+          const stream = videoRef.current.srcObject as MediaStream;
+          stream.getTracks().forEach(track => track.stop());
+        }
+      }
+    }
+  }, [step, toast]);
 
 
   const handleProfilePictureChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -103,6 +132,35 @@ export default function SignupPage() {
         description: 'Fotoğraf denetlenirken bir hata oluştu. Lütfen tekrar deneyin.'
       });
       setModerationStatus('idle');
+    }
+  };
+
+  const handleVerifyFace = async () => {
+    if (!videoRef.current) return;
+    setVerificationStatus('checking');
+    const canvas = document.createElement('canvas');
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx?.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+    const dataUri = canvas.toDataURL('image/jpeg');
+
+    try {
+      const result = await verifyFace({ photoDataUri: dataUri });
+      setVerificationResult(result);
+      if (result.isLive && result.isFace) {
+        setVerificationStatus('verified');
+      } else {
+        setVerificationStatus('failed');
+      }
+    } catch (error) {
+       console.error("Verification failed", error);
+      toast({
+        variant: 'destructive',
+        title: 'Doğrulama Başarısız',
+        description: 'Yüzünüz doğrulanırken bir hata oluştu. Lütfen tekrar deneyin.'
+      });
+      setVerificationStatus('idle');
     }
   };
 
@@ -149,28 +207,24 @@ export default function SignupPage() {
     });
   };
 
-  const shuffleCaptcha = () => {
-    setCaptchaTarget(CAPTCHA_OPTIONS[Math.floor(Math.random() * CAPTCHA_OPTIONS.length)]);
-    setCaptchaSelected(null);
-  };
-
   const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.username || !formData.email;
   const isStep2Invalid = !formData.age || !formData.gender || formData.hobbies.length < 3;
   const isStep3Invalid = !formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf';
-  const isStep4Invalid = captchaSelected !== captchaTarget.name;
-  const isStep5Invalid = !formData.profilePicture || moderationStatus !== 'safe';
+  const isStep4Invalid = !formData.profilePicture || moderationStatus !== 'safe';
+  const isStep5Invalid = verificationStatus !== 'verified';
 
-  const isNextButtonDisabled = (currentStep: number) => {
-    switch (currentStep) {
+  const isNextButtonDisabled = () => {
+    switch (step) {
         case 1: return isStep1Invalid;
         case 2: return isStep2Invalid;
         case 3: return isStep3Invalid;
         case 4: return isStep4Invalid;
+        case 5: return isStep5Invalid;
         default: return false;
     }
   };
 
-  const progress = (step / 6) * 100;
+  const progress = (step / 7) * 100;
 
   const getPasswordStrengthColor = () => {
     switch (passwordStrength) {
@@ -186,16 +240,16 @@ export default function SignupPage() {
        <CardHeader>
         <CardTitle className="text-2xl font-headline">Hesap Oluştur</CardTitle>
         <CardDescription>
-          {step === 1 && "Kişisel bilgilerinizi girin."}
-          {step === 2 && "Sizi daha iyi tanımamıza yardımcı olun."}
-          {step === 3 && "Güçlü bir şifre oluşturun."}
-          {step === 4 && "Doğrulamayı tamamlayın."}
-          {step === 5 && "Profil fotoğrafınızı yükleyin ve denetleyin."}
-          {step === 6 && "Harika! Kaydı tamamlamak üzeresiniz."}
+          {step === 1 && "Adım 1: Kişisel bilgilerinizi girin."}
+          {step === 2 && "Adım 2: Sizi daha iyi tanımamıza yardımcı olun."}
+          {step === 3 && "Adım 3: Güçlü bir şifre oluşturun."}
+          {step === 4 && "Adım 4: Profil fotoğrafınızı yükleyin."}
+          {step === 5 && "Adım 5: Canlılık kontrolü için yüzünüzü doğrulayın."}
+          {step === 6 && "Adım 6: Neredeyse bitti!"}
         </CardDescription>
         <Progress value={progress} className="w-full mt-2" />
       </CardHeader>
-      <CardContent className="min-h-[350px]">
+      <CardContent className="min-h-[400px]">
         {step === 1 && (
           <div className="grid gap-4">
             <div className='grid grid-cols-2 gap-4'>
@@ -250,7 +304,7 @@ export default function SignupPage() {
                 <div className="grid gap-2 relative">
                     <Label htmlFor="password">Şifre</Label>
                     <Input id="password" type={showPassword ? 'text' : 'password'} value={formData.password} onChange={handleChange} required />
-                    <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-7 h-7 w-7" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff /> : <Eye />}</Button>
+                    <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-7 h-7 w-7" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</Button>
                 </div>
                  <div className="grid grid-cols-3 items-center gap-2">
                     <div className={cn("h-2 rounded-full", getPasswordStrengthColor())}></div>
@@ -274,19 +328,10 @@ export default function SignupPage() {
             </div>
         )}
         {step === 4 && (
-          <div className="flex flex-col items-center gap-4">
-            <p className="font-medium text-center">Doğrulama için lütfen <span className="font-bold text-primary">{captchaTarget.name}</span> ikonuna tıklayın.</p>
-            <div className="flex gap-4 p-4 rounded-lg bg-muted">
-              {CAPTCHA_OPTIONS.map((opt) => (<button key={opt.name} onClick={() => setCaptchaSelected(opt.name)} className={cn("text-4xl p-3 rounded-full transition-all duration-200", captchaSelected === opt.name ? 'bg-primary scale-110' : 'hover:bg-primary/20')}>{opt.icon}</button>))}
-            </div>
-             <Button type="button" variant="link" size="sm" onClick={shuffleCaptcha} className="gap-1"><Shuffle className="w-3 h-3"/> Farklı Sor</Button>
-          </div>
-        )}
-        {step === 5 && (
             <div className="flex flex-col items-center gap-4">
               <p className="font-medium text-center">Lütfen profil fotoğrafınızı yükleyin.</p>
               <div
-                className="relative w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-muted flex items-center justify-center overflow-hidden border-4 border-dashed border-primary/50 cursor-pointer"
+                className="relative w-48 h-48 rounded-full bg-muted flex items-center justify-center overflow-hidden border-4 border-dashed border-primary/50 cursor-pointer"
                 onClick={() => fileInputRef.current?.click()}
               >
                   <input
@@ -333,15 +378,53 @@ export default function SignupPage() {
               )}
             </div>
         )}
+        {step === 5 && (
+            <div className="flex flex-col items-center gap-4">
+              <p className="font-medium text-center">Lütfen kameraya bakarak yüzünüzü doğrulayın.</p>
+               <div className="relative w-full max-w-sm aspect-square rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
+                 <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                  {!hasCameraPermission && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4">
+                          <Camera className="w-12 h-12 mb-2"/>
+                          <p>Kamera izni bekleniyor...</p>
+                      </div>
+                  )}
+               </div>
+              
+              <Button onClick={handleVerifyFace} disabled={!hasCameraPermission || verificationStatus === 'checking'}>
+                {verificationStatus === 'checking' && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+                {verificationStatus === 'checking' ? 'Doğrulanıyor...' : 'Doğrula'}
+              </Button>
+              
+              {verificationStatus === 'failed' && (
+                <Alert variant="destructive" className="mt-4">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Doğrulama Başarısız</AlertTitle>
+                  <AlertDescription>
+                    {verificationResult?.reason || 'Lütfen yüzünüzün net bir şekilde göründüğünden emin olun ve tekrar deneyin.'}
+                  </AlertDescription>
+                </Alert>
+              )}
+              {verificationStatus === 'verified' && (
+                <Alert variant="default" className="mt-4 border-green-500 text-green-700">
+                  <UserCheck className="h-4 w-4 text-green-500" />
+                  <AlertTitle>Yüz Doğrulandı</AlertTitle>
+                  <AlertDescription>
+                    Harika! Son adıma geçmek için ileri'ye tıkla.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+        )}
         {step === 6 && (
           <div className="flex flex-col items-center justify-center text-center gap-4">
             <ShieldCheck className="w-24 h-24 text-green-500" />
-            <h2 className="text-2xl font-bold font-headline">Neredeyse Bitti!</h2>
+            <h2 className="text-2xl font-bold font-headline">Kayıt Tamamlanmak Üzere</h2>
             <p className="text-muted-foreground">
-              Tüm bilgilerinizi aldık. BeMatch'e hoş geldin!
+             Tüm adımları başarıyla tamamladınız. BeMatch'e hoş geldiniz!
             </p>
             <p className="text-muted-foreground">
-              Hesabını oluşturmak için "Kaydı Bitir" butonuna tıkla.
+              Hesabınızı oluşturmak ve eşleşmeye başlamak için "Kaydı Bitir" butonuna tıklayın.
             </p>
           </div>
         )}
@@ -351,8 +434,7 @@ export default function SignupPage() {
         <div className="flex w-full justify-between">
             {step > 1 && <Button variant="outline" onClick={prevStep}>Geri</Button>}
             <div className="flex-grow" />
-            {step < 5 && <Button onClick={nextStep} disabled={isNextButtonDisabled(step)}>İleri</Button>}
-            {step === 5 && <Button onClick={() => { if (moderationStatus === 'safe') nextStep() }} disabled={isStep5Invalid}>İleri</Button>}
+            {step < 6 && <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>}
             {step === 6 && <Button onClick={handleFinishSignup}>Kaydı Bitir</Button>}
         </div>
         <div className="mt-2 text-center text-sm">
