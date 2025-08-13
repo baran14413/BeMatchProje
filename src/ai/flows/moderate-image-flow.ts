@@ -10,7 +10,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const ModerateImageInputSchema = z.object({
+const ModerateImageInputSchema = z.object({
   photoDataUri: z
     .string()
     .describe(
@@ -19,7 +19,7 @@ export const ModerateImageInputSchema = z.object({
 });
 export type ModerateImageInput = z.infer<typeof ModerateImageInputSchema>;
 
-export const ModerateImageOutputSchema = z.object({
+const ModerateImageOutputSchema = z.object({
   isSafe: z.boolean().describe('Whether the image is considered safe and appropriate for a profile picture.'),
   reason: z.string().optional().describe('The reason why the image was flagged as not safe. Only present if isSafe is false.'),
 });
