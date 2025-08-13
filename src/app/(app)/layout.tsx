@@ -3,34 +3,38 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageCircle, Shuffle, User, Home, Bell } from 'lucide-react';
+import { Home, LayoutGrid, Map, Heart, MessageCircle, Bell } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
-  const mobileMenuItems = [
-    { href: '/match', label: 'Eşleş', icon: Shuffle },
-    { href: '/', label: 'Ana Sayfa', icon: Home },
-    { href: '/chat', label: 'Sohbet', icon: MessageCircle },
+   const menuItems = [
+    { href: '/match', label: 'Home', icon: Home },
+    { href: '/hub', label: 'Hub', icon: LayoutGrid },
+    { href: '/map', label: 'Map', icon: Map },
+    { href: '/likes', label: 'Beğeniler', icon: Heart },
+    { href: '/chat', label: 'Chat', icon: MessageCircle, notification: 1 },
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-6">
-        <Link href="/match" className="flex items-center gap-2">
-          <Shuffle className="w-7 h-7 text-primary" />
-          <h1 className="text-2xl font-bold font-headline text-foreground">BeWalk</h1>
-        </Link>
-        <div className="flex items-center gap-2">
-           <Button variant="ghost" size="icon">
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
+      <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 px-4 md:px-6">
+        <div>
+            {/* Intentionally left blank to match design */}
+        </div>
+        <div className="flex items-center gap-4">
+           <Button variant="ghost" size="icon" className="rounded-full bg-card h-10 w-10 relative">
               <Bell className="h-5 w-5" />
+              <span className="absolute top-1 right-1.5 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-card" />
               <span className="sr-only">Bildirimler</span>
             </Button>
             <Link href="/profile">
-              <Avatar className="h-9 w-9">
+              <Avatar className="h-10 w-10 border-2 border-primary/50">
                 <AvatarImage src="https://placehold.co/40x40.png" alt="@canyilmaz" data-ai-hint="man portrait"/>
                 <AvatarFallback>CY</AvatarFallback>
               </Avatar>
@@ -38,35 +42,32 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
       
-      <main className="flex-1 w-full pb-20 md:pb-0">
+      <main className="flex-1 w-full overflow-y-auto">
           {children}
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-40 h-20 border-t bg-background/95 backdrop-blur-sm md:hidden">
-        <div className="grid h-full grid-cols-3">
-          {mobileMenuItems.map((item) => {
-            const isActive = item.href === '/' ? pathname === '/match' : pathname.startsWith(item.href);
-            const targetHref = item.href === '/' ? '/match' : item.href;
-            const isHomePageLink = item.label === 'Ana Sayfa';
-
+      {/* Bottom Navigation for Mobile */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 h-24 border-t bg-background/95 backdrop-blur-sm md:hidden">
+        <div className="grid h-full grid-cols-5">
+          {menuItems.map((item) => {
+            const isActive = pathname.startsWith(item.href);
             return (
               <Link
                 key={item.label}
-                href={targetHref}
+                href={item.href}
                 className={cn(
-                  'flex flex-col items-center justify-center gap-1 text-muted-foreground transition-colors hover:text-primary',
-                   (isHomePageLink && pathname === '/match') || (!isHomePageLink && pathname.startsWith(item.href)) ? 'text-primary' : ''
+                  'flex flex-col items-center justify-center gap-1.5 text-muted-foreground transition-colors hover:text-primary pt-2',
+                  isActive ? 'text-primary font-semibold' : ''
                 )}
               >
-                <div
-                  className={cn(
-                    'p-3 rounded-full transition-colors',
-                     (isHomePageLink && pathname === '/match') || (!isHomePageLink && pathname.startsWith(item.href)) ? 'bg-primary/10' : ''
-                  )}
-                >
-                  <item.icon className="h-7 w-7" />
+                <div className="relative">
+                    <item.icon className="h-6 w-6" strokeWidth={isActive ? 2.5 : 2} />
+                    {item.notification && (
+                       <Badge className="absolute -top-2 -right-3 h-5 w-5 justify-center p-0">{item.notification}</Badge>
+                    )}
                 </div>
-                <span className="text-xs font-medium">{item.label}</span>
+
+                <span className="text-xs">{item.label}</span>
               </Link>
             )
           })}
