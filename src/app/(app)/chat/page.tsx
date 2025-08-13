@@ -9,7 +9,23 @@ import { SendHorizonal, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
-const mockConversations = [
+type Message = {
+    id: number;
+    text: string;
+    sender: 'me' | 'other';
+};
+
+type Conversation = {
+    id: number;
+    name: string;
+    avatar: string;
+    aiHint: string;
+    messages: Message[];
+    lastMessage: string;
+};
+
+
+const initialConversations: Conversation[] = [
   {
     id: 1,
     name: 'Elif',
@@ -34,7 +50,45 @@ const mockConversations = [
 ];
 
 export default function ChatPage() {
-  const [activeChat, setActiveChat] = useState(mockConversations[0]);
+  const [conversations, setConversations] = useState(initialConversations);
+  const [activeChat, setActiveChat] = useState<Conversation | null>(conversations[0]);
+  const [messageInput, setMessageInput] = useState('');
+
+  const handleSendMessage = () => {
+    if (!messageInput.trim() || !activeChat) return;
+
+    const newMessage: Message = {
+      id: Date.now(),
+      text: messageInput.trim(),
+      sender: 'me',
+    };
+
+    const updatedConversations = conversations.map(convo => {
+        if (convo.id === activeChat.id) {
+            const updatedMessages = [...convo.messages, newMessage];
+            return {
+                ...convo,
+                messages: updatedMessages,
+                lastMessage: newMessage.text,
+            };
+        }
+        return convo;
+    });
+
+    setConversations(updatedConversations);
+    
+    // Also update the activeChat state to trigger re-render
+    const updatedActiveChat = updatedConversations.find(c => c.id === activeChat.id);
+    if (updatedActiveChat) {
+        setActiveChat(updatedActiveChat);
+    }
+    
+    setMessageInput('');
+  };
+
+  const handleSetActiveChat = (convo: Conversation) => {
+    setActiveChat(conversations.find(c => c.id === convo.id) || null);
+  }
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -47,14 +101,14 @@ export default function ChatPage() {
             </div>
         </div>
         <ScrollArea className="flex-1">
-          {mockConversations.map((convo) => (
+          {conversations.map((convo) => (
             <div
               key={convo.id}
               className={cn(
                 'flex items-center gap-3 p-4 cursor-pointer hover:bg-accent',
-                activeChat.id === convo.id && 'bg-accent'
+                activeChat?.id === convo.id && 'bg-accent'
               )}
-              onClick={() => setActiveChat(convo)}
+              onClick={() => handleSetActiveChat(convo)}
             >
               <Avatar>
                 <AvatarImage src={convo.avatar} data-ai-hint={convo.aiHint} />
@@ -103,12 +157,17 @@ export default function ChatPage() {
               </div>
             </ScrollArea>
             <footer className="p-4 border-t bg-card">
-              <div className="relative">
-                <Input placeholder="Bir mesaj yaz..." className="pr-12" />
-                <Button size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
+              <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="relative">
+                <Input 
+                    placeholder="Bir mesaj yaz..." 
+                    className="pr-12"
+                    value={messageInput}
+                    onChange={(e) => setMessageInput(e.target.value)}
+                />
+                <Button type="submit" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
                   <SendHorizonal className="h-4 w-4" />
                 </Button>
-              </div>
+              </form>
             </footer>
           </>
         ) : (
