@@ -57,7 +57,6 @@ function centerAspectCrop(
 function getCroppedImg(
   image: HTMLImageElement,
   crop: PixelCrop,
-  fileName: string
 ): Promise<string> {
   const canvas = document.createElement('canvas');
   const scaleX = image.naturalWidth / image.width;
@@ -88,10 +87,11 @@ function getCroppedImg(
     crop.height
   );
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     resolve(canvas.toDataURL('image/jpeg', 0.9));
   });
 }
+
 
 export default function CreatePostPage() {
   const [step, setStep] = useState(1);
@@ -130,7 +130,7 @@ export default function CreatePostPage() {
         return;
     }
     try {
-        const croppedDataUrl = await getCroppedImg(imgRef.current, completedCrop, 'cropped.jpg');
+        const croppedDataUrl = await getCroppedImg(imgRef.current, completedCrop);
         setImgSrc(croppedDataUrl);
         setCompletedCrop(undefined); // Reset crop selection
         toast({
@@ -249,32 +249,35 @@ export default function CreatePostPage() {
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
         {imgSrc && (
-          <ReactCrop
-            crop={crop}
-            onChange={(_, percentCrop) => setCrop(percentCrop)}
-            onComplete={(c) => setCompletedCrop(c)}
-            aspect={aspect}
-          >
-            <Image
-              ref={imgRef}
-              alt="Crop me"
-              src={imgSrc}
-              width={500}
-              height={500}
-              onLoad={onImageLoad}
-              className="max-h-[50vh] object-contain"
-            />
-          </ReactCrop>
+          <div className='w-full flex justify-center'>
+            <ReactCrop
+              crop={crop}
+              onChange={(_, percentCrop) => setCrop(percentCrop)}
+              onComplete={(c) => setCompletedCrop(c)}
+              aspect={aspect}
+            >
+              <Image
+                ref={imgRef}
+                alt="Crop me"
+                src={imgSrc}
+                width={500}
+                height={500}
+                onLoad={onImageLoad}
+                className="max-h-[50vh] object-contain"
+              />
+            </ReactCrop>
+          </div>
         )}
         <Button onClick={handleApplyCrop} variant="outline" className='w-full'>
             <CropIcon className="mr-2" /> Kırp
         </Button>
         <div className="w-full space-y-2">
-          <Input
+           <Textarea
             placeholder="Örn: bir Van Gogh tablosu gibi yap..."
             value={stylePrompt}
             onChange={(e) => setStylePrompt(e.target.value)}
             disabled={isProcessing}
+            className="min-h-[80px]"
           />
           <Button
             onClick={handleApplyStyle}
