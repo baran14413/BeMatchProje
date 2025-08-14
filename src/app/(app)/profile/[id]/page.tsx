@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,10 +23,13 @@ import {
   Bookmark,
   UserPlus,
   Settings,
+  List,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 
 // In a real app, you would fetch user data based on the `id` param.
@@ -45,21 +49,73 @@ const userProfile = {
       following: 210,
   },
   gallery: [
-    { id: 1, url: 'https://placehold.co/400x400.png', aiHint: 'woman yoga beach' },
-    { id: 2, url: 'https://placehold.co/400x400.png', aiHint: 'woman reading cafe' },
-    { id: 3, url: 'https://placehold.co/400x400.png', aiHint: 'cityscape istanbul' },
-    { id: 4, url: 'https://placehold.co/400x400.png', aiHint: 'movie theater empty' },
-    { id: 5, url: 'https://placehold.co/400x400.png', aiHint: 'coffee art' },
-    { id: 6, url: 'https://placehold.co/400x400.png', aiHint: 'travel map' },
+    { id: 1, url: 'https://placehold.co/400x400.png', aiHint: 'woman yoga beach', caption: 'Sahilde yoga keyfi... 🧘‍♀️', likes: 152, comments: 12 },
+    { id: 2, url: 'https://placehold.co/400x400.png', aiHint: 'woman reading cafe', caption: 'Kahve ve kitap ikilisi.', likes: 230, comments: 25 },
+    { id: 3, url: 'https://placehold.co/400x400.png', aiHint: 'cityscape istanbul', caption: 'İstanbul\'un eşsiz manzarası.', likes: 412, comments: 45 },
+    { id: 4, url: 'https://placehold.co/400x400.png', aiHint: 'movie theater empty', caption: 'Sinema gecesi!', likes: 98, comments: 8 },
+    { id: 5, url: 'https://placehold.co/400x400.png', aiHint: 'coffee art', caption: 'Günün kahvesi.', likes: 188, comments: 19 },
+    { id: 6, url: 'https://placehold.co/400x400.png', aiHint: 'travel map', caption: 'Yeni rotalar peşinde.', likes: 350, comments: 33 },
   ],
 };
 
 // This is a mock for the current logged-in user's ID
 const currentUserId = "1";
 
+const PostCard = ({ post, user }: { post: (typeof userProfile.gallery)[0], user: typeof userProfile }) => (
+    <Card className="rounded-xl overflow-hidden mb-4">
+        <CardContent className="p-0">
+            <div className="flex items-center gap-3 p-3">
+                <Avatar className="w-8 h-8">
+                <AvatarImage src={user.avatarUrl} data-ai-hint={user.aiHint} />
+                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <span className="font-semibold text-sm">{user.name}</span>
+            </div>
+
+            <div className="relative w-full aspect-square">
+                <Image
+                src={post.url}
+                alt={`Post by ${user.name}`}
+                fill
+                className="object-cover"
+                data-ai-hint={post.aiHint}
+                />
+            </div>
+
+            <div className="flex items-center justify-between p-3">
+                <div className='flex items-center gap-3'>
+                    <Button variant="ghost" size="icon">
+                        <Heart className="w-6 h-6" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                        <MessageSquare className="w-6 h-6" />
+                    </Button>
+                </div>
+                <Button variant="ghost" size="icon">
+                    <Bookmark className="w-6 h-6" />
+                </Button>
+            </div>
+
+            <div className="px-3 pb-3 text-sm">
+                <p className="font-semibold">{post.likes.toLocaleString()} beğeni</p>
+                <p>
+                    <span className="font-semibold">{user.name}</span>{' '}
+                    {post.caption}
+                </p>
+                {post.comments > 0 && (
+                    <p className="text-muted-foreground mt-1 cursor-pointer">
+                    {post.comments.toLocaleString()} yorumun tümünü gör
+                    </p>
+                )}
+            </div>
+        </CardContent>
+    </Card>
+)
+
 export default function UserProfilePage({ params }: { params: { id: string } }) {
     
   const isMyProfile = params.id === currentUserId;
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const StatItem = ({ value, label }: { value: number, label: string }) => (
       <div className="flex flex-col items-center">
@@ -149,30 +205,56 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
 
         {/* Gallery Tabs */}
         <Tabs defaultValue="posts" className="w-full">
-          <TabsList className={`grid w-full ${isMyProfile ? 'grid-cols-3' : 'grid-cols-1'}`}>
-            <TabsTrigger value="posts"><Grid3x3 className="mr-2 h-4 w-4" />Gönderiler</TabsTrigger>
-            {isMyProfile && (
-              <>
-                <TabsTrigger value="likes"><Heart className="mr-2 h-4 w-4" />Beğeniler</TabsTrigger>
-                <TabsTrigger value="saved"><Bookmark className="mr-2 h-4 w-4" />Kaydedilenler</TabsTrigger>
-              </>
-            )}
-          </TabsList>
-          <TabsContent value="posts" className="mt-4">
-            <div className="grid grid-cols-3 gap-1">
-              {userProfile.gallery.map((image) => (
-                <div key={image.id} className="relative aspect-square rounded-md overflow-hidden group">
-                  <Image
-                    src={image.url}
-                    alt={`Fotoğraf ${image.id}`}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    data-ai-hint={image.aiHint}
-                  />
+            <div className="flex justify-between items-center">
+                 <TabsList className={cn(
+                     "grid w-full",
+                     isMyProfile ? 'grid-cols-3' : 'grid-cols-1'
+                 )}>
+                    <TabsTrigger value="posts">
+                        <Grid3x3 className="mr-2 h-4 w-4" />
+                        Gönderiler
+                    </TabsTrigger>
+                    {isMyProfile && (
+                    <>
+                        <TabsTrigger value="likes"><Heart className="mr-2 h-4 w-4" />Beğeniler</TabsTrigger>
+                        <TabsTrigger value="saved"><Bookmark className="mr-2 h-4 w-4" />Kaydedilenler</TabsTrigger>
+                    </>
+                    )}
+                </TabsList>
+                 <div className="flex items-center gap-1 ml-4">
+                    <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('grid')}>
+                        <Grid3x3 className="w-5 h-5"/>
+                    </Button>
+                     <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('list')}>
+                        <List className="w-5 h-5"/>
+                    </Button>
                 </div>
-              ))}
             </div>
-             {userProfile.gallery.length === 0 && (
+
+          <TabsContent value="posts" className="mt-4">
+            {viewMode === 'grid' ? (
+                 <div className="grid grid-cols-3 gap-1">
+                  {userProfile.gallery.map((image) => (
+                    <div key={image.id} className="relative aspect-square rounded-md overflow-hidden group">
+                      <Image
+                        src={image.url}
+                        alt={`Fotoğraf ${image.id}`}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        data-ai-hint={image.aiHint}
+                      />
+                    </div>
+                  ))}
+                </div>
+            ) : (
+                <div className="flex flex-col">
+                    {userProfile.gallery.map((post) => (
+                        <PostCard key={post.id} post={post} user={userProfile}/>
+                    ))}
+                </div>
+            )}
+             
+            {userProfile.gallery.length === 0 && (
                 <div className='text-center py-10 text-muted-foreground'>
                     <p>Henüz gönderi yok.</p>
                 </div>
@@ -197,3 +279,4 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
     </div>
   );
 }
+
