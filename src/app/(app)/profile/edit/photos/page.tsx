@@ -110,7 +110,7 @@ export default function ManagePhotosPage() {
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                    <CardTitle>Gönderileri Yönet</CardTitle>
+                    <CardTitle>Gönderilerini Yönet</CardTitle>
                     <CardDescription>
                         Tüm gönderilerinizi görüntüleyin ve yönetin.
                     </CardDescription>

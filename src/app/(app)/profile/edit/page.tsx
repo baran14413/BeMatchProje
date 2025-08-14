@@ -59,7 +59,7 @@ export default function EditProfilePage() {
 
     const accountItems = [
         { icon: <User className="h-6 w-6" />, title: 'Profili Düzenle', href: '/profile/edit/personal' },
-        { icon: <ImageIcon className="h-6 w-6" />, title: 'Fotoğrafları Yönet', href: '/profile/edit/photos' },
+        { icon: <ImageIcon className="h-6 w-6" />, title: 'Gönderilerini Yönet', href: '/profile/edit/photos' },
         { icon: <Store className="h-6 w-6" />, title: 'Mağaza', href: '/premium' },
         { icon: <Wallet className="h-6 w-6" />, title: 'Cüzdanım', href: '#' },
     ];

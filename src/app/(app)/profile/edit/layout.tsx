@@ -9,7 +9,7 @@ import { usePathname } from 'next/navigation';
 
 const getTitleForPath = (path: string): string => {
     if (path.endsWith('/personal')) return 'Profili Düzenle';
-    if (path.endsWith('/photos')) return 'Fotoğrafları Yönet';
+    if (path.endsWith('/photos')) return 'Gönderilerini Yönet';
     if (path.endsWith('/discovery')) return 'Ana Akış Ayarları';
     if (path.endsWith('/notifications')) return 'Uygulama Ayarları';
     if (path.endsWith('/security')) return 'E-posta & Şifre';
