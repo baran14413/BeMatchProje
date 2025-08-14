@@ -26,6 +26,7 @@ import {
   List,
   Trash2,
   Pencil,
+  Gem,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -55,6 +56,7 @@ const userProfile = {
   aiHint: 'woman portrait smiling',
   bio: 'Hayatı dolu dolu yaşamayı seven, enerjik biriyim. İstanbul\'da yeni yerler keşfetmek, yoga yapmak ve sinemaya gitmek en büyük tutkularım.',
   interests: ['Sinema', 'Yoga', 'Seyahat', 'Müzik', 'Kitaplar'],
+  isPremium: true,
   stats: {
       posts: 18,
       followers: 432,
@@ -177,7 +179,10 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
 
         {/* Bio Section */}
         <div className="flex flex-col">
-            <h1 className="text-lg font-bold">{userProfile.name}</h1>
+            <div className="flex items-center gap-2">
+                 <h1 className="text-lg font-bold">{userProfile.name}</h1>
+                 {userProfile.isPremium && <Gem className="w-5 h-5 text-purple-500" />}
+            </div>
             <div className="flex items-center gap-1.5 mt-1">
                 <ShieldCheck className="w-4 h-4 text-green-500" />
                 <p className="text-xs font-medium text-green-600">Doğrulanmış Profil</p>

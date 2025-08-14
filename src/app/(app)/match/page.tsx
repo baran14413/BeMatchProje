@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { MapPin } from 'lucide-react';
+import { MapPin, Gem } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const db = [
@@ -20,6 +20,7 @@ const db = [
     bio: 'Hayatı keşfetmeyi seven, enerjik biriyim. Yeni yerler görmek, yeni tatlar denemek ve güzel anılar biriktirmek için buradayım. Pozitif ve eğlenceliyimdir.',
     image: 'https://placehold.co/128x128.png',
     aiHint: 'portrait woman smiling',
+    isPremium: true,
   },
   {
     id: 2,
@@ -30,6 +31,7 @@ const db = [
     bio: 'Hafta sonları kendimi doğaya atarım. Sakin, huzurlu ortamları ve derin sohbetleri severim. Aradığım kişiyle güzel bir bağ kurmak istiyorum.',
     image: 'https://placehold.co/128x128.png',
     aiHint: 'portrait man hiking',
+    isPremium: false,
   },
   {
     id: 3,
@@ -40,6 +42,7 @@ const db = [
     bio: 'Gördüğüm her güzel anı ölümsüzleştirmeye çalışırım. Sanata ve estetiğe önem veririm. Hayvanları çok severim, özellikle kedileri!',
     image: 'https://placehold.co/128x128.png',
     aiHint: 'portrait woman beach',
+    isPremium: false,
   },
   {
     id: 4,
@@ -50,6 +53,7 @@ const db = [
     bio: 'Yazılım mühendisiyim ve teknolojiyle iç içeyim. Boş zamanlarımda basketbol oynar, yeni lezzetler denerim. Eğlenceli ve esprili biriyimdir.',
     image: 'https://placehold.co/128x128.png',
     aiHint: 'portrait man professional',
+    isPremium: true,
   },
   {
     id: 5,
@@ -60,6 +64,7 @@ const db = [
     bio: 'Üçüncü nesil kahve dükkanlarını keşfetmeyi ve sanat galerilerini gezmeyi severim. Tarihe ve eski yapılara özel bir ilgim var.',
     image: 'https://placehold.co/128x128.png',
     aiHint: 'portrait woman drinking coffee',
+    isPremium: false,
   },
    {
     id: 6,
@@ -70,6 +75,7 @@ const db = [
     bio: 'Macerayı ve yeni yerler keşfetmeyi severim. Deniz kenarında gitar çalmak veya kamp ateşi etrafında sohbet etmek gibisi yoktur. Özgür ruhluyum.',
     image: 'https://placehold.co/128x128.png',
     aiHint: 'portrait man beach sunset',
+    isPremium: false,
   },
   {
     id: 7,
@@ -80,6 +86,7 @@ const db = [
     bio: 'Lezzetli yemekler ve sanatla dolu bir hayat. Şehirde bisikletle turlamayı ve yeni tiyatro oyunları izlemeyi seviyorum. Hayatın tadını çıkarıyorum.',
     image: 'https://placehold.co/128x128.png',
     aiHint: 'portrait woman city night',
+    isPremium: true,
   },
 ];
 
@@ -97,9 +104,12 @@ export default function MatchPage() {
                   <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <div className="flex items-baseline gap-2">
-                    <h3 className="text-xl font-bold">{user.name},</h3>
-                    <p className="text-lg text-muted-foreground">{user.age}</p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-baseline gap-2">
+                      <h3 className="text-xl font-bold">{user.name},</h3>
+                      <p className="text-lg text-muted-foreground">{user.age}</p>
+                    </div>
+                    {user.isPremium && <Gem className="w-4 h-4 text-purple-500" />}
                   </div>
                    <div className="flex items-center gap-1.5 mt-1 text-muted-foreground">
                       <MapPin className="w-4 h-4" />
