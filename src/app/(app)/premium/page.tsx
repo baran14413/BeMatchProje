@@ -4,7 +4,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Check, Crown, Star, XCircle, TrendingUp, Eye, Filter, CheckCheck, Heart } from "lucide-react";
+import { Check, Crown, Star, XCircle, TrendingUp, Eye, Filter, CheckCheck, Heart, ArrowLeft } from "lucide-react";
+import { useRouter } from 'next/navigation';
 import { useState } from "react";
 
 const features = [
@@ -51,9 +52,17 @@ const packages = [
 
 export default function PremiumPage() {
     const [selectedPackage, setSelectedPackage] = useState('monthly');
+    const router = useRouter();
 
     return (
         <div className="container mx-auto max-w-5xl p-4 md:p-8">
+            <div className="flex items-center gap-4 w-full mb-6">
+                <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10">
+                    <ArrowLeft className="h-6 w-6" />
+                </Button>
+                <h1 className="text-2xl md:text-3xl font-bold font-headline">Premium Paketler</h1>
+            </div>
+
             <Card className="bg-gradient-to-br from-purple-600 to-blue-700 text-white overflow-hidden mb-8">
                 <CardHeader>
                     <div className="flex items-center gap-4">

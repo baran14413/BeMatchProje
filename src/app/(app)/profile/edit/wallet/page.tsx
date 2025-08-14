@@ -3,8 +3,9 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Gem, Calendar, RefreshCw } from 'lucide-react';
+import { Gem, Calendar, RefreshCw, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 // Mock data - in a real app this would come from an API
 const subscription = {
@@ -14,6 +15,8 @@ const subscription = {
 };
 
 export default function WalletPage() {
+    const router = useRouter();
+
     return (
         <Card className="max-w-2xl mx-auto">
             <CardHeader>
