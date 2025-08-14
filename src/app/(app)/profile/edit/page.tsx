@@ -15,6 +15,12 @@ import {
   HelpCircle,
   Trash2,
   LogOut,
+  Store,
+  Wallet,
+  Bookmark,
+  Lock,
+  Ban,
+  History,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -51,6 +57,21 @@ const SectionTitle = ({ title }: { title: string }) => (
 
 export default function EditProfilePage() {
 
+    const accountItems = [
+        { icon: <Shield className="h-6 w-6" />, title: 'Yönetim Paneli', href: '#' },
+        { icon: <User className="h-6 w-6" />, title: 'Profili Düzenle', href: '/profile/edit/personal' },
+        { icon: <Store className="h-6 w-6" />, title: 'Mağaza', href: '#' },
+        { icon: <Bookmark className="h-6 w-6" />, title: 'Kaydedilenler', href: '#' },
+        { icon: <Wallet className="h-6 w-6" />, title: 'Cüzdanım', href: '#' },
+    ];
+    
+    const privacyAndSecurityItems = [
+        { icon: <Lock className="h-6 w-6" />, title: 'Hesap Gizliliği', href: '/profile/edit/privacy' },
+        { icon: <KeyRound className="h-6 w-6" />, title: 'E-posta & Şifre', href: '/profile/edit/security' },
+        { icon: <History className="h-6 w-6" />, title: 'Oturum Yönetimi', href: '/profile/edit/sessions' },
+        { icon: <Ban className="h-6 w-6" />, title: 'Engellenen Hesaplar', href: '/profile/edit/blocked' },
+    ];
+    
     const appearanceItems = [
         { icon: <Palette className="h-6 w-6" />, title: 'Görünüm Ayarları', href: '#' },
     ];
@@ -70,88 +91,128 @@ export default function EditProfilePage() {
     ];
 
   return (
-    <div className="space-y-4">
-        <div>
-            <SectionTitle title="Görünüm" />
-            <Card>
-                <CardContent className="p-0">
-                    {appearanceItems.map((item, index) => (
-                        <React.Fragment key={item.title}>
-                            <SettingsItem 
-                                icon={item.icon} 
-                                title={item.title} 
-                                href={item.href}
-                                isFirst={index === 0}
-                                isLast={index === appearanceItems.length -1}
-                            />
-                            {index < appearanceItems.length - 1 && <Separator className="bg-border/50" />}
-                        </React.Fragment>
-                    ))}
-                </CardContent>
-            </Card>
+    <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0">
+        <div className="space-y-4">
+             <div>
+                <SectionTitle title="Hesap" />
+                <Card>
+                    <CardContent className="p-0">
+                        {accountItems.map((item, index) => (
+                            <React.Fragment key={item.title}>
+                                <SettingsItem 
+                                    icon={item.icon} 
+                                    title={item.title} 
+                                    href={item.href}
+                                    isFirst={index === 0}
+                                    isLast={index === accountItems.length -1}
+                                />
+                                {index < accountItems.length - 1 && <Separator className="bg-border/50" />}
+                            </React.Fragment>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
+             <div>
+                <SectionTitle title="Gizlilik ve Güvenlik" />
+                <Card>
+                    <CardContent className="p-0">
+                        {privacyAndSecurityItems.map((item, index) => (
+                             <React.Fragment key={item.title}>
+                                <SettingsItem
+                                    icon={item.icon}
+                                    title={item.title}
+                                    href={item.href}
+                                    isFirst={index === 0}
+                                    isLast={index === privacyAndSecurityItems.length -1}
+                                />
+                                 {index < privacyAndSecurityItems.length - 1 && <Separator className="bg-border/50" />}
+                            </React.Fragment>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
         </div>
 
-        <div>
-            <SectionTitle title="İçerik Tercihleri" />
-            <Card>
-                <CardContent className="p-0">
-                    {contentPreferenceItems.map((item, index) => (
-                         <React.Fragment key={item.title}>
-                            <SettingsItem
-                                icon={item.icon}
-                                title={item.title}
-                                href={item.href}
-                                value={item.value}
-                                isFirst={index === 0}
-                                isLast={index === contentPreferenceItems.length -1}
-                            />
-                             {index < contentPreferenceItems.length - 1 && <Separator className="bg-border/50" />}
-                        </React.Fragment>
-                    ))}
-                </CardContent>
-            </Card>
-        </div>
+        <div className="space-y-4">
+             <div>
+                <SectionTitle title="Görünüm" />
+                <Card>
+                    <CardContent className="p-0">
+                        {appearanceItems.map((item, index) => (
+                            <React.Fragment key={item.title}>
+                                <SettingsItem 
+                                    icon={item.icon} 
+                                    title={item.title} 
+                                    href={item.href}
+                                    isFirst={index === 0}
+                                    isLast={index === appearanceItems.length -1}
+                                />
+                                {index < appearanceItems.length - 1 && <Separator className="bg-border/50" />}
+                            </React.Fragment>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
 
-         <div>
-            <SectionTitle title="Uygulama" />
-            <Card>
-                <CardContent className="p-0">
-                    {applicationItems.map((item, index) => (
-                         <React.Fragment key={item.title}>
-                            <SettingsItem
-                                icon={item.icon}
-                                title={item.title}
-                                href={item.href}
-                                value={item.value}
-                                isFirst={index === 0}
-                                isLast={index === applicationItems.length -1}
-                            />
-                             {index < applicationItems.length - 1 && <Separator className="bg-border/50" />}
-                        </React.Fragment>
-                    ))}
-                </CardContent>
-            </Card>
-        </div>
-        
-         <div>
-            <SectionTitle title="Diğer" />
-            <Card>
-                <CardContent className="p-0">
-                    {otherItems.map((item, index) => (
-                         <React.Fragment key={item.title}>
-                            <SettingsItem
-                                icon={item.icon}
-                                title={item.title}
-                                href={item.href}
-                                value={item.value}
-                                isFirst={index === 0}
-                                isLast={index === otherItems.length -1}
-                            />
-                             {index < otherItems.length - 1 && <Separator className="bg-border/50" />}
-                        </React.Fragment>
-                    ))}
-                </CardContent>
-            </Card>
+            <div>
+                <SectionTitle title="İçerik Tercihleri" />
+                <Card>
+                    <CardContent className="p-0">
+                        {contentPreferenceItems.map((item, index) => (
+                             <React.Fragment key={item.title}>
+                                <SettingsItem
+                                    icon={item.icon}
+                                    title={item.title}
+                                    href={item.href}
+                                    isFirst={index === 0}
+                                    isLast={index === contentPreferenceItems.length -1}
+                                />
+                                 {index < contentPreferenceItems.length - 1 && <Separator className="bg-border/50" />}
+                            </React.Fragment>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
+
+             <div>
+                <SectionTitle title="Uygulama" />
+                <Card>
+                    <CardContent className="p-0">
+                        {applicationItems.map((item, index) => (
+                             <React.Fragment key={item.title}>
+                                <SettingsItem
+                                    icon={item.icon}
+                                    title={item.title}
+                                    href={item.href}
+                                    isFirst={index === 0}
+                                    isLast={index === applicationItems.length -1}
+                                />
+                                 {index < applicationItems.length - 1 && <Separator className="bg-border/50" />}
+                            </React.Fragment>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
+            
+             <div>
+                <SectionTitle title="Diğer" />
+                <Card>
+                    <CardContent className="p-0">
+                        {otherItems.map((item, index) => (
+                             <React.Fragment key={item.title}>
+                                <SettingsItem
+                                    icon={item.icon}
+                                    title={item.title}
+                                    href={item.href}
+                                    isFirst={index === 0}
+                                    isLast={index === otherItems.length -1}
+                                />
+                                 {index < otherItems.length - 1 && <Separator className="bg-border/50" />}
+                            </React.Fragment>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     </div>
   );
