@@ -71,7 +71,7 @@ export default function EditProfilePage() {
     ];
     
     const appearanceItems = [
-        { icon: <Palette className="h-6 w-6" />, title: 'Görünüm Ayarları', href: '#' },
+        { icon: <Palette className="h-6 w-6" />, title: 'Görünüm Ayarları', href: '/profile/edit/appearance' },
     ];
     
     const contentPreferenceItems = [

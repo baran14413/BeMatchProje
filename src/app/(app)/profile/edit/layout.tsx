@@ -16,6 +16,7 @@ const getTitleForPath = (path: string): string => {
     if (path.endsWith('/privacy')) return 'Hesap Gizliliği';
     if (path.endsWith('/blocked')) return 'Engellenen Hesaplar';
     if (path.endsWith('/sessions')) return 'Oturum Yönetimi';
+    if (path.endsWith('/appearance')) return 'Görünüm Ayarları';
     return 'Ayarlar';
 };
 
