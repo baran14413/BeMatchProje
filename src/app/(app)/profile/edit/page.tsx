@@ -17,7 +17,6 @@ import {
   LogOut,
   Store,
   Wallet,
-  Bookmark,
   Lock,
   Ban,
   History,
@@ -61,7 +60,6 @@ export default function EditProfilePage() {
         { icon: <Shield className="h-6 w-6" />, title: 'Yönetim Paneli', href: '#' },
         { icon: <User className="h-6 w-6" />, title: 'Profili Düzenle', href: '/profile/edit/personal' },
         { icon: <Store className="h-6 w-6" />, title: 'Mağaza', href: '#' },
-        { icon: <Bookmark className="h-6 w-6" />, title: 'Kaydedilenler', href: '#' },
         { icon: <Wallet className="h-6 w-6" />, title: 'Cüzdanım', href: '#' },
     ];
     
