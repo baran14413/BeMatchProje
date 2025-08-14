@@ -206,18 +206,21 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
         {/* Gallery Tabs */}
         <Tabs defaultValue="posts" className="w-full">
             <div className="flex justify-between items-center">
-                 <TabsList className={cn(
-                     "grid w-full",
-                     isMyProfile ? 'grid-cols-3' : 'grid-cols-1'
-                 )}>
+                 <TabsList>
                     <TabsTrigger value="posts">
-                        <Grid3x3 className="mr-2 h-4 w-4" />
-                        Gönderiler
+                        <Grid3x3 className="h-5 w-5" />
+                         <span className="sr-only">Gönderiler</span>
                     </TabsTrigger>
                     {isMyProfile && (
                     <>
-                        <TabsTrigger value="likes"><Heart className="mr-2 h-4 w-4" />Beğeniler</TabsTrigger>
-                        <TabsTrigger value="saved"><Bookmark className="mr-2 h-4 w-4" />Kaydedilenler</TabsTrigger>
+                        <TabsTrigger value="likes">
+                            <Heart className="h-5 w-5" />
+                            <span className="sr-only">Beğeniler</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="saved">
+                            <Bookmark className="h-5 w-5" />
+                            <span className="sr-only">Kaydedilenler</span>
+                        </TabsTrigger>
                     </>
                     )}
                 </TabsList>
@@ -279,4 +282,3 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
     </div>
   );
 }
-
