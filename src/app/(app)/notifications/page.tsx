@@ -94,7 +94,6 @@ export default function NotificationsPage() {
     return (
         <div className="container mx-auto max-w-2xl py-4 flex flex-col h-full">
             <div className="flex items-center gap-4 mb-4 px-4">
-                <Bell className="w-8 h-8 text-primary" />
                 <Button variant="ghost" size="sm" onClick={handleMarkAllRead} disabled={!hasUnread}>
                     <CheckCheck className="mr-2 h-4 w-4" />
                     Tümünü Oku
