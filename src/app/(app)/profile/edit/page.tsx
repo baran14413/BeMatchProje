@@ -21,6 +21,7 @@ import {
   Ban,
   History,
   ImageIcon,
+  Camera,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -59,6 +60,7 @@ export default function EditProfilePage() {
 
     const accountItems = [
         { icon: <User className="h-6 w-6" />, title: 'Profili Düzenle', href: '/profile/edit/personal' },
+        { icon: <Camera className="h-6 w-6" />, title: 'Profil Fotoğrafı Düzenle', href: '/profile/edit/picture' },
         { icon: <ImageIcon className="h-6 w-6" />, title: 'Gönderilerini Yönet', href: '/profile/edit/photos' },
         { icon: <Store className="h-6 w-6" />, title: 'Mağaza', href: '/premium' },
         { icon: <Wallet className="h-6 w-6" />, title: 'Cüzdanım', href: '#' },
@@ -149,6 +151,25 @@ export default function EditProfilePage() {
                     </CardContent>
                 </Card>
             </div>
+             <div>
+                <SectionTitle title="Uygulama" />
+                <Card>
+                    <CardContent className="p-0">
+                        {applicationItems.map((item, index) => (
+                             <React.Fragment key={item.title}>
+                                <SettingsItem
+                                    icon={item.icon}
+                                    title={item.title}
+                                    href={item.href}
+                                    isFirst={index === 0}
+                                    isLast={index === applicationItems.length -1}
+                                />
+                                 {index < applicationItems.length - 1 && <Separator className="bg-border/50" />}
+                            </React.Fragment>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
         </div>
         <div className="space-y-4">
              <div>
@@ -170,25 +191,7 @@ export default function EditProfilePage() {
                     </CardContent>
                 </Card>
             </div>
-             <div>
-                <SectionTitle title="Uygulama" />
-                <Card>
-                    <CardContent className="p-0">
-                        {applicationItems.map((item, index) => (
-                             <React.Fragment key={item.title}>
-                                <SettingsItem
-                                    icon={item.icon}
-                                    title={item.title}
-                                    href={item.href}
-                                    isFirst={index === 0}
-                                    isLast={index === applicationItems.length -1}
-                                />
-                                 {index < applicationItems.length - 1 && <Separator className="bg-border/50" />}
-                            </React.Fragment>
-                        ))}
-                    </CardContent>
-                </Card>
-            </div>
+            
              <div>
                 <SectionTitle title="Diğer" />
                 <Card>
