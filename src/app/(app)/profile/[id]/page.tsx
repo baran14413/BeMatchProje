@@ -41,7 +41,7 @@ const userProfile = {
   age: 28,
   avatarUrl: 'https://placehold.co/128x128.png',
   aiHint: 'woman portrait smiling',
-  bio: 'Hayatı keşfetmeyi seven, enerjik biriyim. İstanbul\'da yaşıyorum ve yeni yerler keşfetmek, yoga yapmak ve sinemaya gitmek en büyük tutkularım. Benim gibi hayat dolu, pozitif birini arıyorum.',
+  bio: 'Hayatı dolu dolu yaşamayı seven, enerjik biriyim. İstanbul\'da yeni yerler keşfetmek, yoga yapmak ve sinemaya gitmek en büyük tutkularım. Pozitif biriyim.',
   interests: ['Sinema', 'Yoga', 'Seyahat', 'Müzik', 'Kitaplar'],
   stats: {
       posts: 18,
