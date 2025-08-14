@@ -12,6 +12,7 @@ import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, Ar
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 
 type Message = {
@@ -31,6 +32,7 @@ type Conversation = {
     isOnline: boolean;
     isPinned: boolean;
     isMuted: boolean;
+    unreadCount: number;
 };
 
 
@@ -48,8 +50,9 @@ const initialConversations: Conversation[] = [
       { id: 4, text: 'İyiyim, teşekkürler! Henüz bir planım yok. Kahve harika fikir! Nerede buluşabiliriz?', sender: 'me', timestamp: '10:35' },
     ],
     lastMessage: 'İyiyim, teşekkürler! Henüz bir planım yok...',
-    isPinned: false,
+    isPinned: true,
     isMuted: false,
+    unreadCount: 0,
   },
   {
     id: 2,
@@ -63,7 +66,36 @@ const initialConversations: Conversation[] = [
     lastMessage: 'Yürüyüş rotaları hakkında konuşabiliriz belki?',
     isPinned: false,
     isMuted: false,
+    unreadCount: 3,
   },
+  {
+    id: 3,
+    name: 'Ayşe',
+    avatar: 'https://placehold.co/40x40.png',
+    aiHint: 'woman portrait beach',
+    isOnline: true,
+    messages: [
+        { id: 1, text: 'Selam! Naber?', sender: 'other', timestamp: '1 saat önce' },
+    ],
+    lastMessage: 'Selam! Naber?',
+    isPinned: false,
+    isMuted: true,
+    unreadCount: 1,
+  },
+  {
+    id: 4,
+    name: 'Can',
+    avatar: 'https://placehold.co/40x40.png',
+    aiHint: 'portrait man professional',
+    isOnline: false,
+    messages: [
+        { id: 1, text: 'Harika bir profilin var!', sender: 'me', timestamp: '2 gün önce' },
+    ],
+    lastMessage: 'Harika bir profilin var!',
+    isPinned: false,
+    isMuted: false,
+    unreadCount: 0,
+  }
 ];
 
 export default function ChatPage() {
@@ -86,6 +118,12 @@ export default function ChatPage() {
     const userId = searchParams.get('userId');
     if (userId) {
       const chatToOpen = conversations.find(c => c.id === parseInt(userId, 10));
+      // Mark chat as read when opened
+      if (chatToOpen && chatToOpen.unreadCount > 0) {
+        setConversations(prev => prev.map(c => 
+            c.id === chatToOpen.id ? { ...c, unreadCount: 0 } : c
+        ));
+      }
       setActiveChat(chatToOpen || null);
     } else {
         setActiveChat(null);
@@ -179,9 +217,10 @@ export default function ChatPage() {
 
   const sortedConversations = useMemo(() => {
     return [...conversations].sort((a, b) => {
-        if (a.isPinned && !b.isPinned) return -1;
-        if (!a.isPinned && b.isPinned) return 1;
-        return 0; // In a real app, you'd sort by date here
+        if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+        if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
+        if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
+        return 0; // In a real app, you'd sort by last message date here
     });
   }, [conversations]);
 
@@ -236,7 +275,8 @@ export default function ChatPage() {
                 key={convo.id}
                 className={cn(
                     'flex items-center gap-3 p-4 cursor-pointer transition-colors',
-                    selectedIds.has(convo.id) ? 'bg-primary/20' : 'hover:bg-muted/50'
+                    selectedIds.has(convo.id) ? 'bg-primary/20' : 'hover:bg-muted/50',
+                    convo.unreadCount > 0 && 'bg-primary/5'
                 )}
                 onClick={() => handleItemClick(convo)}
                 >
@@ -257,11 +297,16 @@ export default function ChatPage() {
                 <div className="flex-1 overflow-hidden">
                     <div className="flex items-center gap-2">
                         {convo.isPinned && <Pin className="w-4 h-4 text-muted-foreground" />}
-                        <p className="font-semibold truncate">{convo.name}</p>
+                        <p className={cn("truncate", convo.unreadCount > 0 ? "font-bold" : "font-semibold")}>{convo.name}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground truncate">{convo.lastMessage}</p>
+                    <p className={cn("text-sm truncate", convo.unreadCount > 0 ? "font-bold text-foreground" : "text-muted-foreground")}>{convo.lastMessage}</p>
                 </div>
-                 {convo.isMuted && <BellOff className="w-4 h-4 text-muted-foreground" />}
+                 <div className="flex flex-col items-end gap-1">
+                    {convo.unreadCount > 0 && (
+                        <Badge className="bg-green-500 text-white w-6 h-6 flex items-center justify-center p-0">{convo.unreadCount}</Badge>
+                    )}
+                    {convo.isMuted && <BellOff className="w-4 h-4 text-muted-foreground" />}
+                 </div>
                 </div>
             ))}
             </ScrollArea>
@@ -357,5 +402,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
-    

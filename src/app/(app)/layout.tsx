@@ -8,6 +8,20 @@ import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe } from '
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
+const NavButton = ({ href, icon, srText, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, hasNotification?: boolean }) => {
+    return (
+        <Link href={href}>
+            <Button variant="ghost" size="icon" className="rounded-full relative">
+                {icon}
+                {hasNotification && (
+                    <span className="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-background" />
+                )}
+                <span className="sr-only">{srText}</span>
+            </Button>
+        </Link>
+    );
+};
+
 export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -21,6 +35,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   
   // Show navs unless it's the create page or a specific chat is open.
   const showNavs = !isCreatePage && !isChatViewOpen;
+
+  // Mock state for notifications - in a real app this would come from a global state/context
+  const hasUnreadMessages = true;
+  const hasUnreadNotifications = true;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -67,30 +85,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <span className="font-bold">BeMatch</span>
         </Link>
         <div className="flex items-center gap-2">
-            <Link href="/profile/1">
-                <Button variant="ghost" size="icon" className="rounded-full">
-                    <User className="w-5 h-5" />
-                    <span className="sr-only">Profil</span>
-                </Button>
-            </Link>
-             <Link href="/chat">
-                <Button variant="ghost" size="icon" className="rounded-full">
-                    <MessageCircle className="w-5 h-5" />
-                    <span className="sr-only">Mesajlar</span>
-                </Button>
-            </Link>
-             <Link href="/notifications">
-                <Button variant="ghost" size="icon" className="rounded-full">
-                    <Bell className="w-5 h-5" />
-                    <span className="sr-only">Bildirimler</span>
-                </Button>
-            </Link>
-            <Link href="#">
-                <Button variant="ghost" size="icon" className="rounded-full">
-                    <Search className="w-5 h-5" />
-                    <span className="sr-only">Ara</span>
-                </Button>
-            </Link>
+            <NavButton href="/profile/1" icon={<User className="w-5 h-5" />} srText="Profil" />
+            <NavButton href="/chat" icon={<MessageCircle className="w-5 h-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
+            <NavButton href="/notifications" icon={<Bell className="w-5 h-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
+            <NavButton href="#" icon={<Search className="w-5 h-5" />} srText="Ara" />
         </div>
       </header>
       
