@@ -31,7 +31,8 @@ export default function RootLayout({
   return (
     <html lang="tr" suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#ADD8E6" />
+        <meta name="theme-color" content="#8a2be2" />
+        <link rel="icon" href="/icons/heart.svg" type="image/svg+xml" />
       </head>
       <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable, roboto.variable)}>
         <ThemeProvider
