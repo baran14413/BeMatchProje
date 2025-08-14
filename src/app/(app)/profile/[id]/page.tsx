@@ -208,18 +208,18 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
             <div className="flex justify-between items-center">
                  <TabsList>
                     <TabsTrigger value="posts">
-                        <Grid3x3 className="h-5 w-5" />
-                         <span className="sr-only">Gönderiler</span>
+                        <Grid3x3 className="h-4 w-4 mr-2" />
+                        Gönderiler
                     </TabsTrigger>
                     {isMyProfile && (
                     <>
                         <TabsTrigger value="likes">
-                            <Heart className="h-5 w-5" />
-                            <span className="sr-only">Beğeniler</span>
+                            <Heart className="h-4 w-4 mr-2" />
+                            Beğenilenler
                         </TabsTrigger>
                         <TabsTrigger value="saved">
-                            <Bookmark className="h-5 w-5" />
-                            <span className="sr-only">Kaydedilenler</span>
+                            <Bookmark className="h-4 w-4 mr-2" />
+                            Kaydedilenler
                         </TabsTrigger>
                     </>
                     )}
