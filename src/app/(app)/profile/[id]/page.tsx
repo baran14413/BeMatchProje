@@ -4,7 +4,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,10 +20,12 @@ import {
   Grid3x3,
   Heart,
   Bookmark,
-  UserPlus
+  UserPlus,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Separator } from '@/components/ui/separator';
+
 
 // In a real app, you would fetch user data based on the `id` param.
 // For this example, we'll use a hardcoded user object.
@@ -53,7 +54,6 @@ const userProfile = {
 };
 
 export default function UserProfilePage({ params }: { params: { id: string } }) {
-  const { id } = params;
 
   const StatItem = ({ value, label }: { value: number, label: string }) => (
       <div className="flex flex-col items-center">
@@ -95,7 +95,7 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
             <Button className="flex-1">
                 <UserPlus className="mr-2 h-4 w-4" /> Takip Et
             </Button>
-            <Link href={`/chat?userId=${id}`} className="flex-1">
+            <Link href={`/chat?userId=${params.id}`} className="flex-1">
                 <Button variant="secondary" className="w-full">
                     <MessageSquare className="mr-2 h-4 w-4" /> Mesaj Gönder
                 </Button>
