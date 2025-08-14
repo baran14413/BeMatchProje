@@ -1,9 +1,110 @@
 
 'use client';
 
-import { redirect } from 'next/navigation';
+import React from 'react';
+import {
+  User,
+  Shield,
+  KeyRound,
+  Bell,
+  SlidersHorizontal,
+  ChevronRight,
+  Store,
+  Bookmark,
+  Wallet
+} from 'lucide-react';
+import Link from 'next/link';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
-// Redirect to the personal settings page by default
-export default function EditProfileRedirectPage() {
-    redirect('/profile/edit/personal');
+interface SettingsItemProps {
+  icon: React.ReactNode;
+  title: string;
+  href: string;
+  value?: string;
+  isFirst?: boolean;
+  isLast?: boolean;
+}
+
+const SettingsItem: React.FC<SettingsItemProps> = ({ icon, title, href, value, isFirst, isLast }) => (
+  <Link href={href} className={cn(
+    "flex items-center p-4 transition-colors hover:bg-muted/50",
+    isFirst && "rounded-t-lg",
+    isLast && "rounded-b-lg"
+  )}>
+    <div className="mr-4 text-muted-foreground">{icon}</div>
+    <div className="flex-1 font-medium">{title}</div>
+    <div className="flex items-center text-muted-foreground">
+        {value && <span className="mr-2 text-sm">{value}</span>}
+        <ChevronRight className="h-5 w-5" />
+    </div>
+  </Link>
+);
+
+const SectionTitle = ({ title }: { title: string }) => (
+    <h2 className="px-4 py-2 text-sm font-semibold text-primary">{title}</h2>
+);
+
+export default function EditProfilePage() {
+
+    const accountItems = [
+        { icon: <Shield className="h-6 w-6" />, title: 'Yönetim Paneli', href: '#' },
+        { icon: <User className="h-6 w-6" />, title: 'Profili Düzenle', href: '/profile/edit/personal' },
+        { icon: <Store className="h-6 w-6" />, title: 'Mağaza', href: '#' },
+        { icon: <Bookmark className="h-6 w-6" />, title: 'Kaydedilenler', href: '#' },
+        { icon: <Wallet className="h-6 w-6" />, title: 'Cüzdanım', href: '#' },
+    ];
+    
+    const privacyAndSecurityItems = [
+        { icon: <Shield className="h-6 w-6" />, title: 'Hesap Gizliliği', href: '/profile/edit/privacy', value: 'Herkese Açık' },
+        { icon: <KeyRound className="h-6 w-6" />, title: 'E-posta & Şifre', href: '/profile/edit/security' },
+        { icon: <SlidersHorizontal className="h-6 w-6" />, title: 'Oturum Yönetimi', href: '#' },
+        { icon: <User className="h-6 w-6 opacity-50" />, title: 'Engellenen Hesaplar', href: '#' },
+    ];
+
+  return (
+    <div className="space-y-4">
+        <div>
+            <SectionTitle title="Hesap" />
+            <Card>
+                <CardContent className="p-0">
+                    {accountItems.map((item, index) => (
+                        <React.Fragment key={item.title}>
+                            <SettingsItem 
+                                icon={item.icon} 
+                                title={item.title} 
+                                href={item.href}
+                                isFirst={index === 0}
+                                isLast={index === accountItems.length -1}
+                            />
+                            {index < accountItems.length - 1 && <Separator className="bg-border/50" />}
+                        </React.Fragment>
+                    ))}
+                </CardContent>
+            </Card>
+        </div>
+
+        <div>
+            <SectionTitle title="Gizlilik ve Güvenlik" />
+            <Card>
+                <CardContent className="p-0">
+                    {privacyAndSecurityItems.map((item, index) => (
+                         <React.Fragment key={item.title}>
+                            <SettingsItem
+                                icon={item.icon}
+                                title={item.title}
+                                href={item.href}
+                                value={item.value}
+                                isFirst={index === 0}
+                                isLast={index === privacyAndSecurityItems.length -1}
+                            />
+                             {index < privacyAndSecurityItems.length - 1 && <Separator className="bg-border/50" />}
+                        </React.Fragment>
+                    ))}
+                </CardContent>
+            </Card>
+        </div>
+    </div>
+  );
 }
