@@ -149,10 +149,14 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
 
         {/* Gallery Tabs */}
         <Tabs defaultValue="posts" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className={`grid w-full ${isMyProfile ? 'grid-cols-3' : 'grid-cols-1'}`}>
             <TabsTrigger value="posts"><Grid3x3 className="mr-2 h-4 w-4" />Gönderiler</TabsTrigger>
-            <TabsTrigger value="likes"><Heart className="mr-2 h-4 w-4" />Beğeniler</TabsTrigger>
-            <TabsTrigger value="saved"><Bookmark className="mr-2 h-4 w-4" />Kaydedilenler</TabsTrigger>
+            {isMyProfile && (
+              <>
+                <TabsTrigger value="likes"><Heart className="mr-2 h-4 w-4" />Beğeniler</TabsTrigger>
+                <TabsTrigger value="saved"><Bookmark className="mr-2 h-4 w-4" />Kaydedilenler</TabsTrigger>
+              </>
+            )}
           </TabsList>
           <TabsContent value="posts" className="mt-4">
             <div className="grid grid-cols-3 gap-1">
@@ -174,16 +178,20 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
                 </div>
             )}
           </TabsContent>
-          <TabsContent value="likes" className="text-center py-10 text-muted-foreground">
-             <Heart className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4"/>
-             <h3 className='font-bold text-lg'>Beğenilenler Gizli</h3>
-             <p className='text-sm'>Sadece {userProfile.name} kendi beğendiği gönderileri görebilir.</p>
-          </TabsContent>
-          <TabsContent value="saved" className="text-center py-10 text-muted-foreground">
-            <Bookmark className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4"/>
-            <h3 className='font-bold text-lg'>Kaydedilenler Gizli</h3>
-            <p className='text-sm'>Sadece {userProfile.name} kendi kaydettiği gönderileri görebilir.</p>
-          </TabsContent>
+          {isMyProfile && (
+            <>
+              <TabsContent value="likes" className="text-center py-10 text-muted-foreground">
+                 <Heart className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4"/>
+                 <h3 className='font-bold text-lg'>Beğenilenler Gizli</h3>
+                 <p className='text-sm'>Sadece {userProfile.name} kendi beğendiği gönderileri görebilir.</p>
+              </TabsContent>
+              <TabsContent value="saved" className="text-center py-10 text-muted-foreground">
+                <Bookmark className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4"/>
+                <h3 className='font-bold text-lg'>Kaydedilenler Gizli</h3>
+                <p className='text-sm'>Sadece {userProfile.name} kendi kaydettiği gönderileri görebilir.</p>
+              </TabsContent>
+            </>
+          )}
         </Tabs>
       </div>
     </div>
