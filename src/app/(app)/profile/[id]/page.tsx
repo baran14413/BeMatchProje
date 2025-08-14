@@ -21,6 +21,7 @@ import {
   Heart,
   Bookmark,
   UserPlus,
+  Settings,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -53,7 +54,12 @@ const userProfile = {
   ],
 };
 
+// This is a mock for the current logged-in user's ID
+const currentUserId = "1";
+
 export default function UserProfilePage({ params }: { params: { id: string } }) {
+    
+  const isMyProfile = params.id === currentUserId;
 
   const StatItem = ({ value, label }: { value: number, label: string }) => (
       <div className="flex flex-col items-center">
@@ -63,7 +69,7 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
   );
 
   return (
-    <div className="container mx-auto max-w-3xl p-4 md:p-6">
+    <div className="container mx-auto max-w-3xl p-4 md:p-6 pb-20">
       <div className="flex flex-col gap-6">
 
         {/* Profile Header */}
@@ -92,32 +98,42 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
 
         {/* Action Buttons */}
         <div className="flex gap-2 w-full">
-            <Button className="flex-1">
-                <UserPlus className="mr-2 h-4 w-4" /> Takip Et
-            </Button>
-            <Link href={`/chat?userId=${params.id}`} className="flex-1">
-                <Button variant="secondary" className="w-full">
-                    <MessageSquare className="mr-2 h-4 w-4" /> Mesaj Gönder
-                </Button>
-            </Link>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
-                    <MoreVertical className="h-4 w-4" />
-                    <span className="sr-only">Daha Fazla</span>
-                </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                    <Flag className="mr-2 h-4 w-4" />
-                    <span>Şikayet Et</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive focus:text-destructive">
-                    <Ban className="mr-2 h-4 w-4" />
-                    <span>Engelle</span>
-                </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+            {isMyProfile ? (
+                 <Link href="/profile/edit" className="w-full">
+                    <Button variant="outline" className="w-full">
+                        <Settings className="mr-2 h-4 w-4" /> Profili Düzenle
+                    </Button>
+                </Link>
+            ) : (
+                <>
+                    <Button className="flex-1">
+                        <UserPlus className="mr-2 h-4 w-4" /> Takip Et
+                    </Button>
+                    <Link href={`/chat?userId=${params.id}`} className="flex-1">
+                        <Button variant="secondary" className="w-full">
+                            <MessageSquare className="mr-2 h-4 w-4" /> Mesaj Gönder
+                        </Button>
+                    </Link>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                            <span className="sr-only">Daha Fazla</span>
+                        </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                        <DropdownMenuItem>
+                            <Flag className="mr-2 h-4 w-4" />
+                            <span>Şikayet Et</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive focus:text-destructive">
+                            <Ban className="mr-2 h-4 w-4" />
+                            <span>Engelle</span>
+                        </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </>
+            )}
         </div>
 
         {/* Interests */}
