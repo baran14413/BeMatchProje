@@ -20,6 +20,7 @@ import {
   Lock,
   Ban,
   History,
+  Image as ImageIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -57,9 +58,9 @@ const SectionTitle = ({ title }: { title: string }) => (
 export default function EditProfilePage() {
 
     const accountItems = [
-        { icon: <Shield className="h-6 w-6" />, title: 'Yönetim Paneli', href: '#' },
         { icon: <User className="h-6 w-6" />, title: 'Profili Düzenle', href: '/profile/edit/personal' },
-        { icon: <Store className="h-6 w-6" />, title: 'Mağaza', href: '#' },
+        { icon: <ImageIcon className="h-6 w-6" />, title: 'Fotoğrafları Yönet', href: '/profile/edit/photos' },
+        { icon: <Store className="h-6 w-6" />, title: 'Mağaza', href: '/premium' },
         { icon: <Wallet className="h-6 w-6" />, title: 'Cüzdanım', href: '#' },
     ];
     
@@ -79,8 +80,8 @@ export default function EditProfilePage() {
     ];
 
     const applicationItems = [
-        { icon: <Cog className="h-6 w-6" />, title: 'Uygulama Ayarları', href: '/profile/edit/notifications' },
-        { icon: <HelpCircle className="h-6 w-6" />, title: 'Uygulama Kılavuzu', href: '#' },
+        { icon: <Bell className="h-6 w-6" />, title: 'Bildirim Ayarları', href: '/profile/edit/notifications' },
+        { icon: <HelpCircle className="h-6 w-6" />, title: 'Uygulama Kılavuzu', href: '/profile/edit/guide' },
     ];
     
     const otherItems = [
@@ -124,6 +125,25 @@ export default function EditProfilePage() {
                                     isLast={index === privacyAndSecurityItems.length -1}
                                 />
                                  {index < privacyAndSecurityItems.length - 1 && <Separator className="bg-border/50" />}
+                            </React.Fragment>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
+             <div>
+                <SectionTitle title="Diğer" />
+                <Card>
+                    <CardContent className="p-0">
+                        {otherItems.map((item, index) => (
+                             <React.Fragment key={item.title}>
+                                <SettingsItem
+                                    icon={item.icon}
+                                    title={item.title}
+                                    href={item.href}
+                                    isFirst={index === 0}
+                                    isLast={index === otherItems.length -1}
+                                />
+                                 {index < otherItems.length - 1 && <Separator className="bg-border/50" />}
                             </React.Fragment>
                         ))}
                     </CardContent>
@@ -186,26 +206,6 @@ export default function EditProfilePage() {
                                     isLast={index === applicationItems.length -1}
                                 />
                                  {index < applicationItems.length - 1 && <Separator className="bg-border/50" />}
-                            </React.Fragment>
-                        ))}
-                    </CardContent>
-                </Card>
-            </div>
-            
-             <div>
-                <SectionTitle title="Diğer" />
-                <Card>
-                    <CardContent className="p-0">
-                        {otherItems.map((item, index) => (
-                             <React.Fragment key={item.title}>
-                                <SettingsItem
-                                    icon={item.icon}
-                                    title={item.title}
-                                    href={item.href}
-                                    isFirst={index === 0}
-                                    isLast={index === otherItems.length -1}
-                                />
-                                 {index < otherItems.length - 1 && <Separator className="bg-border/50" />}
                             </React.Fragment>
                         ))}
                     </CardContent>

@@ -17,6 +17,7 @@ const getTitleForPath = (path: string): string => {
     if (path.endsWith('/blocked')) return 'Engellenen Hesaplar';
     if (path.endsWith('/sessions')) return 'Oturum Yönetimi';
     if (path.endsWith('/appearance')) return 'Görünüm Ayarları';
+    if (path.endsWith('/guide')) return 'Uygulama Kılavuzu';
     return 'Ayarlar';
 };
 
