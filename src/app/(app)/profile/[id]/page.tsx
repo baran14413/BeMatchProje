@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useParams } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -148,8 +149,8 @@ const PostCard = ({ post, user, isMyProfile }: { post: Post, user: typeof userPr
     </Card>
 )
 
-export default function UserProfilePage({ params }: { params: { id: string } }) {
-    
+export default function UserProfilePage() {
+  const params = useParams<{ id: string }>();
   const isMyProfile = params.id === currentUserId;
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
@@ -286,7 +287,7 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
                         data-ai-hint={post.aiHint}
                       />
                        {isMyProfile && (
-                            <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute top-1 right-1 flex items-center gap-1">
                                 <Button variant="secondary" size="icon" className="h-7 w-7">
                                     <Pencil className="w-4 h-4" />
                                 </Button>
