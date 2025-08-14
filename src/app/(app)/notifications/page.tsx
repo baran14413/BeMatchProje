@@ -75,16 +75,9 @@ export default function NotificationsPage() {
     const { toast } = useToast();
 
     const groupedNotifications = {
-        follows: notifications.filter(n => n.type === 'follow'),
-        likes: notifications.filter(n => n.type === 'like'),
-        comments: notifications.filter(n => n.type === 'comment'),
+        new: notifications.filter(n => !n.read),
+        earlier: notifications.filter(n => n.read),
     };
-    
-    const unreadCounts = {
-        follows: groupedNotifications.follows.filter(n => !n.read).length,
-        likes: groupedNotifications.likes.filter(n => !n.read).length,
-        comments: groupedNotifications.comments.filter(n => !n.read).length,
-    }
 
     const handleMarkAllRead = () => {
         setNotifications(notifications.map(n => ({ ...n, read: true })));
@@ -96,7 +89,7 @@ export default function NotificationsPage() {
         toast({ title: 'Tüm bildirimler temizlendi.', variant: 'destructive' });
     };
     
-    const hasUnread = Object.values(unreadCounts).some(count => count > 0);
+    const hasUnread = groupedNotifications.new.length > 0;
     
     return (
         <div className="container mx-auto max-w-2xl py-4">
@@ -115,51 +108,34 @@ export default function NotificationsPage() {
             </div>
 
             {notifications.length > 0 ? (
-                 <Accordion type="multiple" defaultValue={['follows', 'likes', 'comments']} className="w-full">
-                    {/* New Followers */}
-                    <AccordionItem value="follows" hidden={groupedNotifications.follows.length === 0}>
+                 <Accordion type="multiple" defaultValue={['new', 'earlier']} className="w-full">
+                    
+                    <AccordionItem value="new" hidden={groupedNotifications.new.length === 0}>
                         <AccordionTrigger className="text-lg font-semibold px-4">
                            <div className='flex items-center gap-2'>
-                                <span>Yeni Takipçiler</span>
-                                {unreadCounts.follows > 0 && <span className="bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">{unreadCounts.follows}</span>}
+                                <span>Yeni</span>
                            </div>
                         </AccordionTrigger>
                         <AccordionContent>
-                           {groupedNotifications.follows.map(notification => (
+                           {groupedNotifications.new.map(notification => (
                                <NotificationItem key={notification.id} notification={notification} />
                            ))}
                         </AccordionContent>
                     </AccordionItem>
                     
-                    {/* Likes */}
-                     <AccordionItem value="likes" hidden={groupedNotifications.likes.length === 0}>
+                     <AccordionItem value="earlier" hidden={groupedNotifications.earlier.length === 0}>
                         <AccordionTrigger className="text-lg font-semibold px-4">
                             <div className='flex items-center gap-2'>
-                                <span>Beğeniler</span>
-                                {unreadCounts.likes > 0 && <span className="bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">{unreadCounts.likes}</span>}
+                                <span>Daha Eski</span>
                             </div>
                         </AccordionTrigger>
                         <AccordionContent>
-                            {groupedNotifications.likes.map(notification => (
+                            {groupedNotifications.earlier.map(notification => (
                                <NotificationItem key={notification.id} notification={notification} />
                            ))}
                         </AccordionContent>
                     </AccordionItem>
 
-                     {/* Comments */}
-                      <AccordionItem value="comments" hidden={groupedNotifications.comments.length === 0}>
-                        <AccordionTrigger className="text-lg font-semibold px-4">
-                             <div className='flex items-center gap-2'>
-                                <span>Yorumlar</span>
-                                {unreadCounts.comments > 0 && <span className="bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">{unreadCounts.comments}</span>}
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                            {groupedNotifications.comments.map(notification => (
-                               <NotificationItem key={notification.id} notification={notification} />
-                           ))}
-                        </AccordionContent>
-                    </AccordionItem>
                 </Accordion>
             ) : (
                 <div className="text-center text-muted-foreground py-20">
