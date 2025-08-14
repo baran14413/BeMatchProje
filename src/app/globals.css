@@ -63,6 +63,11 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Prevent image context menu */
+  img[data-ai-hint] {
+      pointer-events: none;
+  }
 }
 
 @layer utilities {

@@ -101,7 +101,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
         </header>
         
         <main className="h-full w-full flex-1 pt-10">
-            {children}
+            <Suspense fallback={<div>Yükleniyor...</div>}>
+                {children}
+            </Suspense>
         </main>
 
         {/* Bottom Navigation for Mobile */}
