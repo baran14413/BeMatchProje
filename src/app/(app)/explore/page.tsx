@@ -460,5 +460,4 @@ export default function ExplorePage() {
        </Link>
     </div>
   );
-
-    
+}
