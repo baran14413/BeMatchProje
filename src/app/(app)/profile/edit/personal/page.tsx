@@ -6,14 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
-
-const HOBBIES = [
-  'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi',
-  'Yemek Yapmak', 'Oyun', 'Doğa Yürüyüşü', 'Sanat', 'Teknoloji'
-];
 
 export default function PersonalInfoPage() {
   const { toast } = useToast();
@@ -32,9 +25,8 @@ export default function PersonalInfoPage() {
     name: 'Elif',
     username: 'elif.s',
     bio: 'Hayatı keşfetmeyi seven, enerjik biriyim. İstanbul\'da yaşıyorum ve yeni yerler keşfetmek, yoga yapmak ve sinemaya gitmek en büyük tutkularım. Benim gibi hayat dolu, pozitif birini arıyorum.',
-    age: 28,
-    gender: 'female',
-    interests: ['Sinema', 'Yoga', 'Seyahat', 'Müzik', 'Kitaplar'],
+    country: 'Türkiye',
+    city: 'İstanbul',
   };
 
   return (
@@ -42,7 +34,7 @@ export default function PersonalInfoPage() {
       <CardHeader>
         <CardTitle>Kişisel Bilgiler</CardTitle>
         <CardDescription>
-          Ad, yaş, bio gibi temel bilgilerinizi güncelleyin.
+          Temel profil bilgilerinizi güncelleyin.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -61,36 +53,14 @@ export default function PersonalInfoPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="space-y-2">
-                <Label htmlFor="age">Yaş</Label>
-                <Input id="age" type="number" defaultValue={user.age} />
+                <Label htmlFor="country">Ülke</Label>
+                <Input id="country" defaultValue={user.country} />
             </div>
              <div className="space-y-2">
-                <Label htmlFor="gender">Cinsiyet</Label>
-                <Select defaultValue={user.gender}>
-                    <SelectTrigger id="gender"><SelectValue placeholder="Seçiniz" /></SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="female">Kadın</SelectItem>
-                        <SelectItem value="male">Erkek</SelectItem>
-                        <SelectItem value="other">Diğer</SelectItem>
-                    </SelectContent>
-                </Select>
+                <Label htmlFor="city">Şehir</Label>
+                <Input id="city" defaultValue={user.city} />
             </div>
           </div>
-          <div className="space-y-2">
-             <Label>İlgi Alanları</Label>
-             <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[40px]">
-                {HOBBIES.map((hobby) => (
-                    <Badge 
-                        key={hobby} 
-                        variant={user.interests.includes(hobby) ? 'default' : 'secondary'} 
-                        className="cursor-pointer"
-                    >
-                        {hobby}
-                    </Badge>
-                ))}
-            </div>
-          </div>
-
           <div className="flex justify-end">
             <Button type="submit">Değişiklikleri Kaydet</Button>
           </div>
