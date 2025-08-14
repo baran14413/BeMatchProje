@@ -20,6 +20,7 @@ const roboto = Roboto({
 export const metadata: Metadata = {
   title: 'BeMatch',
   description: 'Find your perfect match and walk together',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
@@ -29,7 +30,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr" suppressHydrationWarning>
-      <head />
+      <head>
+        <meta name="theme-color" content="#ADD8E6" />
+      </head>
       <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable, roboto.variable)}>
         <ThemeProvider
             attribute="class"
