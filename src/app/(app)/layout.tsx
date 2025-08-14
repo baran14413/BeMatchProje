@@ -107,7 +107,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             isScrolling && showNavs && "translate-y-full"
         )}>
             <div className="grid h-full grid-cols-3">
-                <Link href="#" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary')}>
+                <Link href="/shuffle" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/shuffle' ? 'text-primary' : '')}>
                     <Shuffle className={cn('w-6 h-6')} />
                 </Link>
                 <Link href="/match" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/match' ? 'text-primary' : '')}>
