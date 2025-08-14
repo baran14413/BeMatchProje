@@ -131,19 +131,19 @@ export default function EditProfilePage() {
                 </Card>
             </div>
              <div>
-                <SectionTitle title="Diğer" />
+                <SectionTitle title="Uygulama" />
                 <Card>
                     <CardContent className="p-0">
-                        {otherItems.map((item, index) => (
+                        {applicationItems.map((item, index) => (
                              <React.Fragment key={item.title}>
                                 <SettingsItem
                                     icon={item.icon}
                                     title={item.title}
                                     href={item.href}
                                     isFirst={index === 0}
-                                    isLast={index === otherItems.length -1}
+                                    isLast={index === applicationItems.length -1}
                                 />
-                                 {index < otherItems.length - 1 && <Separator className="bg-border/50" />}
+                                 {index < applicationItems.length - 1 && <Separator className="bg-border/50" />}
                             </React.Fragment>
                         ))}
                     </CardContent>
@@ -193,19 +193,19 @@ export default function EditProfilePage() {
             </div>
 
              <div>
-                <SectionTitle title="Uygulama" />
+                <SectionTitle title="Diğer" />
                 <Card>
                     <CardContent className="p-0">
-                        {applicationItems.map((item, index) => (
+                        {otherItems.map((item, index) => (
                              <React.Fragment key={item.title}>
                                 <SettingsItem
                                     icon={item.icon}
                                     title={item.title}
                                     href={item.href}
                                     isFirst={index === 0}
-                                    isLast={index === applicationItems.length -1}
+                                    isLast={index === otherItems.length -1}
                                 />
-                                 {index < applicationItems.length - 1 && <Separator className="bg-border/50" />}
+                                 {index < otherItems.length - 1 && <Separator className="bg-border/50" />}
                             </React.Fragment>
                         ))}
                     </CardContent>
