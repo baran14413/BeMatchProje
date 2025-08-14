@@ -264,13 +264,13 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
             <>
               <TabsContent value="likes" className="text-center py-10 text-muted-foreground">
                  <Heart className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4"/>
-                 <h3 className='font-bold text-lg'>Beğenilenler Gizli</h3>
-                 <p className='text-sm'>Sadece {userProfile.name} kendi beğendiği gönderileri görebilir.</p>
+                 <h3 className='font-bold text-lg'>Beğenilen Gönderiler</h3>
+                 <p className='text-sm'>Henüz bir gönderi beğenmedin. Beğendiğin gönderiler burada görünecek.</p>
               </TabsContent>
               <TabsContent value="saved" className="text-center py-10 text-muted-foreground">
                 <Bookmark className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4"/>
-                <h3 className='font-bold text-lg'>Kaydedilenler Gizli</h3>
-                <p className='text-sm'>Sadece {userProfile.name} kendi kaydettiği gönderileri görebilir.</p>
+                <h3 className='font-bold text-lg'>Kaydedilenler</h3>
+                <p className='text-sm'>Daha sonra kolayca bulmak için gönderileri kaydet.</p>
               </TabsContent>
             </>
           )}
