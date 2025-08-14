@@ -24,6 +24,7 @@ import {
   UserPlus,
   Settings,
   List,
+  Trash2,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -31,6 +32,16 @@ import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
+type Post = {
+    id: number;
+    type: 'photo' | 'text';
+    url?: string;
+    aiHint?: string;
+    textContent?: string;
+    caption?: string;
+    likes: number;
+    comments: number;
+};
 
 // In a real app, you would fetch user data based on the `id` param.
 // For this example, we'll use a hardcoded user object.
@@ -41,28 +52,30 @@ const userProfile = {
   age: 28,
   avatarUrl: 'https://placehold.co/128x128.png',
   aiHint: 'woman portrait smiling',
-  bio: 'Hayatı dolu dolu yaşamayı seven, enerjik biriyim. İstanbul\'da yeni yerler keşfetmek, yoga yapmak ve sinemaya gitmek en büyük tutkularım. Pozitif biriyim.',
+  bio: 'Hayatı dolu dolu yaşamayı seven, enerjik biriyim. İstanbul\'da yeni yerler keşfetmek, yoga yapmak ve sinemaya gitmek en büyük tutkularım.',
   interests: ['Sinema', 'Yoga', 'Seyahat', 'Müzik', 'Kitaplar'],
   stats: {
       posts: 18,
       followers: 432,
       following: 210,
   },
-  gallery: [
-    { id: 1, url: 'https://placehold.co/400x400.png', aiHint: 'woman yoga beach', caption: 'Sahilde yoga keyfi... 🧘‍♀️', likes: 152, comments: 12 },
-    { id: 2, url: 'https://placehold.co/400x400.png', aiHint: 'woman reading cafe', caption: 'Kahve ve kitap ikilisi.', likes: 230, comments: 25 },
-    { id: 3, url: 'https://placehold.co/400x400.png', aiHint: 'cityscape istanbul', caption: 'İstanbul\'un eşsiz manzarası.', likes: 412, comments: 45 },
-    { id: 4, url: 'https://placehold.co/400x400.png', aiHint: 'movie theater empty', caption: 'Sinema gecesi!', likes: 98, comments: 8 },
-    { id: 5, url: 'https://placehold.co/400x400.png', aiHint: 'coffee art', caption: 'Günün kahvesi.', likes: 188, comments: 19 },
-    { id: 6, url: 'https://placehold.co/400x400.png', aiHint: 'travel map', caption: 'Yeni rotalar peşinde.', likes: 350, comments: 33 },
-  ],
+  posts: [
+    { id: 1, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'woman yoga beach', caption: 'Sahilde yoga keyfi... 🧘‍♀️', likes: 152, comments: 12 },
+    { id: 7, type: 'text', textContent: 'Harika bir hafta sonu başlangıcı! Bazen sadece bir fincan kahve ve iyi bir kitap yeterlidir. #huzur #kitapkurdu', likes: 88, comments: 7 },
+    { id: 2, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'woman reading cafe', caption: 'Kahve ve kitap ikilisi.', likes: 230, comments: 25 },
+    { id: 3, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'cityscape istanbul', caption: 'İstanbul\'un eşsiz manzarası.', likes: 412, comments: 45 },
+    { id: 8, type: 'text', textContent: 'Yeni bir film keşfettim ve kesinlikle tavsiye ediyorum! Gerilim ve gizem sevenler kaçırmasın. 🎬', likes: 120, comments: 18 },
+    { id: 4, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'movie theater empty', caption: 'Sinema gecesi!', likes: 98, comments: 8 },
+    { id: 5, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'coffee art', caption: 'Günün kahvesi.', likes: 188, comments: 19 },
+    { id: 6, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'travel map', caption: 'Yeni rotalar peşinde.', likes: 350, comments: 33 },
+  ] as Post[],
 };
 
 // This is a mock for the current logged-in user's ID
 const currentUserId = "1";
 
-const PostCard = ({ post, user }: { post: (typeof userProfile.gallery)[0], user: typeof userProfile }) => (
-    <Card className="rounded-xl overflow-hidden mb-4">
+const PostCard = ({ post, user, isMyProfile }: { post: Post, user: typeof userProfile, isMyProfile: boolean }) => (
+    <Card className="rounded-xl overflow-hidden mb-4 relative group">
         <CardContent className="p-0">
             <div className="flex items-center gap-3 p-3">
                 <Avatar className="w-8 h-8">
@@ -72,15 +85,23 @@ const PostCard = ({ post, user }: { post: (typeof userProfile.gallery)[0], user:
                 <span className="font-semibold text-sm">{user.name}</span>
             </div>
 
-            <div className="relative w-full aspect-square">
-                <Image
-                src={post.url}
-                alt={`Post by ${user.name}`}
-                fill
-                className="object-cover"
-                data-ai-hint={post.aiHint}
-                />
-            </div>
+            {post.type === 'photo' && post.url && (
+                <div className="relative w-full aspect-square">
+                    <Image
+                    src={post.url}
+                    alt={`Post by ${user.name}`}
+                    fill
+                    className="object-cover"
+                    data-ai-hint={post.aiHint}
+                    />
+                </div>
+            )}
+            
+            {post.type === 'text' && (
+                <div className="px-4 py-6 bg-muted/30">
+                     <p className="text-base whitespace-pre-wrap break-words">{post.textContent}</p>
+                </div>
+            )}
 
             <div className="flex items-center justify-between p-3">
                 <div className='flex items-center gap-3'>
@@ -98,16 +119,23 @@ const PostCard = ({ post, user }: { post: (typeof userProfile.gallery)[0], user:
 
             <div className="px-3 pb-3 text-sm">
                 <p className="font-semibold">{post.likes.toLocaleString()} beğeni</p>
-                <p>
-                    <span className="font-semibold">{user.name}</span>{' '}
-                    {post.caption}
-                </p>
+                {(post.caption || (post.type === 'photo' && post.textContent)) && (
+                     <p>
+                        <span className="font-semibold">{user.name}</span>{' '}
+                        {post.caption || post.textContent}
+                    </p>
+                )}
                 {post.comments > 0 && (
                     <p className="text-muted-foreground mt-1 cursor-pointer">
                     {post.comments.toLocaleString()} yorumun tümünü gör
                     </p>
                 )}
             </div>
+             {isMyProfile && (
+                <Button variant="destructive" size="icon" className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8">
+                    <Trash2 className="w-4 h-4" />
+                </Button>
+            )}
         </CardContent>
     </Card>
 )
@@ -135,7 +163,7 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
             <AvatarFallback className="text-3xl">{userProfile.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex-1 grid grid-cols-3 gap-4 text-center">
-            <StatItem value={userProfile.stats.posts} label="Gönderi" />
+            <StatItem value={userProfile.posts.length} label="Gönderi" />
             <StatItem value={userProfile.stats.followers} label="Takipçi" />
             <StatItem value={userProfile.stats.following} label="Takip" />
           </div>
@@ -207,16 +235,19 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
         <Tabs defaultValue="posts" className="w-full">
             <div className="flex justify-between items-center">
                  <TabsList>
-                    <TabsTrigger value="posts" className="px-3">
+                    <TabsTrigger value="posts" className="px-3 flex gap-2">
                         <Grid3x3 className="h-5 w-5" />
+                        <span className="hidden sm:inline">Gönderiler</span>
                     </TabsTrigger>
                     {isMyProfile && (
                     <>
-                        <TabsTrigger value="likes" className="px-3">
+                        <TabsTrigger value="likes" className="px-3 flex gap-2">
                             <Heart className="h-5 w-5" />
+                            <span className="hidden sm:inline">Beğenilenler</span>
                         </TabsTrigger>
-                        <TabsTrigger value="saved" className="px-3">
+                        <TabsTrigger value="saved" className="px-3 flex gap-2">
                             <Bookmark className="h-5 w-5" />
+                            <span className="hidden sm:inline">Kaydedilenler</span>
                         </TabsTrigger>
                     </>
                     )}
@@ -234,27 +265,32 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
           <TabsContent value="posts" className="mt-4">
             {viewMode === 'grid' ? (
                  <div className="grid grid-cols-3 gap-1">
-                  {userProfile.gallery.map((image) => (
-                    <div key={image.id} className="relative aspect-square rounded-md overflow-hidden group">
+                  {userProfile.posts.filter(p => p.type === 'photo').map((post) => (
+                    <div key={post.id} className="relative aspect-square rounded-md overflow-hidden group">
                       <Image
-                        src={image.url}
-                        alt={`Fotoğraf ${image.id}`}
+                        src={post.url!}
+                        alt={post.caption || `Post ${post.id}`}
                         fill
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        data-ai-hint={image.aiHint}
+                        data-ai-hint={post.aiHint}
                       />
+                       {isMyProfile && (
+                            <Button variant="destructive" size="icon" className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7">
+                                <Trash2 className="w-4 h-4" />
+                            </Button>
+                        )}
                     </div>
                   ))}
                 </div>
             ) : (
                 <div className="flex flex-col">
-                    {userProfile.gallery.map((post) => (
-                        <PostCard key={post.id} post={post} user={userProfile}/>
+                    {userProfile.posts.map((post) => (
+                        <PostCard key={post.id} post={post} user={userProfile} isMyProfile={isMyProfile}/>
                     ))}
                 </div>
             )}
              
-            {userProfile.gallery.length === 0 && (
+            {userProfile.posts.length === 0 && (
                 <div className='text-center py-10 text-muted-foreground'>
                     <p>Henüz gönderi yok.</p>
                 </div>
