@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, use } from 'react';
 import { useParams } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +27,7 @@ import {
   List,
   Trash2,
   Pencil,
-  Gem,
+  Crown,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -86,7 +86,10 @@ const PostCard = ({ post, user, isMyProfile }: { post: Post, user: typeof userPr
                 <AvatarImage src={user.avatarUrl} data-ai-hint={user.aiHint} />
                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <span className="font-semibold text-sm">{user.name}</span>
+                <div className='flex items-center gap-2'>
+                    <span className="font-semibold text-sm">{user.name}</span>
+                    {user.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
+                </div>
                  {isMyProfile && (
                     <div className="flex items-center gap-1 ml-auto">
                         <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -182,7 +185,7 @@ export default function UserProfilePage() {
         <div className="flex flex-col">
             <div className="flex items-center gap-2">
                  <h1 className="text-lg font-bold">{userProfile.name}</h1>
-                 {userProfile.isPremium && <Gem className="w-5 h-5 text-purple-500" />}
+                 {userProfile.isPremium && <Crown className="w-5 h-5 text-yellow-500" />}
             </div>
             <div className="flex items-center gap-1.5 mt-1">
                 <ShieldCheck className="w-4 h-4 text-green-500" />

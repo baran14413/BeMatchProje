@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Check, Gem, Crown, Star } from "lucide-react";
+import { Check, Crown, Star, XCircle, TrendingUp, Eye, Filter, CheckCheck, Heart } from "lucide-react";
 import { useState } from "react";
 
 const features = [
@@ -41,7 +41,7 @@ const packages = [
         id: 'yearly',
         name: "1 Yıllık",
         price: "600 TL",
-        icon: <Gem className="w-8 h-8 text-blue-400"/>,
+        icon: <Crown className="w-8 h-8 text-blue-400"/>,
         bgColor: "bg-blue-50 dark:bg-blue-900/20",
         borderColor: "border-blue-300 dark:border-blue-700",
         buttonClass: "bg-blue-500 hover:bg-blue-600",
@@ -57,7 +57,7 @@ export default function PremiumPage() {
             <Card className="bg-gradient-to-br from-purple-600 to-blue-700 text-white overflow-hidden mb-8">
                 <CardHeader>
                     <div className="flex items-center gap-4">
-                        <Gem className="w-12 h-12"/>
+                        <Crown className="w-12 h-12"/>
                         <div>
                             <CardTitle className="text-3xl md:text-4xl text-white font-headline">BeMatch Premium</CardTitle>
                             <CardDescription className="text-purple-200 text-lg mt-1">Deneyimini bir üst seviyeye taşı.</CardDescription>
@@ -115,45 +115,3 @@ export default function PremiumPage() {
         </div>
     );
 }
-
-// Dummy components for icon placeholders to avoid breaking the build.
-const XCircle = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <line x1="15" y1="9" x2="9" y2="15" />
-    <line x1="9" y1="9" x2="15" y2="15" />
-  </svg>
-);
-
-const TrendingUp = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-    <polyline points="17 6 23 6 23 12" />
-  </svg>
-);
-
-const Eye = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const Filter = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-  </svg>
-);
-
-const CheckCheck = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 6 7 17l-5-5" />
-    <path d="m22 10-7.5 7.5L13 16" />
-  </svg>
-);
-
-const Heart = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-  </svg>
-);

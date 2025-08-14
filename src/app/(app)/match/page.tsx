@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Gem } from 'lucide-react';
+import { MapPin, Crown } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const db = [
@@ -109,7 +109,7 @@ export default function MatchPage() {
                       <h3 className="text-xl font-bold">{user.name},</h3>
                       <p className="text-lg text-muted-foreground">{user.age}</p>
                     </div>
-                    {user.isPremium && <Gem className="w-4 h-4 text-purple-500" />}
+                    {user.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
                   </div>
                    <div className="flex items-center gap-1.5 mt-1 text-muted-foreground">
                       <MapPin className="w-4 h-4" />
