@@ -20,7 +20,7 @@ import {
   Lock,
   Ban,
   History,
-  Image as ImageIcon,
+  ImageIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -64,6 +64,10 @@ export default function EditProfilePage() {
         { icon: <Wallet className="h-6 w-6" />, title: 'Cüzdanım', href: '#' },
     ];
     
+    const contentPreferenceItems = [
+        { icon: <Filter className="h-6 w-6" />, title: 'Ana Akış Ayarları', href: '/profile/edit/discovery' },
+    ];
+
     const privacyAndSecurityItems = [
         { icon: <Lock className="h-6 w-6" />, title: 'Hesap Gizliliği', href: '/profile/edit/privacy' },
         { icon: <KeyRound className="h-6 w-6" />, title: 'E-posta & Şifre', href: '/profile/edit/security' },
@@ -75,10 +79,6 @@ export default function EditProfilePage() {
         { icon: <Palette className="h-6 w-6" />, title: 'Görünüm', href: '/profile/edit/appearance' },
     ];
     
-    const contentPreferenceItems = [
-        { icon: <Filter className="h-6 w-6" />, title: 'Ana Akış Ayarları', href: '/profile/edit/discovery' },
-    ];
-
     const applicationItems = [
         { icon: <Bell className="h-6 w-6" />, title: 'Bildirim Ayarları', href: '/profile/edit/notifications' },
         { icon: <HelpCircle className="h-6 w-6" />, title: 'Uygulama Kılavuzu', href: '/profile/edit/guide' },
@@ -111,6 +111,46 @@ export default function EditProfilePage() {
                     </CardContent>
                 </Card>
             </div>
+             <div>
+                <SectionTitle title="Görünüm" />
+                <Card>
+                    <CardContent className="p-0">
+                        {appearanceItems.map((item, index) => (
+                            <React.Fragment key={item.title}>
+                                <SettingsItem 
+                                    icon={item.icon} 
+                                    title={item.title} 
+                                    href={item.href}
+                                    isFirst={index === 0}
+                                    isLast={index === appearanceItems.length -1}
+                                />
+                                {index < appearanceItems.length - 1 && <Separator className="bg-border/50" />}
+                            </React.Fragment>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
+             <div>
+                <SectionTitle title="İçerik Tercihleri" />
+                <Card>
+                    <CardContent className="p-0">
+                        {contentPreferenceItems.map((item, index) => (
+                             <React.Fragment key={item.title}>
+                                <SettingsItem
+                                    icon={item.icon}
+                                    title={item.title}
+                                    href={item.href}
+                                    isFirst={index === 0}
+                                    isLast={index === contentPreferenceItems.length -1}
+                                />
+                                 {index < contentPreferenceItems.length - 1 && <Separator className="bg-border/50" />}
+                            </React.Fragment>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+        <div className="space-y-4">
              <div>
                 <SectionTitle title="Gizlilik ve Güvenlik" />
                 <Card>
@@ -149,49 +189,6 @@ export default function EditProfilePage() {
                     </CardContent>
                 </Card>
             </div>
-        </div>
-
-        <div className="space-y-4">
-             <div>
-                <SectionTitle title="Görünüm" />
-                <Card>
-                    <CardContent className="p-0">
-                        {appearanceItems.map((item, index) => (
-                            <React.Fragment key={item.title}>
-                                <SettingsItem 
-                                    icon={item.icon} 
-                                    title={item.title} 
-                                    href={item.href}
-                                    isFirst={index === 0}
-                                    isLast={index === appearanceItems.length -1}
-                                />
-                                {index < appearanceItems.length - 1 && <Separator className="bg-border/50" />}
-                            </React.Fragment>
-                        ))}
-                    </CardContent>
-                </Card>
-            </div>
-
-            <div>
-                <SectionTitle title="İçerik Tercihleri" />
-                <Card>
-                    <CardContent className="p-0">
-                        {contentPreferenceItems.map((item, index) => (
-                             <React.Fragment key={item.title}>
-                                <SettingsItem
-                                    icon={item.icon}
-                                    title={item.title}
-                                    href={item.href}
-                                    isFirst={index === 0}
-                                    isLast={index === contentPreferenceItems.length -1}
-                                />
-                                 {index < contentPreferenceItems.length - 1 && <Separator className="bg-border/50" />}
-                            </React.Fragment>
-                        ))}
-                    </CardContent>
-                </Card>
-            </div>
-
              <div>
                 <SectionTitle title="Diğer" />
                 <Card>

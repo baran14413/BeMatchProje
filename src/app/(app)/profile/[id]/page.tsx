@@ -25,6 +25,7 @@ import {
   Settings,
   List,
   Trash2,
+  Pencil,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -77,12 +78,22 @@ const currentUserId = "1";
 const PostCard = ({ post, user, isMyProfile }: { post: Post, user: typeof userProfile, isMyProfile: boolean }) => (
     <Card className="rounded-xl overflow-hidden mb-4 relative group">
         <CardContent className="p-0">
-            <div className="flex items-center gap-3 p-3">
+             <div className="flex items-center gap-3 p-3">
                 <Avatar className="w-8 h-8">
                 <AvatarImage src={user.avatarUrl} data-ai-hint={user.aiHint} />
                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <span className="font-semibold text-sm">{user.name}</span>
+                 {isMyProfile && (
+                    <div className="flex items-center gap-1 ml-auto">
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button variant="destructive" size="icon" className="h-8 w-8">
+                            <Trash2 className="w-4 h-4" />
+                        </Button>
+                    </div>
+                )}
             </div>
 
             {post.type === 'photo' && post.url && (
@@ -131,11 +142,6 @@ const PostCard = ({ post, user, isMyProfile }: { post: Post, user: typeof userPr
                     </p>
                 )}
             </div>
-             {isMyProfile && (
-                <Button variant="destructive" size="icon" className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8">
-                    <Trash2 className="w-4 h-4" />
-                </Button>
-            )}
         </CardContent>
     </Card>
 )
@@ -275,9 +281,14 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
                         data-ai-hint={post.aiHint}
                       />
                        {isMyProfile && (
-                            <Button variant="destructive" size="icon" className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7">
-                                <Trash2 className="w-4 h-4" />
-                            </Button>
+                            <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button variant="secondary" size="icon" className="h-7 w-7">
+                                    <Pencil className="w-4 h-4" />
+                                </Button>
+                                <Button variant="destructive" size="icon" className="h-7 w-7">
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+                            </div>
                         )}
                     </div>
                   ))}

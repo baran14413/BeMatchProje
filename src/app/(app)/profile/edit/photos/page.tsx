@@ -5,7 +5,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2, Grid3x3, List, Heart, MessageSquare, Bookmark } from 'lucide-react';
+import { Trash2, Grid3x3, List, Heart, MessageSquare, Bookmark, Pencil } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
@@ -48,6 +48,14 @@ const PostCard = ({ post, user }: { post: Post, user: typeof userProfile }) => (
                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <span className="font-semibold text-sm">{user.name}</span>
+                 <div className="flex items-center gap-1 ml-auto">
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button variant="destructive" size="icon" className="h-8 w-8">
+                        <Trash2 className="w-4 h-4" />
+                    </Button>
+                </div>
             </div>
 
             {post.type === 'photo' && post.url && (
@@ -96,9 +104,6 @@ const PostCard = ({ post, user }: { post: Post, user: typeof userProfile }) => (
                     </p>
                 )}
             </div>
-            <Button variant="destructive" size="icon" className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8">
-                <Trash2 className="w-4 h-4" />
-            </Button>
         </CardContent>
     </Card>
 );
@@ -136,7 +141,10 @@ export default function ManagePhotosPage() {
                                     className="object-cover rounded-md"
                                     data-ai-hint={post.aiHint}
                                 />
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2">
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2 gap-2">
+                                   <Button variant="secondary" size="icon" className="h-9 w-9">
+                                       <Pencil className="h-4 w-4" />
+                                   </Button>
                                    <Button variant="destructive" size="icon" className="h-9 w-9">
                                        <Trash2 className="h-4 w-4" />
                                    </Button>
