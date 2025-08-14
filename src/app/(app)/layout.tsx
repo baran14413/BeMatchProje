@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { type ReactNode, useState, useEffect, useRef } from 'react';
+import React, { type ReactNode, useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe } from 'lucide-react';
@@ -11,10 +11,10 @@ import { Button } from '@/components/ui/button';
 const NavButton = ({ href, icon, srText, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, hasNotification?: boolean }) => {
     return (
         <Link href={href}>
-            <Button variant="ghost" size="icon" className="rounded-full relative">
+            <Button variant="ghost" size="icon" className="relative rounded-full">
                 {icon}
                 {hasNotification && (
-                    <span className="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-background" />
+                    <span className="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500" />
                 )}
                 <span className="sr-only">{srText}</span>
             </Button>
@@ -22,7 +22,7 @@ const NavButton = ({ href, icon, srText, hasNotification = false }: { href: stri
     );
 };
 
-export default function AppLayout({ children }: { children: ReactNode }) {
+function LayoutContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isScrolling, setIsScrolling] = useState(false);
@@ -68,56 +68,65 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
   return (
         <div 
-            className="flex flex-col min-h-screen bg-background text-foreground"
+            className="flex min-h-screen flex-col bg-background text-foreground"
             style={{
                 paddingTop: showNavs ? 'var(--header-height)' : '0',
                 paddingBottom: showNavs ? 'var(--bottom-nav-height)' : '0',
             } as React.CSSProperties}
         >
         <header className={cn(
-            "fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-6 transition-transform duration-300 bg-background/80 backdrop-blur-sm",
+            "fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-background/80 px-4 backdrop-blur-sm transition-transform duration-300 md:px-6",
             "h-[var(--header-height)]",
             !showNavs && "hidden",
             isScrolling && showNavs && "-translate-y-full"
         )}>
-            <Link href="/match" className="flex items-center gap-2 font-semibold text-lg">
-                <Heart className="w-7 h-7 text-primary" />
+            <Link href="/match" className="flex items-center gap-2 text-lg font-semibold">
+                <Heart className="h-7 w-7 text-primary" />
                 <span className="font-bold">BeMatch</span>
             </Link>
             <div className="flex items-center gap-2">
-                <Link href="/profile/1"><Button variant="ghost" size="icon" className="rounded-full relative">
-                    <User className="w-5 h-5" />
+                <Link href="/profile/1"><Button variant="ghost" size="icon" className="relative rounded-full">
+                    <User className="h-5 w-5" />
                     <span className="sr-only">Profil</span>
                 </Button></Link>
-                <NavButton href="/chat" icon={<MessageCircle className="w-5 h-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
-                <NavButton href="/notifications" icon={<Bell className="w-5 h-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
-                <NavButton href="#" icon={<Search className="w-5 h-5" />} srText="Ara" />
+                <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
+                <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
+                <NavButton href="#" icon={<Search className="h-5 w-5" />} srText="Ara" />
             </div>
         </header>
         
-        <main className="flex-1 w-full h-full">
+        <main className="h-full w-full flex-1">
             {children}
         </main>
 
         {/* Bottom Navigation for Mobile */}
         <nav className={cn(
-            "fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-sm md:hidden transition-transform duration-300",
-            "h-[var(--bottom-nav-height)] border-t border-border/50",
+            "fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/80 backdrop-blur-sm transition-transform duration-300 md:hidden",
+            "h-[var(--bottom-nav-height)]",
             !showNavs && "hidden",
             isScrolling && showNavs && "translate-y-full"
         )}>
             <div className="grid h-full grid-cols-3">
                 <Link href="/shuffle" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/shuffle' ? 'text-primary' : '')}>
-                    <Shuffle className={cn('w-6 h-6')} />
+                    <Shuffle className={cn('h-6 w-6')} />
                 </Link>
                 <Link href="/match" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/match' ? 'text-primary' : '')}>
-                    <Home className={cn('w-6 h-6')} />
+                    <Home className={cn('h-6 w-6')} />
                 </Link>
                 <Link href="/explore" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/explore' ? 'text-primary' : '')}>
-                    <Globe className={cn('w-6 h-6')} />
+                    <Globe className={cn('h-6 w-6')} />
                 </Link>
             </div>
         </nav>
         </div>
   );
+}
+
+
+export default function AppLayout({ children }: { children: ReactNode }) {
+    return (
+        <Suspense fallback={<div>Yükleniyor...</div>}>
+            <LayoutContent>{children}</LayoutContent>
+        </Suspense>
+    )
 }
