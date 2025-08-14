@@ -72,7 +72,7 @@ export default function EditProfilePage() {
     ];
     
     const appearanceItems = [
-        { icon: <Palette className="h-6 w-6" />, title: 'Görünüm Ayarları', href: '/profile/edit/appearance' },
+        { icon: <Palette className="h-6 w-6" />, title: 'Görünüm', href: '/profile/edit/appearance' },
     ];
     
     const contentPreferenceItems = [
@@ -85,7 +85,7 @@ export default function EditProfilePage() {
     ];
     
     const otherItems = [
-        { icon: <Trash2 className="h-6 w-6" />, title: 'Hesabı Sil', href: '#' },
+        { icon: <Trash2 className="h-6 w-6" />, title: 'Hesabı Sil', href: '/profile/edit/delete' },
         { icon: <LogOut className="h-6 w-6" />, title: 'Çıkış Yap', href: '#' },
     ];
 

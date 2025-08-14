@@ -9,15 +9,16 @@ import { usePathname } from 'next/navigation';
 
 const getTitleForPath = (path: string): string => {
     if (path.endsWith('/personal')) return 'Profili Düzenle';
-    if (path.endsWith('/photos')) return 'Fotoğraflar';
+    if (path.endsWith('/photos')) return 'Fotoğrafları Yönet';
     if (path.endsWith('/discovery')) return 'Ana Akış Ayarları';
     if (path.endsWith('/notifications')) return 'Uygulama Ayarları';
     if (path.endsWith('/security')) return 'E-posta & Şifre';
     if (path.endsWith('/privacy')) return 'Hesap Gizliliği';
     if (path.endsWith('/blocked')) return 'Engellenen Hesaplar';
     if (path.endsWith('/sessions')) return 'Oturum Yönetimi';
-    if (path.endsWith('/appearance')) return 'Görünüm Ayarları';
+    if (path.endsWith('/appearance')) return 'Görünüm';
     if (path.endsWith('/guide')) return 'Uygulama Kılavuzu';
+    if (path.endsWith('/delete')) return 'Hesabı Sil';
     return 'Ayarlar';
 };
 
