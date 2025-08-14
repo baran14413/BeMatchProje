@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -89,8 +90,8 @@ export default function MatchPage() {
       <ScrollArea className="flex-1">
         <div className="flex flex-col">
           {db.map((user) => (
-            <Link href={`/profile/${user.id}`} key={user.id} className="block">
-              <div className="p-4 flex items-center gap-4 border-b transition-colors">
+            <Link href={`/profile/${user.id}`} key={user.id} className="block hover:bg-muted/50 transition-colors">
+              <div className="p-4 flex items-center gap-4 border-b">
                 <Avatar className="w-16 h-16 border">
                   <AvatarImage src={user.image} alt={user.name} data-ai-hint={user.aiHint} />
                   <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
@@ -100,6 +101,10 @@ export default function MatchPage() {
                     <h3 className="text-xl font-bold">{user.name},</h3>
                     <p className="text-lg text-muted-foreground">{user.age}</p>
                   </div>
+                   <div className="flex items-center gap-1.5 mt-1 text-muted-foreground">
+                      <MapPin className="w-4 h-4" />
+                      <p className="text-sm">{user.city}</p>
+                   </div>
                 </div>
               </div>
             </Link>

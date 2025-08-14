@@ -11,12 +11,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   ShieldCheck,
   MessageSquare,
   MoreVertical,
   Flag,
   Ban,
+  Grid3x3,
+  Heart,
+  Bookmark,
+  UserPlus
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -24,134 +29,146 @@ import Link from 'next/link';
 // In a real app, you would fetch user data based on the `id` param.
 // For this example, we'll use a hardcoded user object.
 const userProfile = {
-  id: 1, // Added id for dynamic linking
+  id: 1,
   name: 'Elif',
+  username: 'elif.s',
   age: 28,
   avatarUrl: 'https://placehold.co/128x128.png',
   aiHint: 'woman portrait smiling',
   bio: 'Hayatı keşfetmeyi seven, enerjik biriyim. İstanbul\'da yaşıyorum ve yeni yerler keşfetmek, yoga yapmak ve sinemaya gitmek en büyük tutkularım. Benim gibi hayat dolu, pozitif birini arıyorum.',
   interests: ['Sinema', 'Yoga', 'Seyahat', 'Müzik', 'Kitaplar'],
+  stats: {
+      posts: 18,
+      followers: 432,
+      following: 210,
+  },
   gallery: [
-    { id: 1, url: 'https://placehold.co/400x600.png', aiHint: 'woman yoga beach' },
-    { id: 2, url: 'https://placehold.co/400x600.png', aiHint: 'woman reading cafe' },
-    { id: 3, url: 'https://placehold.co/400x600.png', aiHint: 'cityscape istanbul' },
-    { id: 4, url: 'https://placehold.co/400x600.png', aiHint: 'movie theater empty' },
+    { id: 1, url: 'https://placehold.co/400x400.png', aiHint: 'woman yoga beach' },
+    { id: 2, url: 'https://placehold.co/400x400.png', aiHint: 'woman reading cafe' },
+    { id: 3, url: 'https://placehold.co/400x400.png', aiHint: 'cityscape istanbul' },
+    { id: 4, url: 'https://placehold.co/400x400.png', aiHint: 'movie theater empty' },
+    { id: 5, url: 'https://placehold.co/400x400.png', aiHint: 'coffee art' },
+    { id: 6, url: 'https://placehold.co/400x400.png', aiHint: 'travel map' },
   ],
 };
 
 export default function UserProfilePage({ params }: { params: { id: string } }) {
-  // You can use params.id to fetch the specific user's data
-  // For now, we'll just display the placeholder data.
   const { id } = params;
 
+  const StatItem = ({ value, label }: { value: number, label: string }) => (
+      <div className="flex flex-col items-center">
+          <p className="text-xl font-bold">{value}</p>
+          <p className="text-sm text-muted-foreground">{label}</p>
+      </div>
+  );
+
   return (
-    <div className="container mx-auto max-w-3xl p-4 md:p-8">
-      <div className="flex flex-col gap-8">
+    <div className="container mx-auto max-w-3xl p-4 md:p-6">
+      <div className="flex flex-col gap-6">
+
         {/* Profile Header */}
-        <Card className="overflow-hidden">
-          <CardContent className="p-6 flex flex-col sm:flex-row items-center gap-6">
-            <div className="relative">
-              <Avatar className="w-36 h-36 border-4 border-background ring-4 ring-primary">
-                <AvatarImage
-                  src={userProfile.avatarUrl}
-                  data-ai-hint={userProfile.aiHint}
-                />
-                <AvatarFallback className="text-5xl">
-                  {userProfile.name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
+        <header className="flex gap-4 items-center">
+          <Avatar className="w-24 h-24 border-2 border-primary">
+            <AvatarImage src={userProfile.avatarUrl} data-ai-hint={userProfile.aiHint} />
+            <AvatarFallback className="text-3xl">{userProfile.name.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div className="flex-1 grid grid-cols-3 gap-4 text-center">
+            <StatItem value={userProfile.stats.posts} label="Gönderi" />
+            <StatItem value={userProfile.stats.followers} label="Takipçi" />
+            <StatItem value={userProfile.stats.following} label="Takip" />
+          </div>
+        </header>
+
+        {/* Bio Section */}
+        <div className="flex flex-col">
+            <h1 className="text-lg font-bold">{userProfile.name}</h1>
+            <div className="flex items-center gap-1.5 mt-1">
+                <ShieldCheck className="w-4 h-4 text-green-500" />
+                <p className="text-xs font-medium text-green-600">Doğrulanmış Profil</p>
             </div>
-            <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-3xl font-bold font-headline">
-                {userProfile.name}, {userProfile.age}
-              </h1>
-              <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
-                <ShieldCheck className="w-5 h-5 text-green-500" />
-                <p className="text-sm font-medium text-green-600">
-                  Doğrulanmış Profil
-                </p>
-              </div>
-              <div className="mt-4 flex gap-2 w-full">
-                <Link href={`/chat?userId=${id}`} className="flex-1">
-                  <Button className="w-full">
+             <p className="text-muted-foreground text-sm mt-2">{userProfile.bio}</p>
+        </div>
+
+
+        {/* Action Buttons */}
+        <div className="flex gap-2 w-full">
+            <Button className="flex-1">
+                <UserPlus className="mr-2 h-4 w-4" /> Takip Et
+            </Button>
+            <Link href={`/chat?userId=${id}`} className="flex-1">
+                <Button variant="secondary" className="w-full">
                     <MessageSquare className="mr-2 h-4 w-4" /> Mesaj Gönder
-                  </Button>
-                </Link>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon">
-                      <MoreVertical className="h-4 w-4" />
-                      <span className="sr-only">Daha Fazla</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                      <Flag className="mr-2 h-4 w-4" />
-                      <span>Şikayet Et</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive focus:text-destructive">
-                      <Ban className="mr-2 h-4 w-4" />
-                      <span>Engelle</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                </Button>
+            </Link>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                    <MoreVertical className="h-4 w-4" />
+                    <span className="sr-only">Daha Fazla</span>
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                    <Flag className="mr-2 h-4 w-4" />
+                    <span>Şikayet Et</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive focus:text-destructive">
+                    <Ban className="mr-2 h-4 w-4" />
+                    <span>Engelle</span>
+                </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
 
-        {/* About Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Hakkımda</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground text-base">{userProfile.bio}</p>
-          </CardContent>
-        </Card>
-
-        {/* Interests Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>İlgi Alanları</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-3">
+        {/* Interests */}
+        <div className="flex flex-wrap gap-2">
             {userProfile.interests.map((interest) => (
-              <Badge
-                key={interest}
-                variant="secondary"
-                className="text-sm px-3 py-1 rounded-lg"
-              >
+              <Badge key={interest} variant="secondary" className="text-xs rounded-md">
                 {interest}
               </Badge>
             ))}
-          </CardContent>
-        </Card>
+        </div>
+        
+        <Separator />
 
-        {/* Gallery Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Fotoğraflarım</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Gallery Tabs */}
+        <Tabs defaultValue="posts" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="posts"><Grid3x3 className="mr-2 h-4 w-4" />Gönderiler</TabsTrigger>
+            <TabsTrigger value="likes"><Heart className="mr-2 h-4 w-4" />Beğeniler</TabsTrigger>
+            <TabsTrigger value="saved"><Bookmark className="mr-2 h-4 w-4" />Kaydedilenler</TabsTrigger>
+          </TabsList>
+          <TabsContent value="posts" className="mt-4">
+            <div className="grid grid-cols-3 gap-1">
               {userProfile.gallery.map((image) => (
-                <div
-                  key={image.id}
-                  className="relative aspect-[3/4] rounded-lg overflow-hidden group"
-                >
+                <div key={image.id} className="relative aspect-square rounded-md overflow-hidden group">
                   <Image
                     src={image.url}
                     alt={`Fotoğraf ${image.id}`}
                     fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-110"
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
                     data-ai-hint={image.aiHint}
                   />
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+             {userProfile.gallery.length === 0 && (
+                <div className='text-center py-10 text-muted-foreground'>
+                    <p>Henüz gönderi yok.</p>
+                </div>
+            )}
+          </TabsContent>
+          <TabsContent value="likes" className="text-center py-10 text-muted-foreground">
+             <Heart className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4"/>
+             <h3 className='font-bold text-lg'>Beğenilenler Gizli</h3>
+             <p className='text-sm'>Sadece {userProfile.name} kendi beğendiği gönderileri görebilir.</p>
+          </TabsContent>
+          <TabsContent value="saved" className="text-center py-10 text-muted-foreground">
+            <Bookmark className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4"/>
+            <h3 className='font-bold text-lg'>Kaydedilenler Gizli</h3>
+            <p className='text-sm'>Sadece {userProfile.name} kendi kaydettiği gönderileri görebilir.</p>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
