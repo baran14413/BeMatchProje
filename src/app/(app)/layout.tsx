@@ -7,6 +7,8 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useNetworkStatus } from '@/hooks/use-network-status';
+import { NetworkStatusBanner } from '@/components/ui/network-status-banner';
 
 const NavButton = ({ href, icon, srText, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, hasNotification?: boolean }) => {
     return (
@@ -27,6 +29,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const searchParams = useSearchParams();
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { isOnline, isPoorConnection } = useNetworkStatus();
 
   // A chat view is considered open if we are on the /chat page AND a specific userId is in the query params.
   const isChatPage = pathname === '/chat';
@@ -74,9 +77,11 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 paddingBottom: showNavs ? 'var(--bottom-nav-height)' : '0',
             } as React.CSSProperties}
         >
+        <NetworkStatusBanner isOnline={isOnline} isPoorConnection={isPoorConnection} />
         <header className={cn(
             "fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-background/80 px-4 backdrop-blur-sm transition-transform duration-300 md:px-6",
             "h-[var(--header-height)]",
+            !isOnline || isPoorConnection ? 'top-10' : 'top-0', // Adjust header position based on banner
             !showNavs && "hidden",
             isScrolling && showNavs && "-translate-y-full"
         )}>
@@ -95,7 +100,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
             </div>
         </header>
         
-        <main className="h-full w-full flex-1">
+        <main className="h-full w-full flex-1 pt-10">
             {children}
         </main>
 
