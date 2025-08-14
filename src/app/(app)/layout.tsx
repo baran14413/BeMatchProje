@@ -67,7 +67,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <span className="font-bold">BeMatch</span>
         </Link>
         <div className="flex items-center gap-2">
-            <Link href="/profile/edit">
+            <Link href="/profile/1">
                 <Button variant="ghost" size="icon" className="rounded-full">
                     <User className="w-5 h-5" />
                     <span className="sr-only">Profil</span>
