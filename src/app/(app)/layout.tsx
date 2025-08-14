@@ -7,7 +7,6 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { ThemeProvider } from 'next-themes';
 
 const NavButton = ({ href, icon, srText, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, hasNotification?: boolean }) => {
     return (
@@ -68,7 +67,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <div 
             className="flex flex-col min-h-screen bg-background text-foreground"
             style={{
@@ -87,7 +85,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 <span className="font-bold">BeMatch</span>
             </Link>
             <div className="flex items-center gap-2">
-                <NavButton href="/profile/1" icon={<User className="w-5 h-5" />} srText="Profil" />
+                <Link href="/profile/1"><Button variant="ghost" size="icon" className="rounded-full relative">
+                    <User className="w-5 h-5" />
+                    <span className="sr-only">Profil</span>
+                </Button></Link>
                 <NavButton href="/chat" icon={<MessageCircle className="w-5 h-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
                 <NavButton href="/notifications" icon={<Bell className="w-5 h-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
                 <NavButton href="#" icon={<Search className="w-5 h-5" />} srText="Ara" />
@@ -118,6 +119,5 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             </div>
         </nav>
         </div>
-    </ThemeProvider>
   );
 }
