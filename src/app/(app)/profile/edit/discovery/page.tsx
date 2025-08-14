@@ -19,7 +19,7 @@ export default function DiscoverySettingsPage() {
         e.preventDefault();
         toast({
         title: 'Tercihler Güncellendi',
-        description: 'Keşfet ayarlarınız başarıyla kaydedildi.',
+        description: 'Ana akış ayarlarınız başarıyla kaydedildi.',
         className: 'bg-green-500 text-white',
         });
     };
@@ -27,7 +27,7 @@ export default function DiscoverySettingsPage() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Keşfet Ayarları</CardTitle>
+                <CardTitle>Ana Akış Ayarları</CardTitle>
                 <CardDescription>
                 Size uygun kişileri bulmak için arama kriterlerinizi belirleyin.
                 </CardDescription>
