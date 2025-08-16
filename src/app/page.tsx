@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
 
 const AnimatedLogo = () => {
-    const text = "BeWalk";
+    const text = "BeMatch";
     return (
         <div className="flex justify-center items-center" aria-label={text}>
             {text.split("").map((char, index) => (
@@ -27,7 +27,7 @@ export default function Home() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace('/match');
+      router.replace('/login');
     }, 2500); // Wait for animation to complete before redirecting
 
     return () => clearTimeout(timer);

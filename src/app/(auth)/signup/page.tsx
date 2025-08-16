@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Camera, AlertTriangle, Loader, Eye, EyeOff, Sparkles, Ban, Upload, ShieldCheck, UserCheck, Check } from 'lucide-react';
+import { Camera, AlertTriangle, Loader, Eye, EyeOff, Sparkles, Ban, Upload, ShieldCheck, UserCheck, Check, Checkbox } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -44,6 +44,7 @@ export default function SignupPage() {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [isFinishing, setIsFinishing] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -345,9 +346,9 @@ export default function SignupPage() {
           {step === 1 && "Adım 1: Kişisel bilgilerinizi girin."}
           {step === 2 && "Adım 2: Sizi daha iyi tanımamıza yardımcı olun."}
           {step === 3 && "Adım 3: Güçlü bir şifre oluşturun."}
-          {step === 4 && "Adım 4: Profil fotoğrafınızı yükleyin (isteğe bağlı)."}
+          {step === 4 && "Adım 4: Profil fotoğrafınızı yükleyin."}
           {step === 5 && "Adım 5: Canlılık kontrolü için yüzünüzü doğrulayın."}
-          {step === 6 && "Adım 6: Neredeyse bitti!"}
+          {step === 6 && "Adım 6: Neredeyse bitti! Son bir onay."}
         </CardDescription>
         <Progress value={progress} className="w-full mt-2" />
       </CardHeader>
@@ -546,7 +547,7 @@ export default function SignupPage() {
                 </Alert>
               )}
               {verificationStatus === 'verified' && (
-                <Alert variant="default" className="mt-4 border-green-500 text-green-700">
+                <Alert className="mt-4 border-green-500 text-green-700 dark:text-green-400">
                   <UserCheck className="h-4 w-4 text-green-500" />
                   <AlertTitle>Doğrulama Başarılı</AlertTitle>
                   <AlertDescription>
@@ -560,9 +561,15 @@ export default function SignupPage() {
             <div className="text-center flex flex-col items-center justify-center h-full">
                 <Check className="w-24 h-24 text-green-500 bg-green-100 rounded-full p-4 mb-6"/>
                 <h2 className="text-2xl font-bold mb-2">Her Şey Hazır!</h2>
-                <p className="text-muted-foreground max-w-xs">
-                    BeMatch'e hoş geldin! Profilin oluşturuldu ve harika insanlarla tanışmaya hazırsın.
+                <p className="text-muted-foreground max-w-xs mb-6">
+                    BeMatch'e hoş geldin! Lütfen devam etmeden önce şartlarımızı kabul et.
                 </p>
+                <div className="flex items-center space-x-2">
+                    <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(checked) => setTermsAccepted(checked as boolean)} />
+                    <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground">
+                        Hesabını oluşturarak <Link href="#" className="underline">Kullanım Koşullarımızı</Link> ve <Link href="#" className="underline">Gizlilik Politikamızı</Link> kabul etmiş olursun.
+                    </Label>
+                </div>
             </div>
         )}
       </CardContent>
@@ -587,7 +594,7 @@ export default function SignupPage() {
         ) : step < 6 ? (
           <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>
         ) : (
-          <Button onClick={handleFinishSignup} disabled={isFinishing}>
+          <Button onClick={handleFinishSignup} disabled={isFinishing || !termsAccepted}>
             {isFinishing && <Loader className="mr-2 h-4 w-4 animate-spin" />}
             Bitir ve Keşfet
           </Button>
@@ -596,5 +603,3 @@ export default function SignupPage() {
     </Card>
   );
 }
-
-    
