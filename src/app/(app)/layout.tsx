@@ -101,7 +101,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
         </header>
         
         <main className="h-full w-full flex-1 pt-10">
-            <Suspense fallback={<div>Yükleniyor...</div>}>
+            <Suspense fallback={<div>BeMatch Yükleniyor...</div>}>
                 {children}
             </Suspense>
         </main>
@@ -132,7 +132,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
 export default function AppLayout({ children }: { children: ReactNode }) {
     return (
-        <Suspense fallback={<div>Yükleniyor...</div>}>
+        <Suspense fallback={<div>BeMatch Yükleniyor...</div>}>
             <LayoutContent>{children}</LayoutContent>
         </Suspense>
     )
