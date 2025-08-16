@@ -503,7 +503,7 @@ export default function SignupPage() {
         )}
         {step === 5 && (
             <div className="flex flex-col items-center gap-4">
-              <p className="font-medium text-center">Doğrulama için lütfen kameraya bakın.</p>
+              <p className="font-medium text-center">Canlılık kontrolü için lütfen kameraya bakın.</p>
                <div className={cn(
                    "relative w-64 h-64 rounded-full bg-muted flex items-center justify-center overflow-hidden border-4 transition-colors",
                    getVerificationBorderColor()
@@ -528,7 +528,7 @@ export default function SignupPage() {
                   <AlertTriangle className="h-4 w-4" />
                   <AlertTitle>Doğrulama Başarısız</AlertTitle>
                   <AlertDescription>
-                    {verificationError || 'Yüz doğrulanamadı. Lütfen tekrar deneyin.'}
+                    Yüz doğrulanamadı. Lütfen tekrar deneyin.
                   </AlertDescription>
                 </Alert>
               )}
