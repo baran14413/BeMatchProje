@@ -220,8 +220,8 @@ export default function SignupPage() {
 
       } catch (error: any) {
         console.error("Signup error: ", error);
-        let description = "Bir hata oluştu, lütfen tekrar deneyin.";
-        if (error.code === 'auth/email-already-in-use') {
+        let description = "Bir hata oluştu, lütfen bilgilerinizi kontrol edip tekrar deneyin.";
+        if (error.code === 'auth/email-already-in-use' || error.message?.includes('email-already-in-use')) {
             description = "Bu e-posta adresi zaten kullanımda. Lütfen farklı bir e-posta deneyin veya giriş yapın.";
         }
         toast({
@@ -589,5 +589,3 @@ export default function SignupPage() {
     </Card>
   );
 }
-
-    
