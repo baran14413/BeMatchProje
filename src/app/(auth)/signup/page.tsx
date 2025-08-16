@@ -28,6 +28,7 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { auth, db, storage } from '@/lib/firebase';
+import { cities, districts } from '@/lib/turkey-locations';
 
 const HOBBIES = [
   'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi',
@@ -59,6 +60,8 @@ export default function SignupPage() {
     confirmPassword: '',
     profilePicture: null as string | null,
   });
+  
+  const [selectedCityPlate, setSelectedCityPlate] = useState<number | null>(null);
 
   const [showPassword, setShowPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>('yok');
@@ -75,7 +78,7 @@ export default function SignupPage() {
   
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => {
-    if (step === 6) {
+    if (step === 5) {
        if (verificationTimeoutRef.current) {
         clearTimeout(verificationTimeoutRef.current);
       }
@@ -91,15 +94,19 @@ export default function SignupPage() {
         clearTimeout(verificationTimeoutRef.current);
       }
       
+      // This is a mock verification.
+      // In a real app, you would use a face verification service.
       verificationTimeoutRef.current = setTimeout(() => {
-        const detectedGender = 'male';
+        // We'll simulate that the camera "detects" the gender the user selected.
+        const detectedGender = formData.gender;
         
         if (formData.gender === detectedGender) {
             setVerificationStatus('verified');
             setTimeout(() => nextStep(), 1500); 
         } else {
+            // This part is unlikely to be reached in this mock, but good practice for a real implementation
             setVerificationStatus('failed');
-            setVerificationError(`Cinsiyetiniz "${formData.gender === 'female' ? 'Kadın' : 'Diğer'}" olarak seçildi, ancak kamerada bir erkek yüzü algılandı. Lütfen cinsiyetinizi doğru girin.`);
+            setVerificationError(`Seçtiğiniz cinsiyet ile kamerada algılanan yüz uyuşmuyor. Lütfen bilgilerinizi kontrol edin.`);
             
             setTimeout(() => {
                 setStep(2);
@@ -258,7 +265,16 @@ export default function SignupPage() {
     checkPasswordStrength(password);
   };
 
-  const handleSelectChange = (id: string, value: string) => setFormData((prev) => ({ ...prev, [id]: value }));
+  const handleSelectChange = (id: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [id]: value }));
+    if (id === 'city') {
+        const city = cities.find(c => c.name === value);
+        setSelectedCityPlate(city ? city.id : null);
+        // Reset district when city changes
+        setFormData(prev => ({...prev, district: ''}));
+    }
+  };
+  
   const toggleHobby = (hobby: string) => {
     setFormData((prev) => {
       const newHobbies = prev.hobbies.includes(hobby) ? prev.hobbies.filter((h) => h !== hobby) : [...prev.hobbies, hobby];
@@ -269,7 +285,8 @@ export default function SignupPage() {
   const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.username || !formData.email;
   const isStep2Invalid = !formData.age || !formData.gender || !formData.country || !formData.city || !formData.district || formData.hobbies.length < 3;
   const isStep3Invalid = !formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf';
-  const isStep4Invalid = !formData.profilePicture || moderationStatus !== 'safe';
+  // Step 4 is always valid if we allow skipping
+  const isStep4Invalid = false;
   const isStep5Invalid = verificationStatus !== 'verified';
 
   const isNextButtonDisabled = () => {
@@ -282,6 +299,25 @@ export default function SignupPage() {
         default: return false;
     }
   };
+  
+  const handlePhotoSkip = () => {
+    setFormData(prev => ({...prev, profilePicture: null}));
+    setModerationStatus('idle');
+    setModerationResult(null);
+    nextStep();
+  }
+  
+  const handleNextPhotoStep = () => {
+      if (moderationStatus === 'safe' && formData.profilePicture) {
+          nextStep();
+      } else {
+           toast({
+            variant: "destructive",
+            title: "Devam Edilemiyor",
+            description: "Lütfen devam etmeden önce geçerli bir fotoğrafı denetleyin."
+        });
+      }
+  }
 
   const progress = (step / 6) * 100;
 
@@ -309,7 +345,7 @@ export default function SignupPage() {
           {step === 1 && "Adım 1: Kişisel bilgilerinizi girin."}
           {step === 2 && "Adım 2: Sizi daha iyi tanımamıza yardımcı olun."}
           {step === 3 && "Adım 3: Güçlü bir şifre oluşturun."}
-          {step === 4 && "Adım 4: Profil fotoğrafınızı yükleyin."}
+          {step === 4 && "Adım 4: Profil fotoğrafınızı yükleyin (isteğe bağlı)."}
           {step === 5 && "Adım 5: Canlılık kontrolü için yüzünüzü doğrulayın."}
           {step === 6 && "Adım 6: Neredeyse bitti!"}
         </CardDescription>
@@ -357,20 +393,38 @@ export default function SignupPage() {
                         </Select>
                     </div>
                 </div>
+                <p className="text-xs text-muted-foreground -mt-2 pl-1">Seçtiğiniz cinsiyet, bir sonraki adımda yüz doğrulaması ile teyit edilecektir.</p>
                 <div className="grid gap-2">
                     <Label htmlFor="country">Ülke</Label>
-                    <Input id="country" placeholder="Türkiye" value={formData.country} onChange={handleChange} required />
+                     <Select onValueChange={(v) => handleSelectChange('country', v)} value={formData.country}>
+                        <SelectTrigger id="country"><SelectValue placeholder="Ülke Seçiniz" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Türkiye">Türkiye</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="city">Şehir</Label>
-                        <Input id="city" placeholder="İstanbul" value={formData.city} onChange={handleChange} required />
+                 {formData.country === 'Türkiye' && (
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="city">Şehir</Label>
+                            <Select onValueChange={(v) => handleSelectChange('city', v)} value={formData.city}>
+                                <SelectTrigger id="city"><SelectValue placeholder="İl Seçiniz" /></SelectTrigger>
+                                <SelectContent>
+                                    {cities.map(city => <SelectItem key={city.id} value={city.name}>{city.name}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="district">İlçe</Label>
+                            <Select onValueChange={(v) => handleSelectChange('district', v)} value={formData.district} disabled={!selectedCityPlate}>
+                                <SelectTrigger id="district"><SelectValue placeholder="İlçe Seçiniz" /></SelectTrigger>
+                                <SelectContent>
+                                    {selectedCityPlate && districts[selectedCityPlate]?.map(d => <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="district">İlçe</Label>
-                        <Input id="district" placeholder="Kadıköy" value={formData.district} onChange={handleChange} required />
-                    </div>
-                </div>
+                 )}
                  <div className="grid gap-2">
                     <Label>İlgi Alanları (En az 3 tane seçin)</Label>
                     <div className="flex flex-wrap gap-2">
@@ -523,7 +577,14 @@ export default function SignupPage() {
                 </Link>
             </div>
         )}
-        {step < 6 ? (
+        {step < 4 ? (
+          <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>
+        ) : step === 4 ? (
+           <div className="flex gap-2">
+                <Button variant="secondary" onClick={handlePhotoSkip}>Bu Adımı Atla</Button>
+                <Button onClick={handleNextPhotoStep} disabled={moderationStatus !== 'safe'}>İleri</Button>
+            </div>
+        ) : step < 6 ? (
           <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>
         ) : (
           <Button onClick={handleFinishSignup} disabled={isFinishing}>
@@ -535,3 +596,5 @@ export default function SignupPage() {
     </Card>
   );
 }
+
+    
