@@ -224,10 +224,14 @@ export default function SignupPage() {
 
       } catch (error: any) {
         console.error("Signup error: ", error);
+        let description = "Bir hata oluştu, lütfen tekrar deneyin.";
+        if (error.code === 'auth/email-already-in-use') {
+            description = "Bu e-posta adresi zaten kullanımda. Lütfen farklı bir e-posta deneyin veya giriş yapın.";
+        }
         toast({
             variant: "destructive",
             title: "Kayıt Başarısız",
-            description: error.message || "Bir hata oluştu, lütfen tekrar deneyin."
+            description: description
         });
       } finally {
         setIsFinishing(false);
@@ -499,33 +503,34 @@ export default function SignupPage() {
             </div>
         )}
         {step === 6 && (
-          <div className="flex flex-col items-center justify-center text-center gap-4">
-            <ShieldCheck className="w-24 h-24 text-green-500" />
-            <h2 className="text-2xl font-bold font-headline">Kayıt Tamamlanmak Üzere</h2>
-            <p className="text-muted-foreground">
-             Tüm adımları başarıyla tamamladınız. BeMatch'e hoş geldiniz!
-            </p>
-            <p className="text-muted-foreground">
-              Hesabınızı oluşturmak ve eşleşmeye başlamak için "Kaydı Bitir" butonuna tıklayın.
-            </p>
-          </div>
+            <div className="text-center flex flex-col items-center justify-center h-full">
+                <Check className="w-24 h-24 text-green-500 bg-green-100 rounded-full p-4 mb-6"/>
+                <h2 className="text-2xl font-bold mb-2">Her Şey Hazır!</h2>
+                <p className="text-muted-foreground max-w-xs">
+                    BeMatch'e hoş geldin! Profilin oluşturuldu ve harika insanlarla tanışmaya hazırsın.
+                </p>
+            </div>
         )}
-
       </CardContent>
-       <CardFooter className="flex flex-col gap-4">
-        <div className="flex w-full justify-between">
-            {step > 1 && step < 5 && <Button variant="outline" onClick={prevStep}>Geri</Button>}
-            <div className="flex-grow" />
-            {step < 5 && <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>}
-            {step === 6 && <Button onClick={handleFinishSignup} disabled={isFinishing}>
-                {isFinishing && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-                Kaydı Bitir
-            </Button>}
-        </div>
-        <div className="mt-2 text-center text-sm">
-            Zaten bir hesabınız var mı?{' '}
-            <Link href="/login" className="underline">Giriş Yap</Link>
-        </div>
+      <CardFooter className="flex justify-between">
+        {step > 1 ? (
+          <Button variant="outline" onClick={prevStep} disabled={isFinishing}>Geri</Button>
+        ) : (
+             <div className="mt-4 text-center text-sm">
+                Zaten bir hesabın var mı?{' '}
+                <Link href="/login" className="underline">
+                Giriş Yap
+                </Link>
+            </div>
+        )}
+        {step < 6 ? (
+          <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>
+        ) : (
+          <Button onClick={handleFinishSignup} disabled={isFinishing}>
+            {isFinishing && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+            Bitir ve Keşfet
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
