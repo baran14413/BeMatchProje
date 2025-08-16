@@ -227,7 +227,7 @@ export default function SignupPage() {
         toast({
             variant: "destructive",
             title: "Kayıt Başarısız",
-            description: description
+            description: description,
         });
       } finally {
         setIsFinishing(false);
