@@ -1,166 +1,190 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams }from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, Pencil, Trash2, BellOff, Pin, X } from 'lucide-react';
+import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, Pencil, Trash2, BellOff, Pin, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { collection, query, where, getDocs, onSnapshot, doc, orderBy, addDoc, serverTimestamp, Timestamp, updateDoc, getDoc, arrayUnion, arrayRemove, deleteDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
+import { formatDistanceToNowStrict } from 'date-fns';
+import { tr } from 'date-fns/locale';
 
+type UserData = {
+    uid: string;
+    name: string;
+    avatarUrl: string;
+    isOnline: boolean;
+};
 
 type Message = {
-    id: number;
+    id: string;
     text: string;
-    sender: 'me' | 'other';
-    timestamp: string;
+    senderId: string;
+    timestamp: Timestamp;
 };
 
 type Conversation = {
-    id: number;
-    name: string;
-    avatar: string;
-    aiHint: string;
-    messages: Message[];
-    lastMessage: string;
-    isOnline: boolean;
+    id: string;
+    otherUser: UserData;
+    lastMessage: {
+        text: string;
+        timestamp: Timestamp | null;
+    } | null;
     isPinned: boolean;
     isMuted: boolean;
     unreadCount: number;
 };
 
+const formatRelativeTime = (date: Date | null) => {
+    if (!date) return '';
+    try {
+        return formatDistanceToNowStrict(date, {
+            addSuffix: true,
+            locale: tr,
+        });
+    } catch (e) {
+        return 'az önce';
+    }
+};
 
-const initialConversations: Conversation[] = [
-  {
-    id: 1,
-    name: 'Elif',
-    avatar: 'https://placehold.co/40x40.png',
-    aiHint: 'woman portrait',
-    isOnline: true,
-    messages: [
-      { id: 1, text: 'Merhaba! Profilin çok ilgimi çekti.', sender: 'other', timestamp: '10:30' },
-      { id: 2, text: 'Merhaba Elif! Teşekkür ederim, senin de.', sender: 'me', timestamp: '10:31' },
-      { id: 3, text: 'Nasılsın? Hafta sonu için bir planın var mı acaba merak ettim de? Belki bir kahve içebiliriz bir yerlerde? Ne dersin? :)', sender: 'other', timestamp: '10:32' },
-      { id: 4, text: 'İyiyim, teşekkürler! Henüz bir planım yok. Kahve harika fikir! Nerede buluşabiliriz?', sender: 'me', timestamp: '10:35' },
-    ],
-    lastMessage: 'İyiyim, teşekkürler! Henüz bir planım yok...',
-    isPinned: true,
-    isMuted: false,
-    unreadCount: 0,
-  },
-  {
-    id: 2,
-    name: 'Mehmet',
-    avatar: 'https://placehold.co/40x40.png',
-    aiHint: 'man portrait',
-    isOnline: false,
-    messages: [
-        { id: 1, text: 'Yürüyüş rotaları hakkında konuşabiliriz belki?', sender: 'other', timestamp: 'Dün' },
-    ],
-    lastMessage: 'Yürüyüş rotaları hakkında konuşabiliriz belki?',
-    isPinned: false,
-    isMuted: false,
-    unreadCount: 3,
-  },
-  {
-    id: 3,
-    name: 'Ayşe',
-    avatar: 'https://placehold.co/40x40.png',
-    aiHint: 'woman portrait beach',
-    isOnline: true,
-    messages: [
-        { id: 1, text: 'Selam! Naber?', sender: 'other', timestamp: '1 saat önce' },
-    ],
-    lastMessage: 'Selam! Naber?',
-    isPinned: false,
-    isMuted: true,
-    unreadCount: 1,
-  },
-  {
-    id: 4,
-    name: 'Can',
-    avatar: 'https://placehold.co/40x40.png',
-    aiHint: 'portrait man professional',
-    isOnline: false,
-    messages: [
-        { id: 1, text: 'Harika bir profilin var!', sender: 'me', timestamp: '2 gün önce' },
-    ],
-    lastMessage: 'Harika bir profilin var!',
-    isPinned: false,
-    isMuted: false,
-    unreadCount: 0,
-  }
-];
 
 export default function ChatPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const [currentUser, setCurrentUser] = useState(auth.currentUser);
 
-  const [conversations, setConversations] = useState(initialConversations);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [activeChat, setActiveChat] = useState<Conversation | null>(null);
   const [messageInput, setMessageInput] = useState('');
   
+  const [loading, setLoading] = useState(true);
+  const [chatLoading, setChatLoading] = useState(false);
+
   const [isEditMode, setIsEditMode] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // A chat view is open if a userId is present in the URL
-  const isChatViewOpen = searchParams.has('userId');
+  // A chat view is open if a conversationId is present in the URL
+  const isChatViewOpen = searchParams.has('conversationId');
 
+  // Fetch conversations
   useEffect(() => {
-    const userId = searchParams.get('userId');
-    if (userId) {
-      const chatToOpen = conversations.find(c => c.id === parseInt(userId, 10));
-      // Mark chat as read when opened
-      if (chatToOpen && chatToOpen.unreadCount > 0) {
-        setConversations(prev => prev.map(c => 
-            c.id === chatToOpen.id ? { ...c, unreadCount: 0 } : c
-        ));
-      }
-      setActiveChat(chatToOpen || null);
-    } else {
-        setActiveChat(null);
+    if (!currentUser) {
+        setLoading(false);
+        return;
     }
-  }, [searchParams, conversations]);
 
-
-  const handleSendMessage = () => {
-    if (!messageInput.trim() || !activeChat) return;
-
-    const newMessage: Message = {
-      id: Date.now(),
-      text: messageInput.trim(),
-      sender: 'me',
-      timestamp: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    const updatedConversations = conversations.map(convo => {
-        if (convo.id === activeChat.id) {
-            const updatedMessages = [...convo.messages, newMessage];
-            return {
-                ...convo,
-                messages: updatedMessages,
-                lastMessage: newMessage.text,
-            };
+    const q = query(collection(db, 'conversations'), where('users', 'array-contains', currentUser.uid));
+    
+    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+        const convos: Conversation[] = [];
+        for (const docSnap of querySnapshot.docs) {
+            const data = docSnap.data();
+            const otherUserId = data.users.find((uid: string) => uid !== currentUser.uid);
+            
+            if (otherUserId) {
+                const userDoc = await getDoc(doc(db, 'users', otherUserId));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data() as UserData;
+                    convos.push({
+                        id: docSnap.id,
+                        otherUser: { ...userData, uid: otherUserId },
+                        lastMessage: data.lastMessage || null,
+                        // TODO: Implement isPinned, isMuted, unreadCount from user-specific conversation data
+                        isPinned: false,
+                        isMuted: false,
+                        unreadCount: 0,
+                    });
+                }
+            }
         }
-        return convo;
+        setConversations(convos);
+        setLoading(false);
+    }, (error) => {
+        console.error("Error fetching conversations: ", error);
+        toast({ title: "Sohbetler yüklenirken bir hata oluştu.", variant: 'destructive'});
+        setLoading(false);
     });
 
-    setConversations(updatedConversations);
+    return () => unsubscribe();
+  }, [currentUser, toast]);
 
-    const updatedActiveChat = updatedConversations.find(c => c.id === activeChat.id);
-    if (updatedActiveChat) {
-        setActiveChat(updatedActiveChat);
+
+  // Fetch messages for active chat
+  useEffect(() => {
+    const conversationId = searchParams.get('conversationId');
+    if (conversationId) {
+        setChatLoading(true);
+        const chatToOpen = conversations.find(c => c.id === conversationId);
+        setActiveChat(chatToOpen || null);
+        
+        const messagesQuery = query(collection(db, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc'));
+        const unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
+            const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
+            setMessages(msgs);
+            setChatLoading(false);
+        }, (error) => {
+            console.error("Error fetching messages: ", error);
+            toast({ title: "Mesajlar yüklenirken bir hata oluştu.", variant: 'destructive'});
+            setChatLoading(false);
+        });
+
+        return () => unsubscribe();
+    } else {
+        setActiveChat(null);
+        setMessages([]);
     }
+  }, [searchParams, conversations, toast]);
+  
+  // Scroll to bottom of chat
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+        scrollAreaRef.current.scrollTo({
+            top: scrollAreaRef.current.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+  }, [messages]);
 
-    setMessageInput('');
+
+  const handleSendMessage = async () => {
+    if (!messageInput.trim() || !activeChat || !currentUser) return;
+
+    const conversationRef = doc(db, 'conversations', activeChat.id);
+    const messagesRef = collection(conversationRef, 'messages');
+
+    try {
+        await addDoc(messagesRef, {
+            text: messageInput.trim(),
+            senderId: currentUser.uid,
+            timestamp: serverTimestamp(),
+        });
+        
+        await updateDoc(conversationRef, {
+            lastMessage: {
+                text: messageInput.trim(),
+                timestamp: serverTimestamp(),
+            }
+        });
+
+        setMessageInput('');
+    } catch (error) {
+         console.error("Error sending message: ", error);
+         toast({ title: "Mesaj gönderilemedi.", variant: 'destructive'});
+    }
   };
   
   const handleItemClick = (convo: Conversation) => {
@@ -173,7 +197,7 @@ export default function ChatPage() {
       }
       setSelectedIds(newSelectedIds);
     } else {
-      router.push(`/chat?userId=${convo.id}`);
+      router.push(`/chat?conversationId=${convo.id}`);
     }
   };
 
@@ -187,29 +211,29 @@ export default function ChatPage() {
     setSelectedIds(new Set()); // Exit edit mode clears selection
   };
   
-  const handleDelete = () => {
-    setConversations(prev => prev.filter(c => !selectedIds.has(c.id)));
-    toast({ title: `${selectedIds.size} sohbet silindi.` });
-    setIsEditMode(false);
-    setSelectedIds(new Set());
+  const handleDelete = async () => {
+    const promises = Array.from(selectedIds).map(id => deleteDoc(doc(db, 'conversations', id)));
+    try {
+        await Promise.all(promises);
+        toast({ title: `${selectedIds.size} sohbet silindi.` });
+        setIsEditMode(false);
+        setSelectedIds(new Set());
+    } catch(error) {
+        console.error("Error deleting conversations: ", error);
+        toast({ title: 'Sohbetler silinirken bir hata oluştu.', variant: 'destructive'});
+    }
   };
 
   const handleMute = () => {
-    const [idToMute] = selectedIds;
-    setConversations(prev =>
-        prev.map(c => (c.id === idToMute ? { ...c, isMuted: !c.isMuted } : c))
-    );
-    toast({ title: "Sohbet sessize alındı/açıldı." });
+    // TODO: Implement mute logic with user-specific conversation data
+    toast({ title: "Bu özellik henüz eklenmedi." });
     setIsEditMode(false);
     setSelectedIds(new Set());
   };
   
   const handlePin = () => {
-    const [idToPin] = selectedIds;
-    setConversations(prev =>
-        prev.map(c => (c.id === idToPin ? { ...c, isPinned: !c.isPinned } : c))
-    );
-    toast({ title: "Sohbet başa tutturuldu/kaldırıldı." });
+    // TODO: Implement pin logic with user-specific conversation data
+    toast({ title: "Bu özellik henüz eklenmedi." });
     setIsEditMode(false);
     setSelectedIds(new Set());
   };
@@ -218,9 +242,9 @@ export default function ChatPage() {
   const sortedConversations = useMemo(() => {
     return [...conversations].sort((a, b) => {
         if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
-        if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
-        if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
-        return 0; // In a real app, you'd sort by last message date here
+        const aTime = a.lastMessage?.timestamp?.toDate()?.getTime() || 0;
+        const bTime = b.lastMessage?.timestamp?.toDate()?.getTime() || 0;
+        return bTime - aTime;
     });
   }, [conversations]);
 
@@ -270,45 +294,65 @@ export default function ChatPage() {
                 </div>
             </div>
             <ScrollArea className="flex-1">
-            {sortedConversations.map((convo) => (
-                <div
-                key={convo.id}
-                className={cn(
-                    'flex items-center gap-3 p-4 cursor-pointer transition-colors',
-                    selectedIds.has(convo.id) ? 'bg-primary/20' : 'hover:bg-muted/50',
-                    convo.unreadCount > 0 && 'bg-primary/5'
-                )}
-                onClick={() => handleItemClick(convo)}
-                >
-                {isEditMode && (
-                  <Checkbox
-                    checked={selectedIds.has(convo.id)}
-                    onCheckedChange={() => handleItemClick(convo)}
-                    className="h-5 w-5"
-                  />
-                )}
-                <div className='relative'>
-                    <Avatar className='w-12 h-12'>
-                    <AvatarImage src={convo.avatar} data-ai-hint={convo.aiHint} />
-                    <AvatarFallback>{convo.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    {convo.isOnline && <div className='absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background'/>}
+            {loading ? (
+                <div className="p-4 space-y-4">
+                    {[...Array(3)].map((_, i) => (
+                        <div key={i} className="flex items-center gap-3">
+                            <Skeleton className="w-12 h-12 rounded-full" />
+                            <div className="flex-1 space-y-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-4 w-48" />
+                            </div>
+                        </div>
+                    ))}
                 </div>
-                <div className="flex-1 overflow-hidden">
-                    <div className="flex items-center gap-2">
-                        {convo.isPinned && <Pin className="w-4 h-4 text-muted-foreground" />}
-                        <p className={cn("truncate", convo.unreadCount > 0 ? "font-bold" : "font-semibold")}>{convo.name}</p>
-                    </div>
-                    <p className={cn("text-sm truncate", convo.unreadCount > 0 ? "font-bold text-foreground" : "text-muted-foreground")}>{convo.lastMessage}</p>
-                </div>
-                 <div className="flex flex-col items-end gap-1">
-                    {convo.unreadCount > 0 && (
-                        <Badge className="bg-green-500 text-white w-6 h-6 flex items-center justify-center p-0">{convo.unreadCount}</Badge>
+            ) : sortedConversations.length > 0 ? (
+                sortedConversations.map((convo) => (
+                    <div
+                    key={convo.id}
+                    className={cn(
+                        'flex items-center gap-3 p-4 cursor-pointer transition-colors',
+                        selectedIds.has(convo.id) ? 'bg-primary/20' : 'hover:bg-muted/50',
+                        convo.unreadCount > 0 && 'bg-primary/5'
                     )}
-                    {convo.isMuted && <BellOff className="w-4 h-4 text-muted-foreground" />}
-                 </div>
+                    onClick={() => handleItemClick(convo)}
+                    >
+                    {isEditMode && (
+                      <Checkbox
+                        checked={selectedIds.has(convo.id)}
+                        onCheckedChange={() => handleItemClick(convo)}
+                        className="h-5 w-5"
+                      />
+                    )}
+                    <div className='relative'>
+                        <Avatar className='w-12 h-12'>
+                        <AvatarImage src={convo.otherUser.avatarUrl} data-ai-hint={convo.otherUser.name} />
+                        <AvatarFallback>{convo.otherUser.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        {convo.otherUser.isOnline && <div className='absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background'/>}
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                        <div className="flex items-center gap-2">
+                            {convo.isPinned && <Pin className="w-4 h-4 text-muted-foreground" />}
+                            <p className={cn("truncate", convo.unreadCount > 0 ? "font-bold" : "font-semibold")}>{convo.otherUser.name}</p>
+                            <span className="text-xs text-muted-foreground font-mono whitespace-nowrap">{formatRelativeTime(convo.lastMessage?.timestamp?.toDate() || null)}</span>
+                        </div>
+                        <p className={cn("text-sm truncate", convo.unreadCount > 0 ? "font-bold text-foreground" : "text-muted-foreground")}>{convo.lastMessage?.text}</p>
+                    </div>
+                     <div className="flex flex-col items-end gap-1">
+                        {convo.unreadCount > 0 && (
+                            <Badge className="bg-green-500 text-white w-6 h-6 flex items-center justify-center p-0">{convo.unreadCount}</Badge>
+                        )}
+                        {convo.isMuted && <BellOff className="w-4 h-4 text-muted-foreground" />}
+                     </div>
+                    </div>
+                ))
+            ) : (
+                <div className="text-center text-muted-foreground p-10">
+                    <p>Henüz sohbet yok.</p>
+                    <p className="text-sm">Yeni bir eşleşme bulunca sohbetleriniz burada görünecek.</p>
                 </div>
-            ))}
+            )}
             </ScrollArea>
         </div>
       </aside>
@@ -325,12 +369,12 @@ export default function ChatPage() {
                     <ArrowLeft className="w-5 h-5"/>
                 </Button>
               <Avatar>
-                 <AvatarImage src={activeChat.avatar} data-ai-hint={activeChat.aiHint} />
-                 <AvatarFallback>{activeChat.name.charAt(0)}</AvatarFallback>
+                 <AvatarImage src={activeChat.otherUser.avatarUrl} data-ai-hint={activeChat.otherUser.name} />
+                 <AvatarFallback>{activeChat.otherUser.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div className='flex-1'>
-                 <h3 className="text-lg font-semibold">{activeChat.name}</h3>
-                 {activeChat.isOnline && <p className='text-xs text-green-500'>Çevrimiçi</p>}
+                 <h3 className="text-lg font-semibold">{activeChat.otherUser.name}</h3>
+                 {activeChat.otherUser.isOnline && <p className='text-xs text-green-500'>Çevrimiçi</p>}
               </div>
               <div className='flex items-center gap-2'>
                 <Button variant="ghost" size="icon" className="rounded-full">
@@ -341,35 +385,41 @@ export default function ChatPage() {
                 </Button>
               </div>
             </header>
-            <ScrollArea className="flex-1 p-6 bg-muted/30">
-              <div className="flex flex-col gap-4">
-                {activeChat.messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={cn(
-                      'flex items-end gap-2 max-w-md',
-                      message.sender === 'me' ? 'self-end flex-row-reverse' : 'self-start'
-                    )}
-                  >
+            <ScrollArea className="flex-1 p-6 bg-muted/30" ref={scrollAreaRef}>
+              {chatLoading ? (
+                  <div className="flex justify-center items-center h-full">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {messages.map((message) => (
                     <div
+                      key={message.id}
                       className={cn(
-                        'rounded-xl px-4 py-2 text-sm',
-                        message.sender === 'me'
-                          ? 'bg-primary text-primary-foreground rounded-br-none'
-                          : 'bg-card border rounded-bl-none'
+                        'flex items-end gap-2 max-w-md',
+                        message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start'
                       )}
                     >
-                      <p>{message.text}</p>
-                      <p className={cn(
-                        'text-xs mt-1',
-                        message.sender === 'me' ? 'text-primary-foreground/70' : 'text-muted-foreground/70'
-                      )}>
-                        {message.timestamp}
-                      </p>
+                      <div
+                        className={cn(
+                          'rounded-xl px-4 py-2 text-sm',
+                          message.senderId === currentUser?.uid
+                            ? 'bg-primary text-primary-foreground rounded-br-none'
+                            : 'bg-card border rounded-bl-none'
+                        )}
+                      >
+                        <p>{message.text}</p>
+                        <p className={cn(
+                          'text-xs mt-1 text-right',
+                          message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70'
+                        )}>
+                          {message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </ScrollArea>
             <footer className="p-4 border-t bg-card shrink-0">
               <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex items-center gap-2">

@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SendHorizonal, Heart, Timer, LogOut, Star, Shuffle } from 'lucide-react';
+import { SendHorizonal, Heart, Timer, LogOut, Star, Shuffle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -20,15 +20,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import { db, auth } from '@/lib/firebase';
+import { collection, query, where, limit, getDocs, addDoc, onSnapshot, doc, updateDoc, serverTimestamp, orderBy, Timestamp, setDoc, deleteDoc } from 'firebase/firestore';
+
 
 type Message = {
-    id: number;
+    id: string;
     text: string;
-    sender: 'me' | 'other';
+    senderId: string;
 };
 
-type ShuffleState = 'idle' | 'searching' | 'chatting' | 'rating';
+type ShuffleState = 'idle' | 'searching' | 'chatting' | 'rating' | 'matched';
+
+type ShufflePartner = {
+    uid: string;
+    name: string;
+    avatarUrl: string;
+};
 
 const TIME_LIMIT = 300; // 5 minutes in seconds
 
@@ -43,7 +52,21 @@ export default function ShufflePage() {
     const [partnerLiked, setPartnerLiked] = useState(false);
     const [rating, setRating] = useState(0);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const [shuffleSessionId, setShuffleSessionId] = useState<string | null>(null);
+    const [partner, setPartner] = useState<ShufflePartner | null>(null);
+    const currentUser = auth.currentUser;
 
+    // Cleanup on component unmount
+    useEffect(() => {
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+            if (shuffleSessionId) {
+                deleteDoc(doc(db, 'shuffleSessions', shuffleSessionId));
+            }
+        };
+    }, [shuffleSessionId]);
+    
+    // Timer logic
     useEffect(() => {
         if (shuffleState === 'chatting' && timeLeft > 0) {
             timerRef.current = setInterval(() => {
@@ -54,71 +77,146 @@ export default function ShufflePage() {
         }
 
         return () => {
-            if (timerRef.current) {
-                clearInterval(timerRef.current);
-            }
+            if (timerRef.current) clearInterval(timerRef.current);
         };
     }, [shuffleState, timeLeft]);
     
-    // Simulate partner liking you
+    // Listen for partner likes and messages
     useEffect(() => {
-        if (shuffleState === 'chatting') {
-            const partnerLikeTimeout = setTimeout(() => {
+        if (!shuffleSessionId || !currentUser) return;
+
+        const sessionRef = doc(db, 'shuffleSessions', shuffleSessionId);
+
+        const unsubSession = onSnapshot(sessionRef, (docSnap) => {
+            if (!docSnap.exists()) return;
+            const data = docSnap.data();
+            const partnerId = data.users.find((uid: string) => uid !== currentUser.uid);
+            if (data.likes && data.likes[partnerId] && !partnerLiked) {
                 setPartnerLiked(true);
-                 toast({
-                    title: 'Partnerin senden hoşlandı!',
+                toast({
+                    title: `${partner?.name || 'Partnerin'} senden hoşlandı!`,
                     description: 'Kalbe basarak eşleşmeyi tamamla.',
                     className: 'bg-green-500 text-white'
                 });
-            }, 15000); // Partner likes after 15 seconds
-            
-            return () => clearTimeout(partnerLikeTimeout);
-        }
-    }, [shuffleState, toast]);
-
-    const startSearch = () => {
-        setShuffleState('searching');
-        setTimeout(() => {
-            setShuffleState('chatting');
-            setTimeLeft(TIME_LIMIT);
-            setMessages([
-                { id: 1, text: 'Merhaba! 👋', sender: 'other' }
-            ]);
-        }, 3000); // Simulate finding a match after 3 seconds
-    };
-
-    const handleSendMessage = () => {
-        if (!messageInput.trim()) return;
-        const newMessage: Message = {
-            id: Date.now(),
-            text: messageInput.trim(),
-            sender: 'me',
-        };
-        setMessages(prev => [...prev, newMessage]);
-        setMessageInput('');
+            }
+        });
         
-        // Simulate a reply
-        setTimeout(() => {
-             const reply: Message = {
-                id: Date.now() + 1,
-                text: 'Hmm, ilginç bir bakış açısı.',
-                sender: 'other',
-            };
-            setMessages(prev => [...prev, reply]);
-        }, 1500)
+        const messagesRef = collection(db, 'shuffleSessions', shuffleSessionId, 'messages');
+        const q = query(messagesRef, orderBy('timestamp', 'asc'));
+        const unsubMessages = onSnapshot(q, (snapshot) => {
+            const newMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
+            setMessages(newMessages);
+        });
+
+        return () => {
+            unsubSession();
+            unsubMessages();
+        }
+
+    }, [shuffleSessionId, currentUser, partner, partnerLiked, toast]);
+
+
+    const startSearch = async () => {
+        if (!currentUser) return;
+        setShuffleState('searching');
+
+        try {
+            const q = query(
+                collection(db, 'shuffleQueue'), 
+                where('status', '==', 'waiting'), 
+                limit(1)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                // No one is waiting, so add self to queue
+                await setDoc(doc(db, 'shuffleQueue', currentUser.uid), {
+                    uid: currentUser.uid,
+                    status: 'waiting',
+                    timestamp: serverTimestamp(),
+                });
+                 // Listen for someone to match with us
+                const unsub = onSnapshot(doc(db, 'shuffleQueue', currentUser.uid), (docSnap) => {
+                    if (docSnap.data()?.status === 'matched') {
+                        unsub();
+                        const sessionId = docSnap.data()?.sessionId;
+                        joinChatSession(sessionId);
+                    }
+                });
+
+            } else {
+                // Match found
+                const partnerDoc = querySnapshot.docs[0];
+                const partnerId = partnerDoc.id;
+
+                // Create a new shuffle session
+                const sessionRef = await addDoc(collection(db, 'shuffleSessions'), {
+                    users: [currentUser.uid, partnerId],
+                    createdAt: serverTimestamp(),
+                    likes: { [currentUser.uid]: false, [partnerId]: false }
+                });
+
+                // Update queue entries for both users
+                await updateDoc(doc(db, 'shuffleQueue', partnerId), { status: 'matched', sessionId: sessionRef.id });
+                await setDoc(doc(db, 'shuffleQueue', currentUser.uid), { status: 'matched', sessionId: sessionRef.id });
+                
+                joinChatSession(sessionRef.id);
+            }
+        } catch (error) {
+            console.error("Error in shuffle search:", error);
+            toast({ variant: 'destructive', title: "Eşleşme aranırken bir hata oluştu."});
+            resetState();
+        }
+    };
+    
+    const joinChatSession = async (sessionId: string) => {
+        if (!currentUser) return;
+        const sessionDoc = await getDoc(doc(db, 'shuffleSessions', sessionId));
+        if (!sessionDoc.exists()) {
+            resetState();
+            return;
+        }
+        const partnerId = sessionDoc.data()!.users.find((uid: string) => uid !== currentUser.uid);
+        const partnerDoc = await getDoc(doc(db, 'users', partnerId));
+
+        if (!partnerDoc.exists()) {
+            resetState();
+            return;
+        }
+        setPartner(partnerDoc.data() as ShufflePartner);
+        setShuffleSessionId(sessionId);
+        setShuffleState('chatting');
+        setTimeLeft(TIME_LIMIT);
+        
+        // Clean up our queue doc
+        await deleteDoc(doc(db, 'shuffleQueue', currentUser.uid));
     };
 
-    const handleLike = () => {
-        setLiked(true);
-        if (partnerLiked) {
-             toast({
-                title: 'Eşleşme Tamamlandı! 🎉',
-                description: 'Sohbete devam etmek için yönlendiriliyorsunuz...',
-                className: 'bg-primary text-primary-foreground'
+
+    const handleSendMessage = async () => {
+        if (!messageInput.trim() || !shuffleSessionId || !currentUser) return;
+        const messagesRef = collection(db, 'shuffleSessions', shuffleSessionId, 'messages');
+        try {
+            await addDoc(messagesRef, {
+                text: messageInput.trim(),
+                senderId: currentUser.uid,
+                timestamp: serverTimestamp(),
             });
-            setTimeout(() => {
-                router.push('/chat?userId=1'); // Redirect to a sample chat
-            }, 2000);
+            setMessageInput('');
+        } catch (error) {
+            console.error("Error sending message:", error);
+            toast({ variant: 'destructive', title: "Mesaj gönderilemedi."});
+        }
+    };
+
+    const handleLike = async () => {
+        if (!shuffleSessionId || !currentUser) return;
+        setLiked(true);
+        const sessionRef = doc(db, 'shuffleSessions', shuffleSessionId);
+        await updateDoc(sessionRef, { [`likes.${currentUser.uid}`]: true });
+
+        if (partnerLiked) {
+            handleMatch();
         } else {
              toast({
                 title: 'Beğeni gönderildi!',
@@ -127,9 +225,35 @@ export default function ShufflePage() {
         }
     };
     
+    const handleMatch = async () => {
+        if (!currentUser || !partner) return;
+        setShuffleState('matched');
+        if (timerRef.current) clearInterval(timerRef.current);
+        
+        toast({
+            title: 'Eşleşme Tamamlandı! 🎉',
+            description: 'Sohbete devam etmek için yönlendiriliyorsunuz...',
+            className: 'bg-primary text-primary-foreground'
+        });
+
+        // Create a permanent conversation
+        const conversationRef = await addDoc(collection(db, 'conversations'), {
+            users: [currentUser.uid, partner.uid],
+            lastMessage: null,
+            createdAt: serverTimestamp()
+        });
+
+        setTimeout(() => {
+            router.push(`/chat?conversationId=${conversationRef.id}`);
+            resetState();
+        }, 2000);
+    }
+    
      const handleChatEnd = (reason: string) => {
         if (timerRef.current) clearInterval(timerRef.current);
         toast({ title: reason, description: 'Lütfen partnerinizi puanlayın.' });
+        if(shuffleSessionId) deleteDoc(doc(db, 'shuffleSessions', shuffleSessionId));
+        setShuffleSessionId(null);
         setShuffleState('rating');
     };
 
@@ -146,7 +270,11 @@ export default function ShufflePage() {
         setLiked(false);
         setPartnerLiked(false);
         setRating(0);
+        setPartner(null);
         if (timerRef.current) clearInterval(timerRef.current);
+        if(shuffleSessionId) deleteDoc(doc(db, 'shuffleSessions', shuffleSessionId));
+        setShuffleSessionId(null);
+        if (currentUser) deleteDoc(doc(db, 'shuffleQueue', currentUser.uid));
     }
     
     const formatTime = (seconds: number) => {
@@ -176,12 +304,13 @@ export default function ShufflePage() {
                 <div className="relative w-48 h-48">
                     <div className="absolute inset-0 border-4 border-muted rounded-full"></div>
                     <div className="absolute inset-0 border-4 border-primary rounded-full animate-spin border-t-transparent"></div>
-                    <Avatar className="w-full h-full">
-                        <AvatarImage src="https://placehold.co/192x192.png" data-ai-hint="man portrait" />
+                    <Avatar className="w-full h-full p-2 bg-background">
+                        <AvatarImage src={currentUser?.photoURL || ''} data-ai-hint="man portrait" />
                         <AvatarFallback>?</AvatarFallback>
                     </Avatar>
                 </div>
                 <h2 className="text-2xl font-semibold mt-8 animate-pulse">Eşleşme Aranıyor...</h2>
+                 <Button variant="outline" className="mt-8" onClick={resetState}>İptal</Button>
             </div>
         );
     }
@@ -211,16 +340,28 @@ export default function ShufflePage() {
             </div>
         );
     }
+    
+     if (shuffleState === 'matched') {
+        return (
+            <div className="flex flex-col items-center justify-center h-full text-center p-8">
+                 <Loader2 className="w-24 h-24 text-primary mb-6 animate-spin" />
+                <h1 className="text-3xl font-bold font-headline mb-2">Eşleşme Tamamlandı!</h1>
+                <p className="text-muted-foreground max-w-md mb-8">
+                    Harika! Kalıcı sohbetiniz oluşturuluyor ve yönlendiriliyorsunuz...
+                </p>
+            </div>
+        )
+     }
 
     return (
         <div className="flex flex-col h-full bg-background text-foreground">
             <header className="flex items-center gap-4 p-3 border-b bg-card shrink-0">
                 <Avatar>
-                    <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="woman portrait" />
+                    <AvatarImage src={partner?.avatarUrl} data-ai-hint={partner?.name} />
                     <AvatarFallback>?</AvatarFallback>
                 </Avatar>
                 <div className='flex-1'>
-                    <h3 className="text-lg font-semibold">Yabancı</h3>
+                    <h3 className="text-lg font-semibold">{partner?.name || 'Yabancı'}</h3>
                 </div>
                 <div className='flex items-center gap-4'>
                     <div className="flex items-center gap-2 text-lg font-mono font-semibold text-primary">
@@ -254,8 +395,8 @@ export default function ShufflePage() {
             <ScrollArea className="flex-1 p-6 bg-muted/30">
                 <div className="flex flex-col gap-4">
                     {messages.map((message) => (
-                        <div key={message.id} className={cn('flex items-end gap-2 max-w-md', message.sender === 'me' ? 'self-end flex-row-reverse' : 'self-start')}>
-                            <div className={cn('rounded-xl px-4 py-2 text-sm', message.sender === 'me' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none')}>
+                        <div key={message.id} className={cn('flex items-end gap-2 max-w-md', message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start')}>
+                            <div className={cn('rounded-xl px-4 py-2 text-sm', message.senderId === currentUser?.uid ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none')}>
                                 <p>{message.text}</p>
                             </div>
                         </div>

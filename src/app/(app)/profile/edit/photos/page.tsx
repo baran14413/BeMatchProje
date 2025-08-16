@@ -1,16 +1,19 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2, Grid3x3, List, Heart, MessageSquare, Bookmark, Pencil } from 'lucide-react';
+import { Trash2, Grid3x3, List, Heart, MessageSquare, Bookmark, Pencil, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { db, auth } from '@/lib/firebase';
+import { collection, query, where, getDocs, doc, getDoc, DocumentData, deleteDoc, orderBy } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 
 type Post = {
-    id: number;
+    id: string;
     type: 'photo' | 'text';
     url?: string;
     aiHint?: string;
@@ -20,26 +23,8 @@ type Post = {
     comments: number;
 };
 
-// In a real app, this data would be fetched for the logged-in user.
-const userProfile = {
-  id: 1,
-  name: 'Elif',
-  avatarUrl: 'https://placehold.co/128x128.png',
-  aiHint: 'woman portrait smiling',
-  posts: [
-    { id: 1, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'woman yoga beach', caption: 'Sahilde yoga keyfi... 🧘‍♀️', likes: 152, comments: 12 },
-    { id: 7, type: 'text', textContent: 'Harika bir hafta sonu başlangıcı! Bazen sadece bir fincan kahve ve iyi bir kitap yeterlidir. #huzur #kitapkurdu', likes: 88, comments: 7 },
-    { id: 2, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'woman reading cafe', caption: 'Kahve ve kitap ikilisi.', likes: 230, comments: 25 },
-    { id: 3, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'cityscape istanbul', caption: 'İstanbul\'un eşsiz manzarası.', likes: 412, comments: 45 },
-    { id: 8, type: 'text', textContent: 'Yeni bir film keşfettim ve kesinlikle tavsiye ediyorum! Gerilim ve gizem sevenler kaçırmasın. 🎬', likes: 120, comments: 18 },
-    { id: 4, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'movie theater empty', caption: 'Sinema gecesi!', likes: 98, comments: 8 },
-    { id: 5, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'coffee art', caption: 'Günün kahvesi.', likes: 188, comments: 19 },
-    { id: 6, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'travel map', caption: 'Yeni rotalar peşinde.', likes: 350, comments: 33 },
-  ] as Post[],
-};
 
-
-const PostCard = ({ post, user }: { post: Post, user: typeof userProfile }) => (
+const PostCard = ({ post, user, onDelete }: { post: Post, user: DocumentData, onDelete: (postId: string) => void }) => (
     <Card className="rounded-xl overflow-hidden mb-4 relative group">
         <CardContent className="p-0">
             <div className="flex items-center gap-3 p-3">
@@ -52,7 +37,7 @@ const PostCard = ({ post, user }: { post: Post, user: typeof userProfile }) => (
                     <Button variant="ghost" size="icon" className="h-8 w-8">
                         <Pencil className="w-4 h-4" />
                     </Button>
-                    <Button variant="destructive" size="icon" className="h-8 w-8">
+                    <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => onDelete(post.id)}>
                         <Trash2 className="w-4 h-4" />
                     </Button>
                 </div>
@@ -110,6 +95,48 @@ const PostCard = ({ post, user }: { post: Post, user: typeof userProfile }) => (
 
 export default function ManagePhotosPage() {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [userProfile, setUserProfile] = useState<DocumentData | null>(null);
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [loading, setLoading] = useState(true);
+    const currentUser = auth.currentUser;
+    const { toast } = useToast();
+
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!currentUser) {
+                setLoading(false);
+                return;
+            }
+            try {
+                const userDocRef = doc(db, 'users', currentUser.uid);
+                const userDoc = await getDoc(userDocRef);
+                setUserProfile(userDoc.exists() ? userDoc.data() : null);
+
+                const postsQuery = query(collection(db, 'posts'), where('authorId', '==', currentUser.uid), orderBy('createdAt', 'desc'));
+                const postsSnapshot = await getDocs(postsQuery);
+                const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
+                setPosts(postsData);
+
+            } catch (error) {
+                console.error("Error fetching user data and posts:", error);
+                toast({ variant: 'destructive', title: "Veriler alınırken bir hata oluştu." });
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, [currentUser, toast]);
+    
+    const handleDeletePost = async (postId: string) => {
+        try {
+            await deleteDoc(doc(db, "posts", postId));
+            setPosts(prev => prev.filter(p => p.id !== postId));
+            toast({ title: "Gönderi silindi." });
+        } catch (error) {
+            console.error("Error deleting post:", error);
+            toast({ variant: 'destructive', title: "Gönderi silinirken hata oluştu." });
+        }
+    };
 
     return (
         <Card>
@@ -130,9 +157,13 @@ export default function ManagePhotosPage() {
                 </div>
             </CardHeader>
             <CardContent>
-                {viewMode === 'grid' ? (
+                {loading ? (
+                    <div className="flex justify-center items-center py-20">
+                        <Loader2 className="w-8 h-8 animate-spin" />
+                    </div>
+                ) : viewMode === 'grid' ? (
                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                        {userProfile.posts.filter(p => p.type === 'photo').map(post => (
+                        {posts.filter(p => p.type === 'photo').map(post => (
                             <div key={post.id} className="relative group aspect-square">
                                 <Image 
                                     src={post.url!} 
@@ -145,7 +176,7 @@ export default function ManagePhotosPage() {
                                    <Button variant="secondary" size="icon" className="h-9 w-9">
                                        <Pencil className="h-4 w-4" />
                                    </Button>
-                                   <Button variant="destructive" size="icon" className="h-9 w-9">
+                                   <Button variant="destructive" size="icon" className="h-9 w-9" onClick={() => handleDeletePost(post.id)}>
                                        <Trash2 className="h-4 w-4" />
                                    </Button>
                                 </div>
@@ -154,12 +185,12 @@ export default function ManagePhotosPage() {
                     </div>
                 ) : (
                     <div className="flex flex-col">
-                        {userProfile.posts.map((post) => (
-                           <PostCard key={post.id} post={post} user={userProfile}/>
+                        {userProfile && posts.map((post) => (
+                           <PostCard key={post.id} post={post} user={userProfile} onDelete={handleDeletePost} />
                         ))}
                     </div>
                 )}
-                 {userProfile.posts.length === 0 && (
+                 {posts.length === 0 && !loading && (
                     <div className="text-center py-20 text-muted-foreground">
                         <p>Henüz gönderi yok.</p>
                     </div>

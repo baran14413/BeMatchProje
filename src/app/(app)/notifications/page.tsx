@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -10,6 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Heart, MessageCircle, UserPlus, Bell, CheckCheck, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { collection, query, where, orderBy, onSnapshot, writeBatch } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 const formatRelativeTime = (date: Date) => {
   return formatDistanceToNowStrict(date, { addSuffix: true, locale: tr });
@@ -31,16 +35,6 @@ type Notification = {
   createdAt: Date;
 };
 
-const initialNotifications: Notification[] = [
-  { id: 'f1', type: 'follow', user: { name: 'Selin', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman portrait city night' }, read: false, createdAt: new Date(new Date().setHours(new Date().getHours() - 1)) },
-  { id: 'l1', type: 'like', user: { name: 'Ahmet', avatar: 'https://placehold.co/40x40.png', aiHint: 'portrait man beach sunset' }, postType: 'photo', read: false, createdAt: new Date(new Date().setMinutes(new Date().getMinutes() - 5)) },
-  { id: 'c1', type: 'comment', user: { name: 'Elif', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman portrait smiling' }, content: 'Harika görünüyor! ✨', postType: 'photo', read: false, createdAt: new Date(new Date().setMinutes(new Date().getMinutes() - 30)) },
-  { id: 'l2', type: 'like', user: { name: 'Zeynep', avatar: 'https://placehold.co/40x40.png', aiHint: 'portrait woman drinking coffee' }, postType: 'photo', read: false, createdAt: new Date(new Date().setHours(new Date().getHours() - 3)) },
-  { id: 'f2', type: 'follow', user: { name: 'Mehmet', avatar: 'https://placehold.co/40x40.png', aiHint: 'man portrait' }, read: true, createdAt: new Date(new Date().setDate(new Date().getDate() - 1)) },
-  { id: 'l3', type: 'like', user: { name: 'David', avatar: 'https://placehold.co/40x40.png', aiHint: 'man portrait glasses' }, postType: 'text', read: true, createdAt: new Date(new Date().setDate(new Date().getDate() - 2)) },
-  { id: 'c2', type: 'comment', user: { name: 'Can', avatar: 'https://placehold.co/40x40.png', aiHint: 'portrait man professional' }, content: 'Bu konuda kesinlikle haklısın.', postType: 'text', read: true, createdAt: new Date(new Date().setDate(new Date().getDate() - 3)) },
-];
-
 const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
   follow: <UserPlus className="h-6 w-6 text-blue-500" />,
   like: <Heart className="h-6 w-6 text-red-500" />,
@@ -61,20 +55,74 @@ const getNotificationText = (notification: Notification): string => {
 };
 
 export default function NotificationsPage() {
-    const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<NotificationType | 'all'>('all');
     const { toast } = useToast();
+    const currentUser = auth.currentUser;
+
+    useEffect(() => {
+        if (!currentUser) {
+            setLoading(false);
+            return;
+        }
+
+        const q = query(
+            collection(db, 'notifications'), 
+            where('recipientId', '==', currentUser.uid), 
+            orderBy('createdAt', 'desc')
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const fetchedNotifications = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                createdAt: doc.data().createdAt.toDate(),
+            })) as Notification[];
+            setNotifications(fetchedNotifications);
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching notifications:", error);
+            toast({ variant: 'destructive', title: "Bildirimler alınamadı." });
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [currentUser, toast]);
     
     const hasUnread = useMemo(() => notifications.some(n => !n.read), [notifications]);
 
-    const handleMarkAllRead = () => {
-        setNotifications(notifications.map(n => ({ ...n, read: true })));
-        toast({ title: 'Tüm bildirimler okundu olarak işaretlendi.' });
+    const handleMarkAllRead = async () => {
+        if (!currentUser) return;
+        const batch = writeBatch(db);
+        const unreadNotifs = notifications.filter(n => !n.read);
+        unreadNotifs.forEach(notif => {
+            const notifRef = doc(db, 'notifications', notif.id);
+            batch.update(notifRef, { read: true });
+        });
+        try {
+            await batch.commit();
+            toast({ title: 'Tüm bildirimler okundu olarak işaretlendi.' });
+        } catch (error) {
+            console.error("Error marking all as read:", error);
+            toast({ variant: 'destructive', title: "Bir hata oluştu." });
+        }
     };
 
-    const handleClearAll = () => {
-        setNotifications([]);
-        toast({ title: 'Tüm bildirimler temizlendi.', variant: 'destructive' });
+    const handleClearAll = async () => {
+         if (!currentUser) return;
+        const batch = writeBatch(db);
+        notifications.forEach(notif => {
+            const notifRef = doc(db, 'notifications', notif.id);
+            batch.delete(notifRef);
+        });
+        try {
+            await batch.commit();
+            toast({ title: 'Tüm bildirimler temizlendi.', variant: 'destructive' });
+        } catch (error) {
+            console.error("Error clearing notifications:", error);
+            toast({ variant: 'destructive', title: "Bildirimler temizlenirken bir hata oluştu." });
+        }
     };
 
     const filteredNotifications = useMemo(() => {
@@ -94,11 +142,11 @@ export default function NotificationsPage() {
     return (
         <div className="container mx-auto max-w-2xl py-4 flex flex-col h-full">
             <div className="flex items-center gap-4 mb-4 px-4">
-                <Button variant="ghost" size="sm" onClick={handleMarkAllRead} disabled={!hasUnread}>
+                <Button variant="ghost" size="sm" onClick={handleMarkAllRead} disabled={!hasUnread || loading}>
                     <CheckCheck className="mr-2 h-4 w-4" />
                     Tümünü Oku
                 </Button>
-                <Button variant="ghost" size="sm" onClick={handleClearAll} disabled={notifications.length === 0} className="text-destructive hover:text-destructive">
+                <Button variant="ghost" size="sm" onClick={handleClearAll} disabled={notifications.length === 0 || loading} className="text-destructive hover:text-destructive">
                     <Trash2 className="mr-2 h-4 w-4" />
                     Temizle
                 </Button>
@@ -113,7 +161,19 @@ export default function NotificationsPage() {
             </Tabs>
             
             <div className="flex-1 overflow-y-auto mt-4">
-                 {filteredNotifications.length > 0 ? (
+                 {loading ? (
+                    <div className="p-4 space-y-4">
+                         {[...Array(5)].map((_, i) => (
+                            <div key={i} className="flex items-center gap-4">
+                                <Skeleton className="w-8 h-8 rounded-full" />
+                                <div className="flex-1 space-y-2">
+                                    <Skeleton className="h-4 w-3/4" />
+                                    <Skeleton className="h-3 w-1/4" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                 ) : filteredNotifications.length > 0 ? (
                     <div className="flex flex-col">
                         {filteredNotifications.map(notification => (
                             <NotificationItem key={notification.id} notification={notification} />
@@ -121,6 +181,7 @@ export default function NotificationsPage() {
                     </div>
                 ) : (
                     <div className="text-center text-muted-foreground py-20 flex flex-col items-center justify-center">
+                        <Bell className="w-12 h-12 mb-4 text-muted-foreground/50"/>
                         <p className="text-lg">Bu kategoride bildirim yok.</p>
                         <p className="text-sm">Yeni bir etkileşim olduğunda burada görünecek.</p>
                     </div>

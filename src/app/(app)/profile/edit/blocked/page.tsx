@@ -1,17 +1,74 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { UserX } from 'lucide-react';
+import { UserX, Loader2 } from 'lucide-react';
+import { db, auth } from '@/lib/firebase';
+import { doc, getDoc, updateDoc, arrayRemove } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
-const blockedUsers = [
-  { id: 1, name: 'Selin', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman portrait city night' },
-  { id: 2, name: 'Ahmet', avatar: 'https://placehold.co/40x40.png', aiHint: 'portrait man beach sunset' },
-];
+type BlockedUser = {
+  uid: string;
+  name: string;
+  avatarUrl: string;
+  aiHint?: string;
+};
 
 export default function BlockedAccountsPage() {
+    const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
+    const [loading, setLoading] = useState(true);
+    const currentUser = auth.currentUser;
+    const { toast } = useToast();
+
+    useEffect(() => {
+        const fetchBlockedUsers = async () => {
+            if (!currentUser) {
+                setLoading(false);
+                return;
+            }
+            try {
+                const userDocRef = doc(db, 'users', currentUser.uid);
+                const userDoc = await getDoc(userDocRef);
+                if (userDoc.exists()) {
+                    const blockedIds = userDoc.data().blockedUsers || [];
+                    if (blockedIds.length > 0) {
+                        const blockedUserPromises = blockedIds.map((id: string) => getDoc(doc(db, 'users', id)));
+                        const blockedUserDocs = await Promise.all(blockedUserPromises);
+                        const users = blockedUserDocs
+                            .filter(doc => doc.exists())
+                            .map(doc => ({ uid: doc.id, ...doc.data() } as BlockedUser));
+                        setBlockedUsers(users);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching blocked users:", error);
+                toast({ variant: 'destructive', title: "Engellenen kullanıcılar alınamadı." });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchBlockedUsers();
+    }, [currentUser, toast]);
+    
+    const unblockUser = async (userIdToUnblock: string) => {
+        if (!currentUser) return;
+        try {
+            const userDocRef = doc(db, 'users', currentUser.uid);
+            await updateDoc(userDocRef, {
+                blockedUsers: arrayRemove(userIdToUnblock)
+            });
+            setBlockedUsers(prev => prev.filter(u => u.uid !== userIdToUnblock));
+            toast({ title: "Engelleme kaldırıldı." });
+        } catch (error) {
+            console.error("Error unblocking user:", error);
+            toast({ variant: 'destructive', title: "Engelleme kaldırılırken bir hata oluştu." });
+        }
+    };
+
     return (
         <Card>
             <CardHeader>
@@ -21,18 +78,22 @@ export default function BlockedAccountsPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                {blockedUsers.length > 0 ? (
+                {loading ? (
+                    <div className="flex justify-center items-center p-10">
+                        <Loader2 className="w-8 h-8 animate-spin" />
+                    </div>
+                ) : blockedUsers.length > 0 ? (
                      <div className="space-y-4">
                         {blockedUsers.map(user => (
-                            <div key={user.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
+                            <div key={user.uid} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
                                 <div className="flex items-center gap-3">
                                     <Avatar>
-                                        <AvatarImage src={user.avatar} data-ai-hint={user.aiHint} />
+                                        <AvatarImage src={user.avatarUrl} data-ai-hint={user.aiHint} />
                                         <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <span className="font-medium">{user.name}</span>
                                 </div>
-                                <Button variant="outline" size="sm">Engeli Kaldır</Button>
+                                <Button variant="outline" size="sm" onClick={() => unblockUser(user.uid)}>Engeli Kaldır</Button>
                             </div>
                         ))}
                     </div>
