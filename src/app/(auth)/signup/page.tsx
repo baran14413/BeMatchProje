@@ -96,24 +96,11 @@ export default function SignupPage() {
         clearTimeout(verificationTimeoutRef.current);
       }
       
-      // This is a mock verification.
+      // This is a mock liveness check.
       // In a real app, you would use a face verification service.
       verificationTimeoutRef.current = setTimeout(() => {
-        // We'll simulate that the camera "detects" the gender the user selected.
-        const detectedGender = formData.gender;
-        
-        if (formData.gender === detectedGender) {
-            setVerificationStatus('verified');
-            setTimeout(() => nextStep(), 1500); 
-        } else {
-            // This part is unlikely to be reached in this mock, but good practice for a real implementation
-            setVerificationStatus('failed');
-            setVerificationError(`Seçtiğiniz cinsiyet ile kamerada algılanan yüz uyuşmuyor. Lütfen bilgilerinizi kontrol edin.`);
-            
-            setTimeout(() => {
-                setStep(2);
-            }, 5000);
-        }
+          setVerificationStatus('verified');
+          setTimeout(() => nextStep(), 1500); 
       }, 2000); 
   };
 
@@ -541,9 +528,7 @@ export default function SignupPage() {
                   <AlertTriangle className="h-4 w-4" />
                   <AlertTitle>Doğrulama Başarısız</AlertTitle>
                   <AlertDescription>
-                    {verificationError || 'Bir hata oluştu.'}
-                    <br />
-                    Cinsiyet seçimi sayfasına yönlendiriliyorsunuz...
+                    {verificationError || 'Yüz doğrulanamadı. Lütfen tekrar deneyin.'}
                   </AlertDescription>
                 </Alert>
               )}
