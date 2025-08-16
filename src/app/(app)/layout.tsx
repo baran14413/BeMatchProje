@@ -25,11 +25,16 @@ const NavButton = ({ href, icon, srText, hasNotification = false }: { href: stri
 };
 
 function LayoutContent({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
+  const currentPathname = usePathname();
   const searchParams = useSearchParams();
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { isOnline, isPoorConnection } = useNetworkStatus();
+  const [pathname, setPathname] = useState('');
+
+  useEffect(() => {
+    setPathname(currentPathname);
+  }, [currentPathname]);
 
   // A chat view is considered open if we are on the /chat page AND a specific userId is in the query params.
   const isChatPage = pathname === '/chat';
