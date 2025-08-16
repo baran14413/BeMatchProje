@@ -100,7 +100,6 @@ export default function SignupPage() {
       // In a real app, you would use a face verification service.
       verificationTimeoutRef.current = setTimeout(() => {
           setVerificationStatus('verified');
-          setTimeout(() => nextStep(), 1500); 
       }, 2000); 
   };
 
@@ -284,7 +283,6 @@ export default function SignupPage() {
         case 2: return isStep2Invalid;
         case 3: return isStep3Invalid;
         case 4: return isStep4Invalid;
-        case 5: return isStep5Invalid;
         default: return false;
     }
   };
@@ -308,7 +306,7 @@ export default function SignupPage() {
       }
   }
 
-  const progress = (step / 6) * 100;
+  const progress = (step / 5) * 100;
 
   const getPasswordStrengthColor = () => {
     switch (passwordStrength) {
@@ -335,8 +333,7 @@ export default function SignupPage() {
           {step === 2 && "Adım 2: Sizi daha iyi tanımamıza yardımcı olun."}
           {step === 3 && "Adım 3: Güçlü bir şifre oluşturun."}
           {step === 4 && "Adım 4: Profil fotoğrafınızı yükleyin."}
-          {step === 5 && "Adım 5: Canlılık kontrolü için yüzünüzü doğrulayın."}
-          {step === 6 && "Adım 6: Neredeyse bitti! Son bir onay."}
+          {step === 5 && "Adım 5: Neredeyse bitti! Son bir onay."}
         </CardDescription>
         <Progress value={progress} className="w-full mt-2" />
       </CardHeader>
@@ -523,39 +520,32 @@ export default function SignupPage() {
                   )}
                </div>
 
-              {verificationStatus === 'failed' && (
-                <Alert variant="destructive" className="mt-4">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>Doğrulama Başarısız</AlertTitle>
-                  <AlertDescription>
-                    Yüz doğrulanamadı. Lütfen tekrar deneyin.
-                  </AlertDescription>
-                </Alert>
-              )}
-              {verificationStatus === 'verified' && (
-                <Alert className="mt-4 border-green-500 text-green-700 dark:text-green-400">
-                  <UserCheck className="h-4 w-4 text-green-500" />
-                  <AlertTitle>Doğrulama Başarılı</AlertTitle>
-                  <AlertDescription>
-                    Harika! Son adıma yönlendiriliyorsunuz...
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-        )}
-        {step === 6 && (
-            <div className="text-center flex flex-col items-center justify-center h-full">
-                <Check className="w-24 h-24 text-green-500 bg-green-100 rounded-full p-4 mb-6"/>
-                <h2 className="text-2xl font-bold mb-2">Her Şey Hazır!</h2>
-                <p className="text-muted-foreground max-w-xs mb-6">
-                    BeMatch'e hoş geldin! Lütfen devam etmeden önce şartlarımızı kabul et.
-                </p>
-                <div className="flex items-center space-x-2">
-                    <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(checked) => setTermsAccepted(checked as boolean)} />
-                    <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground">
-                        Hesabını oluşturarak <Link href="#" className="underline">Kullanım Koşullarımızı</Link> ve <Link href="#" className="underline">Gizlilik Politikamızı</Link> kabul etmiş olursun.
-                    </Label>
-                </div>
+                {verificationStatus === 'failed' && (
+                    <Alert variant="destructive" className="mt-4">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Doğrulama Başarısız</AlertTitle>
+                    <AlertDescription>
+                        Yüz doğrulanamadı. Lütfen tekrar deneyin.
+                    </AlertDescription>
+                    </Alert>
+                )}
+                {verificationStatus === 'verified' && (
+                    <div className="flex flex-col items-center gap-4 mt-4">
+                        <Alert className="border-green-500 text-green-700 dark:text-green-400">
+                        <UserCheck className="h-4 w-4 text-green-500" />
+                        <AlertTitle>Doğrulama Başarılı!</AlertTitle>
+                        <AlertDescription>
+                           Harika! Neredeyse bitti.
+                        </AlertDescription>
+                        </Alert>
+                        <div className="flex items-center space-x-2 pt-4">
+                            <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(checked) => setTermsAccepted(checked as boolean)} />
+                            <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground">
+                                Hesabını oluşturarak <Link href="#" className="underline">Kullanım Koşullarımızı</Link> ve <Link href="#" className="underline">Gizlilik Politikamızı</Link> kabul etmiş olursun.
+                            </Label>
+                        </div>
+                    </div>
+                )}
             </div>
         )}
       </CardContent>
@@ -577,14 +567,12 @@ export default function SignupPage() {
                 <Button variant="secondary" onClick={handlePhotoSkip}>Bu Adımı Atla</Button>
                 <Button onClick={handleNextPhotoStep} disabled={moderationStatus !== 'safe'}>İleri</Button>
             </div>
-        ) : step < 6 ? (
-          <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>
-        ) : (
-          <Button onClick={handleFinishSignup} disabled={isFinishing || !termsAccepted}>
-            {isFinishing && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-            Bitir ve Keşfet
-          </Button>
-        )}
+        ) : step === 5 ? (
+             <Button onClick={handleFinishSignup} disabled={isFinishing || !termsAccepted || verificationStatus !== 'verified'}>
+                {isFinishing && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+                Bitir ve Keşfet
+            </Button>
+        ) : null}
       </CardFooter>
     </Card>
   );
