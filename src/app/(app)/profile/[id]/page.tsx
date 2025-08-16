@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, use } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -28,15 +28,19 @@ import {
   Trash2,
   Pencil,
   Crown,
+  Loader2,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { doc, getDoc, collection, query, where, getDocs, DocumentData } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type Post = {
-    id: number;
+    id: string;
     type: 'photo' | 'text';
     url?: string;
     aiHint?: string;
@@ -46,39 +50,7 @@ type Post = {
     comments: number;
 };
 
-// In a real app, you would fetch user data based on the `id` param.
-// For this example, we'll use a hardcoded user object.
-const userProfile = {
-  id: 1,
-  name: 'Elif',
-  username: 'elif.s',
-  age: 28,
-  avatarUrl: 'https://placehold.co/128x128.png',
-  aiHint: 'woman portrait smiling',
-  bio: 'Hayatı dolu dolu yaşamayı seven, enerjik biriyim. İstanbul\'da yeni yerler keşfetmek, yoga yapmak ve sinemaya gitmek en büyük tutkularım.',
-  interests: ['Sinema', 'Yoga', 'Seyahat', 'Müzik', 'Kitaplar'],
-  isPremium: true,
-  stats: {
-      posts: 18,
-      followers: 432,
-      following: 210,
-  },
-  posts: [
-    { id: 1, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'woman yoga beach', caption: 'Sahilde yoga keyfi... 🧘‍♀️', likes: 152, comments: 12 },
-    { id: 7, type: 'text', textContent: 'Harika bir hafta sonu başlangıcı! Bazen sadece bir fincan kahve ve iyi bir kitap yeterlidir. #huzur #kitapkurdu', likes: 88, comments: 7 },
-    { id: 2, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'woman reading cafe', caption: 'Kahve ve kitap ikilisi.', likes: 230, comments: 25 },
-    { id: 3, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'cityscape istanbul', caption: 'İstanbul\'un eşsiz manzarası.', likes: 412, comments: 45 },
-    { id: 8, type: 'text', textContent: 'Yeni bir film keşfettim ve kesinlikle tavsiye ediyorum! Gerilim ve gizem sevenler kaçırmasın. 🎬', likes: 120, comments: 18 },
-    { id: 4, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'movie theater empty', caption: 'Sinema gecesi!', likes: 98, comments: 8 },
-    { id: 5, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'coffee art', caption: 'Günün kahvesi.', likes: 188, comments: 19 },
-    { id: 6, type: 'photo', url: 'https://placehold.co/400x400.png', aiHint: 'travel map', caption: 'Yeni rotalar peşinde.', likes: 350, comments: 33 },
-  ] as Post[],
-};
-
-// This is a mock for the current logged-in user's ID
-const currentUserId = "1";
-
-const PostCard = ({ post, user, isMyProfile }: { post: Post, user: typeof userProfile, isMyProfile: boolean }) => (
+const PostCard = ({ post, user, isMyProfile }: { post: Post, user: DocumentData, isMyProfile: boolean }) => (
     <Card className="rounded-xl overflow-hidden mb-4 relative group">
         <CardContent className="p-0">
              <div className="flex items-center gap-3 p-3">
@@ -152,17 +124,91 @@ const PostCard = ({ post, user, isMyProfile }: { post: Post, user: typeof userPr
     </Card>
 )
 
+const ProfileSkeleton = () => (
+  <div className="flex flex-col gap-6">
+    <header className="flex gap-4 items-center">
+      <Skeleton className="w-24 h-24 rounded-full" />
+      <div className="flex-1 grid grid-cols-3 gap-4 text-center">
+        <div className="flex flex-col items-center gap-1"><Skeleton className="h-6 w-8" /><Skeleton className="h-4 w-16" /></div>
+        <div className="flex flex-col items-center gap-1"><Skeleton className="h-6 w-8" /><Skeleton className="h-4 w-16" /></div>
+        <div className="flex flex-col items-center gap-1"><Skeleton className="h-6 w-8" /><Skeleton className="h-4 w-16" /></div>
+      </div>
+    </header>
+    <div className="flex flex-col gap-2">
+      <Skeleton className="h-6 w-32" />
+      <Skeleton className="h-4 w-24" />
+      <Skeleton className="h-4 w-full mt-2" />
+      <Skeleton className="h-4 w-3/4" />
+    </div>
+    <div className="flex gap-2 w-full">
+      <Skeleton className="h-10 flex-1" />
+      <Skeleton className="h-10 flex-1" />
+    </div>
+  </div>
+);
+
+
 export default function UserProfilePage() {
   const params = useParams<{ id: string }>();
-  const isMyProfile = params.id === currentUserId;
+  const [userProfile, setUserProfile] = useState<DocumentData | null>(null);
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isMyProfile, setIsMyProfile] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  const StatItem = ({ value, label }: { value: number, label: string }) => (
+  useEffect(() => {
+    const currentUserId = auth.currentUser?.uid;
+    setIsMyProfile(params.id === currentUserId);
+
+    const fetchUserProfile = async () => {
+      if (!params.id) return;
+      setLoading(true);
+      try {
+        const userDocRef = doc(db, 'users', params.id as string);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          setUserProfile(userData);
+          
+          const postsQuery = query(collection(db, 'posts'), where('authorId', '==', params.id));
+          const postsSnapshot = await getDocs(postsQuery);
+          const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
+          setUserPosts(postsData);
+
+        } else {
+          console.log("No such document!");
+          // Handle user not found case
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [params.id]);
+
+
+  const StatItem = ({ value, label }: { value: number | undefined, label: string }) => (
       <div className="flex flex-col items-center">
-          <p className="text-xl font-bold">{value}</p>
+          <p className="text-xl font-bold">{value ?? 0}</p>
           <p className="text-sm text-muted-foreground">{label}</p>
       </div>
   );
+  
+  if (loading) {
+    return (
+      <div className="container mx-auto max-w-3xl p-4 md:p-6 pb-20">
+          <ProfileSkeleton />
+      </div>
+    );
+  }
+  
+  if (!userProfile) {
+    return <div className="text-center py-20">Kullanıcı bulunamadı.</div>
+  }
 
   return (
     <div className="container mx-auto max-w-3xl p-4 md:p-6 pb-20">
@@ -175,9 +221,9 @@ export default function UserProfilePage() {
             <AvatarFallback className="text-3xl">{userProfile.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex-1 grid grid-cols-3 gap-4 text-center">
-            <StatItem value={userProfile.posts.length} label="Gönderi" />
-            <StatItem value={userProfile.stats.followers} label="Takipçi" />
-            <StatItem value={userProfile.stats.following} label="Takip" />
+            <StatItem value={userPosts.length} label="Gönderi" />
+            <StatItem value={userProfile.stats?.followers} label="Takipçi" />
+            <StatItem value={userProfile.stats?.following} label="Takip" />
           </div>
         </header>
 
@@ -237,7 +283,7 @@ export default function UserProfilePage() {
 
         {/* Interests */}
         <div className="flex flex-wrap gap-2">
-            {userProfile.interests.map((interest) => (
+            {userProfile.hobbies?.map((interest: string) => (
               <Badge key={interest} variant="secondary" className="text-xs rounded-md">
                 {interest}
               </Badge>
@@ -280,7 +326,7 @@ export default function UserProfilePage() {
           <TabsContent value="posts" className="mt-4">
             {viewMode === 'grid' ? (
                  <div className="grid grid-cols-3 gap-1">
-                  {userProfile.posts.filter(p => p.type === 'photo').map((post) => (
+                  {userPosts.filter(p => p.type === 'photo').map((post) => (
                     <div key={post.id} className="relative aspect-square rounded-md overflow-hidden group">
                       <Image
                         src={post.url!}
@@ -304,13 +350,13 @@ export default function UserProfilePage() {
                 </div>
             ) : (
                 <div className="flex flex-col">
-                    {userProfile.posts.map((post) => (
+                    {userPosts.map((post) => (
                         <PostCard key={post.id} post={post} user={userProfile} isMyProfile={isMyProfile}/>
                     ))}
                 </div>
             )}
              
-            {userProfile.posts.length === 0 && (
+            {userPosts.length === 0 && (
                 <div className='text-center py-10 text-muted-foreground'>
                     <p>Henüz gönderi yok.</p>
                 </div>

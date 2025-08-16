@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, ChangeEvent, useEffect } from 'react';
@@ -15,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Camera, AlertTriangle, Loader, Eye, EyeOff, Sparkles, Ban, Upload, ShieldCheck, UserCheck } from 'lucide-react';
+import { Camera, AlertTriangle, Loader, Eye, EyeOff, Sparkles, Ban, Upload, ShieldCheck, UserCheck, Check } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -23,6 +24,10 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { moderateImage, ModerateImageOutput } from '@/ai/flows/moderate-image-flow';
 import Image from 'next/image';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { ref, uploadString, getDownloadURL } from 'firebase/storage';
+import { auth, db, storage } from '@/lib/firebase';
 
 const HOBBIES = [
   'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi',
@@ -37,6 +42,7 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [step, setStep] = useState(1);
+  const [isFinishing, setIsFinishing] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -69,7 +75,6 @@ export default function SignupPage() {
   
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => {
-    // When going back from step 6, stop any running verification logic
     if (step === 6) {
        if (verificationTimeoutRef.current) {
         clearTimeout(verificationTimeoutRef.current);
@@ -86,23 +91,21 @@ export default function SignupPage() {
         clearTimeout(verificationTimeoutRef.current);
       }
       
-      // Simulate a verification check where the camera always detects a 'male' person.
       verificationTimeoutRef.current = setTimeout(() => {
-        const detectedGender = 'male'; // The simulated gender detected by the camera
+        const detectedGender = 'male';
         
         if (formData.gender === detectedGender) {
             setVerificationStatus('verified');
-            setTimeout(() => nextStep(), 1500); // Wait a bit on success then proceed
+            setTimeout(() => nextStep(), 1500); 
         } else {
             setVerificationStatus('failed');
             setVerificationError(`Cinsiyetiniz "${formData.gender === 'female' ? 'Kadın' : 'Diğer'}" olarak seçildi, ancak kamerada bir erkek yüzü algılandı. Lütfen cinsiyetinizi doğru girin.`);
             
-            // Redirect back to step 2 after a delay
             setTimeout(() => {
                 setStep(2);
             }, 5000);
         }
-      }, 2000); // Simulate a 2-second check
+      }, 2000); 
   };
 
   useEffect(() => {
@@ -113,7 +116,6 @@ export default function SignupPage() {
           setHasCameraPermission(true);
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
-            // Wait for video to be ready and start verification
             videoRef.current.onloadedmetadata = () => {
               startVerification();
             };
@@ -131,7 +133,6 @@ export default function SignupPage() {
       getCameraPermission();
 
       return () => {
-        // Cleanup stream and timeouts on component unmount or step change
         if (videoRef.current && videoRef.current.srcObject) {
           const stream = videoRef.current.srcObject as MediaStream;
           stream.getTracks().forEach(track => track.stop());
@@ -186,13 +187,51 @@ export default function SignupPage() {
     if (id === 'password') { checkPasswordStrength(value); }
   };
 
-  const handleFinishSignup = () => {
-      toast({
-          title: "Hesap Oluşturuldu!",
-          description: "Harika, aramıza hoş geldin! Eşleşme sayfasına yönlendiriliyorsun...",
-          className: "bg-green-500 text-white",
-      });
-      router.push('/match');
+  const handleFinishSignup = async () => {
+      setIsFinishing(true);
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+        const user = userCredential.user;
+
+        let photoURL = 'https://placehold.co/128x128.png';
+        if (formData.profilePicture) {
+            const storageRef = ref(storage, `profile_pictures/${user.uid}`);
+            await uploadString(storageRef, formData.profilePicture, 'data_url');
+            photoURL = await getDownloadURL(storageRef);
+        }
+        
+        await updateProfile(user, {
+            displayName: `${formData.firstName} ${formData.lastName}`,
+            photoURL: photoURL
+        });
+
+        const { password, confirmPassword, profilePicture, ...userDataToSave } = formData;
+
+        await setDoc(doc(db, 'users', user.uid), {
+            ...userDataToSave,
+            name: `${formData.firstName} ${formData.lastName}`,
+            uid: user.uid,
+            avatarUrl: photoURL,
+            createdAt: new Date().toISOString(),
+        });
+        
+        toast({
+            title: "Hesap Oluşturuldu!",
+            description: "Harika, aramıza hoş geldin! Eşleşme sayfasına yönlendiriliyorsun...",
+            className: "bg-green-500 text-white",
+        });
+        router.push('/match');
+
+      } catch (error: any) {
+        console.error("Signup error: ", error);
+        toast({
+            variant: "destructive",
+            title: "Kayıt Başarısız",
+            description: error.message || "Bir hata oluştu, lütfen tekrar deneyin."
+        });
+      } finally {
+        setIsFinishing(false);
+      }
   };
 
   const checkPasswordStrength = (password: string) => {
@@ -478,7 +517,10 @@ export default function SignupPage() {
             {step > 1 && step < 5 && <Button variant="outline" onClick={prevStep}>Geri</Button>}
             <div className="flex-grow" />
             {step < 5 && <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>}
-            {step === 6 && <Button onClick={handleFinishSignup}>Kaydı Bitir</Button>}
+            {step === 6 && <Button onClick={handleFinishSignup} disabled={isFinishing}>
+                {isFinishing && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+                Kaydı Bitir
+            </Button>}
         </div>
         <div className="mt-2 text-center text-sm">
             Zaten bir hesabınız var mı?{' '}

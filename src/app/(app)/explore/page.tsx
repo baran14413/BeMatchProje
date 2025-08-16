@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -16,17 +16,23 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-
+import { collection, query, orderBy, getDocs, DocumentData } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const formatRelativeTime = (date: Date) => {
-    return formatDistanceToNowStrict(date, {
-        addSuffix: true,
-        locale: tr,
-    });
+    try {
+        return formatDistanceToNowStrict(date, {
+            addSuffix: true,
+            locale: tr,
+        });
+    } catch (e) {
+        return 'az önce';
+    }
 };
 
 type Comment = {
-  id: number;
+  id: string;
   user: { name: string; avatar: string; aiHint: string };
   text: string;
   originalText?: string;
@@ -39,7 +45,7 @@ type Comment = {
 };
 
 type Post = {
-  id: number;
+  id: string;
   type: 'photo' | 'text';
   user: { name: string; avatar: string; aiHint: string };
   image?: string;
@@ -56,105 +62,56 @@ type Post = {
   comments: Comment[];
 };
 
-
-const initialPosts: Post[] = [
-  {
-    id: 1,
-    type: 'photo',
-    user: {
-      name: 'Selin',
-      avatar: 'https://placehold.co/40x40.png',
-      aiHint: 'portrait woman city night'
-    },
-    image: 'https://placehold.co/600x600.png',
-    aiHint: 'cityscape night lights',
-    caption: 'Şehrin ışıkları ✨',
-    likes: 124,
-    commentsCount: 15,
-    liked: false,
-    comments: [
-        { id: 1, user: { name: 'Ahmet', avatar: 'https://placehold.co/40x40.png', aiHint: 'man portrait' }, text: 'Harika bir fotoğraf!', likes: 15, liked: false, createdAt: new Date(new Date().setHours(new Date().getHours() - 2)) },
-        { id: 2, user: { name: 'Zeynep', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman portrait' }, text: 'Neresi burası? 😍', likes: 3, liked: true, createdAt: new Date(new Date().setDate(new Date().getDate() - 1)) },
-        { id: 3, user: { name: 'John', avatar: 'https://placehold.co/40x40.png', aiHint: 'man portrait smiling' }, text: 'This looks amazing! Great shot.', lang: 'en', likes: 8, liked: false, createdAt: new Date(new Date().setDate(new Date().getDate() - 3)) },
-        { id: 4, user: { name: 'Maria', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman portrait laughing' }, text: '¡Qué bonita vista!', lang: 'es', likes: 5, liked: false, createdAt: new Date(new Date().setMonth(new Date().getMonth() - 1)) },
-    ]
-  },
-  {
-    id: 4,
-    type: 'text',
-    user: {
-      name: 'David',
-      avatar: 'https://placehold.co/40x40.png',
-      aiHint: 'man portrait glasses'
-    },
-    textContent: 'Just shipped a new feature for our project. It feels great to see hard work paying off. #developer #coding',
-    lang: 'en',
-    likes: 98,
-    commentsCount: 12,
-    liked: false,
-    comments: []
-  },
-  {
-    id: 2,
-    type: 'photo',
-    user: {
-      name: 'Ahmet',
-      avatar: 'https://placehold.co/40x40.png',
-      aiHint: 'portrait man beach sunset'
-    },
-    image: 'https://placehold.co/600x600.png',
-    aiHint: 'beach sunset waves',
-    caption: 'Huzur dolu bir akşam.',
-    likes: 256,
-    commentsCount: 35,
-    liked: true, 
-    comments: [
-        { id: 1, user: { name: 'Can', avatar: 'https://placehold.co/40x40.png', aiHint: 'person portrait' }, text: 'Çok güzel görünüyor!', likes: 22, liked: false, createdAt: new Date(new Date().setMinutes(new Date().getMinutes() - 10)) },
-        { id: 2, user: { name: 'Satoshi', avatar: 'https://placehold.co/40x40.png', aiHint: 'man portrait serious' }, text: '美しい夕日ですね。', lang: 'ja', likes: 12, liked: false, createdAt: new Date(new Date().setFullYear(new Date().getFullYear() - 1)) },
-    ]
-  },
-   {
-    id: 5,
-    type: 'text',
-    user: {
-      name: 'Elif',
-      avatar: 'https://placehold.co/40x40.png',
-      aiHint: 'woman portrait smiling'
-    },
-    textContent: 'Bazen sadece bir fincan kahve ve iyi bir kitap yeterlidir. Haftaya başlamak için en iyi ikili!',
-    likes: 155,
-    commentsCount: 23,
-    liked: true,
-    comments: []
-  },
-  {
-    id: 3,
-    type: 'photo',
-    user: {
-      name: 'Zeynep',
-      avatar: 'https://placehold.co/40x40.png',
-      aiHint: 'portrait woman drinking coffee'
-    },
-    image: 'https://placehold.co/600x600.png',
-    aiHint: 'latte art coffee shop',
-    caption: 'Kahve ve sanat... ☕️🎨',
-    likes: 432,
-    commentsCount: 51,
-    liked: false,
-    comments: []
-  },
-];
-
-const quickEmojis = ['❤️', '👏', '😢', '😘', '😠'];
-
+const PostSkeleton = () => (
+    <Card className="rounded-xl overflow-hidden">
+        <CardContent className="p-0">
+            <div className="flex items-center gap-3 p-3">
+                <Skeleton className="w-8 h-8 rounded-full" />
+                <Skeleton className="h-4 w-24" />
+            </div>
+            <Skeleton className="w-full aspect-square" />
+            <div className="p-3 space-y-2">
+                <Skeleton className="h-4 w-1/4" />
+                <Skeleton className="h-4 w-3/4" />
+            </div>
+        </CardContent>
+    </Card>
+);
 
 export default function ExplorePage() {
-    const [posts, setPosts] = useState(initialPosts);
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [loading, setLoading] = useState(true);
     const [commentInput, setCommentInput] = useState('');
     const commentInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
 
-    const handleLikeClick = (postId: number) => {
+    useEffect(() => {
+        const fetchPosts = async () => {
+            setLoading(true);
+            try {
+                const postsQuery = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
+                const querySnapshot = await getDocs(postsQuery);
+                const postsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
+                
+                // TODO: Fetch comments for each post
+                setPosts(postsData.map(p => ({...p, comments: []})));
+
+            } catch (error) {
+                console.error("Error fetching posts: ", error);
+                toast({
+                    variant: 'destructive',
+                    title: 'Gönderiler Yüklenemedi',
+                    description: 'Gönderileri alırken bir hata oluştu.',
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPosts();
+    }, [toast]);
+
+    const handleLikeClick = (postId: string) => {
         setPosts(posts.map(post => 
             post.id === postId 
             ? { ...post, liked: !post.liked, likes: post.liked ? post.likes - 1 : post.likes + 1 } 
@@ -162,7 +119,7 @@ export default function ExplorePage() {
         ));
     };
 
-    const handleCommentLikeClick = (postId: number, commentId: number) => {
+    const handleCommentLikeClick = (postId: string, commentId: string) => {
         setPosts(posts.map(post => {
             if (post.id === postId) {
                 return {
@@ -192,7 +149,7 @@ export default function ExplorePage() {
         commentInputRef.current?.focus();
     };
 
-    const handleTranslatePost = async (postId: number) => {
+    const handleTranslatePost = async (postId: string) => {
         const post = posts.find(p => p.id === postId);
         if (!post) return;
 
@@ -233,7 +190,7 @@ export default function ExplorePage() {
     };
 
 
-    const handleTranslateComment = async (postId: number, commentId: number) => {
+    const handleTranslateComment = async (postId: string, commentId: string) => {
         const post = posts.find(p => p.id === postId);
         const comment = post?.comments.find(c => c.id === commentId);
     
@@ -294,162 +251,173 @@ export default function ExplorePage() {
   return (
     <div className="container mx-auto max-w-lg p-2 pb-20">
       <div className="flex flex-col gap-4">
-        {posts.map((post) => (
-          <Sheet key={post.id}>
-            <Card className="rounded-xl overflow-hidden">
-                <CardContent className="p-0">
-                    <div className="flex items-center gap-3 p-3">
-                        <Avatar className="w-8 h-8">
-                        <AvatarImage src={post.user.avatar} data-ai-hint={post.user.aiHint} />
-                        <AvatarFallback>{post.user.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <span className="font-semibold text-sm">{post.user.name}</span>
-                    </div>
-
-                    {post.type === 'photo' && post.image && (
-                        <div className="relative w-full aspect-square">
-                            <Image
-                            src={post.image}
-                            alt={`Post by ${post.user.name}`}
-                            fill
-                            className="object-cover"
-                            data-ai-hint={post.aiHint}
-                            />
+        {loading ? (
+            <>
+                <PostSkeleton />
+                <PostSkeleton />
+            </>
+        ) : posts.length > 0 ? (
+            posts.map((post) => (
+            <Sheet key={post.id}>
+                <Card className="rounded-xl overflow-hidden">
+                    <CardContent className="p-0">
+                        <div className="flex items-center gap-3 p-3">
+                            <Avatar className="w-8 h-8">
+                            <AvatarImage src={post.user.avatar} data-ai-hint={post.user.aiHint} />
+                            <AvatarFallback>{post.user.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <span className="font-semibold text-sm">{post.user.name}</span>
                         </div>
-                    )}
-                    
-                     {post.type === 'text' && (
-                        <div className="px-4 py-2">
-                             {post.isTranslating ? (
-                                <p className="text-sm text-muted-foreground italic flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</p>
-                            ) : (
-                                <p className="text-base whitespace-pre-wrap break-words">{post.textContent}</p>
-                            )}
 
-                            {((post.lang && post.lang !== 'tr') || post.isTranslated) && (
-                                <button onClick={() => handleTranslatePost(post.id)} className="text-xs text-muted-foreground hover:underline mt-2 flex items-center gap-1">
-                                    <Languages className="w-3 h-3"/>
-                                    {post.isTranslated ? 'Aslına bak' : 'Çevirisine bak'}
-                                </button>
-                            )}
-                        </div>
-                    )}
+                        {post.type === 'photo' && post.image && (
+                            <div className="relative w-full aspect-square">
+                                <Image
+                                src={post.image}
+                                alt={`Post by ${post.user.name}`}
+                                fill
+                                className="object-cover"
+                                data-ai-hint={post.aiHint}
+                                />
+                            </div>
+                        )}
+                        
+                        {post.type === 'text' && (
+                            <div className="px-4 py-2">
+                                {post.isTranslating ? (
+                                    <p className="text-sm text-muted-foreground italic flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</p>
+                                ) : (
+                                    <p className="text-base whitespace-pre-wrap break-words">{post.textContent}</p>
+                                )}
 
-                    <div className="flex items-center justify-between p-3">
-                        <div className='flex items-center gap-3'>
-                            <Button variant="ghost" size="icon" onClick={() => handleLikeClick(post.id)}>
-                                <Heart className="w-6 h-6" fill={post.liked ? 'hsl(var(--destructive))' : 'transparent'} stroke={post.liked ? 'hsl(var(--destructive))' : 'currentColor'}/>
-                            </Button>
-                            <SheetTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                    <MessageCircle className="w-6 h-6" />
+                                {((post.lang && post.lang !== 'tr') || post.isTranslated) && (
+                                    <button onClick={() => handleTranslatePost(post.id)} className="text-xs text-muted-foreground hover:underline mt-2 flex items-center gap-1">
+                                        <Languages className="w-3 h-3"/>
+                                        {post.isTranslated ? 'Aslına bak' : 'Çevirisine bak'}
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="flex items-center justify-between p-3">
+                            <div className='flex items-center gap-3'>
+                                <Button variant="ghost" size="icon" onClick={() => handleLikeClick(post.id)}>
+                                    <Heart className="w-6 h-6" fill={post.liked ? 'hsl(var(--destructive))' : 'transparent'} stroke={post.liked ? 'hsl(var(--destructive))' : 'currentColor'}/>
                                 </Button>
-                            </SheetTrigger>
-                        </div>
-                        <Button variant="ghost" size="icon">
-                            <Bookmark className="w-6 h-6" />
-                        </Button>
-                    </div>
-
-                    <div className="px-3 pb-3 text-sm">
-                        <p className="font-semibold">{post.likes.toLocaleString()} beğeni</p>
-                        {post.type === 'photo' && (
-                            <p>
-                                <span className="font-semibold">{post.user.name}</span>{' '}
-                                {post.caption}
-                            </p>
-                        )}
-                        {post.commentsCount > 0 && (
-                            <SheetTrigger asChild>
-                                <p className="text-muted-foreground mt-1 cursor-pointer">
-                                {post.commentsCount.toLocaleString()} yorumun tümünü gör
-                                </p>
-                            </SheetTrigger>
-                        )}
-                    </div>
-                </CardContent>
-            </Card>
-            <SheetContent side="bottom" className="rounded-t-xl h-[80vh] flex flex-col p-0">
-                 <SheetHeader className="text-center p-4 border-b shrink-0">
-                    <SheetTitle>Yorumlar</SheetTitle>
-                     <SheetClose className="absolute left-4 top-1/2 -translate-y-1/2" />
-                </SheetHeader>
-                <ScrollArea className="flex-1">
-                    <div className="flex flex-col gap-4 p-4">
-                        {post.comments.length > 0 ? (
-                             post.comments.map(comment => (
-                                <div key={comment.id} className="flex items-start gap-3">
-                                    <Avatar className="w-8 h-8">
-                                        <AvatarImage src={comment.user.avatar} data-ai-hint={comment.user.aiHint} />
-                                        <AvatarFallback>{comment.user.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1 text-sm">
-                                         <div className="flex items-baseline gap-2">
-                                            <span className="font-semibold">{comment.user.name}</span>
-                                            <span className="text-xs text-muted-foreground font-mono">{formatRelativeTime(comment.createdAt)}</span>
-                                        </div>
-                                        
-                                        <p className="mt-1">
-                                            {comment.isTranslating ? (
-                                                <span className="text-sm text-muted-foreground italic flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</span>
-                                            ) : (
-                                                <span>{comment.text}</span>
-                                            )}
-                                        </p>
-
-                                        <div className="flex gap-4 text-xs text-muted-foreground mt-2 items-center">
-                                            <span className="cursor-pointer hover:underline" onClick={() => handleReply(comment.user.name)}>Yanıtla</span>
-                                            {(comment.lang && comment.lang !== 'tr') || comment.isTranslated ? (
-                                                <span onClick={() => handleTranslateComment(post.id, comment.id)} className="cursor-pointer hover:underline">
-                                                    {comment.isTranslated ? 'Aslına bak' : 'Çevirisine bak'}
-                                                </span>
-                                            ) : null}
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col items-center gap-0.5">
-                                        <Heart 
-                                            className="w-4 h-4 cursor-pointer" 
-                                            fill={comment.liked ? 'hsl(var(--destructive))' : 'transparent'} 
-                                            stroke={comment.liked ? 'hsl(var(--destructive))' : 'currentColor'}
-                                            onClick={() => handleCommentLikeClick(post.id, comment.id)}
-                                        />
-                                        <span className="text-xs text-muted-foreground">{comment.likes > 0 ? comment.likes : ''}</span>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <p className="text-center text-muted-foreground py-10">Henüz yorum yok. İlk yorumu sen yap!</p>
-                        )}
-                    </div>
-                </ScrollArea>
-                 <div className="p-2 bg-background border-t shrink-0">
-                     <div className="flex items-center gap-4 px-2 py-1">
-                        {quickEmojis.map(emoji => (
-                            <span key={emoji} className="text-2xl cursor-pointer" onClick={() => handleAddEmoji(emoji)}>{emoji}</span>
-                        ))}
-                    </div>
-                     <div className="flex items-center gap-2 mt-2">
-                        <Avatar className="w-8 h-8">
-                            <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="current user portrait" />
-                            <AvatarFallback>B</AvatarFallback>
-                        </Avatar>
-                        <div className="relative flex-1">
-                            <Input 
-                                ref={commentInputRef}
-                                placeholder="Yorum ekle..." 
-                                className="bg-muted border-none rounded-full px-4 pr-10" 
-                                value={commentInput}
-                                onChange={(e) => setCommentInput(e.target.value)}
-                            />
-                            <Button size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full">
-                                <Send className="h-4 w-4" />
+                                <SheetTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                        <MessageCircle className="w-6 h-6" />
+                                    </Button>
+                                </SheetTrigger>
+                            </div>
+                            <Button variant="ghost" size="icon">
+                                <Bookmark className="w-6 h-6" />
                             </Button>
                         </div>
+
+                        <div className="px-3 pb-3 text-sm">
+                            <p className="font-semibold">{post.likes.toLocaleString()} beğeni</p>
+                            {post.type === 'photo' && (
+                                <p>
+                                    <span className="font-semibold">{post.user.name}</span>{' '}
+                                    {post.caption}
+                                </p>
+                            )}
+                            {post.commentsCount > 0 && (
+                                <SheetTrigger asChild>
+                                    <p className="text-muted-foreground mt-1 cursor-pointer">
+                                    {post.commentsCount.toLocaleString()} yorumun tümünü gör
+                                    </p>
+                                </SheetTrigger>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+                <SheetContent side="bottom" className="rounded-t-xl h-[80vh] flex flex-col p-0">
+                    <SheetHeader className="text-center p-4 border-b shrink-0">
+                        <SheetTitle>Yorumlar</SheetTitle>
+                        <SheetClose className="absolute left-4 top-1/2 -translate-y-1/2" />
+                    </SheetHeader>
+                    <ScrollArea className="flex-1">
+                        <div className="flex flex-col gap-4 p-4">
+                            {post.comments.length > 0 ? (
+                                post.comments.map(comment => (
+                                    <div key={comment.id} className="flex items-start gap-3">
+                                        <Avatar className="w-8 h-8">
+                                            <AvatarImage src={comment.user.avatar} data-ai-hint={comment.user.aiHint} />
+                                            <AvatarFallback>{comment.user.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1 text-sm">
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="font-semibold">{comment.user.name}</span>
+                                                <span className="text-xs text-muted-foreground font-mono">{formatRelativeTime(comment.createdAt)}</span>
+                                            </div>
+                                            
+                                            <p className="mt-1">
+                                                {comment.isTranslating ? (
+                                                    <span className="text-sm text-muted-foreground italic flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</span>
+                                                ) : (
+                                                    <span>{comment.text}</span>
+                                                )}
+                                            </p>
+
+                                            <div className="flex gap-4 text-xs text-muted-foreground mt-2 items-center">
+                                                <span className="cursor-pointer hover:underline" onClick={() => handleReply(comment.user.name)}>Yanıtla</span>
+                                                {(comment.lang && comment.lang !== 'tr') || comment.isTranslated ? (
+                                                    <span onClick={() => handleTranslateComment(post.id, comment.id)} className="cursor-pointer hover:underline">
+                                                        {comment.isTranslated ? 'Aslına bak' : 'Çevirisine bak'}
+                                                    </span>
+                                                ) : null}
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col items-center gap-0.5">
+                                            <Heart 
+                                                className="w-4 h-4 cursor-pointer" 
+                                                fill={comment.liked ? 'hsl(var(--destructive))' : 'transparent'} 
+                                                stroke={comment.liked ? 'hsl(var(--destructive))' : 'currentColor'}
+                                                onClick={() => handleCommentLikeClick(post.id, comment.id)}
+                                            />
+                                            <span className="text-xs text-muted-foreground">{comment.likes > 0 ? comment.likes : ''}</span>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-center text-muted-foreground py-10">Henüz yorum yok. İlk yorumu sen yap!</p>
+                            )}
+                        </div>
+                    </ScrollArea>
+                    <div className="p-2 bg-background border-t shrink-0">
+                        <div className="flex items-center gap-4 px-2 py-1">
+                            {['❤️', '👏', '😢', '😘', '😠'].map(emoji => (
+                                <span key={emoji} className="text-2xl cursor-pointer" onClick={() => handleAddEmoji(emoji)}>{emoji}</span>
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-2 mt-2">
+                            <Avatar className="w-8 h-8">
+                                <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="current user portrait" />
+                                <AvatarFallback>B</AvatarFallback>
+                            </Avatar>
+                            <div className="relative flex-1">
+                                <Input 
+                                    ref={commentInputRef}
+                                    placeholder="Yorum ekle..." 
+                                    className="bg-muted border-none rounded-full px-4 pr-10" 
+                                    value={commentInput}
+                                    onChange={(e) => setCommentInput(e.target.value)}
+                                />
+                                <Button size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full">
+                                    <Send className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </SheetContent>
-          </Sheet>
-        ))}
+                </SheetContent>
+            </Sheet>
+        ))) : (
+             <div className="text-center text-muted-foreground py-20 flex flex-col items-center justify-center">
+                <p className="text-lg">Henüz hiç gönderi yok.</p>
+                <p className="text-sm">İlk gönderiyi paylaşan sen ol!</p>
+            </div>
+        )}
       </div>
       
        <Link href="/create">
