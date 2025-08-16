@@ -4,6 +4,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 const AnimatedLogo = () => {
     const text = "BeMatch";
@@ -26,11 +28,21 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.replace('/login');
-    }, 2500); // Wait for animation to complete before redirecting
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      // Add a small delay to allow animation to be seen
+      setTimeout(() => {
+        if (user) {
+          // User is signed in, redirect to the main app page
+          router.replace('/match');
+        } else {
+          // User is signed out, redirect to the login page
+          router.replace('/login');
+        }
+      }, 2000); 
+    });
 
-    return () => clearTimeout(timer);
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, [router]);
 
   return (
