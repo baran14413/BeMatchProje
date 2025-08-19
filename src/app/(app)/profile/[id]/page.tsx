@@ -37,7 +37,7 @@ import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { doc, getDoc, collection, query, where, getDocs, DocumentData, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, DocumentData, orderBy, addDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -153,13 +153,14 @@ export default function UserProfilePage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const currentUserId = currentUser?.uid;
-    setIsMyProfile(params.id === currentUserId);
+    if (currentUser) {
+        setIsMyProfile(params.id === currentUser.uid);
+    }
   }, [params.id, currentUser]);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (!params.id) return;
+      if (!params.id || !currentUser) return; // Wait for currentUser to be available
       setLoading(true);
       try {
         const userDocRef = doc(db, 'users', params.id as string);
@@ -171,17 +172,13 @@ export default function UserProfilePage() {
 
           // Check for gallery access
           if (userData.isGalleryPrivate && !isMyProfile) {
-              if (currentUser) {
-                const permissionDocRef = doc(db, 'users', params.id, 'galleryPermissions', currentUser.uid);
-                const permissionDocSnap = await getDoc(permissionDocRef);
-                if (permissionDocSnap.exists()) {
-                    // TODO: Check for expiry if temporary
-                    setHasGalleryAccess(true);
-                } else {
-                    setHasGalleryAccess(false);
-                }
+              const permissionDocRef = doc(db, 'users', params.id, 'galleryPermissions', currentUser.uid);
+              const permissionDocSnap = await getDoc(permissionDocRef);
+              if (permissionDocSnap.exists()) {
+                  // TODO: Check for expiry if temporary
+                  setHasGalleryAccess(true);
               } else {
-                 setHasGalleryAccess(false);
+                  setHasGalleryAccess(false);
               }
           } else {
               setHasGalleryAccess(true); // Public gallery or my own profile
@@ -194,6 +191,7 @@ export default function UserProfilePage() {
 
         } else {
           console.log("No such document!");
+          setUserProfile(null); // Ensure userProfile is null if not found
         }
       } catch (error) {
         console.error("Error fetching user profile:", error);
@@ -202,13 +200,18 @@ export default function UserProfilePage() {
       }
     };
 
-    fetchUserProfile();
+    if (currentUser) { // Only fetch if currentUser is available
+        fetchUserProfile();
+    }
   }, [params.id, currentUser, isMyProfile]);
 
   const handleRequestAccess = async () => {
       if (!currentUser || !userProfile) return;
       setRequestStatus('loading');
       try {
+          // Check if a request already exists to avoid duplicates
+          // For simplicity, we'll assume no duplicate check is needed for now,
+          // but in a real app, you should check this.
           await addDoc(collection(db, 'notifications'), {
               recipientId: userProfile.uid,
               type: 'gallery_request',
@@ -263,7 +266,7 @@ export default function UserProfilePage() {
         <header className="flex gap-4 items-center">
           <Avatar className="w-24 h-24 border-2 border-primary">
             <AvatarImage src={userProfile.avatarUrl} data-ai-hint={userProfile.aiHint} />
-            <AvatarFallback className="text-3xl">{userProfile.name.charAt(0)}</AvatarFallback>
+            <AvatarFallback className="text-3xl">{userProfile.name?.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex-1 grid grid-cols-3 gap-4 text-center">
             <StatItem value={userPosts.length} label="Gönderi" />
