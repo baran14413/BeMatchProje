@@ -8,8 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Crown, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { collection, getDocs, DocumentData } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { collection, query, where, getDocs, DocumentData } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const UserSkeleton = () => (
@@ -25,12 +25,17 @@ const UserSkeleton = () => (
 export default function MatchPage() {
   const [users, setUsers] = useState<DocumentData[]>([]);
   const [loading, setLoading] = useState(true);
+  const currentUser = auth.currentUser;
 
   useEffect(() => {
     const fetchUsers = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
       try {
-        const usersCollection = collection(db, 'users');
-        const userSnapshot = await getDocs(usersCollection);
+        const usersQuery = query(collection(db, 'users'), where('uid', '!=', currentUser.uid));
+        const userSnapshot = await getDocs(usersQuery);
         const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setUsers(userList);
       } catch (error) {
@@ -41,7 +46,7 @@ export default function MatchPage() {
     };
 
     fetchUsers();
-  }, []);
+  }, [currentUser]);
 
   return (
     <div className="flex flex-col h-full">
@@ -66,14 +71,13 @@ export default function MatchPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <div className="flex items-baseline gap-2">
-                        <h3 className="text-xl font-bold">{user.name},</h3>
-                        <p className="text-lg text-muted-foreground">{user.age}</p>
+                        <h3 className="text-xl font-bold">{user.name}{user.age ? ',' : ''}</h3>
+                        {user.age && <p className="text-lg text-muted-foreground">{user.age}</p>}
                       </div>
                       {user.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
                     </div>
                      <div className="flex items-center gap-1.5 mt-1 text-muted-foreground">
-                        <MapPin className="w-4 h-4" />
-                        <p className="text-sm">{user.city}</p>
+                        {user.city && <><MapPin className="w-4 h-4" /><p className="text-sm">{user.city}</p></>}
                      </div>
                   </div>
                 </div>

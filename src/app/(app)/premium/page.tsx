@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from "react";
 
 const features = [
-    { text: "Sınırsız Beğeni Hakkı", icon: <Heart className="w-4 h-4 text-pink-500"/> },
+    { text: "Sınırsız Beğeni Hakkı (Standart 50)", icon: <Heart className="w-4 h-4 text-pink-500"/> },
     { text: "Reklamları Kaldır", icon: <XCircle className="w-4 h-4 text-red-500"/> },
     { text: "Profilini Öne Çıkar", icon: <TrendingUp className="w-4 h-4 text-green-500"/> },
     { text: "Kimlerin Seni Beğendiğini Gör", icon: <Eye className="w-4 h-4 text-blue-500"/> },
