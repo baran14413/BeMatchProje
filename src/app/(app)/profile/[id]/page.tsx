@@ -29,13 +29,14 @@ import {
   Pencil,
   Crown,
   Loader2,
+  GalleryVertical,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { doc, getDoc, collection, query, where, getDocs, DocumentData } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, DocumentData, orderBy } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -154,7 +155,6 @@ export default function UserProfilePage() {
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMyProfile, setIsMyProfile] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   useEffect(() => {
     const currentUserId = auth.currentUser?.uid;
@@ -171,7 +171,7 @@ export default function UserProfilePage() {
           const userData = userDocSnap.data();
           setUserProfile(userData);
           
-          const postsQuery = query(collection(db, 'posts'), where('authorId', '==', params.id));
+          const postsQuery = query(collection(db, 'posts'), where('authorId', '==', params.id), orderBy('createdAt', 'desc'));
           const postsSnapshot = await getDocs(postsQuery);
           const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
           setUserPosts(postsData);
@@ -209,6 +209,8 @@ export default function UserProfilePage() {
   if (!userProfile) {
     return <div className="text-center py-20">Kullanıcı bulunamadı.</div>
   }
+  
+  const photoPosts = userPosts.filter(p => p.type === 'photo');
 
   return (
     <div className="container mx-auto max-w-3xl p-4 md:p-6 pb-20">
@@ -293,12 +295,16 @@ export default function UserProfilePage() {
         <Separator />
 
         {/* Gallery Tabs */}
-        <Tabs defaultValue="posts" className="w-full">
+        <Tabs defaultValue="feed" className="w-full">
             <div className="flex justify-between items-center">
                  <TabsList>
-                    <TabsTrigger value="posts" className="px-3 flex gap-2">
+                    <TabsTrigger value="feed" className="px-3 flex gap-2">
+                        <List className="h-5 w-5" />
+                        <span className="hidden sm:inline">Akış</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="gallery" className="px-3 flex gap-2">
                         <Grid3x3 className="h-5 w-5" />
-                        <span className="hidden sm:inline">Gönderiler</span>
+                        <span className="hidden sm:inline">Galeri</span>
                     </TabsTrigger>
                     {isMyProfile && (
                     <>
@@ -313,20 +319,23 @@ export default function UserProfilePage() {
                     </>
                     )}
                 </TabsList>
-                 <div className="flex items-center gap-1 ml-4">
-                    <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('grid')}>
-                        <Grid3x3 className="w-5 h-5"/>
-                    </Button>
-                     <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('list')}>
-                        <List className="w-5 h-5"/>
-                    </Button>
-                </div>
             </div>
 
-          <TabsContent value="posts" className="mt-4">
-            {viewMode === 'grid' ? (
+          <TabsContent value="feed" className="mt-4">
+            <div className="flex flex-col">
+                {userPosts.map((post) => (
+                    <PostCard key={post.id} post={post} user={userProfile} isMyProfile={isMyProfile}/>
+                ))}
+            </div>
+            {userPosts.length === 0 && (
+                <div className='text-center py-10 text-muted-foreground'>
+                    <p>Henüz gönderi yok.</p>
+                </div>
+            )}
+          </TabsContent>
+           <TabsContent value="gallery" className="mt-4">
                  <div className="grid grid-cols-3 gap-1">
-                  {userPosts.filter(p => p.type === 'photo').map((post) => (
+                  {photoPosts.map((post) => (
                     <div key={post.id} className="relative aspect-square rounded-md overflow-hidden group">
                       <Image
                         src={post.url!}
@@ -348,17 +357,10 @@ export default function UserProfilePage() {
                     </div>
                   ))}
                 </div>
-            ) : (
-                <div className="flex flex-col">
-                    {userPosts.map((post) => (
-                        <PostCard key={post.id} post={post} user={userProfile} isMyProfile={isMyProfile}/>
-                    ))}
-                </div>
-            )}
-             
-            {userPosts.length === 0 && (
-                <div className='text-center py-10 text-muted-foreground'>
-                    <p>Henüz gönderi yok.</p>
+            {photoPosts.length === 0 && (
+                <div className='text-center py-10 text-muted-foreground flex flex-col items-center gap-2'>
+                    <GalleryVertical className="w-10 h-10" />
+                    <p>Henüz fotoğraf yok.</p>
                 </div>
             )}
           </TabsContent>

@@ -345,6 +345,8 @@ export default function CreatePostPage() {
     try {
         let postData: any = {
             authorId: currentUser.uid,
+            authorName: currentUser.displayName,
+            authorAvatarUrl: currentUser.photoURL,
             createdAt: serverTimestamp(),
             likes: 0,
             commentsCount: 0,
