@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { EyeOff, UserCheck, AtSign } from 'lucide-react';
+import { EyeOff, UserCheck, AtSign, Lock } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 const PrivacySwitch = ({ id, icon, title, description, defaultChecked = true }: { id: string, icon: React.ReactNode, title: string, description: string, defaultChecked?: boolean }) => (
@@ -55,6 +55,14 @@ export default function PrivacySettingsPage() {
                             icon={<EyeOff className="w-5 h-5 text-primary" />}
                             title="Gizli Hesap"
                             description="Aktif edildiğinde, sadece takipçileriniz gönderilerinizi görebilir."
+                            defaultChecked={false}
+                        />
+                         <Separator />
+                         <PrivacySwitch 
+                            id="gallery-private"
+                            icon={<Lock className="w-5 h-5 text-primary" />}
+                            title="Gizli Galeri"
+                            description="Aktif edildiğinde, galerinizdeki fotoğrafları sadece izin verdiğiniz kişiler görebilir."
                             defaultChecked={false}
                         />
                          <Separator />

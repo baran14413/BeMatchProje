@@ -30,15 +30,17 @@ import {
   Crown,
   Loader2,
   GalleryVertical,
+  Lock,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { doc, getDoc, collection, query, where, getDocs, DocumentData, orderBy } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, DocumentData, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 
 type Post = {
     id: string;
@@ -50,6 +52,8 @@ type Post = {
     likes: number;
     comments: number;
 };
+
+type RequestStatus = 'idle' | 'loading' | 'sent';
 
 const PostCard = ({ post, user, isMyProfile }: { post: Post, user: DocumentData, isMyProfile: boolean }) => (
     <Card className="rounded-xl overflow-hidden mb-4 relative group">
@@ -155,11 +159,17 @@ export default function UserProfilePage() {
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMyProfile, setIsMyProfile] = useState(false);
+  const [hasGalleryAccess, setHasGalleryAccess] = useState(false);
+  const [requestStatus, setRequestStatus] = useState<RequestStatus>('idle');
+  const currentUser = auth.currentUser;
+  const { toast } = useToast();
 
   useEffect(() => {
-    const currentUserId = auth.currentUser?.uid;
+    const currentUserId = currentUser?.uid;
     setIsMyProfile(params.id === currentUserId);
+  }, [params.id, currentUser]);
 
+  useEffect(() => {
     const fetchUserProfile = async () => {
       if (!params.id) return;
       setLoading(true);
@@ -170,6 +180,20 @@ export default function UserProfilePage() {
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
           setUserProfile(userData);
+
+          // Check for gallery access
+          if (userData.isGalleryPrivate && currentUser) {
+              const permissionDocRef = doc(db, 'users', params.id, 'galleryPermissions', currentUser.uid);
+              const permissionDocSnap = await getDoc(permissionDocRef);
+              if (permissionDocSnap.exists()) {
+                  // TODO: Check for expiry if temporary
+                  setHasGalleryAccess(true);
+              } else {
+                  setHasGalleryAccess(false);
+              }
+          } else {
+              setHasGalleryAccess(true); // Public gallery
+          }
           
           const postsQuery = query(collection(db, 'posts'), where('authorId', '==', params.id), orderBy('createdAt', 'desc'));
           const postsSnapshot = await getDocs(postsQuery);
@@ -178,7 +202,6 @@ export default function UserProfilePage() {
 
         } else {
           console.log("No such document!");
-          // Handle user not found case
         }
       } catch (error) {
         console.error("Error fetching user profile:", error);
@@ -188,7 +211,31 @@ export default function UserProfilePage() {
     };
 
     fetchUserProfile();
-  }, [params.id]);
+  }, [params.id, currentUser]);
+
+  const handleRequestAccess = async () => {
+      if (!currentUser || !userProfile) return;
+      setRequestStatus('loading');
+      try {
+          await addDoc(collection(db, 'notifications'), {
+              recipientId: userProfile.uid,
+              type: 'gallery_request',
+              fromUser: {
+                  uid: currentUser.uid,
+                  name: currentUser.displayName,
+                  avatar: currentUser.photoURL,
+              },
+              read: false,
+              createdAt: serverTimestamp()
+          });
+          setRequestStatus('sent');
+          toast({ title: 'İstek Gönderildi', description: `${userProfile.name} isteğinizi aldığında size bildireceğiz.` });
+      } catch (error) {
+          console.error("Error sending access request:", error);
+          toast({ variant: 'destructive', title: 'İstek Gönderilemedi' });
+          setRequestStatus('idle');
+      }
+  };
 
 
   const StatItem = ({ value, label }: { value: number | undefined, label: string }) => (
@@ -211,6 +258,9 @@ export default function UserProfilePage() {
   }
   
   const photoPosts = userPosts.filter(p => p.type === 'photo');
+
+  const showGalleryContent = !userProfile.isGalleryPrivate || hasGalleryAccess || isMyProfile;
+
 
   return (
     <div className="container mx-auto max-w-3xl p-4 md:p-6 pb-20">
@@ -334,35 +384,54 @@ export default function UserProfilePage() {
             )}
           </TabsContent>
            <TabsContent value="gallery" className="mt-4">
-                 <div className="grid grid-cols-3 gap-1">
-                  {photoPosts.map((post) => (
-                    <div key={post.id} className="relative aspect-square rounded-md overflow-hidden group">
-                      <Image
-                        src={post.url!}
-                        alt={post.caption || `Post ${post.id}`}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        data-ai-hint={post.aiHint}
-                      />
-                       {isMyProfile && (
-                            <div className="absolute top-1 right-1 flex items-center gap-1">
-                                <Button variant="secondary" size="icon" className="h-7 w-7">
-                                    <Pencil className="w-4 h-4" />
-                                </Button>
-                                <Button variant="destructive" size="icon" className="h-7 w-7">
-                                    <Trash2 className="w-4 h-4" />
-                                </Button>
+                {showGalleryContent ? (
+                    <>
+                        <div className="grid grid-cols-3 gap-1">
+                            {photoPosts.map((post) => (
+                                <div key={post.id} className="relative aspect-square rounded-md overflow-hidden group">
+                                <Image
+                                    src={post.url!}
+                                    alt={post.caption || `Post ${post.id}`}
+                                    fill
+                                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                    data-ai-hint={post.aiHint}
+                                />
+                                {isMyProfile && (
+                                        <div className="absolute top-1 right-1 flex items-center gap-1">
+                                            <Button variant="secondary" size="icon" className="h-7 w-7">
+                                                <Pencil className="w-4 h-4" />
+                                            </Button>
+                                            <Button variant="destructive" size="icon" className="h-7 w-7">
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                        {photoPosts.length === 0 && (
+                            <div className='text-center py-10 text-muted-foreground flex flex-col items-center gap-2'>
+                                <GalleryVertical className="w-10 h-10" />
+                                <p>Henüz fotoğraf yok.</p>
                             </div>
                         )}
+                    </>
+                ) : (
+                    <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4 rounded-lg border-2 border-dashed">
+                        <Lock className="w-12 h-12 text-muted-foreground/50"/>
+                        <h3 className="font-bold text-lg text-foreground">Bu Galeri Gizli</h3>
+                        <p className="text-sm max-w-xs">
+                            {userProfile.name} kullanıcısının fotoğraflarını görmek için erişim izni istemeniz gerekiyor.
+                        </p>
+                        <Button 
+                            onClick={handleRequestAccess} 
+                            disabled={requestStatus !== 'idle'}
+                        >
+                            {requestStatus === 'loading' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {requestStatus === 'sent' ? 'İstek Gönderildi' : 'İzin İste'}
+                        </Button>
                     </div>
-                  ))}
-                </div>
-            {photoPosts.length === 0 && (
-                <div className='text-center py-10 text-muted-foreground flex flex-col items-center gap-2'>
-                    <GalleryVertical className="w-10 h-10" />
-                    <p>Henüz fotoğraf yok.</p>
-                </div>
-            )}
+                )}
           </TabsContent>
           {isMyProfile && (
             <>

@@ -7,10 +7,10 @@ import { tr } from 'date-fns/locale';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, MessageCircle, UserPlus, Bell, CheckCheck, Trash2 } from 'lucide-react';
+import { Heart, MessageCircle, UserPlus, Bell, CheckCheck, Trash2, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { collection, query, where, orderBy, onSnapshot, writeBatch } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, writeBatch, doc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -19,12 +19,12 @@ const formatRelativeTime = (date: Date) => {
   return formatDistanceToNowStrict(date, { addSuffix: true, locale: tr });
 };
 
-type NotificationType = 'like' | 'comment' | 'follow';
+type NotificationType = 'like' | 'comment' | 'follow' | 'gallery_request';
 
 type Notification = {
   id: string;
   type: NotificationType;
-  user: {
+  fromUser: {
     name: string;
     avatar: string;
     aiHint: string;
@@ -39,6 +39,7 @@ const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
   follow: <UserPlus className="h-6 w-6 text-blue-500" />,
   like: <Heart className="h-6 w-6 text-red-500" />,
   comment: <MessageCircle className="h-6 w-6 text-green-500" />,
+  gallery_request: <Lock className="h-6 w-6 text-purple-500" />,
 };
 
 const getNotificationText = (notification: Notification): string => {
@@ -49,6 +50,8 @@ const getNotificationText = (notification: Notification): string => {
       return `senin bir ${notification.postType === 'photo' ? 'fotoğrafını' : 'gönderini'} beğendi.`;
     case 'comment':
       return `senin bir ${notification.postType === 'photo' ? 'fotoğrafına' : 'gönderine'} yorum yaptı: "${notification.content}"`;
+    case 'gallery_request':
+        return 'gizli galerini görmek için izin istedi.';
     default:
       return '';
   }
@@ -137,6 +140,7 @@ export default function NotificationsPage() {
         { id: 'follow', label: 'Takip' },
         { id: 'like', label: 'Beğeni' },
         { id: 'comment', label: 'Yorum' },
+        { id: 'gallery_request', label: 'İstekler'}
     ];
 
     return (
@@ -153,7 +157,7 @@ export default function NotificationsPage() {
             </div>
 
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as NotificationType | 'all')} className="w-full">
-                <TabsList className="grid w-full grid-cols-4 h-auto">
+                <TabsList className="grid w-full grid-cols-5 h-auto">
                     {TABS.map(tab => (
                         <TabsTrigger key={tab.id} value={tab.id}>{tab.label}</TabsTrigger>
                     ))}
@@ -192,31 +196,56 @@ export default function NotificationsPage() {
     );
 }
 
-const NotificationItem = ({ notification }: { notification: Notification }) => (
-    <div className={cn(
-        "flex items-start gap-4 p-4 border-b last:border-b-0 transition-colors",
-        !notification.read && "bg-primary/5"
-    )}>
-        <div className="relative">
-            {NOTIFICATION_ICONS[notification.type]}
-            {!notification.read && (
-                 <span className="absolute -top-0.5 -right-0.5 block h-2 w-2 rounded-full bg-blue-500" />
+const NotificationItem = ({ notification }: { notification: Notification }) => {
+    const { toast } = useToast();
+
+    const handlePermission = (permissionType: 'temporary' | 'permanent' | 'declined') => {
+        // TODO: Implement Firestore logic to update permissions
+        let title = '';
+        switch(permissionType) {
+            case 'temporary': title = '24 saatlik izin verildi.'; break;
+            case 'permanent': title = 'Kalıcı izin verildi.'; break;
+            case 'declined': title = 'İstek reddedildi.'; break;
+        }
+        toast({ title });
+        // TODO: Optionally, delete the notification after action
+    };
+
+    return (
+        <div className={cn(
+            "flex flex-col gap-4 p-4 border-b last:border-b-0 transition-colors",
+            !notification.read && "bg-primary/5"
+        )}>
+            <div className="flex items-start gap-4">
+                <div className="relative">
+                    {NOTIFICATION_ICONS[notification.type]}
+                    {!notification.read && (
+                         <span className="absolute -top-0.5 -right-0.5 block h-2 w-2 rounded-full bg-blue-500" />
+                    )}
+                </div>
+                <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage src={notification.fromUser.avatar} data-ai-hint={notification.fromUser.aiHint} />
+                            <AvatarFallback>{notification.fromUser.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <p className="text-sm">
+                            <span className="font-semibold">{notification.fromUser.name}</span>{' '}
+                            {getNotificationText(notification)}
+                        </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        {formatRelativeTime(notification.createdAt)}
+                    </p>
+                </div>
+            </div>
+            {notification.type === 'gallery_request' && (
+                <div className="flex justify-end gap-2">
+                    <Button size="sm" variant="destructive" onClick={() => handlePermission('declined')}>Reddet</Button>
+                    <Button size="sm" variant="outline" onClick={() => handlePermission('temporary')}>24 Saat İzin Ver</Button>
+                    <Button size="sm" onClick={() => handlePermission('permanent')}>Sürekli İzin Ver</Button>
+                </div>
             )}
         </div>
-        <div className="flex-1">
-            <div className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                    <AvatarImage src={notification.user.avatar} data-ai-hint={notification.user.aiHint} />
-                    <AvatarFallback>{notification.user.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <p className="text-sm">
-                    <span className="font-semibold">{notification.user.name}</span>{' '}
-                    {getNotificationText(notification)}
-                </p>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-                {formatRelativeTime(notification.createdAt)}
-            </p>
-        </div>
-    </div>
-);
+    );
+};
