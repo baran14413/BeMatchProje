@@ -16,7 +16,7 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { collection, query, orderBy, getDocs, DocumentData } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, doc, getDoc, DocumentData } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -31,9 +31,16 @@ const formatRelativeTime = (date: Date) => {
     }
 };
 
+type User = {
+  uid: string;
+  name: string;
+  avatarUrl: string;
+  aiHint?: string;
+};
+
 type Comment = {
   id: string;
-  user: { name: string; avatar: string; aiHint: string };
+  user: User;
   text: string;
   originalText?: string;
   lang?: string;
@@ -44,10 +51,11 @@ type Comment = {
   createdAt: Date;
 };
 
-type Post = {
+type Post = DocumentData & {
   id: string;
   type: 'photo' | 'text';
-  user: { name: string; avatar: string; aiHint: string };
+  authorId: string;
+  user?: User; // Will be populated after fetching
   image?: string;
   aiHint?: string;
   caption?: string;
@@ -86,15 +94,29 @@ export default function ExplorePage() {
     const { toast } = useToast();
 
     useEffect(() => {
-        const fetchPosts = async () => {
+        const fetchPostsAndAuthors = async () => {
             setLoading(true);
             try {
                 const postsQuery = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
                 const querySnapshot = await getDocs(postsQuery);
                 const postsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
-                
-                // TODO: Fetch comments for each post
-                setPosts(postsData.map(p => ({...p, comments: []})));
+
+                const populatedPosts = await Promise.all(
+                    postsData.map(async (post) => {
+                        let authorData: User | undefined = undefined;
+                        if (post.authorId) {
+                            const userDocRef = doc(db, 'users', post.authorId);
+                            const userDocSnap = await getDoc(userDocRef);
+                            if (userDocSnap.exists()) {
+                                authorData = userDocSnap.data() as User;
+                            }
+                        }
+                        // TODO: Fetch comments for each post
+                        return { ...post, user: authorData, comments: [] };
+                    })
+                );
+
+                setPosts(populatedPosts.filter(p => p.user) as Post[]); // Filter out posts where author couldn't be fetched
 
             } catch (error) {
                 console.error("Error fetching posts: ", error);
@@ -108,7 +130,7 @@ export default function ExplorePage() {
             }
         };
 
-        fetchPosts();
+        fetchPostsAndAuthors();
     }, [toast]);
 
     const handleLikeClick = (postId: string) => {
@@ -263,17 +285,17 @@ export default function ExplorePage() {
                     <CardContent className="p-0">
                         <div className="flex items-center gap-3 p-3">
                             <Avatar className="w-8 h-8">
-                            <AvatarImage src={post.user.avatar} data-ai-hint={post.user.aiHint} />
-                            <AvatarFallback>{post.user.name.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={post.user?.avatarUrl} data-ai-hint={post.user?.aiHint} />
+                            <AvatarFallback>{post.user?.name.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <span className="font-semibold text-sm">{post.user.name}</span>
+                            <span className="font-semibold text-sm">{post.user?.name}</span>
                         </div>
 
                         {post.type === 'photo' && post.image && (
                             <div className="relative w-full aspect-square">
                                 <Image
                                 src={post.image}
-                                alt={`Post by ${post.user.name}`}
+                                alt={`Post by ${post.user?.name}`}
                                 fill
                                 className="object-cover"
                                 data-ai-hint={post.aiHint}
@@ -318,7 +340,7 @@ export default function ExplorePage() {
                             <p className="font-semibold">{post.likes.toLocaleString()} beğeni</p>
                             {post.type === 'photo' && (
                                 <p>
-                                    <span className="font-semibold">{post.user.name}</span>{' '}
+                                    <span className="font-semibold">{post.user?.name}</span>{' '}
                                     {post.caption}
                                 </p>
                             )}
@@ -343,7 +365,7 @@ export default function ExplorePage() {
                                 post.comments.map(comment => (
                                     <div key={comment.id} className="flex items-start gap-3">
                                         <Avatar className="w-8 h-8">
-                                            <AvatarImage src={comment.user.avatar} data-ai-hint={comment.user.aiHint} />
+                                            <AvatarImage src={comment.user.avatarUrl} data-ai-hint={comment.user.aiHint} />
                                             <AvatarFallback>{comment.user.name.charAt(0)}</AvatarFallback>
                                         </Avatar>
                                         <div className="flex-1 text-sm">

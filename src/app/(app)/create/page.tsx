@@ -30,6 +30,10 @@ import {
 import { stylizeImage } from '@/ai/flows/stylize-image-flow';
 import { moderateImage } from '@/ai/flows/moderate-image-flow';
 import { cn } from '@/lib/utils';
+import { auth, db, storage } from '@/lib/firebase';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadString, getDownloadURL } from 'firebase/storage';
+
 
 // Step 1: Choose post type
 const Step1ChooseType = ({ onSelectType }: { onSelectType: (type: 'photo' | 'text') => void }) => (
@@ -275,6 +279,7 @@ export default function CreatePostPage() {
 
   const router = useRouter();
   const { toast } = useToast();
+  const currentUser = auth.currentUser;
 
   const handleSelectType = (type: 'photo' | 'text') => {
       setPostType(type);
@@ -331,63 +336,66 @@ export default function CreatePostPage() {
   };
 
   const handleShare = async () => {
-    setIsProcessing(true);
-    
-    if (postType === 'photo') {
-        if (!caption) {
-          toast({
-            variant: 'destructive',
-            title: 'Açıklama Gerekli',
-            description: 'Lütfen gönderiniz için bir açıklama yazın.',
-          });
-          setIsProcessing(false);
-          return;
-        }
-        try {
-          const moderationResult = await moderateImage({ photoDataUri: imgSrc });
-          if (!moderationResult.isSafe) {
-            toast({
-              variant: 'destructive',
-              title: 'Uygunsuz İçerik',
-              description: `Yapay zeka bu görseli onaylamadı: ${moderationResult.reason}`,
-              duration: 5000,
-            });
-            setIsProcessing(false);
-            return;
-          }
-        } catch (e) {
-          console.error('Moderation check failed', e);
-          toast({
-            variant: 'destructive',
-            title: 'Denetleme Hatası',
-            description:
-              'İçerik denetimi sırasında bir hata oluştu. Lütfen tekrar deneyin.',
-          });
-          setIsProcessing(false);
-          return;
-        }
-    } else if (postType === 'text') {
-        if (!textContent.trim()) {
-            toast({
-                variant: 'destructive',
-                title: 'Metin Gerekli',
-                description: 'Lütfen bir şeyler yazın.',
-            });
-            setIsProcessing(false);
-            return;
-        }
-        // Optional: Add text moderation here if needed in the future
+    if (!currentUser) {
+        toast({ variant: 'destructive', title: 'Hata', description: 'Gönderi paylaşmak için giriş yapmalısınız.' });
+        return;
     }
+    setIsProcessing(true);
 
-    toast({
-      title: 'Paylaşılıyor...',
-      description: 'Gönderiniz oluşturuluyor ve arkadaşlarınızla paylaşılıyor.',
-    });
-    setTimeout(() => {
-      setIsProcessing(false);
-      router.push('/explore');
-    }, 2000);
-  };
+    try {
+        let postData: any = {
+            authorId: currentUser.uid,
+            createdAt: serverTimestamp(),
+            likes: 0,
+            commentsCount: 0,
+            type: postType,
+        };
+
+        if (postType === 'photo') {
+            if (!caption) {
+                toast({ variant: 'destructive', title: 'Açıklama Gerekli', description: 'Lütfen gönderiniz için bir açıklama yazın.' });
+                setIsProcessing(false);
+                return;
+            }
+            const moderationResult = await moderateImage({ photoDataUri: imgSrc });
+            if (!moderationResult.isSafe) {
+                toast({ variant: 'destructive', title: 'Uygunsuz İçerik', description: `Yapay zeka bu görseli onaylamadı: ${moderationResult.reason}`, duration: 5000 });
+                setIsProcessing(false);
+                return;
+            }
+            
+            const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}`);
+            await uploadString(storageRef, imgSrc, 'data_url');
+            const downloadURL = await getDownloadURL(storageRef);
+
+            postData = { ...postData, url: downloadURL, caption: caption };
+
+        } else if (postType === 'text') {
+            if (!textContent.trim()) {
+                toast({ variant: 'destructive', title: 'Metin Gerekli', description: 'Lütfen bir şeyler yazın.' });
+                setIsProcessing(false);
+                return;
+            }
+            postData = { ...postData, textContent: textContent.trim() };
+        }
+
+        await addDoc(collection(db, 'posts'), postData);
+
+        toast({
+            title: 'Paylaşıldı!',
+            description: 'Gönderiniz başarıyla paylaşıldı.',
+            className: 'bg-green-500 text-white',
+        });
+        router.push('/explore');
+
+    } catch (error) {
+        console.error("Error sharing post: ", error);
+        toast({ variant: 'destructive', title: 'Paylaşım Hatası', description: 'Gönderi paylaşılırken bir hata oluştu.' });
+    } finally {
+        setIsProcessing(false);
+    }
+};
+
   
   const goBack = () => {
       if (step > 1) {
@@ -465,5 +473,3 @@ export default function CreatePostPage() {
     </div>
   );
 }
-
-    
