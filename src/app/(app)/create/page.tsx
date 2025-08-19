@@ -305,14 +305,8 @@ export default function CreatePostPage() {
         return;
     }
     
-    // Disable button and navigate away immediately
     setIsProcessing(true);
-    router.push('/explore');
-    toast({
-        title: 'Paylaşılıyor...',
-        description: 'Gönderiniz arka planda paylaşılıyor.',
-    });
-
+    
     try {
         let postData: any = {
             authorId: currentUser.uid,
@@ -328,7 +322,7 @@ export default function CreatePostPage() {
             const moderationResult = await moderateImage({ photoDataUri: imgSrc });
             if (!moderationResult.isSafe) {
                 toast({ variant: 'destructive', title: 'Uygunsuz İçerik', description: `Yapay zeka bu görseli onaylamadı: ${moderationResult.reason}`, duration: 5000 });
-                // We don't set isProcessing to false as the user has already navigated away
+                setIsProcessing(false);
                 return;
             }
             
@@ -341,6 +335,7 @@ export default function CreatePostPage() {
         } else if (postType === 'text') {
             if (!textContent.trim()) {
                  toast({ variant: 'destructive', title: 'Metin Gerekli', description: 'Lütfen bir şeyler yazın.' });
+                 setIsProcessing(false);
                  return;
             }
             postData = { ...postData, textContent: textContent.trim() };
@@ -353,12 +348,14 @@ export default function CreatePostPage() {
             description: 'Gönderiniz başarıyla paylaşıldı.',
             className: 'bg-green-500 text-white',
         });
+
+        router.push('/explore');
         
     } catch (error) {
         console.error("Error sharing post: ", error);
         toast({ variant: 'destructive', title: 'Paylaşım Hatası', description: 'Gönderi paylaşılırken bir hata oluştu.' });
-    } 
-    // No finally block to reset isProcessing, as the component unmounts.
+        setIsProcessing(false);
+    }
 };
 
   

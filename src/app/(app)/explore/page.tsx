@@ -7,8 +7,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { translateText } from '@/ai/flows/translate-text-flow';
 import { useToast } from '@/hooks/use-toast';
@@ -16,7 +23,7 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { collection, query, orderBy, getDocs, doc, getDoc, DocumentData } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, doc, getDoc, DocumentData, writeBatch, arrayUnion, updateDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -290,6 +297,34 @@ export default function ExplorePage() {
             } : p));
         }
     };
+    
+    const hidePost = (postId: string) => {
+        setPosts(prevPosts => prevPosts.filter(p => p.id !== postId));
+        toast({ title: 'Gönderi gizlendi.' });
+    };
+
+    const hideAllFromUser = (authorId: string) => {
+        setPosts(prevPosts => prevPosts.filter(p => p.authorId !== authorId));
+        toast({ title: 'Bu kullanıcıdan gelen tüm gönderiler gizlendi.' });
+    };
+
+    const blockUser = async (authorId: string) => {
+        if (!currentUser) {
+            toast({ variant: 'destructive', title: 'Giriş yapmalısınız.' });
+            return;
+        }
+        try {
+            const userDocRef = doc(db, 'users', currentUser.uid);
+            await updateDoc(userDocRef, {
+                blockedUsers: arrayUnion(authorId)
+            });
+            hideAllFromUser(authorId); // Block and hide
+            toast({ variant: 'destructive', title: 'Kullanıcı engellendi.' });
+        } catch (error) {
+            console.error('Error blocking user:', error);
+            toast({ variant: 'destructive', title: 'Kullanıcı engellenirken hata oluştu.' });
+        }
+    };
 
 
   return (
@@ -311,6 +346,34 @@ export default function ExplorePage() {
                             <AvatarFallback>{post.user?.name.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <span className="font-semibold text-sm">{post.user?.name}</span>
+                            <div className="ml-auto">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                            <MoreHorizontal className="w-5 h-5"/>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => hidePost(post.id)}>
+                                            <EyeOff className="mr-2 h-4 w-4"/>
+                                            <span>Gönderiyi Gizle</span>
+                                        </DropdownMenuItem>
+                                         <DropdownMenuItem onClick={() => hideAllFromUser(post.authorId)}>
+                                            <EyeOff className="mr-2 h-4 w-4"/>
+                                            <span>Bu Kullanıcıdan Gizle</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => blockUser(post.authorId)}>
+                                            <UserX className="mr-2 h-4 w-4"/>
+                                            <span>Kullanıcıyı Engelle</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem>
+                                            <Flag className="mr-2 h-4 w-4"/>
+                                            <span>Gönderiyi Şikayet Et</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                         </div>
 
                         {post.type === 'photo' && post.url && (
@@ -484,4 +547,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
