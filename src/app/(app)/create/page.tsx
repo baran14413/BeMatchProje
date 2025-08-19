@@ -16,7 +16,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import {
   ChevronLeft,
   ChevronRight,
@@ -92,44 +91,56 @@ const Step2PhotoUpload = ({ onFileSelect }: { onFileSelect: (e: ChangeEvent<HTML
   );
 };
 
-// Step 3 (Photo): Stylize
-const Step3PhotoStylize = ({
+// Step 3 (Photo): Stylize & Share
+const Step3PhotoShare = ({
   imgSrc,
   stylePrompt,
   setStylePrompt,
+  caption,
+  setCaption,
   isProcessing,
   handleApplyStyle,
+  handleShare,
   onBack,
-  onNext,
 }: {
   imgSrc: string;
   stylePrompt: string;
   setStylePrompt: (value: string) => void;
+  caption: string;
+  setCaption: (value: string) => void;
   isProcessing: boolean;
   handleApplyStyle: () => void;
+  handleShare: () => void;
   onBack: () => void;
-  onNext: () => void;
 }) => (
   <Card className="w-full max-w-lg">
     <CardHeader>
-      <CardTitle>Adım 3: Yapay Zeka İle Stilizasyon</CardTitle>
+      <CardTitle>Adım 3: Düzenle ve Paylaş</CardTitle>
       <CardDescription>
-        İsterseniz fotoğrafınıza sanatsal bir dokunuş katın.
+        İsteğe bağlı olarak stil ve açıklama ekleyebilirsiniz.
       </CardDescription>
     </CardHeader>
     <CardContent className="flex flex-col items-center gap-4">
       {imgSrc && (
         <Image
-          alt="Styled Preview"
+          alt="Preview"
           src={imgSrc}
           width={500}
           height={500}
-          className="max-h-[50vh] object-contain rounded-md"
+          className="max-h-[40vh] object-contain rounded-md"
         />
       )}
       <div className="w-full space-y-2">
         <Textarea
-          placeholder="Örn: bir Van Gogh tablosu gibi yap..."
+          placeholder="İsteğe bağlı açıklama..."
+          value={caption}
+          onChange={(e) => setCaption(e.target.value)}
+          className="min-h-[80px]"
+        />
+      </div>
+       <div className="w-full space-y-2">
+        <Textarea
+          placeholder="Yapay zeka stili ekle (Örn: bir Van Gogh tablosu gibi yap...)"
           value={stylePrompt}
           onChange={(e) => setStylePrompt(e.target.value)}
           disabled={isProcessing}
@@ -139,6 +150,7 @@ const Step3PhotoStylize = ({
           onClick={handleApplyStyle}
           disabled={isProcessing || !stylePrompt}
           className="w-full"
+          variant="outline"
         >
           {isProcessing ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -148,57 +160,6 @@ const Step3PhotoStylize = ({
           Stil Uygula
         </Button>
       </div>
-    </CardContent>
-    <CardFooter className="flex justify-between">
-      <Button variant="outline" onClick={onBack}>
-        <ChevronLeft className="mr-2 h-4 w-4" /> Geri
-      </Button>
-      <Button onClick={onNext}>
-        İleri <ChevronRight className="ml-2 h-4 w-4" />
-      </Button>
-    </CardFooter>
-  </Card>
-);
-
-// Step 4 (Photo): Caption and Share
-const Step4PhotoShare = ({
-  imgSrc,
-  caption,
-  setCaption,
-  isProcessing,
-  handleShare,
-  onBack,
-}: {
-  imgSrc: string;
-  caption: string;
-  setCaption: (value: string) => void;
-  isProcessing: boolean;
-  handleShare: () => void;
-  onBack: () => void;
-}) => (
-  <Card className="w-full max-w-lg">
-    <CardHeader>
-      <CardTitle>Adım 4: Açıklama Ekle ve Paylaş</CardTitle>
-      <CardDescription>
-        Harika fotoğrafınız için bir başlık yazın.
-      </CardDescription>
-    </CardHeader>
-    <CardContent className="flex flex-col items-center gap-4">
-      {imgSrc && (
-        <Image
-          alt="Final Preview"
-          src={imgSrc}
-          width={500}
-          height={500}
-          className="max-h-[50vh] object-contain rounded-md"
-        />
-      )}
-      <Textarea
-        placeholder="Bir şeyler yazın..."
-        value={caption}
-        onChange={(e) => setCaption(e.target.value)}
-        className="min-h-[100px]"
-      />
     </CardContent>
     <CardFooter className="flex justify-between">
       <Button variant="outline" onClick={onBack}>
@@ -216,7 +177,7 @@ const Step4PhotoShare = ({
   </Card>
 );
 
-// Step 2 (Text): Write and Share (Twitter-like)
+// Step 2 (Text): Write and Share
 const Step2TextWrite = ({
     textContent,
     setTextContent,
@@ -269,6 +230,7 @@ export default function CreatePostPage() {
   
   // Photo post states
   const [imgSrc, setImgSrc] = useState('');
+  const [originalImgSrc, setOriginalImgSrc] = useState('');
   const [stylePrompt, setStylePrompt] = useState('');
   const [caption, setCaption] = useState('');
   
@@ -291,7 +253,9 @@ export default function CreatePostPage() {
       const reader = new FileReader();
       reader.addEventListener('load', () => {
         if (reader.result) {
-          setImgSrc(reader.result.toString());
+          const resultStr = reader.result.toString();
+          setImgSrc(resultStr);
+          setOriginalImgSrc(resultStr);
           setStep(3);
         }
       });
@@ -311,7 +275,7 @@ export default function CreatePostPage() {
     setIsProcessing(true);
     try {
       const result = await stylizeImage({
-        photoDataUri: imgSrc,
+        photoDataUri: originalImgSrc, // Always stylize from original
         prompt: stylePrompt,
       });
       if (result.error || !result.stylizedImageDataUri) {
@@ -340,7 +304,14 @@ export default function CreatePostPage() {
         toast({ variant: 'destructive', title: 'Hata', description: 'Gönderi paylaşmak için giriş yapmalısınız.' });
         return;
     }
+    
+    // Disable button and navigate away immediately
     setIsProcessing(true);
+    router.push('/explore');
+    toast({
+        title: 'Paylaşılıyor...',
+        description: 'Gönderiniz arka planda paylaşılıyor.',
+    });
 
     try {
         let postData: any = {
@@ -354,29 +325,23 @@ export default function CreatePostPage() {
         };
 
         if (postType === 'photo') {
-            if (!caption) {
-                toast({ variant: 'destructive', title: 'Açıklama Gerekli', description: 'Lütfen gönderiniz için bir açıklama yazın.' });
-                setIsProcessing(false);
-                return;
-            }
             const moderationResult = await moderateImage({ photoDataUri: imgSrc });
             if (!moderationResult.isSafe) {
                 toast({ variant: 'destructive', title: 'Uygunsuz İçerik', description: `Yapay zeka bu görseli onaylamadı: ${moderationResult.reason}`, duration: 5000 });
-                setIsProcessing(false);
+                // We don't set isProcessing to false as the user has already navigated away
                 return;
             }
             
             const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}`);
-            await uploadString(storageRef, imgSrc, 'data_url');
-            const downloadURL = await getDownloadURL(storageRef);
+            const uploadTask = await uploadString(storageRef, imgSrc, 'data_url');
+            const downloadURL = await getDownloadURL(uploadTask.ref);
 
-            postData = { ...postData, url: downloadURL, caption: caption };
+            postData = { ...postData, url: downloadURL, caption: caption || '' };
 
         } else if (postType === 'text') {
             if (!textContent.trim()) {
-                toast({ variant: 'destructive', title: 'Metin Gerekli', description: 'Lütfen bir şeyler yazın.' });
-                setIsProcessing(false);
-                return;
+                 toast({ variant: 'destructive', title: 'Metin Gerekli', description: 'Lütfen bir şeyler yazın.' });
+                 return;
             }
             postData = { ...postData, textContent: textContent.trim() };
         }
@@ -388,28 +353,24 @@ export default function CreatePostPage() {
             description: 'Gönderiniz başarıyla paylaşıldı.',
             className: 'bg-green-500 text-white',
         });
-        router.push('/explore');
-
+        
     } catch (error) {
         console.error("Error sharing post: ", error);
         toast({ variant: 'destructive', title: 'Paylaşım Hatası', description: 'Gönderi paylaşılırken bir hata oluştu.' });
-    } finally {
-        setIsProcessing(false);
-    }
+    } 
+    // No finally block to reset isProcessing, as the component unmounts.
 };
 
-  
-  const goBack = () => {
-      if (step > 1) {
-          setStep(step - 1);
-      } else {
-          setPostType(null);
-      }
-  }
   
   const goBackToTypeSelect = () => {
       setPostType(null);
       setStep(1);
+      // Reset states
+      setImgSrc('');
+      setOriginalImgSrc('');
+      setStylePrompt('');
+      setCaption('');
+      setTextContent('');
   }
 
   const renderStep = () => {
@@ -423,25 +384,16 @@ export default function CreatePostPage() {
             return <Step2PhotoUpload onFileSelect={onSelectFile} />;
           case 3:
             return (
-              <Step3PhotoStylize
+              <Step3PhotoShare
                 imgSrc={imgSrc}
                 stylePrompt={stylePrompt}
                 setStylePrompt={setStylePrompt}
-                isProcessing={isProcessing}
-                handleApplyStyle={handleApplyStyle}
-                onBack={() => setStep(2)}
-                onNext={() => setStep(4)}
-              />
-            );
-          case 4:
-            return (
-              <Step4PhotoShare
-                imgSrc={imgSrc}
                 caption={caption}
                 setCaption={setCaption}
                 isProcessing={isProcessing}
+                handleApplyStyle={handleApplyStyle}
                 handleShare={handleShare}
-                onBack={() => setStep(3)}
+                onBack={() => setStep(2)}
               />
             );
           default:

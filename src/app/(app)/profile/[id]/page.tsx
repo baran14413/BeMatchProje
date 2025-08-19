@@ -50,7 +50,7 @@ type Post = {
     textContent?: string;
     caption?: string;
     likes: number;
-    comments: number;
+    commentsCount: number; // Switched from comments to commentsCount
 };
 
 type RequestStatus = 'idle' | 'loading' | 'sent';
@@ -78,18 +78,6 @@ const PostCard = ({ post, user, isMyProfile }: { post: Post, user: DocumentData,
                     </div>
                 )}
             </div>
-
-            {post.type === 'photo' && post.url && (
-                <div className="relative w-full aspect-square">
-                    <Image
-                    src={post.url}
-                    alt={`Post by ${user.name}`}
-                    fill
-                    className="object-cover"
-                    data-ai-hint={post.aiHint}
-                    />
-                </div>
-            )}
             
             {post.type === 'text' && (
                 <div className="px-4 py-6 bg-muted/30">
@@ -113,15 +101,15 @@ const PostCard = ({ post, user, isMyProfile }: { post: Post, user: DocumentData,
 
             <div className="px-3 pb-3 text-sm">
                 <p className="font-semibold">{post.likes.toLocaleString()} beğeni</p>
-                {(post.caption || (post.type === 'photo' && post.textContent)) && (
+                {post.textContent && (
                      <p>
                         <span className="font-semibold">{user.name}</span>{' '}
-                        {post.caption || post.textContent}
+                        {post.textContent}
                     </p>
                 )}
-                {post.comments > 0 && (
+                {post.commentsCount > 0 && (
                     <p className="text-muted-foreground mt-1 cursor-pointer">
-                    {post.comments.toLocaleString()} yorumun tümünü gör
+                    {post.commentsCount.toLocaleString()} yorumun tümünü gör
                     </p>
                 )}
             </div>
@@ -182,17 +170,21 @@ export default function UserProfilePage() {
           setUserProfile(userData);
 
           // Check for gallery access
-          if (userData.isGalleryPrivate && currentUser) {
-              const permissionDocRef = doc(db, 'users', params.id, 'galleryPermissions', currentUser.uid);
-              const permissionDocSnap = await getDoc(permissionDocRef);
-              if (permissionDocSnap.exists()) {
-                  // TODO: Check for expiry if temporary
-                  setHasGalleryAccess(true);
+          if (userData.isGalleryPrivate && !isMyProfile) {
+              if (currentUser) {
+                const permissionDocRef = doc(db, 'users', params.id, 'galleryPermissions', currentUser.uid);
+                const permissionDocSnap = await getDoc(permissionDocRef);
+                if (permissionDocSnap.exists()) {
+                    // TODO: Check for expiry if temporary
+                    setHasGalleryAccess(true);
+                } else {
+                    setHasGalleryAccess(false);
+                }
               } else {
-                  setHasGalleryAccess(false);
+                 setHasGalleryAccess(false);
               }
           } else {
-              setHasGalleryAccess(true); // Public gallery
+              setHasGalleryAccess(true); // Public gallery or my own profile
           }
           
           const postsQuery = query(collection(db, 'posts'), where('authorId', '==', params.id), orderBy('createdAt', 'desc'));
@@ -211,7 +203,7 @@ export default function UserProfilePage() {
     };
 
     fetchUserProfile();
-  }, [params.id, currentUser]);
+  }, [params.id, currentUser, isMyProfile]);
 
   const handleRequestAccess = async () => {
       if (!currentUser || !userProfile) return;
@@ -258,6 +250,7 @@ export default function UserProfilePage() {
   }
   
   const photoPosts = userPosts.filter(p => p.type === 'photo');
+  const textPosts = userPosts.filter(p => p.type === 'text');
 
   const showGalleryContent = !userProfile.isGalleryPrivate || hasGalleryAccess || isMyProfile;
 
@@ -373,13 +366,13 @@ export default function UserProfilePage() {
 
           <TabsContent value="feed" className="mt-4">
             <div className="flex flex-col">
-                {userPosts.map((post) => (
+                {textPosts.map((post) => (
                     <PostCard key={post.id} post={post} user={userProfile} isMyProfile={isMyProfile}/>
                 ))}
             </div>
-            {userPosts.length === 0 && (
+            {textPosts.length === 0 && (
                 <div className='text-center py-10 text-muted-foreground'>
-                    <p>Henüz gönderi yok.</p>
+                    <p>Henüz metin gönderisi yok.</p>
                 </div>
             )}
           </TabsContent>
