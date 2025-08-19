@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { translateText } from '@/ai/flows/translate-text-flow';
@@ -17,7 +17,7 @@ import { tr } from 'date-fns/locale';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { collection, query, orderBy, getDocs, doc, getDoc, DocumentData } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const formatRelativeTime = (date: Date) => {
@@ -36,6 +36,7 @@ type User = {
   name: string;
   avatarUrl: string;
   aiHint?: string;
+  isGalleryPrivate?: boolean;
 };
 
 type Comment = {
@@ -56,7 +57,7 @@ type Post = DocumentData & {
   type: 'photo' | 'text';
   authorId: string;
   user?: User; // Will be populated after fetching
-  image?: string;
+  url?: string; // For photo posts, renamed from 'image'
   aiHint?: string;
   caption?: string;
   textContent?: string;
@@ -68,6 +69,7 @@ type Post = DocumentData & {
   commentsCount: number;
   liked: boolean;
   comments: Comment[];
+  isGalleryLocked?: boolean; // New flag
 };
 
 const PostSkeleton = () => (
@@ -92,6 +94,7 @@ export default function ExplorePage() {
     const [commentInput, setCommentInput] = useState('');
     const commentInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
+    const currentUser = auth.currentUser;
 
     useEffect(() => {
         const fetchPostsAndAuthors = async () => {
@@ -104,19 +107,33 @@ export default function ExplorePage() {
                 const populatedPosts = await Promise.all(
                     postsData.map(async (post) => {
                         let authorData: User | undefined = undefined;
+                        let isGalleryLocked = false;
+
                         if (post.authorId) {
                             const userDocRef = doc(db, 'users', post.authorId);
                             const userDocSnap = await getDoc(userDocRef);
                             if (userDocSnap.exists()) {
                                 authorData = userDocSnap.data() as User;
+                                
+                                if (post.type === 'photo' && authorData.isGalleryPrivate && post.authorId !== currentUser?.uid) {
+                                     if (currentUser) {
+                                        const permissionDocRef = doc(db, 'users', post.authorId, 'galleryPermissions', currentUser.uid);
+                                        const permissionDocSnap = await getDoc(permissionDocRef);
+                                        if (!permissionDocSnap.exists()) {
+                                            isGalleryLocked = true;
+                                        }
+                                        // TODO: check for expired temp access
+                                    } else {
+                                        isGalleryLocked = true; // Not logged in, lock it
+                                    }
+                                }
                             }
                         }
-                        // TODO: Fetch comments for each post
-                        return { ...post, user: authorData, comments: [] };
+                        return { ...post, user: authorData, comments: [], isGalleryLocked };
                     })
                 );
 
-                setPosts(populatedPosts.filter(p => p.user) as Post[]); // Filter out posts where author couldn't be fetched
+                setPosts(populatedPosts.filter(p => p.user) as Post[]);
 
             } catch (error) {
                 console.error("Error fetching posts: ", error);
@@ -130,8 +147,13 @@ export default function ExplorePage() {
             }
         };
 
-        fetchPostsAndAuthors();
-    }, [toast]);
+        if (currentUser) {
+            fetchPostsAndAuthors();
+        } else {
+            // Handle case where user is not logged in, maybe show a generic feed or login prompt
+            setLoading(false);
+        }
+    }, [toast, currentUser]);
 
     const handleLikeClick = (postId: string) => {
         setPosts(posts.map(post => 
@@ -291,15 +313,26 @@ export default function ExplorePage() {
                             <span className="font-semibold text-sm">{post.user?.name}</span>
                         </div>
 
-                        {post.type === 'photo' && post.image && (
-                            <div className="relative w-full aspect-square">
+                        {post.type === 'photo' && post.url && (
+                            <div className="relative w-full aspect-square group">
                                 <Image
-                                src={post.image}
+                                src={post.url}
                                 alt={`Post by ${post.user?.name}`}
                                 fill
-                                className="object-cover"
+                                className={cn("object-cover", post.isGalleryLocked && "blur-md")}
                                 data-ai-hint={post.aiHint}
                                 />
+                                {post.isGalleryLocked && (
+                                     <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center text-white p-4">
+                                        <Lock className="w-10 h-10 mb-4"/>
+                                        <h3 className="font-bold">Bu Galeri Gizli</h3>
+                                        <Link href={`/profile/${post.authorId}`} className='mt-4'>
+                                            <Button variant="secondary">
+                                                Galeriyi görmek için izin iste
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
                         )}
                         
@@ -338,7 +371,7 @@ export default function ExplorePage() {
 
                         <div className="px-3 pb-3 text-sm">
                             <p className="font-semibold">{post.likes.toLocaleString()} beğeni</p>
-                            {post.type === 'photo' && (
+                            {post.type === 'photo' && post.caption && !post.isGalleryLocked && (
                                 <p>
                                     <span className="font-semibold">{post.user?.name}</span>{' '}
                                     {post.caption}
@@ -415,8 +448,8 @@ export default function ExplorePage() {
                         </div>
                         <div className="flex items-center gap-2 mt-2">
                             <Avatar className="w-8 h-8">
-                                <AvatarImage src="https://placehold.co/40x40.png" data-ai-hint="current user portrait" />
-                                <AvatarFallback>B</AvatarFallback>
+                                <AvatarImage src={currentUser?.photoURL || "https://placehold.co/40x40.png"} data-ai-hint="current user portrait" />
+                                <AvatarFallback>{currentUser?.displayName?.charAt(0) || 'B'}</AvatarFallback>
                             </Avatar>
                             <div className="relative flex-1">
                                 <Input 
@@ -451,3 +484,4 @@ export default function ExplorePage() {
     </div>
   );
 }
+
