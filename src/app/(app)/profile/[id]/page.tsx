@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   ShieldCheck,
   MessageSquare,
@@ -28,18 +29,18 @@ import {
   Lock,
   Sparkles,
   UserCheck as UserCheckIcon,
-  Grid3x3,
   List,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
-import { doc, getDoc, collection, query, where, getDocs, DocumentData, addDoc, serverTimestamp, orderBy, deleteDoc, runTransaction, increment } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, DocumentData, addDoc, serverTimestamp, orderBy, deleteDoc, runTransaction, increment, writeBatch, documentId } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type Post = {
     id: string;
@@ -55,6 +56,13 @@ type Post = {
 };
 
 type RequestStatus = 'idle' | 'loading' | 'sent';
+type FollowListType = 'followers' | 'following';
+type FollowUser = {
+  uid: string;
+  name: string;
+  avatarUrl: string;
+  isFollowing: boolean; // Is the CURRENT user following THIS person in the list?
+};
 
 const PostCard = ({ post, user }: { post: Post, user: DocumentData }) => (
     <Card className="rounded-xl overflow-hidden mb-4 relative group">
@@ -160,16 +168,22 @@ const ProfileSkeleton = () => (
 
 export default function UserProfilePage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const [userProfile, setUserProfile] = useState<DocumentData | null>(null);
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowProcessing, setIsFollowProcessing] = useState(false);
   const [hasGalleryAccess, setHasGalleryAccess] = useState(false);
-  const [requestStatus, setRequestStatus] = useState<RequestStatus>('idle');
+  const [requestStatus, setRequestStatus] = useState<RequestStatus>('idle' as RequestStatus);
   const [isMyProfile, setIsMyProfile] = useState(false);
   const currentUser = auth.currentUser;
   const { toast } = useToast();
+  
+  const [followList, setFollowList] = useState<FollowUser[]>([]);
+  const [isFollowListLoading, setIsFollowListLoading] = useState(false);
+  const [followListType, setFollowListType] = useState<FollowListType | null>(null);
+  const [isListSheetOpen, setIsListSheetOpen] = useState(false);
 
  useEffect(() => {
     const fetchUserProfile = async () => {
@@ -213,11 +227,7 @@ export default function UserProfilePage() {
           const postsSnapshot = await getDocs(postsQuery);
           const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
           
-          postsData.sort((a, b) => {
-              const dateA = a.createdAt?.seconds ?? 0;
-              const dateB = b.createdAt?.seconds ?? 0;
-              return dateB - dateA;
-          });
+          postsData.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
 
           setUserPosts(postsData);
 
@@ -272,39 +282,40 @@ export default function UserProfilePage() {
     const targetUserRef = doc(db, 'users', userProfile.uid);
     const followingRef = doc(db, 'users', currentUser.uid, 'following', userProfile.uid);
     const followerRef = doc(db, 'users', userProfile.uid, 'followers', currentUser.uid);
-    const notificationCollectionRef = collection(db, 'notifications');
-
+    
     try {
-        await runTransaction(db, async (transaction) => {
-            if (isFollowing) {
-                // Unfollow
-                transaction.delete(followingRef);
-                transaction.delete(followerRef);
-                transaction.update(currentUserRef, { 'stats.following': increment(-1) });
-                transaction.update(targetUserRef, { 'stats.followers': increment(-1) });
-            } else {
-                // Follow
-                transaction.set(followingRef, { uid: userProfile.uid, followedAt: serverTimestamp() });
-                transaction.set(followerRef, { uid: currentUser.uid, followedAt: serverTimestamp() });
-                transaction.update(currentUserRef, { 'stats.following': increment(1) });
-                transaction.update(targetUserRef, { 'stats.followers': increment(1) });
-                
-                // Create Notification
-                const notificationRef = doc(notificationCollectionRef);
-                transaction.set(notificationRef, {
-                    recipientId: userProfile.uid,
-                    type: 'follow',
-                    fromUser: {
-                        uid: currentUser.uid,
-                        name: currentUser.displayName,
-                        avatar: currentUser.photoURL,
-                        aiHint: "current user portrait"
-                    },
-                    read: false,
-                    createdAt: serverTimestamp()
-                });
-            }
-        });
+        const batch = writeBatch(db);
+
+        if (isFollowing) {
+            // Unfollow
+            batch.delete(followingRef);
+            batch.delete(followerRef);
+            batch.update(currentUserRef, { 'stats.following': increment(-1) });
+            batch.update(targetUserRef, { 'stats.followers': increment(-1) });
+        } else {
+            // Follow
+            batch.set(followingRef, { uid: userProfile.uid, followedAt: serverTimestamp() });
+            batch.set(followerRef, { uid: currentUser.uid, followedAt: serverTimestamp() });
+            batch.update(currentUserRef, { 'stats.following': increment(1) });
+            batch.update(targetUserRef, { 'stats.followers': increment(1) });
+            
+            // Create Notification
+            const notificationRef = doc(collection(db, 'notifications'));
+             batch.set(notificationRef, {
+                recipientId: userProfile.uid,
+                type: 'follow',
+                fromUser: {
+                    uid: currentUser.uid,
+                    name: currentUser.displayName,
+                    avatar: currentUser.photoURL,
+                    aiHint: "current user portrait"
+                },
+                read: false,
+                createdAt: serverTimestamp()
+            });
+        }
+        
+        await batch.commit();
 
         setIsFollowing(!isFollowing);
         setUserProfile(prev => {
@@ -326,9 +337,54 @@ export default function UserProfilePage() {
     }
   };
 
+   const fetchFollowList = async (listType: FollowListType) => {
+    if (!userProfile) return;
+    setFollowListType(listType);
+    setIsFollowListLoading(true);
+    setIsListSheetOpen(true);
+    setFollowList([]);
 
-  const StatItem = ({ value, label }: { value: number | undefined, label: string }) => (
-      <div className="flex flex-col items-center">
+    try {
+        const listCollectionRef = collection(db, 'users', userProfile.uid, listType);
+        const listSnapshot = await getDocs(listCollectionRef);
+        const listUserIds = listSnapshot.docs.map(d => d.id);
+        
+        if (listUserIds.length === 0) {
+            setIsFollowListLoading(false);
+            return;
+        }
+
+        const usersQuery = query(collection(db, 'users'), where(documentId(), 'in', listUserIds));
+        const usersSnapshot = await getDocs(usersQuery);
+        
+        // Check which of these users the current user is following
+        const myFollowingRef = collection(db, 'users', currentUser!.uid, 'following');
+        const myFollowingSnapshot = await getDocs(myFollowingRef);
+        const myFollowingIds = new Set(myFollowingSnapshot.docs.map(d => d.id));
+        
+        const fetchedUsers = usersSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                uid: doc.id,
+                name: data.name,
+                avatarUrl: data.avatarUrl,
+                isFollowing: myFollowingIds.has(doc.id)
+            };
+        });
+
+        setFollowList(fetchedUsers);
+
+    } catch (error) {
+        console.error(`Error fetching ${listType}:`, error);
+        toast({ variant: 'destructive', title: 'Liste alınamadı.' });
+    } finally {
+        setIsFollowListLoading(false);
+    }
+  };
+
+
+  const StatItem = ({ value, label, onClick }: { value: number | undefined, label: string, onClick?: () => void }) => (
+      <div className={cn("flex flex-col items-center", onClick && "cursor-pointer")} onClick={onClick}>
           <p className="text-xl font-bold">{value ?? 0}</p>
           <p className="text-sm text-muted-foreground">{label}</p>
       </div>
@@ -361,8 +417,8 @@ export default function UserProfilePage() {
           </Avatar>
           <div className="flex-1 grid grid-cols-3 gap-4 text-center">
             <StatItem value={userPosts.length} label="Gönderi" />
-            <StatItem value={userProfile.stats?.followers} label="Takipçi" />
-            <StatItem value={userProfile.stats?.following} label="Takip" />
+            <StatItem value={userProfile.stats?.followers} label="Takipçi" onClick={() => fetchFollowList('followers')} />
+            <StatItem value={userProfile.stats?.following} label="Takip" onClick={() => fetchFollowList('following')} />
           </div>
         </header>
 
@@ -466,6 +522,50 @@ export default function UserProfilePage() {
             )}
         </div>
       </div>
+      
+       <Sheet open={isListSheetOpen} onOpenChange={setIsListSheetOpen}>
+          <SheetContent side="bottom" className="h-[80vh] flex flex-col">
+              <SheetHeader className="text-center p-4 border-b shrink-0">
+                  <SheetTitle>
+                    {followListType === 'followers' ? 'Takipçiler' : 'Takip Edilenler'}
+                    <span className="text-muted-foreground font-normal ml-2">({followList.length})</span>
+                  </SheetTitle>
+              </SheetHeader>
+              <ScrollArea className="flex-1">
+                  {isFollowListLoading ? (
+                      <div className="flex justify-center items-center h-full">
+                          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                      </div>
+                  ) : followList.length > 0 ? (
+                      <div className="divide-y">
+                          {followList.map(user => (
+                              <div key={user.uid} className="flex items-center p-4 gap-4">
+                                  <Avatar className="w-12 h-12">
+                                      <AvatarImage src={user.avatarUrl} data-ai-hint={user.name} onClick={() => { setIsListSheetOpen(false); router.push(`/profile/${user.uid}`);}}/>
+                                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 overflow-hidden" onClick={() => { setIsListSheetOpen(false); router.push(`/profile/${user.uid}`);}}>
+                                      <p className="font-semibold truncate">{user.name}</p>
+                                  </div>
+                                  {user.uid !== currentUser?.uid && (
+                                     <Button size="sm" variant={user.isFollowing ? 'outline' : 'default'}>
+                                        {user.isFollowing ? 'Takibi Bırak' : 'Takip Et'}
+                                    </Button>
+                                  )}
+                              </div>
+                          ))}
+                      </div>
+                  ) : (
+                      <div className="text-center text-muted-foreground p-10">
+                          <List className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50"/>
+                          <p>Henüz kimse yok.</p>
+                      </div>
+                  )}
+              </ScrollArea>
+          </SheetContent>
+      </Sheet>
     </div>
   );
 }
+
+    
