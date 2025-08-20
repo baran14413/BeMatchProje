@@ -1,18 +1,20 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, Fragment } from 'react';
 import { useRouter, useSearchParams }from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, Pencil, Trash2, BellOff, Pin, X, Loader2 } from 'lucide-react';
+import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, Pencil, Trash2, BellOff, Pin, X, Loader2, Undo, CornerUpLeft, MoreHorizontal, Heart, ThumbsUp, Laugh, Angry, Wow } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { collection, query, where, getDocs, onSnapshot, doc, orderBy, addDoc, serverTimestamp, Timestamp, updateDoc, getDoc, arrayUnion, arrayRemove, deleteDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,6 +33,9 @@ type Message = {
     text: string;
     senderId: string;
     timestamp: Timestamp;
+    reaction?: string;
+    isEdited?: boolean;
+    deletedFor?: string[];
 };
 
 type Conversation = {
@@ -44,6 +49,9 @@ type Conversation = {
     isMuted: boolean;
     unreadCount: number;
 };
+
+const REACTIONS = ['❤️', '👍', '😂', '😢', '😮'];
+
 
 const formatRelativeTime = (date: Date | null) => {
     if (!date) return '';
@@ -75,6 +83,9 @@ export default function ChatPage() {
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState('');
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -88,7 +99,7 @@ export default function ChatPage() {
         const findOrCreateConversation = async () => {
             setRedirecting(true);
             try {
-                // Generate a consistent conversation ID
+                // Generate a consistent conversation ID by sorting UIDs
                 const conversationId = [currentUser.uid, userIdToChat].sort().join('-');
                 const conversationRef = doc(db, 'conversations', conversationId);
                 const conversationSnap = await getDoc(conversationRef);
@@ -213,7 +224,9 @@ export default function ChatPage() {
     // Listener for messages in the active conversation
     const messagesQuery = query(collection(db, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc'));
     const messagesUnsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
-        const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
+        const msgs = querySnapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() } as Message))
+            .filter(m => !m.deletedFor?.includes(currentUser.uid)); // Filter messages deleted for me
         setMessages(msgs);
         setChatLoading(false); // Messages are loaded
     }, (error) => {
@@ -294,31 +307,66 @@ export default function ChatPage() {
   };
   
   const handleDelete = async () => {
+    if (!activeChat) return;
     const promises = Array.from(selectedIds).map(id => deleteDoc(doc(db, 'conversations', id)));
     try {
         await Promise.all(promises);
         toast({ title: `${selectedIds.size} sohbet silindi.` });
         setIsEditMode(false);
         setSelectedIds(new Set());
+         if (selectedIds.has(activeChat.id)) {
+            router.push('/chat');
+        }
     } catch(error) {
         console.error("Error deleting conversations: ", error);
         toast({ title: 'Sohbetler silinirken bir hata oluştu.', variant: 'destructive'});
     }
   };
-
-  const handleMute = () => {
-    // TODO: Implement mute logic with user-specific conversation data
-    toast({ title: "Bu özellik henüz eklenmedi." });
-    setIsEditMode(false);
-    setSelectedIds(new Set());
-  };
   
-  const handlePin = () => {
-    // TODO: Implement pin logic with user-specific conversation data
-    toast({ title: "Bu özellik henüz eklenmedi." });
-    setIsEditMode(false);
-    setSelectedIds(new Set());
-  };
+    const handleReaction = async (messageId: string, reaction: string | null) => {
+        if (!activeChat) return;
+        const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
+        await updateDoc(messageRef, { reaction: reaction });
+    };
+
+    const startEditing = (message: Message) => {
+        setEditingMessageId(message.id);
+        setEditingText(message.text);
+    };
+
+    const cancelEditing = () => {
+        setEditingMessageId(null);
+        setEditingText('');
+    };
+    
+    const saveEditing = async () => {
+        if (!activeChat || !editingMessageId || !editingText.trim()) return;
+        const messageRef = doc(db, 'conversations', activeChat.id, 'messages', editingMessageId);
+        await updateDoc(messageRef, {
+            text: editingText.trim(),
+            isEdited: true
+        });
+        cancelEditing();
+    };
+    
+    const handleDeleteMessageForMe = async (messageId: string) => {
+        if (!activeChat || !currentUser) return;
+        const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
+        await updateDoc(messageRef, {
+            deletedFor: arrayUnion(currentUser.uid)
+        });
+    };
+
+    const handleDeleteMessageForEveryone = async (messageId: string) => {
+        if (!activeChat) return;
+        const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
+        await updateDoc(messageRef, {
+            text: 'Bu mesaj silindi.',
+            reaction: null,
+            isEdited: false,
+            deletedForEveryone: true // You can use this field to render differently
+        });
+    };
 
 
   if (redirecting) {
@@ -343,10 +391,10 @@ export default function ChatPage() {
                        <Button variant="ghost" size="icon" className="rounded-full" onClick={handleDelete} disabled={selectedIds.size === 0}>
                            <Trash2 className="w-5 h-5"/>
                        </Button>
-                        <Button variant="ghost" size="icon" className="rounded-full" onClick={handleMute} disabled={selectedIds.size !== 1}>
+                        <Button variant="ghost" size="icon" className="rounded-full" onClick={() => {}} disabled={selectedIds.size !== 1}>
                            <BellOff className="w-5 h-5"/>
                        </Button>
-                        <Button variant="ghost" size="icon" className="rounded-full" onClick={handlePin} disabled={selectedIds.size !== 1}>
+                        <Button variant="ghost" size="icon" className="rounded-full" onClick={() => {}} disabled={selectedIds.size !== 1}>
                            <Pin className="w-5 h-5"/>
                        </Button>
                    </div>
@@ -473,31 +521,76 @@ export default function ChatPage() {
                       <Loader2 className="w-8 h-8 animate-spin text-primary" />
                     </div>
                 ) : (
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-1">
                     {messages.map((message) => (
                       <div
                         key={message.id}
                         className={cn(
-                          'flex items-end gap-2 max-w-md',
+                          'flex items-end gap-2 max-w-lg group',
                           message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start'
                         )}
                       >
-                        <div
-                          className={cn(
-                            'rounded-xl px-4 py-2 text-sm',
-                            message.senderId === currentUser?.uid
-                              ? 'bg-primary text-primary-foreground rounded-br-none'
-                              : 'bg-card border rounded-bl-none'
-                          )}
-                        >
-                          <p>{message.text}</p>
-                          <p className={cn(
-                            'text-xs mt-1 text-right',
-                            message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70'
-                          )}>
-                            {message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                          </p>
-                        </div>
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                               <div className={cn(
+                                'rounded-xl px-4 py-2 text-sm relative cursor-pointer',
+                                message.senderId === currentUser?.uid ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none'
+                                )}>
+                                    {editingMessageId === message.id ? (
+                                        <div className='flex items-center gap-2'>
+                                            <Input 
+                                                value={editingText}
+                                                onChange={(e) => setEditingText(e.target.value)}
+                                                className="bg-background/20 h-8 border-background/50 text-white"
+                                                autoFocus
+                                            />
+                                            <Button size="sm" variant="ghost" onClick={cancelEditing}>İptal</Button>
+                                            <Button size="sm" onClick={saveEditing}>Kaydet</Button>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <p>{message.text}</p>
+                                            <div className={cn('flex items-center gap-2 text-xs mt-1', message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70')}>
+                                                {message.isEdited && <span>(düzenlendi)</span>}
+                                                <span>{message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                            </div>
+                                             {message.reaction && (
+                                                <div className="absolute -bottom-3 rounded-full bg-background border px-2 py-0.5 text-base"
+                                                    style={{ [message.senderId === currentUser?.uid ? 'right' : 'left']: '10px' }}>
+                                                    {message.reaction}
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                               </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align={message.senderId === currentUser?.uid ? 'end' : 'start'}>
+                               <div className="flex gap-1 p-1">
+                                    {REACTIONS.map(r => (
+                                        <Button key={r} variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => handleReaction(message.id, message.reaction === r ? null : r)}>
+                                            {r}
+                                        </Button>
+                                    ))}
+                               </div>
+                               <DropdownMenuSeparator />
+                               {message.senderId === currentUser?.uid && (
+                                 <DropdownMenuItem onClick={() => startEditing(message)}>
+                                     <Pencil className="mr-2 h-4 w-4" />
+                                     <span>Düzenle</span>
+                                 </DropdownMenuItem>
+                               )}
+                                <DropdownMenuItem onClick={() => handleDeleteMessageForMe(message.id)}>
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    <span>Benden Sil</span>
+                                </DropdownMenuItem>
+                                {message.senderId === currentUser?.uid && (
+                                    <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteMessageForEveryone(message.id)}>
+                                        <Undo className="mr-2 h-4 w-4" />
+                                        <span>Herkesten Sil</span>
+                                    </DropdownMenuItem>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     ))}
                   </div>
@@ -539,3 +632,5 @@ export default function ChatPage() {
     </div>
   );
 }
+
+    
