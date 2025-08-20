@@ -22,7 +22,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import Image from 'next/image';
-import { moderateImage } from '@/ai/flows/moderate-image-flow';
 import { Textarea } from '@/components/ui/textarea';
 
 
@@ -93,7 +92,7 @@ export default function ChatPage() {
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const messageInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [imageToSend, setImageToSend] = useState<string | null>(null);
@@ -112,6 +111,7 @@ export default function ChatPage() {
     if (userIdToChat && currentUser && !isRedirectingRef.current) {
         const findOrCreateConversation = async () => {
             isRedirectingRef.current = true;
+            setActiveChat(null); // Clear previous chat while loading
             setChatLoading(true);
             try {
                 // Generate a consistent conversation ID by sorting UIDs
@@ -133,8 +133,8 @@ export default function ChatPage() {
                 toast({ title: "Sohbet başlatılamadı.", variant: "destructive" });
                 router.replace('/chat');
             } finally {
-                // Do not set chatLoading to false here, the other useEffect will handle it
                  isRedirectingRef.current = false;
+                 setChatLoading(false);
             }
         };
         findOrCreateConversation();
@@ -232,14 +232,12 @@ export default function ChatPage() {
     }, (error) => {
         console.error("Error fetching active chat details:", error);
         toast({title: "Sohbet detayları alınamadı.", variant: "destructive"});
-        setChatLoading(false);
     });
 
     const messagesQuery = query(collection(db, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc'));
     const messagesUnsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
         const msgs = querySnapshot.docs
-            .map(doc => ({ id: doc.id, ...doc.data() } as Message))
-            .filter(m => !m.deletedFor?.includes(currentUser.uid));
+            .map(doc => ({ id: doc.id, ...doc.data() } as Message));
         setMessages(msgs);
         setChatLoading(false);
     }, (error) => {
@@ -405,7 +403,7 @@ export default function ChatPage() {
     const startEditing = (message: Message) => {
         setEditingMessageId(message.id);
         setMessageInput(message.text || '');
-        messageInputRef.current?.focus();
+        textareaRef.current?.focus();
     };
 
     const cancelEditing = () => {
@@ -426,20 +424,21 @@ export default function ChatPage() {
     const handleDeleteMessageForMe = async (messageId: string) => {
         if (!activeChat || !currentUser) return;
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
-        await updateDoc(messageRef, {
-            deletedFor: arrayUnion(currentUser.uid)
-        });
+        
+        const message = messages.find(m => m.id === messageId);
+        if (message?.senderId === currentUser.uid) {
+           await updateDoc(messageRef, { text: 'Bu mesaj silindi.', isDeleted: true, reaction: null, imageUrl: null });
+        } else {
+            await updateDoc(messageRef, {
+                deletedFor: arrayUnion(currentUser.uid)
+            });
+        }
     };
 
     const handleDeleteMessageForEveryone = async (messageId: string) => {
         if (!activeChat) return;
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
-        await updateDoc(messageRef, {
-            text: 'Bu mesaj silindi.',
-            imageUrl: null,
-            isDeleted: true,
-            reaction: null,
-        });
+        await updateDoc(messageRef, { text: 'Bu mesaj silindi.', isDeleted: true, reaction: null, imageUrl: null });
     };
     
     const handleFormSubmit = (e: React.FormEvent) => {
@@ -450,6 +449,13 @@ export default function ChatPage() {
             handleSendMessage();
         }
     };
+
+  useEffect(() => {
+    if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto'; // Reset height
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [messageInput]);
 
 
   return (
@@ -598,21 +604,26 @@ export default function ChatPage() {
                 ) : (
                   <div className="flex flex-col gap-1">
                     {messages.map((message) => {
+                        const isUserHidden = currentUser && message.deletedFor?.includes(currentUser.uid);
+                        if (isUserHidden) {
+                            return null; // Don't render anything for this user
+                        }
+
                         if (message.isDeleted) {
-                            return (
+                             return (
                                 <div key={message.id} className={cn('flex items-end gap-2 max-w-lg', message.senderId === currentUser?.uid ? 'self-end' : 'self-start')}>
                                     <div className="rounded-xl px-4 py-2 text-sm text-muted-foreground italic">
                                         Bu mesaj silindi.
                                     </div>
                                 </div>
-                            )
+                            );
                         }
                        
                        const hasOnlyImage = message.imageUrl && !message.text;
 
                        const messageContent = (
                             <div className={cn(
-                                'rounded-xl px-4 py-2 text-sm relative break-words',
+                                'rounded-xl px-4 py-2 text-sm relative',
                                 message.senderId === currentUser?.uid ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none',
                                 hasOnlyImage && 'bg-transparent border-none p-0'
                             )}>
@@ -628,7 +639,7 @@ export default function ChatPage() {
                                         />
                                     </div>
                                 )}
-                                {message.text && <p>{message.text}</p>}
+                                {message.text && <p className="whitespace-pre-wrap break-words">{message.text}</p>}
                                 <div className={cn('flex items-center gap-2 text-xs mt-1', 
                                     message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70',
                                     hasOnlyImage && 'hidden'
@@ -637,7 +648,7 @@ export default function ChatPage() {
                                     <span>{message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
                                 </div>
                                 {message.reaction && (
-                                    <div className="absolute -bottom-3.5 rounded-full bg-background border px-1.5 py-0.5 text-xs select-none"
+                                    <div className="absolute -bottom-3.5 rounded-full bg-background border px-1 py-0.5 text-xs select-none"
                                         style={{ [message.senderId === currentUser?.uid ? 'right' : 'left']: '10px' }}>
                                         {message.reaction}
                                     </div>
@@ -659,15 +670,13 @@ export default function ChatPage() {
                                                 </Button>
                                             ))}
                                         </div>
-                                        {message.text && (
+                                        {message.text && message.senderId === currentUser?.uid && (
                                             <>
                                                 <DropdownMenuSeparator />
-                                                {message.senderId === currentUser?.uid && (
                                                 <DropdownMenuItem onClick={() => startEditing(message)}>
                                                     <Pencil className="mr-2 h-4 w-4" />
                                                     <span>Düzenle</span>
                                                 </DropdownMenuItem>
-                                                )}
                                             </>
                                         )}
                                         <DropdownMenuSeparator />
@@ -691,45 +700,51 @@ export default function ChatPage() {
               </div>
             </ScrollArea>
             <footer className="p-4 border-t bg-card shrink-0">
-              <form onSubmit={handleFormSubmit} className="flex items-center gap-2">
+              <form onSubmit={handleFormSubmit} className="flex items-start gap-2">
                  {editingMessageId ? (
                      <>
-                        <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0" onClick={cancelEditing}>
+                        <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0 mt-1" onClick={cancelEditing}>
                             <X className="w-5 h-5 text-destructive" />
                         </Button>
-                        <Input
-                            ref={messageInputRef}
+                        <Textarea
+                            ref={textareaRef}
                             placeholder="Mesajı düzenle..."
-                            className="flex-1 bg-muted border-none rounded-full"
+                            className="flex-1 bg-muted border-none rounded-2xl resize-none min-h-[40px] max-h-[120px] py-2"
                             value={messageInput}
                             onChange={(e) => setMessageInput(e.target.value)}
                         />
-                        <Button type="submit" size="icon" className="rounded-full bg-green-500 text-white shrink-0">
+                        <Button type="submit" size="icon" className="rounded-full bg-green-500 text-white shrink-0 mt-1">
                             <CheckIcon className="h-5 w-5" />
                         </Button>
                      </>
                  ) : (
                     <>
                          <input type="file" ref={fileInputRef} onChange={onFileSelect} accept="image/*" className="hidden" />
-                         <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0" onClick={() => fileInputRef.current?.click()}>
+                         <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0 mt-1" onClick={() => fileInputRef.current?.click()}>
                             <Paperclip className="w-5 h-5" />
                          </Button>
-                         <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0">
+                         <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0 mt-1">
                             <Smile className="w-5 h-5" />
                          </Button>
-                        <Input
-                            ref={messageInputRef}
+                        <Textarea
+                            ref={textareaRef}
                             placeholder="Bir mesaj yaz..."
-                            className="flex-1 bg-muted border-none rounded-full"
+                            className="flex-1 bg-muted border-none rounded-2xl resize-none min-h-[40px] max-h-[120px] py-2"
                             value={messageInput}
                             onChange={(e) => setMessageInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSendMessage();
+                                }
+                            }}
                         />
                          {messageInput ? (
-                            <Button type="submit" size="icon" className="rounded-full bg-primary text-primary-foreground shrink-0">
+                            <Button type="submit" size="icon" className="rounded-full bg-primary text-primary-foreground shrink-0 mt-1">
                                 <SendHorizonal className="h-5 w-5" />
                             </Button>
                          ) : (
-                            <Button type="button" size="icon" className="rounded-full bg-primary text-primary-foreground shrink-0">
+                            <Button type="button" size="icon" className="rounded-full bg-primary text-primary-foreground shrink-0 mt-1">
                                 <Mic className="h-5 w-5" />
                             </Button>
                          )}
@@ -739,7 +754,7 @@ export default function ChatPage() {
             </footer>
           </>
         ) : (
-          isChatViewOpen && (
+          isChatViewOpen && !activeChat && (
             <div className="flex h-full w-full items-center justify-center bg-background">
                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
             </div>
@@ -776,14 +791,16 @@ export default function ChatPage() {
       
         {/* View Image Modal */}
       <Dialog open={!!imageToView} onOpenChange={(open) => !open && setImageToView(null)}>
-        <DialogContent className="max-w-3xl p-0">
+        <DialogContent className="max-w-3xl p-0 bg-transparent border-none">
            {imageToView && (
-              <Image src={imageToView} alt="Sohbet resmi" width={800} height={800} className="rounded-md object-contain w-full h-full" />
+              <Image src={imageToView} alt="Sohbet resmi" width={800} height={800} className="rounded-md object-contain w-full h-auto max-h-[90vh]" />
             )}
         </DialogContent>
       </Dialog>
     </div>
   );
 }
+
+    
 
     
