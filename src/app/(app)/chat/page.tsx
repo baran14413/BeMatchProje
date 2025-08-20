@@ -99,6 +99,9 @@ export default function ChatPage() {
   const [isSendingImage, setIsSendingImage] = useState(false);
   const [imageToView, setImageToView] = useState<string | null>(null);
   const isRedirectingRef = useRef(false);
+
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [menuOpenFor, setMenuOpenFor] = useState<string | null>(null);
   
 
   // A chat view is open if a conversationId or userId is present in the URL
@@ -110,13 +113,11 @@ export default function ChatPage() {
     if (userIdToChat && currentUser && !isRedirectingRef.current) {
         const findOrCreateConversation = async () => {
             isRedirectingRef.current = true;
-            // Show loading state in the main chat area instead of clearing the whole view
             if (isChatViewOpen) {
                 setChatLoading(true);
             }
             
             try {
-                // Generate a consistent conversation ID by sorting UIDs
                 const conversationId = [currentUser.uid, userIdToChat].sort().join('-');
                 const conversationRef = doc(db, 'conversations', conversationId);
                 const conversationSnap = await getDoc(conversationRef);
@@ -135,7 +136,6 @@ export default function ChatPage() {
                 toast({ title: "Sohbet başlatılamadı.", variant: "destructive" });
                 router.replace('/chat');
             } finally {
-                 // Do not set redirecting to false here to avoid loops
                  if (isChatViewOpen) {
                     setChatLoading(false);
                  }
@@ -168,9 +168,9 @@ export default function ChatPage() {
                         id: docSnap.id,
                         otherUser: { ...userData, uid: otherUserId },
                         lastMessage: data.lastMessage || null,
-                        isPinned: false, // TODO
-                        isMuted: false,  // TODO
-                        unreadCount: 0,  // TODO
+                        isPinned: false, 
+                        isMuted: false, 
+                        unreadCount: 0,
                     } as Conversation;
                 }
             }
@@ -204,7 +204,7 @@ export default function ChatPage() {
     if (!conversationId || !currentUser) {
         setActiveChat(null);
         setMessages([]);
-        isRedirectingRef.current = false; // Reset when there is no convo id
+        isRedirectingRef.current = false;
         return;
     }
     
@@ -305,7 +305,6 @@ export default function ChatPage() {
       });
       reader.readAsDataURL(e.target.files[0]);
     }
-    // Reset file input value to allow selecting the same file again
     if (fileInputRef.current) {
         fileInputRef.current.value = '';
     }
@@ -370,16 +369,12 @@ export default function ChatPage() {
 
     try {
       const batch = writeBatch(db);
-
       for (const id of idsToDelete) {
-        // Delete all messages in the conversation's subcollection
         const messagesRef = collection(db, 'conversations', id, 'messages');
         const messagesSnapshot = await getDocs(messagesRef);
         messagesSnapshot.docs.forEach(messageDoc => {
           batch.delete(messageDoc.ref);
         });
-
-        // Delete the conversation itself
         const conversationRef = doc(db, 'conversations', id);
         batch.delete(conversationRef);
       }
@@ -449,11 +444,23 @@ export default function ChatPage() {
             handleSendMessage();
         }
     };
+    
+    const handleLongPressStart = (messageId: string) => {
+        longPressTimerRef.current = setTimeout(() => {
+            setMenuOpenFor(messageId);
+        }, 500); 
+    };
+
+    const handleLongPressEnd = () => {
+        if (longPressTimerRef.current) {
+            clearTimeout(longPressTimerRef.current);
+            longPressTimerRef.current = null;
+        }
+    };
 
 
   return (
     <div className="flex h-screen bg-background text-foreground">
-      {/* Sidebar with Conversation List */}
       <aside className={cn(
         "w-full flex-col h-full flex",
         isChatViewOpen ? "hidden md:flex md:w-1/3 md:border-r" : "flex",
@@ -560,7 +567,6 @@ export default function ChatPage() {
         </div>
       </aside>
 
-      {/* Main Chat Area */}
       <main className={cn(
           "w-full flex flex-col h-full",
           isChatViewOpen ? "flex" : "hidden md:flex",
@@ -599,12 +605,12 @@ export default function ChatPage() {
                     {messages.map((message) => {
                         const isUserHidden = currentUser && message.deletedFor?.includes(currentUser.uid);
                         if (isUserHidden) {
-                            return null; // Don't render anything for this user
+                            return null;
                         }
 
                         if (message.isDeleted) {
                              return (
-                                <div key={message.id} className="flex items-end gap-2 self-start">
+                                <div key={message.id} className="flex items-end gap-2 self-start max-w-lg">
                                     <div className="rounded-xl px-4 py-2 text-sm text-muted-foreground italic">
                                         Bu mesaj silindi.
                                     </div>
@@ -653,22 +659,20 @@ export default function ChatPage() {
                             </div>
                        );
 
-                       if (message.isDeleted) {
-                            return (
-                               <div key={message.id} className={cn('flex items-end gap-2 group', message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start')}>
-                                   <div className="rounded-xl px-4 py-2 text-sm text-muted-foreground italic">
-                                       {message.text}
-                                   </div>
-                               </div>
-                           );
-                       }
-
 
                        return (
                            <div key={message.id} className={cn('flex items-end gap-2 group', message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start')}>
-                               <DropdownMenu>
+                                <DropdownMenu open={menuOpenFor === message.id} onOpenChange={(open) => !open && setMenuOpenFor(null)}>
                                     <DropdownMenuTrigger asChild>
-                                        <div className='cursor-pointer'><MessageContent /></div>
+                                        <div
+                                            onMouseDown={() => handleLongPressStart(message.id)}
+                                            onMouseUp={handleLongPressEnd}
+                                            onMouseLeave={handleLongPressEnd}
+                                            onTouchStart={() => handleLongPressStart(message.id)}
+                                            onTouchEnd={handleLongPressEnd}
+                                        >
+                                           <MessageContent />
+                                        </div>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align={message.senderId === currentUser?.uid ? 'end' : 'start'}>
                                         <div className="flex gap-1 p-1">
@@ -802,3 +806,4 @@ export default function ChatPage() {
     </div>
   );
 }
+
