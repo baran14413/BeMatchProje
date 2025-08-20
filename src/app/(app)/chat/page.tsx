@@ -62,7 +62,7 @@ export default function ChatPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
-  const [currentUser, setCurrentUser] = useState(auth.currentUser);
+  const currentUser = auth.currentUser;
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -78,8 +78,8 @@ export default function ChatPage() {
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // A chat view is open if a conversationId is present in the URL
-  const isChatViewOpen = searchParams.has('conversationId');
+  // A chat view is open if a conversationId or userId is present in the URL
+  const isChatViewOpen = searchParams.has('conversationId') || searchParams.has('userId');
 
   // Find or create conversation when userId is in URL
   useEffect(() => {
@@ -94,12 +94,15 @@ export default function ChatPage() {
 
                 const [querySnapshot1, querySnapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
 
+                let existingConvoId = null;
                 if (!querySnapshot1.empty) {
-                    const convo = querySnapshot1.docs[0];
-                    router.replace(`/chat?conversationId=${convo.id}`);
+                   existingConvoId = querySnapshot1.docs[0].id;
                 } else if (!querySnapshot2.empty) {
-                    const convo = querySnapshot2.docs[0];
-                    router.replace(`/chat?conversationId=${convo.id}`);
+                   existingConvoId = querySnapshot2.docs[0].id;
+                }
+
+                if (existingConvoId) {
+                    router.replace(`/chat?conversationId=${existingConvoId}`, { scroll: false });
                 } else {
                     // Create a new conversation
                     const newConvoRef = await addDoc(collection(db, 'conversations'), {
@@ -107,7 +110,7 @@ export default function ChatPage() {
                         createdAt: serverTimestamp(),
                         lastMessage: null,
                     });
-                    router.replace(`/chat?conversationId=${newConvoRef.id}`);
+                    router.replace(`/chat?conversationId=${newConvoRef.id}`, { scroll: false });
                 }
             } catch (error) {
                 console.error("Error finding or creating conversation: ", error);
@@ -301,7 +304,7 @@ export default function ChatPage() {
       {/* Sidebar with Conversation List */}
       <aside className={cn(
         "w-full flex-col h-full",
-        isChatViewOpen ? "hidden" : "flex",
+        isChatViewOpen ? "hidden md:flex md:w-1/3 md:border-r" : "flex",
       )}>
         <header className="flex items-center gap-4 p-3 border-b bg-card shrink-0 sticky top-0">
             {isEditMode ? (
@@ -361,7 +364,8 @@ export default function ChatPage() {
                     className={cn(
                         'flex items-center gap-3 p-4 cursor-pointer transition-colors',
                         selectedIds.has(convo.id) ? 'bg-primary/20' : 'hover:bg-muted/50',
-                        convo.unreadCount > 0 && 'bg-primary/5'
+                        convo.unreadCount > 0 && 'bg-primary/5',
+                        activeChat?.id === convo.id && 'bg-muted'
                     )}
                     onClick={() => handleItemClick(convo)}
                     >
@@ -408,12 +412,12 @@ export default function ChatPage() {
       {/* Main Chat Area */}
       <main className={cn(
           "w-full flex-col h-full",
-          isChatViewOpen ? "flex" : "hidden"
+          isChatViewOpen ? "flex" : "hidden md:hidden",
       )}>
         {activeChat ? (
           <>
             <header className="flex items-center gap-4 p-3 border-b bg-card shrink-0 sticky top-0">
-               <Button variant="ghost" size="icon" className="rounded-full" onClick={handleBackToList}>
+               <Button variant="ghost" size="icon" className="rounded-full md:hidden" onClick={handleBackToList}>
                     <ArrowLeft className="w-5 h-5"/>
                 </Button>
               <Avatar>

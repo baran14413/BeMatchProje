@@ -33,7 +33,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { isOnline, isPoorConnection } = useNetworkStatus();
-  const [pathname, setPathname] = useState('');
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
 
   useEffect(() => {
@@ -43,18 +42,14 @@ function LayoutContent({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-
-  useEffect(() => {
-    setPathname(currentPathname);
-  }, [currentPathname]);
-
-  // A chat view is considered open if we are on the /chat page AND a specific userId is in the query params.
-  const isChatPage = pathname === '/chat';
+  // A chat view is considered open if we are on the /chat page AND a specific userId/conversationId is in the query params.
+  const isChatPage = currentPathname === '/chat';
   const isChatViewOpen = isChatPage && (searchParams.has('userId') || searchParams.has('conversationId'));
-  const isCreatePage = pathname === '/create';
+  const isCreatePage = currentPathname === '/create';
   
   // Show navs unless it's the create page or a specific chat is open.
-  const showNavs = !isCreatePage && !isChatViewOpen;
+  const showNavs = !isCreatePage && (!isChatPage || (isChatPage && !isChatViewOpen));
+  const isFullScreen = isChatPage && isChatViewOpen;
 
   // Mock state for notifications - in a real app this would come from a global state/context
   const hasUnreadMessages = true;
@@ -95,31 +90,35 @@ function LayoutContent({ children }: { children: ReactNode }) {
             } as React.CSSProperties}
         >
         <NetworkStatusBanner isOnline={isOnline} isPoorConnection={isPoorConnection} />
-        <header className={cn(
-            "fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-background/80 px-4 backdrop-blur-sm transition-transform duration-300 md:px-6",
-            "h-[var(--header-height)]",
-            !isOnline || isPoorConnection ? 'top-10' : 'top-0', // Adjust header position based on banner
-            !showNavs && "hidden",
-            isScrolling && showNavs && "-translate-y-full"
-        )}>
-            <Link href="/match" className="flex items-center gap-2 text-lg font-semibold">
-                <Heart className="h-7 w-7 text-primary" />
-                <span className="font-bold">BeMatch</span>
-            </Link>
-            <div className="flex items-center gap-2">
-                {currentUser && (
-                     <Link href={`/profile/${currentUser.uid}`}>
-                        <Button variant="ghost" size="icon" className="relative rounded-full">
-                            <User className="h-5 w-5" />
-                            <span className="sr-only">Profil</span>
-                        </Button>
-                     </Link>
-                )}
-                <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
-                <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
-                <NavButton href="#" icon={<Search className="h-5 w-5" />} srText="Ara" />
-            </div>
-        </header>
+        {!isFullScreen && (
+          <>
+            <header className={cn(
+                "fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-background/80 px-4 backdrop-blur-sm transition-transform duration-300 md:px-6",
+                "h-[var(--header-height)]",
+                !isOnline || isPoorConnection ? 'top-10' : 'top-0', // Adjust header position based on banner
+                !showNavs && "hidden",
+                isScrolling && showNavs && "-translate-y-full"
+            )}>
+                <Link href="/match" className="flex items-center gap-2 text-lg font-semibold">
+                    <Heart className="h-7 w-7 text-primary" />
+                    <span className="font-bold">BeMatch</span>
+                </Link>
+                <div className="flex items-center gap-2">
+                    {currentUser && (
+                        <Link href={`/profile/${currentUser.uid}`}>
+                            <Button variant="ghost" size="icon" className="relative rounded-full">
+                                <User className="h-5 w-5" />
+                                <span className="sr-only">Profil</span>
+                            </Button>
+                        </Link>
+                    )}
+                    <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
+                    <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
+                    <NavButton href="#" icon={<Search className="h-5 w-5" />} srText="Ara" />
+                </div>
+            </header>
+          </>
+        )}
         
         <main className="h-full w-full flex-1">
             <Suspense fallback={<div>BeMatch Yükleniyor...</div>}>
@@ -127,25 +126,26 @@ function LayoutContent({ children }: { children: ReactNode }) {
             </Suspense>
         </main>
 
-        {/* Bottom Navigation for Mobile */}
-        <nav className={cn(
-            "fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/80 backdrop-blur-sm transition-transform duration-300 md:hidden",
-            "h-[var(--bottom-nav-height)]",
-            !showNavs && "hidden",
-            isScrolling && showNavs && "translate-y-full"
-        )}>
-            <div className="grid h-full grid-cols-3">
-                <Link href="/shuffle" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/shuffle' ? 'text-primary' : '')}>
-                    <Shuffle className={cn('h-6 w-6')} />
-                </Link>
-                <Link href="/match" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/match' ? 'text-primary' : '')}>
-                    <Home className={cn('h-6 w-6')} />
-                </Link>
-                <Link href="/explore" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/explore' ? 'text-primary' : '')}>
-                    <Globe className={cn('h-6 w-6')} />
-                </Link>
-            </div>
-        </nav>
+        {!isFullScreen && (
+            <nav className={cn(
+                "fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/80 backdrop-blur-sm transition-transform duration-300 md:hidden",
+                "h-[var(--bottom-nav-height)]",
+                !showNavs && "hidden",
+                isScrolling && showNavs && "translate-y-full"
+            )}>
+                <div className="grid h-full grid-cols-3">
+                    <Link href="/shuffle" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname === '/shuffle' ? 'text-primary' : '')}>
+                        <Shuffle className={cn('h-6 w-6')} />
+                    </Link>
+                    <Link href="/match" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname === '/match' ? 'text-primary' : '')}>
+                        <Home className={cn('h-6 w-6')} />
+                    </Link>
+                    <Link href="/explore" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname === '/explore' ? 'text-primary' : '')}>
+                        <Globe className={cn('h-6 w-6')} />
+                    </Link>
+                </div>
+            </nav>
+        )}
         </div>
   );
 }
