@@ -233,6 +233,7 @@ export default function CreatePostPage() {
   const [originalImgSrc, setOriginalImgSrc] = useState('');
   const [stylePrompt, setStylePrompt] = useState('');
   const [caption, setCaption] = useState('');
+  const [isStylized, setIsStylized] = useState(false);
   
   // Text post states
   const [textContent, setTextContent] = useState('');
@@ -256,6 +257,7 @@ export default function CreatePostPage() {
           const resultStr = reader.result.toString();
           setImgSrc(resultStr);
           setOriginalImgSrc(resultStr);
+          setIsStylized(false);
           setStep(3);
         }
       });
@@ -282,6 +284,7 @@ export default function CreatePostPage() {
         throw new Error(result.error || 'Stil uygulanamadı.');
       }
       setImgSrc(result.stylizedImageDataUri);
+      setIsStylized(true);
       toast({
         title: 'Stil Uygulandı!',
         description: 'Yapay zeka harikalar yarattı.',
@@ -330,7 +333,12 @@ export default function CreatePostPage() {
             const uploadTask = await uploadString(storageRef, imgSrc, 'data_url');
             const downloadURL = await getDownloadURL(uploadTask.ref);
 
-            postData = { ...postData, url: downloadURL, caption: caption || '' };
+            postData = { 
+              ...postData, 
+              url: downloadURL, 
+              caption: caption || '',
+              isAiEdited: isStylized,
+            };
 
         } else if (postType === 'text') {
             if (!textContent.trim()) {
@@ -368,6 +376,7 @@ export default function CreatePostPage() {
       setStylePrompt('');
       setCaption('');
       setTextContent('');
+      setIsStylized(false);
   }
 
   const renderStep = () => {

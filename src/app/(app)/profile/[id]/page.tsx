@@ -26,12 +26,13 @@ import {
   Crown,
   Loader2,
   Lock,
+  Sparkles,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
-import { doc, getDoc, collection, query, where, getDocs, DocumentData, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, DocumentData, addDoc, serverTimestamp, orderBy } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -46,6 +47,7 @@ type Post = {
     likes: number;
     commentsCount: number;
     createdAt: { seconds: number, nanoseconds: number };
+    isAiEdited?: boolean;
 };
 
 type RequestStatus = 'idle' | 'loading' | 'sent';
@@ -58,9 +60,17 @@ const PostCard = ({ post, user, isMyProfile }: { post: Post, user: DocumentData,
                 <AvatarImage src={user.avatarUrl} data-ai-hint={user.aiHint} />
                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <div className='flex items-center gap-2'>
-                    <span className="font-semibold text-sm">{user.name}</span>
-                    {user.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
+                <div className='flex flex-col'>
+                    <div className='flex items-center gap-2'>
+                        <span className="font-semibold text-sm">{user.name}</span>
+                        {user.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
+                    </div>
+                     {post.isAiEdited && (
+                        <Badge variant="outline" className="text-xs w-fit text-purple-500 border-purple-300 mt-1">
+                            <Sparkles className="w-3 h-3 mr-1"/>
+                            BeAI ile düzenlendi
+                        </Badge>
+                    )}
                 </div>
                  {isMyProfile && (
                     <div className="flex items-center gap-1 ml-auto">
@@ -165,7 +175,7 @@ export default function UserProfilePage() {
  useEffect(() => {
     const fetchUserProfile = async () => {
       if (!params.id || !currentUser) {
-        setLoading(false);
+        if (!currentUser) setLoading(false);
         return;
       }
       setLoading(true);
@@ -214,7 +224,7 @@ export default function UserProfilePage() {
       }
     };
 
-    if (currentUser && params.id) {
+    if (currentUser) {
         fetchUserProfile();
     }
   }, [params.id, currentUser, toast]);

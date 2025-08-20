@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -26,6 +26,7 @@ import { cn } from '@/lib/utils';
 import { collection, query, orderBy, getDocs, doc, getDoc, DocumentData, writeBatch, arrayUnion, updateDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 
 const formatRelativeTime = (date: Date) => {
     try {
@@ -77,6 +78,7 @@ type Post = DocumentData & {
   liked: boolean;
   comments: Comment[];
   isGalleryLocked?: boolean; // New flag
+  isAiEdited?: boolean;
 };
 
 const PostSkeleton = () => (
@@ -345,7 +347,15 @@ export default function ExplorePage() {
                             <AvatarImage src={post.user?.avatarUrl} data-ai-hint={post.user?.aiHint} />
                             <AvatarFallback>{post.user?.name.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <span className="font-semibold text-sm">{post.user?.name}</span>
+                            <div className="flex flex-col">
+                                <span className="font-semibold text-sm">{post.user?.name}</span>
+                                {post.isAiEdited && (
+                                    <Badge variant="outline" className="text-xs w-fit text-purple-500 border-purple-300">
+                                        <Sparkles className="w-3 h-3 mr-1"/>
+                                        BeAI ile düzenlendi
+                                    </Badge>
+                                )}
+                            </div>
                             <div className="ml-auto">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
