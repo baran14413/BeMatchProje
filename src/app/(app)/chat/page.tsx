@@ -414,7 +414,7 @@ export default function ChatPage() {
                     <div className='relative'>
                         <Avatar className='w-12 h-12'>
                         <AvatarImage src={convo.otherUser.avatarUrl} data-ai-hint={convo.otherUser.name} />
-                        <AvatarFallback>{convo.otherUser.name.charAt(0)}</AvatarFallback>
+                        <AvatarFallback>{convo.otherUser.name?.charAt(0) || '?'}</AvatarFallback>
                         </Avatar>
                         {convo.otherUser.isOnline && <div className='absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background'/>}
                     </div>
