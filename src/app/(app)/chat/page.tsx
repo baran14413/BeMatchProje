@@ -117,9 +117,7 @@ export default function ChatPage() {
     if (userIdToChat && currentUser && !isRedirectingRef.current) {
         const findOrCreateConversation = async () => {
             isRedirectingRef.current = true;
-            if (isChatViewOpen) {
-                setChatLoading(true);
-            }
+             setChatLoading(true);
             
             try {
                 const conversationId = [currentUser.uid, userIdToChat].sort().join('-');
@@ -140,14 +138,12 @@ export default function ChatPage() {
                 toast({ title: "Sohbet başlatılamadı.", variant: "destructive" });
                 router.replace('/chat');
             } finally {
-                 if (isChatViewOpen) {
-                    setChatLoading(false);
-                 }
+                 setChatLoading(false);
             }
         };
         findOrCreateConversation();
     }
-  }, [searchParams, currentUser, router, toast, isChatViewOpen]);
+  }, [searchParams, currentUser, router, toast]);
 
   // Fetch conversations
   useEffect(() => {
@@ -264,7 +260,7 @@ export default function ChatPage() {
     if (messagesEndRef.current) {
         messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, activeChat]);
   
   const handleScroll = () => {
     const viewport = scrollViewportRef.current;
@@ -619,7 +615,7 @@ export default function ChatPage() {
                 </Button>
               </div>
             </header>
-            <div className="flex-1 bg-muted/30 relative">
+            <div className="flex-1 bg-muted/30 relative overflow-hidden">
                 <ScrollArea viewportRef={scrollViewportRef} onScroll={handleScroll} className="h-full">
                   <div className='p-6'>
                     {chatLoading && !messages.length ? (
