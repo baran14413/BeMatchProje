@@ -900,7 +900,7 @@ export default function ChatPage() {
                         </Button>
                     </div>
                  ) : voiceMessageState === 'preview' && recordedAudio ? (
-                    <div className="flex items-center justify-between w-full h-[40px] px-2 gap-2">
+                    <div className="flex items-center justify-between w-full h-[56px] px-2 gap-2">
                         <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0" onClick={handleCancelRecording}>
                            <Trash2 className="w-5 h-5 text-destructive" />
                         </Button>
