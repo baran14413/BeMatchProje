@@ -12,7 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   ShieldCheck,
   MessageSquare,
@@ -50,7 +49,7 @@ type Post = {
     textContent?: string;
     caption?: string;
     likes: number;
-    commentsCount: number; // Switched from comments to commentsCount
+    commentsCount: number;
 };
 
 type RequestStatus = 'idle' | 'loading' | 'sent';
@@ -79,6 +78,18 @@ const PostCard = ({ post, user, isMyProfile }: { post: Post, user: DocumentData,
                 )}
             </div>
             
+            {post.type === 'photo' && post.url && (
+                 <div className="relative w-full aspect-square">
+                    <Image
+                        src={post.url}
+                        alt={post.caption || `Post by ${user.name}`}
+                        fill
+                        className="object-cover"
+                        data-ai-hint={post.aiHint}
+                    />
+                </div>
+            )}
+
             {post.type === 'text' && (
                 <div className="px-4 py-6 bg-muted/30">
                      <p className="text-base whitespace-pre-wrap break-words">{post.textContent}</p>
@@ -101,10 +112,10 @@ const PostCard = ({ post, user, isMyProfile }: { post: Post, user: DocumentData,
 
             <div className="px-3 pb-3 text-sm">
                 <p className="font-semibold">{post.likes.toLocaleString()} beğeni</p>
-                {post.textContent && (
+                {(post.caption || post.textContent) && (
                      <p>
                         <span className="font-semibold">{user.name}</span>{' '}
-                        {post.textContent}
+                        {post.caption || post.textContent}
                     </p>
                 )}
                 {post.commentsCount > 0 && (
@@ -149,21 +160,22 @@ export default function UserProfilePage() {
   const [isMyProfile, setIsMyProfile] = useState(false);
   const [hasGalleryAccess, setHasGalleryAccess] = useState(false);
   const [requestStatus, setRequestStatus] = useState<RequestStatus>('idle');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const currentUser = auth.currentUser;
   const { toast } = useToast();
 
-  useEffect(() => {
+ useEffect(() => {
     const fetchUserProfile = async () => {
       if (!params.id || !currentUser) {
-        setLoading(false); // Stop loading if there's no ID or user
+        setLoading(false);
         return;
       }
       setLoading(true);
-
-      const profileIsMine = params.id === currentUser.uid;
-      setIsMyProfile(profileIsMine);
       
       try {
+        const profileIsMine = params.id === currentUser.uid;
+        setIsMyProfile(profileIsMine);
+
         const userDocRef = doc(db, 'users', params.id as string);
         const userDocSnap = await getDoc(userDocRef);
 
@@ -171,41 +183,33 @@ export default function UserProfilePage() {
           const userData = userDocSnap.data();
           setUserProfile(userData);
 
-          // Check for gallery access
           if (userData.isGalleryPrivate && !profileIsMine) {
               const permissionDocRef = doc(db, 'users', params.id, 'galleryPermissions', currentUser.uid);
               const permissionDocSnap = await getDoc(permissionDocRef);
-              if (permissionDocSnap.exists()) {
-                  // TODO: Check for expiry if temporary
-                  setHasGalleryAccess(true);
-              } else {
-                  setHasGalleryAccess(false);
-              }
+              setHasGalleryAccess(permissionDocSnap.exists());
           } else {
-              setHasGalleryAccess(true); // Public gallery or my own profile
+              setHasGalleryAccess(true);
           }
           
-          const postsQuery = query(collection(db, 'posts'), where('authorId', '==', params.id));
+          const postsQuery = query(collection(db, 'posts'), where('authorId', '==', params.id), orderBy('createdAt', 'desc'));
           const postsSnapshot = await getDocs(postsQuery);
           const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
           setUserPosts(postsData);
 
         } else {
           console.log("No such document!");
-          setUserProfile(null); // Ensure userProfile is null if not found
+          setUserProfile(null);
         }
       } catch (error) {
         console.error("Error fetching user profile:", error);
-        toast({ variant: 'destructive', title: 'Profil Yüklenemedi', description: 'Profil bilgileri alınırken bir hata oluştu.' });
+        toast({ variant: 'destructive', title: 'Profil Yüklenemedi', description: 'Profil bilgileri alınırken bir hata oluştu. Bu sorgu için bir index gerekebilir.' });
         setUserProfile(null);
       } finally {
         setLoading(false);
       }
     };
 
-    if (currentUser) {
-      fetchUserProfile();
-    }
+    fetchUserProfile();
   }, [params.id, currentUser, toast]);
 
 
@@ -213,9 +217,6 @@ export default function UserProfilePage() {
       if (!currentUser || !userProfile) return;
       setRequestStatus('loading');
       try {
-          // Check if a request already exists to avoid duplicates
-          // For simplicity, we'll assume no duplicate check is needed for now,
-          // but in a real app, you should check this.
           await addDoc(collection(db, 'notifications'), {
               recipientId: userProfile.uid,
               type: 'gallery_request',
@@ -257,8 +258,6 @@ export default function UserProfilePage() {
   }
   
   const photoPosts = userPosts.filter(p => p.type === 'photo');
-  const textPosts = userPosts.filter(p => p.type === 'text');
-
   const showGalleryContent = !userProfile.isGalleryPrivate || hasGalleryAccess || isMyProfile;
 
 
@@ -344,79 +343,58 @@ export default function UserProfilePage() {
         
         <Separator />
 
-        {/* Gallery Tabs */}
-        <Tabs defaultValue="feed" className="w-full">
-            <div className="flex justify-between items-center">
-                 <TabsList>
-                    <TabsTrigger value="feed" className="px-3 flex gap-2">
-                        <List className="h-5 w-5" />
-                        <span className="hidden sm:inline">Akış</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="gallery" className="px-3 flex gap-2">
-                        <Grid3x3 className="h-5 w-5" />
-                        <span className="hidden sm:inline">Galeri</span>
-                    </TabsTrigger>
-                    {isMyProfile && (
-                    <>
-                        <TabsTrigger value="likes" className="px-3 flex gap-2">
-                            <Heart className="h-5 w-5" />
-                            <span className="hidden sm:inline">Beğenilenler</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="saved" className="px-3 flex gap-2">
-                            <Bookmark className="h-5 w-5" />
-                            <span className="hidden sm:inline">Kaydedilenler</span>
-                        </TabsTrigger>
-                    </>
-                    )}
-                </TabsList>
+        {/* Posts Section */}
+        <div>
+            <div className="flex justify-end mb-4">
+                <div className="flex items-center gap-1 p-1 bg-muted rounded-md">
+                    <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('list')} className="h-8 w-8">
+                        <List className="h-4 w-4" />
+                    </Button>
+                    <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('grid')} className="h-8 w-8">
+                        <Grid3x3 className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
 
-          <TabsContent value="feed" className="mt-4">
-            <div className="flex flex-col">
-                {textPosts.map((post) => (
-                    <PostCard key={post.id} post={post} user={userProfile} isMyProfile={isMyProfile}/>
-                ))}
-            </div>
-            {textPosts.length === 0 && (
-                <div className='text-center py-10 text-muted-foreground'>
-                    <p>Henüz metin gönderisi yok.</p>
-                </div>
-            )}
-          </TabsContent>
-           <TabsContent value="gallery" className="mt-4">
-                {showGalleryContent ? (
-                    <>
-                        <div className="grid grid-cols-3 gap-1">
-                            {photoPosts.map((post) => (
-                                <div key={post.id} className="relative aspect-square rounded-md overflow-hidden group">
-                                <Image
-                                    src={post.url!}
-                                    alt={post.caption || `Post ${post.id}`}
-                                    fill
-                                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                    data-ai-hint={post.aiHint}
-                                />
-                                {isMyProfile && (
-                                        <div className="absolute top-1 right-1 flex items-center gap-1">
-                                            <Button variant="secondary" size="icon" className="h-7 w-7">
-                                                <Pencil className="w-4 h-4" />
-                                            </Button>
-                                            <Button variant="destructive" size="icon" className="h-7 w-7">
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
+            {viewMode === 'list' ? (
+                <div>
+                     {userPosts.length > 0 ? (
+                        userPosts.map((post) => (
+                           <PostCard key={post.id} post={post} user={userProfile} isMyProfile={isMyProfile}/>
+                        ))
+                    ) : (
+                        <div className='text-center py-10 text-muted-foreground'>
+                            <p>Henüz gönderi yok.</p>
                         </div>
-                        {photoPosts.length === 0 && (
-                            <div className='text-center py-10 text-muted-foreground flex flex-col items-center gap-2'>
-                                <GalleryVertical className="w-10 h-10" />
-                                <p>Henüz fotoğraf yok.</p>
+                    )}
+                </div>
+            ) : ( // Grid view
+                <>
+                {showGalleryContent ? (
+                    <div className="grid grid-cols-3 gap-1">
+                        {photoPosts.map((post) => (
+                            <div key={post.id} className="relative aspect-square rounded-md overflow-hidden group">
+                            <Image
+                                src={post.url!}
+                                alt={post.caption || `Post ${post.id}`}
+                                fill
+                                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                data-ai-hint={post.aiHint}
+                            />
+                            {isMyProfile && (
+                                    <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Button variant="secondary" size="icon" className="h-7 w-7">
+                                            <Pencil className="w-4 h-4" />
+                                        </Button>
+                                        <Button variant="destructive" size="icon" className="h-7 w-7">
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </>
-                ) : (
+                        ))}
+                    </div>
+                 ) : (
                     <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4 rounded-lg border-2 border-dashed">
                         <Lock className="w-12 h-12 text-muted-foreground/50"/>
                         <h3 className="font-bold text-lg text-foreground">Bu Galeri Gizli</h3>
@@ -432,22 +410,15 @@ export default function UserProfilePage() {
                         </Button>
                     </div>
                 )}
-          </TabsContent>
-          {isMyProfile && (
-            <>
-              <TabsContent value="likes" className="text-center py-10 text-muted-foreground">
-                 <Heart className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4"/>
-                 <h3 className='font-bold text-lg'>Beğenilen Gönderiler</h3>
-                 <p className='text-sm'>Henüz bir gönderi beğenmedin. Beğendiğin gönderiler burada görünecek.</p>
-              </TabsContent>
-              <TabsContent value="saved" className="text-center py-10 text-muted-foreground">
-                <Bookmark className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4"/>
-                <h3 className='font-bold text-lg'>Kaydedilenler</h3>
-                <p className='text-sm'>Daha sonra kolayca bulmak için gönderileri kaydet.</p>
-              </TabsContent>
-            </>
-          )}
-        </Tabs>
+                 {photoPosts.length === 0 && showGalleryContent && (
+                    <div className='text-center py-10 text-muted-foreground flex flex-col items-center gap-2'>
+                        <GalleryVertical className="w-10 h-10" />
+                        <p>Henüz fotoğraf yok.</p>
+                    </div>
+                )}
+                </>
+            )}
+        </div>
       </div>
     </div>
   );
