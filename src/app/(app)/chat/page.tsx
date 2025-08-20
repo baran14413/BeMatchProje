@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, Pencil, Trash2, BellOff, Pin, X, Loader2, Undo, CornerUpLeft, MoreHorizontal, Heart, ThumbsUp, Laugh, Angry, Wow } from 'lucide-react';
+import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, Pencil, Trash2, BellOff, Pin, X, Loader2, Undo, CornerUpLeft, MoreHorizontal, Heart, ThumbsUp, Laugh, Angry, Wow, Check as CheckIcon, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -81,13 +81,13 @@ export default function ChatPage() {
   const [chatLoading, setChatLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
 
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(isEditMode);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-  const [editingText, setEditingText] = useState('');
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messageInputRef = useRef<HTMLInputElement>(null);
 
   // A chat view is open if a conversationId or userId is present in the URL
   const isChatViewOpen = searchParams.has('conversationId') || searchParams.has('userId');
@@ -331,19 +331,20 @@ export default function ChatPage() {
 
     const startEditing = (message: Message) => {
         setEditingMessageId(message.id);
-        setEditingText(message.text);
+        setMessageInput(message.text);
+        messageInputRef.current?.focus();
     };
 
     const cancelEditing = () => {
         setEditingMessageId(null);
-        setEditingText('');
+        setMessageInput('');
     };
     
     const saveEditing = async () => {
-        if (!activeChat || !editingMessageId || !editingText.trim()) return;
+        if (!activeChat || !editingMessageId || !messageInput.trim()) return;
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', editingMessageId);
         await updateDoc(messageRef, {
-            text: editingText.trim(),
+            text: messageInput.trim(),
             isEdited: true
         });
         cancelEditing();
@@ -366,6 +367,15 @@ export default function ChatPage() {
             isEdited: false,
             deletedForEveryone: true // You can use this field to render differently
         });
+    };
+    
+    const handleFormSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (editingMessageId) {
+            saveEditing();
+        } else {
+            handleSendMessage();
+        }
     };
 
 
@@ -536,31 +546,17 @@ export default function ChatPage() {
                                 'rounded-xl px-4 py-2 text-sm relative cursor-pointer',
                                 message.senderId === currentUser?.uid ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none'
                                 )}>
-                                    {editingMessageId === message.id ? (
-                                        <div className='flex items-center gap-2'>
-                                            <Input 
-                                                value={editingText}
-                                                onChange={(e) => setEditingText(e.target.value)}
-                                                className="bg-background/20 h-8 border-background/50 text-white"
-                                                autoFocus
-                                            />
-                                            <Button size="sm" variant="ghost" onClick={cancelEditing}>İptal</Button>
-                                            <Button size="sm" onClick={saveEditing}>Kaydet</Button>
+
+                                    <p>{message.text}</p>
+                                    <div className={cn('flex items-center gap-2 text-xs mt-1', message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70')}>
+                                        {message.isEdited && <span>(düzenlendi)</span>}
+                                        <span>{message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                    </div>
+                                     {message.reaction && (
+                                        <div className="absolute -bottom-3 rounded-full bg-background border px-2 py-0.5 text-base"
+                                            style={{ [message.senderId === currentUser?.uid ? 'right' : 'left']: '10px' }}>
+                                            {message.reaction}
                                         </div>
-                                    ) : (
-                                        <>
-                                            <p>{message.text}</p>
-                                            <div className={cn('flex items-center gap-2 text-xs mt-1', message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70')}>
-                                                {message.isEdited && <span>(düzenlendi)</span>}
-                                                <span>{message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
-                                            </div>
-                                             {message.reaction && (
-                                                <div className="absolute -bottom-3 rounded-full bg-background border px-2 py-0.5 text-base"
-                                                    style={{ [message.senderId === currentUser?.uid ? 'right' : 'left']: '10px' }}>
-                                                    {message.reaction}
-                                                </div>
-                                            )}
-                                        </>
                                     )}
                                </div>
                             </DropdownMenuTrigger>
@@ -598,27 +594,48 @@ export default function ChatPage() {
               </div>
             </ScrollArea>
             <footer className="p-4 border-t bg-card shrink-0">
-              <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex items-center gap-2">
-                 <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0">
-                    <ImageIcon className="w-5 h-5" />
-                 </Button>
-                 <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0">
-                    <Smile className="w-5 h-5" />
-                 </Button>
-                <Input
-                    placeholder="Bir mesaj yaz..."
-                    className="flex-1 bg-muted border-none rounded-full"
-                    value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
-                />
-                 {messageInput ? (
-                    <Button type="submit" size="icon" className="rounded-full bg-primary text-primary-foreground shrink-0">
-                        <SendHorizonal className="h-5 w-5" />
-                    </Button>
+              <form onSubmit={handleFormSubmit} className="flex items-center gap-2">
+                 {editingMessageId ? (
+                     <>
+                        <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0" onClick={cancelEditing}>
+                            <X className="w-5 h-5 text-destructive" />
+                        </Button>
+                        <Input
+                            ref={messageInputRef}
+                            placeholder="Mesajı düzenle..."
+                            className="flex-1 bg-muted border-none rounded-full"
+                            value={messageInput}
+                            onChange={(e) => setMessageInput(e.target.value)}
+                        />
+                        <Button type="submit" size="icon" className="rounded-full bg-green-500 text-white shrink-0">
+                            <CheckIcon className="h-5 w-5" />
+                        </Button>
+                     </>
                  ) : (
-                    <Button type="button" size="icon" className="rounded-full bg-primary text-primary-foreground shrink-0">
-                        <Mic className="h-5 w-5" />
-                    </Button>
+                    <>
+                         <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0">
+                            <ImageIcon className="w-5 h-5" />
+                         </Button>
+                         <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0">
+                            <Smile className="w-5 h-5" />
+                         </Button>
+                        <Input
+                            ref={messageInputRef}
+                            placeholder="Bir mesaj yaz..."
+                            className="flex-1 bg-muted border-none rounded-full"
+                            value={messageInput}
+                            onChange={(e) => setMessageInput(e.target.value)}
+                        />
+                         {messageInput ? (
+                            <Button type="submit" size="icon" className="rounded-full bg-primary text-primary-foreground shrink-0">
+                                <SendHorizonal className="h-5 w-5" />
+                            </Button>
+                         ) : (
+                            <Button type="button" size="icon" className="rounded-full bg-primary text-primary-foreground shrink-0">
+                                <Mic className="h-5 w-5" />
+                            </Button>
+                         )}
+                    </>
                  )}
               </form>
             </footer>
@@ -632,5 +649,7 @@ export default function ChatPage() {
     </div>
   );
 }
+
+    
 
     
