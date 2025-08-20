@@ -112,6 +112,8 @@ export default function ChatPage() {
                 console.error("Error finding or creating conversation: ", error);
                 toast({ title: "Sohbet başlatılamadı.", variant: "destructive" });
                 router.replace('/chat');
+            } finally {
+                // No need to setRedirecting(false) here, it's handled by the main convo loader
             }
         };
         findOrCreateConversation();
@@ -125,11 +127,10 @@ export default function ChatPage() {
         return;
     }
 
-    const q = query(collection(db, 'conversations'), where('users', 'array-contains', currentUser.uid));
+    const q = query(collection(db, 'conversations'), where('users', 'array-contains', currentUser.uid), orderBy('lastMessage.timestamp', 'desc'));
     
     const unsubscribe = onSnapshot(q, async (querySnapshot) => {
-        const convos: Conversation[] = [];
-        for (const docSnap of querySnapshot.docs) {
+        const convosPromises = querySnapshot.docs.map(async (docSnap) => {
             const data = docSnap.data();
             const otherUserId = data.users.find((uid: string) => uid !== currentUser.uid);
             
@@ -137,26 +138,21 @@ export default function ChatPage() {
                 const userDoc = await getDoc(doc(db, 'users', otherUserId));
                 if (userDoc.exists()) {
                     const userData = userDoc.data() as UserData;
-                    convos.push({
+                    return {
                         id: docSnap.id,
                         otherUser: { ...userData, uid: otherUserId },
                         lastMessage: data.lastMessage || null,
-                        // TODO: Implement isPinned, isMuted, unreadCount from user-specific conversation data
-                        isPinned: false,
-                        isMuted: false,
-                        unreadCount: 0,
-                    });
+                        isPinned: false, // TODO
+                        isMuted: false,  // TODO
+                        unreadCount: 0,  // TODO
+                    } as Conversation;
                 }
             }
-        }
-        // Sort conversations by last message timestamp before setting state
-        convos.sort((a, b) => {
-            const aTime = a.lastMessage?.timestamp?.toDate()?.getTime() || 0;
-            const bTime = b.lastMessage?.timestamp?.toDate()?.getTime() || 0;
-            return bTime - aTime;
+            return null;
         });
-
-        setConversations(convos);
+        
+        const resolvedConvos = (await Promise.all(convosPromises)).filter(c => c !== null) as Conversation[];
+        setConversations(resolvedConvos);
         setLoading(false);
         setRedirecting(false); // Stop redirecting loader once conversations load
     }, (error) => {
@@ -169,85 +165,65 @@ export default function ChatPage() {
   }, [currentUser, toast]);
 
 
-  // Fetch messages for active chat
+  // Fetch active chat details and messages
   useEffect(() => {
     const conversationId = searchParams.get('conversationId');
-    if (!conversationId) {
+
+    if (!conversationId || !currentUser) {
         setActiveChat(null);
         setMessages([]);
         return;
     }
     
-    // If active chat is already set and correct, don't refetch everything
-    if(activeChat?.id === conversationId) return;
-
     setChatLoading(true);
-    
-    const fetchChatDetailsAndMessages = async () => {
-        if (!currentUser) return;
-        
-        try {
-            // Find the chat in the already loaded conversations
-            let chatToOpen = conversations.find(c => c.id === conversationId);
 
-            // If not found (e.g., direct link), fetch its details
-            if (!chatToOpen) {
-                const convoDocRef = doc(db, 'conversations', conversationId);
-                const convoDocSnap = await getDoc(convoDocRef);
-                if (convoDocSnap.exists()) {
-                     const data = convoDocSnap.data();
-                     const otherUserId = data.users.find((uid: string) => uid !== currentUser.uid);
-                      if (otherUserId) {
-                        const userDoc = await getDoc(doc(db, 'users', otherUserId));
-                         if (userDoc.exists()) {
-                            const userData = userDoc.data() as UserData;
-                            chatToOpen = {
-                                id: convoDocSnap.id,
-                                otherUser: { ...userData, uid: otherUserId },
-                                lastMessage: data.lastMessage || null,
-                                isPinned: false,
-                                isMuted: false,
-                                unreadCount: 0,
-                            };
-                         }
-                      }
+    // Listener for the active conversation details
+    const convoUnsubscribe = onSnapshot(doc(db, 'conversations', conversationId), async (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            const otherUserId = data.users.find((uid: string) => uid !== currentUser.uid);
+
+            if (otherUserId) {
+                const userDoc = await getDoc(doc(db, 'users', otherUserId));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data() as UserData;
+                    setActiveChat({
+                        id: docSnap.id,
+                        otherUser: { ...userData, uid: otherUserId },
+                        lastMessage: data.lastMessage || null,
+                        isPinned: false,
+                        isMuted: false,
+                        unreadCount: 0,
+                    });
                 }
             }
-            
-            if (chatToOpen) {
-                setActiveChat(chatToOpen);
-            }
-
-            // Unsubscribe from previous listener before creating a new one
-            let unsubscribeMessages: Function = () => {};
-            
-            const messagesQuery = query(collection(db, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc'));
-            unsubscribeMessages = onSnapshot(messagesQuery, (querySnapshot) => {
-                const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
-                setMessages(msgs);
-            }, (error) => {
-                console.error("Error fetching messages: ", error);
-                toast({ title: "Mesajlar yüklenirken bir hata oluştu.", variant: 'destructive'});
-            });
-
-            return () => unsubscribeMessages();
-
-        } catch (error) {
-            console.error("Error setting up chat:", error);
-            toast({ title: "Sohbet yüklenirken bir hata oluştu.", variant: 'destructive'});
-        } finally {
-            setChatLoading(false);
+        } else {
+             // Conversation might have been deleted
+             setActiveChat(null);
+             router.replace('/chat');
         }
-    };
-    
-    const unsubscribePromise = fetchChatDetailsAndMessages();
+    }, (error) => {
+        console.error("Error fetching active chat details:", error);
+        toast({title: "Sohbet detayları alınamadı.", variant: "destructive"});
+    });
 
-    // Cleanup function for the useEffect
+    // Listener for messages in the active conversation
+    const messagesQuery = query(collection(db, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc'));
+    const messagesUnsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
+        const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
+        setMessages(msgs);
+        setChatLoading(false); // Messages are loaded
+    }, (error) => {
+        console.error("Error fetching messages: ", error);
+        toast({ title: "Mesajlar yüklenirken bir hata oluştu.", variant: 'destructive'});
+        setChatLoading(false);
+    });
+
     return () => {
-        unsubscribePromise.then(unsubscribe => unsubscribe && unsubscribe());
+        convoUnsubscribe();
+        messagesUnsubscribe();
     };
-
-  }, [searchParams, currentUser, toast, conversations, activeChat?.id]);
+  }, [searchParams, currentUser, toast, router]);
   
   // Scroll to bottom of chat
   useEffect(() => {
@@ -270,13 +246,11 @@ export default function ChatPage() {
     setMessageInput('');
 
     try {
-        const newMessage = {
+        await addDoc(messagesRef, {
             text: tempMessageInput,
             senderId: currentUser.uid,
             timestamp: serverTimestamp(),
-        };
-
-        await addDoc(messagesRef, newMessage);
+        });
         
         await updateDoc(conversationRef, {
             lastMessage: {
@@ -344,22 +318,13 @@ export default function ChatPage() {
   };
 
 
-  const sortedConversations = useMemo(() => {
-    return [...conversations].sort((a, b) => {
-        if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
-        const aTime = a.lastMessage?.timestamp?.toDate()?.getTime() || 0;
-        const bTime = b.lastMessage?.timestamp?.toDate()?.getTime() || 0;
-        return bTime - aTime;
-    });
-  }, [conversations]);
-  
-    if (redirecting) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center bg-background">
-                <Loader2 className="w-10 h-10 animate-spin text-primary" />
-            </div>
-        );
-    }
+  if (redirecting) {
+    return (
+        <div className="flex h-screen w-full items-center justify-center bg-background">
+            <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -419,8 +384,8 @@ export default function ChatPage() {
                         </div>
                     ))}
                 </div>
-            ) : sortedConversations.length > 0 ? (
-                sortedConversations.map((convo) => (
+            ) : conversations.length > 0 ? (
+                conversations.map((convo) => (
                     <div
                     key={convo.id}
                     className={cn(
