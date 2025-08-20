@@ -153,15 +153,16 @@ export default function UserProfilePage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (currentUser) {
-        setIsMyProfile(params.id === currentUser.uid);
-    }
-  }, [params.id, currentUser]);
-
-  useEffect(() => {
     const fetchUserProfile = async () => {
-      if (!params.id || !currentUser) return; // Wait for currentUser to be available
+      if (!params.id || !currentUser) {
+        setLoading(false); // Stop loading if there's no ID or user
+        return;
+      }
       setLoading(true);
+
+      const profileIsMine = params.id === currentUser.uid;
+      setIsMyProfile(profileIsMine);
+      
       try {
         const userDocRef = doc(db, 'users', params.id as string);
         const userDocSnap = await getDoc(userDocRef);
@@ -171,7 +172,7 @@ export default function UserProfilePage() {
           setUserProfile(userData);
 
           // Check for gallery access
-          if (userData.isGalleryPrivate && !isMyProfile) {
+          if (userData.isGalleryPrivate && !profileIsMine) {
               const permissionDocRef = doc(db, 'users', params.id, 'galleryPermissions', currentUser.uid);
               const permissionDocSnap = await getDoc(permissionDocRef);
               if (permissionDocSnap.exists()) {
@@ -195,15 +196,18 @@ export default function UserProfilePage() {
         }
       } catch (error) {
         console.error("Error fetching user profile:", error);
+        toast({ variant: 'destructive', title: 'Profil Yüklenemedi', description: 'Profil bilgileri alınırken bir hata oluştu.' });
+        setUserProfile(null);
       } finally {
         setLoading(false);
       }
     };
 
-    if (currentUser) { // Only fetch if currentUser is available
-        fetchUserProfile();
+    if (currentUser) {
+      fetchUserProfile();
     }
-  }, [params.id, currentUser, isMyProfile]);
+  }, [params.id, currentUser, toast]);
+
 
   const handleRequestAccess = async () => {
       if (!currentUser || !userProfile) return;
