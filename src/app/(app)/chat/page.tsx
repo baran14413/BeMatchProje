@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, Pencil, Trash2, BellOff, Pin, X, Loader2, Undo, Check as CheckIcon, Paperclip, Clipboard, ArrowDownCircle, MessageCircle } from 'lucide-react';
+import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, Pencil, Trash2, BellOff, Pin, X, Loader2, Undo, Check as CheckIcon, Paperclip, Clipboard, ArrowDownCircle, MessageCircle, Pause, Play } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -111,8 +111,11 @@ export default function ChatPage() {
   const [showScrollDown, setShowScrollDown] = useState(false);
 
   // Voice message states
-  const [isRecording, setIsRecording] = useState(false);
+  type VoiceMessageState = 'idle' | 'recording' | 'preview';
+  const [voiceMessageState, setVoiceMessageState] = useState<VoiceMessageState>('idle');
   const [recordingTime, setRecordingTime] = useState(0);
+  const [recordedAudio, setRecordedAudio] = useState<{ url: string, blob: Blob, duration: number } | null>(null);
+
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -269,10 +272,10 @@ export default function ChatPage() {
   }, [searchParams, currentUser, toast, router]);
   
   useEffect(() => {
-    if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current && showScrollDown === false) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'auto' });
     }
-  }, [messages, activeChat]);
+  }, [messages, activeChat, showScrollDown]);
   
   const handleScroll = () => {
     const viewport = scrollViewportRef.current;
@@ -493,84 +496,103 @@ export default function ChatPage() {
 
     const handleStartRecording = async () => {
         if (!activeChat || !currentUser) return;
-        
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            setIsRecording(true);
+            setVoiceMessageState('recording');
             setRecordingTime(0);
+
             recordingIntervalRef.current = setInterval(() => {
                 setRecordingTime(prev => prev + 1);
             }, 1000);
 
             mediaRecorderRef.current = new MediaRecorder(stream);
             audioChunksRef.current = [];
-
             mediaRecorderRef.current.ondataavailable = (event) => {
                 audioChunksRef.current.push(event.data);
             };
-
             mediaRecorderRef.current.start();
         } catch (error) {
             console.error("Error starting recording:", error);
             toast({ title: "Kayıt başlatılamadı.", description: "Lütfen mikrofon izniniz olduğundan emin olun.", variant: "destructive" });
-            setIsRecording(false);
+            setVoiceMessageState('idle');
             if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
         }
     };
 
     const handleStopRecording = async () => {
-        setIsRecording(false);
         if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
-            mediaRecorderRef.current.stop();
-
-            mediaRecorderRef.current.onstop = async () => {
+            mediaRecorderRef.current.onstop = () => {
                 const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
                 audioChunksRef.current = [];
-                
-                if (audioBlob.size < 1000) { // If recording is too short, do nothing
+
+                if (audioBlob.size < 1000) {
                     toast({ title: "Kayıt çok kısa.", variant: 'destructive' });
+                    setVoiceMessageState('idle');
                     return;
                 }
-
-                toast({ title: "Kayıt tamamlandı, gönderiliyor..." });
-
-                if (!activeChat || !currentUser) return;
-                 // Get duration
-                const audio = new Audio(URL.createObjectURL(audioBlob));
-                audio.onloadedmetadata = async () => {
-                     const duration = audio.duration;
                 
-                    try {
-                        const storageRef = ref(storage, `chat_audio/${activeChat.id}/${Date.now()}.webm`);
-                        const uploadTask = await uploadBytes(storageRef, audioBlob);
-                        const downloadURL = await getDownloadURL(uploadTask.ref);
-
-                        const conversationRef = doc(db, 'conversations', activeChat.id);
-                        const messagesRef = collection(conversationRef, 'messages');
-
-                        await addDoc(messagesRef, {
-                            audioUrl: downloadURL,
-                            audioDuration: duration,
-                            senderId: currentUser.uid,
-                            timestamp: serverTimestamp(),
-                        });
-
-                        await updateDoc(conversationRef, {
-                            lastMessage: {
-                                text: '[Sesli Mesaj]',
-                                timestamp: serverTimestamp(),
-                            }
-                        });
-                        toast({ title: "Sesli mesaj gönderildi.", className: "bg-green-500 text-white" });
-                    } catch (error) {
-                        console.error("Error sending audio message:", error);
-                        toast({ title: "Sesli mesaj gönderilemedi.", variant: "destructive" });
-                    }
-                }
+                const audio = new Audio(URL.createObjectURL(audioBlob));
+                audio.onloadedmetadata = () => {
+                    setRecordedAudio({
+                        url: URL.createObjectURL(audioBlob),
+                        blob: audioBlob,
+                        duration: audio.duration
+                    });
+                    setVoiceMessageState('preview');
+                };
             };
+            mediaRecorderRef.current.stop();
         }
     };
+    
+    const handleSendAudio = async () => {
+        if (!recordedAudio || !activeChat || !currentUser) return;
+        
+        toast({ title: "Sesli mesaj gönderiliyor..." });
+        setVoiceMessageState('idle');
+
+        try {
+            const storageRef = ref(storage, `chat_audio/${activeChat.id}/${Date.now()}.webm`);
+            await uploadBytes(storageRef, recordedAudio.blob);
+            const downloadURL = await getDownloadURL(storageRef);
+
+            const conversationRef = doc(db, 'conversations', activeChat.id);
+            const messagesRef = collection(conversationRef, 'messages');
+
+            await addDoc(messagesRef, {
+                audioUrl: downloadURL,
+                audioDuration: recordedAudio.duration,
+                senderId: currentUser.uid,
+                timestamp: serverTimestamp(),
+            });
+
+            await updateDoc(conversationRef, {
+                lastMessage: {
+                    text: '[Sesli Mesaj]',
+                    timestamp: serverTimestamp(),
+                }
+            });
+            
+            toast({ title: "Sesli mesaj gönderildi.", className: "bg-green-500 text-white" });
+
+        } catch (error) {
+            console.error("Error sending audio:", error);
+            toast({ title: "Sesli mesaj gönderilemedi.", variant: 'destructive' });
+        } finally {
+            setRecordedAudio(null);
+        }
+    };
+
+    const handleCancelRecording = () => {
+        setRecordedAudio(null);
+        setVoiceMessageState('idle');
+        audioChunksRef.current = [];
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+            mediaRecorderRef.current.stop();
+        }
+        if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+    }
     
     const formatRecordingTime = (time: number) => {
         const minutes = Math.floor(time / 60);
@@ -866,15 +888,30 @@ export default function ChatPage() {
                             <CheckIcon className="h-5 w-5" />
                         </Button>
                      </div>
-                 ) : isRecording ? (
-                    <div className="flex items-center justify-between w-full h-full px-2">
+                 ) : voiceMessageState === 'recording' ? (
+                     <div className="flex items-center justify-between w-full h-[40px] px-2">
                         <div className="flex items-center gap-2">
-                             <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
-                             <span className="text-sm font-mono text-muted-foreground">Kaydediliyor...</span>
+                            <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                            <span className="text-sm font-mono text-muted-foreground">Kaydediliyor...</span>
                         </div>
-                       <span className="text-sm font-mono text-muted-foreground">{formatRecordingTime(recordingTime)}</span>
+                        <span className="text-sm font-mono text-muted-foreground">{formatRecordingTime(recordingTime)}</span>
+                        <Button type="button" size="icon" className="rounded-full bg-red-500 text-white" onClick={handleStopRecording}>
+                           <Pause className="h-5 w-5" />
+                        </Button>
                     </div>
-                 ) : (
+                 ) : voiceMessageState === 'preview' && recordedAudio ? (
+                    <div className="flex items-center justify-between w-full h-[40px] px-2 gap-2">
+                        <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0" onClick={handleCancelRecording}>
+                           <Trash2 className="w-5 h-5 text-destructive" />
+                        </Button>
+                        <div className="flex-1">
+                             <VoiceMessagePlayer audioUrl={recordedAudio.url} isSender={true} />
+                        </div>
+                        <Button type="button" size="icon" className="rounded-full bg-primary text-primary-foreground shrink-0" onClick={handleSendAudio}>
+                           <SendHorizonal className="h-5 w-5" />
+                        </Button>
+                    </div>
+                 ): (
                     <>
                          <input type="file" ref={fileInputRef} onChange={onFileSelect} accept="image/*" className="hidden" />
                          <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0 mt-1" onClick={() => fileInputRef.current?.click()}>
@@ -905,10 +942,7 @@ export default function ChatPage() {
                                 type="button" 
                                 size="icon" 
                                 className={cn("rounded-full bg-primary text-primary-foreground shrink-0 mt-1 transition-all")}
-                                onMouseDown={handleStartRecording}
-                                onMouseUp={handleStopRecording}
-                                onTouchStart={handleStartRecording}
-                                onTouchEnd={handleStopRecording}
+                                onClick={handleStartRecording}
                             >
                                 <Mic className="h-5 w-5" />
                             </Button>
