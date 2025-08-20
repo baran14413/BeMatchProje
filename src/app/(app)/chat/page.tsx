@@ -623,9 +623,13 @@ export default function ChatPage() {
 
                        const messageContent = (
                             <div className={cn(
-                                'rounded-xl px-4 py-2 text-sm relative',
-                                message.senderId === currentUser?.uid ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none',
-                                hasOnlyImage && 'bg-transparent border-none p-0'
+                                'rounded-xl text-sm relative',
+                                hasOnlyImage 
+                                    ? 'bg-transparent border-none p-0'
+                                    : 'px-4 py-2',
+                                !hasOnlyImage && (message.senderId === currentUser?.uid 
+                                    ? 'bg-primary text-primary-foreground rounded-br-none' 
+                                    : 'bg-card border rounded-bl-none')
                             )}>
                                 {message.imageUrl && (
                                      <div className='relative my-2 max-w-[250px]'>
@@ -800,6 +804,8 @@ export default function ChatPage() {
     </div>
   );
 }
+
+    
 
     
 
