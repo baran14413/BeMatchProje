@@ -1,25 +1,30 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, useRef, Fragment } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams }from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, Pencil, Trash2, BellOff, Pin, X, Loader2, Undo, CornerUpLeft, MoreHorizontal, Heart, ThumbsUp, Laugh, Angry, Wow, Check as CheckIcon, Save } from 'lucide-react';
+import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, Pencil, Trash2, BellOff, Pin, X, Loader2, Undo, Check as CheckIcon, Paperclip } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { collection, query, where, getDocs, onSnapshot, doc, orderBy, addDoc, serverTimestamp, Timestamp, updateDoc, getDoc, arrayUnion, arrayRemove, deleteDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { collection, query, where, getDocs, onSnapshot, doc, orderBy, addDoc, serverTimestamp, Timestamp, updateDoc, getDoc, arrayUnion, setDoc } from 'firebase/firestore';
+import { auth, db, storage } from '@/lib/firebase';
+import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
+import Image from 'next/image';
+import { moderateImage } from '@/ai/flows/moderate-image-flow';
+import { Textarea } from '@/components/ui/textarea';
+
 
 type UserData = {
     uid: string;
@@ -30,7 +35,8 @@ type UserData = {
 
 type Message = {
     id: string;
-    text: string;
+    text?: string;
+    imageUrl?: string;
     senderId: string;
     timestamp: Timestamp;
     reaction?: string;
@@ -89,6 +95,13 @@ export default function ChatPage() {
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messageInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [imageToSend, setImageToSend] = useState<string | null>(null);
+  const [imageCaption, setImageCaption] = useState('');
+  const [isSendingImage, setIsSendingImage] = useState(false);
+  const [imageToView, setImageToView] = useState<string | null>(null);
+  
 
   // A chat view is open if a conversationId or userId is present in the URL
   const isChatViewOpen = searchParams.has('conversationId') || searchParams.has('userId');
@@ -96,7 +109,7 @@ export default function ChatPage() {
   // Find or create conversation when userId is in URL
   useEffect(() => {
     const userIdToChat = searchParams.get('userId');
-    if (userIdToChat && currentUser && !searchParams.has('conversationId')) {
+    if (userIdToChat && currentUser && !redirecting) {
         const findOrCreateConversation = async () => {
             setRedirecting(true);
             try {
@@ -106,7 +119,6 @@ export default function ChatPage() {
                 const conversationSnap = await getDoc(conversationRef);
 
                 if (!conversationSnap.exists()) {
-                     // Create a new conversation with the specific ID
                      await setDoc(conversationRef, {
                         users: [currentUser.uid, userIdToChat],
                         createdAt: serverTimestamp(),
@@ -119,13 +131,11 @@ export default function ChatPage() {
                 console.error("Error finding or creating conversation: ", error);
                 toast({ title: "Sohbet başlatılamadı.", variant: "destructive" });
                 router.replace('/chat');
-            } finally {
-                // No need to setRedirecting(false) here, it's handled by the main convo loader
             }
         };
         findOrCreateConversation();
     }
-  }, [searchParams, currentUser, router, toast]);
+  }, [searchParams, currentUser, router, toast, redirecting]);
 
   // Fetch conversations
   useEffect(() => {
@@ -137,6 +147,7 @@ export default function ChatPage() {
     const q = query(collection(db, 'conversations'), where('users', 'array-contains', currentUser.uid));
     
     const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+        setLoading(true);
         const convosPromises = querySnapshot.docs.map(async (docSnap) => {
             const data = docSnap.data();
             const otherUserId = data.users.find((uid: string) => uid !== currentUser.uid);
@@ -160,7 +171,6 @@ export default function ChatPage() {
         
         const resolvedConvos = (await Promise.all(convosPromises)).filter(c => c !== null) as Conversation[];
         
-        // Sort conversations by last message timestamp client-side
         resolvedConvos.sort((a, b) => {
             const timeA = a.lastMessage?.timestamp?.toMillis() || 0;
             const timeB = b.lastMessage?.timestamp?.toMillis() || 0;
@@ -169,7 +179,7 @@ export default function ChatPage() {
 
         setConversations(resolvedConvos);
         setLoading(false);
-        setRedirecting(false); // Stop redirecting loader once conversations load
+        setRedirecting(false); 
     }, (error) => {
         console.error("Error fetching conversations: ", error);
         toast({ title: "Sohbetler yüklenirken bir hata oluştu.", variant: 'destructive'});
@@ -192,7 +202,6 @@ export default function ChatPage() {
     
     setChatLoading(true);
 
-    // Listener for the active conversation details
     const convoUnsubscribe = onSnapshot(doc(db, 'conversations', conversationId), async (docSnap) => {
         if (docSnap.exists()) {
             const data = docSnap.data();
@@ -213,23 +222,21 @@ export default function ChatPage() {
                 }
             }
         } else {
-             // Conversation might have been deleted
              setActiveChat(null);
-             router.replace('/chat');
+             router.replace('/chat', {scroll: false});
         }
     }, (error) => {
         console.error("Error fetching active chat details:", error);
         toast({title: "Sohbet detayları alınamadı.", variant: "destructive"});
     });
 
-    // Listener for messages in the active conversation
     const messagesQuery = query(collection(db, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc'));
     const messagesUnsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
         const msgs = querySnapshot.docs
             .map(doc => ({ id: doc.id, ...doc.data() } as Message))
-            .filter(m => !m.deletedFor?.includes(currentUser.uid)); // Filter messages deleted for me
+            .filter(m => !m.deletedFor?.includes(currentUser.uid));
         setMessages(msgs);
-        setChatLoading(false); // Messages are loaded
+        setChatLoading(false);
     }, (error) => {
         console.error("Error fetching messages: ", error);
         toast({ title: "Mesajlar yüklenirken bir hata oluştu.", variant: 'destructive'});
@@ -242,7 +249,6 @@ export default function ChatPage() {
     };
   }, [searchParams, currentUser, toast, router]);
   
-  // Scroll to bottom of chat
   useEffect(() => {
     if (scrollAreaRef.current) {
         const scrollElement = scrollAreaRef.current.children[1] as HTMLDivElement;
@@ -251,7 +257,6 @@ export default function ChatPage() {
         }
     }
   }, [messages]);
-
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !activeChat || !currentUser) return;
@@ -279,10 +284,71 @@ export default function ChatPage() {
     } catch (error) {
          console.error("Error sending message: ", error);
          toast({ title: "Mesaj gönderilemedi.", variant: 'destructive'});
-         setMessageInput(tempMessageInput); // Restore input on error
+         setMessageInput(tempMessageInput); 
+    }
+  };
+
+   const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        if (reader.result) {
+          setImageToSend(reader.result.toString());
+        }
+      });
+      reader.readAsDataURL(e.target.files[0]);
+    }
+    // Reset file input value to allow selecting the same file again
+    if (fileInputRef.current) {
+        fileInputRef.current.value = '';
     }
   };
   
+  const handleSendImage = async () => {
+    if (!imageToSend || !activeChat || !currentUser) return;
+    setIsSendingImage(true);
+
+    try {
+        const moderationResult = await moderateImage({ photoDataUri: imageToSend });
+        if (!moderationResult.isSafe) {
+            toast({ variant: 'destructive', title: 'Uygunsuz İçerik', description: `Yapay zeka bu görseli onaylamadı: ${moderationResult.reason}`, duration: 5000 });
+            setIsSendingImage(false);
+            return;
+        }
+        
+        const storageRef = ref(storage, `chat_images/${activeChat.id}/${Date.now()}`);
+        const uploadTask = await uploadString(storageRef, imageToSend, 'data_url');
+        const downloadURL = await getDownloadURL(uploadTask.ref);
+
+        const conversationRef = doc(db, 'conversations', activeChat.id);
+        const messagesRef = collection(conversationRef, 'messages');
+
+        await addDoc(messagesRef, {
+            text: imageCaption,
+            imageUrl: downloadURL,
+            senderId: currentUser.uid,
+            timestamp: serverTimestamp(),
+        });
+
+        await updateDoc(conversationRef, {
+             lastMessage: {
+                text: imageCaption ? `[Resim] ${imageCaption}` : '[Resim]',
+                timestamp: serverTimestamp(),
+            }
+        });
+
+        setImageToSend(null);
+        setImageCaption('');
+
+    } catch (error) {
+        console.error("Error sending image:", error);
+        toast({ title: "Resim gönderilemedi.", variant: "destructive" });
+    } finally {
+        setIsSendingImage(false);
+    }
+  }
+
+
   const handleItemClick = (convo: Conversation) => {
     if (isEditMode) {
       const newSelectedIds = new Set(selectedIds);
@@ -297,15 +363,8 @@ export default function ChatPage() {
     }
   };
 
-
-  const handleBackToList = () => {
-      router.push('/chat');
-  }
-  
-  const handleToggleEditMode = () => {
-    setIsEditMode(!isEditMode);
-    setSelectedIds(new Set()); // Exit edit mode clears selection
-  };
+  const handleBackToList = () => router.push('/chat', { scroll: false });
+  const handleToggleEditMode = () => { setIsEditMode(!isEditMode); setSelectedIds(new Set()); };
   
   const handleDelete = async () => {
     if (!activeChat) return;
@@ -332,7 +391,7 @@ export default function ChatPage() {
 
     const startEditing = (message: Message) => {
         setEditingMessageId(message.id);
-        setMessageInput(message.text);
+        setMessageInput(message.text || '');
         messageInputRef.current?.focus();
     };
 
@@ -364,6 +423,7 @@ export default function ChatPage() {
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
         await updateDoc(messageRef, {
             text: 'Bu mesaj silindi.',
+            imageUrl: null, // Also remove image url
             reaction: null,
             isEdited: false,
             deletedForEveryone: true,
@@ -537,10 +597,23 @@ export default function ChatPage() {
                        const isDeleted = message.deletedForEveryone;
                        const messageContent = (
                             <div className={cn(
-                                'rounded-xl px-4 py-2 text-sm relative',
-                                isDeleted ? 'italic text-muted-foreground' : (message.senderId === currentUser?.uid ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none')
+                                'rounded-xl px-4 py-2 text-sm relative break-words',
+                                 isDeleted ? 'italic text-muted-foreground bg-gray-200 dark:bg-gray-700' : (message.senderId === currentUser?.uid ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none'),
                             )}>
-                                <p>{message.text}</p>
+                                {message.imageUrl && (
+                                     <div className='relative my-2'>
+                                        <Image
+                                            src={message.imageUrl}
+                                            alt="Sohbet resmi"
+                                            width={200}
+                                            height={200}
+                                            className="rounded-md object-cover cursor-pointer"
+                                            onClick={() => setImageToView(message.imageUrl!)}
+                                        />
+                                    </div>
+                                )}
+                                {message.text && <p>{message.text}</p>}
+
                                 {!isDeleted && (
                                     <>
                                         <div className={cn('flex items-center gap-2 text-xs mt-1', message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70')}>
@@ -548,7 +621,7 @@ export default function ChatPage() {
                                             <span>{message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
                                         {message.reaction && (
-                                            <div className="absolute -bottom-2.5 rounded-full bg-background border px-1.5 py-0.5 text-xs"
+                                            <div className="absolute -bottom-3.5 rounded-full bg-background border px-1.5 py-0.5 text-xs select-none"
                                                 style={{ [message.senderId === currentUser?.uid ? 'right' : 'left']: '10px' }}>
                                                 {message.reaction}
                                             </div>
@@ -575,13 +648,18 @@ export default function ChatPage() {
                                                     </Button>
                                                 ))}
                                            </div>
-                                           <DropdownMenuSeparator />
-                                           {message.senderId === currentUser?.uid && (
-                                             <DropdownMenuItem onClick={() => startEditing(message)}>
-                                                 <Pencil className="mr-2 h-4 w-4" />
-                                                 <span>Düzenle</span>
-                                             </DropdownMenuItem>
+                                           {(message.text && !message.imageUrl) && (
+                                                <>
+                                                 <DropdownMenuSeparator />
+                                                   {message.senderId === currentUser?.uid && (
+                                                     <DropdownMenuItem onClick={() => startEditing(message)}>
+                                                         <Pencil className="mr-2 h-4 w-4" />
+                                                         <span>Düzenle</span>
+                                                     </DropdownMenuItem>
+                                                   )}
+                                                </>
                                            )}
+                                            <DropdownMenuSeparator />
                                             <DropdownMenuItem onClick={() => handleDeleteMessageForMe(message.id)}>
                                                 <Trash2 className="mr-2 h-4 w-4" />
                                                 <span>Benden Sil</span>
@@ -622,8 +700,9 @@ export default function ChatPage() {
                      </>
                  ) : (
                     <>
-                         <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0">
-                            <ImageIcon className="w-5 h-5" />
+                         <input type="file" ref={fileInputRef} onChange={onFileSelect} accept="image/*" className="hidden" />
+                         <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0" onClick={() => fileInputRef.current?.click()}>
+                            <Paperclip className="w-5 h-5" />
                          </Button>
                          <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0">
                             <Smile className="w-5 h-5" />
@@ -655,6 +734,42 @@ export default function ChatPage() {
             </div>
         )}
       </main>
+
+       {/* Send Image Modal */}
+      <Dialog open={!!imageToSend} onOpenChange={(open) => !open && setImageToSend(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Resim Gönder</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {imageToSend && (
+              <Image src={imageToSend} alt="Önizleme" width={400} height={400} className="rounded-md max-h-[50vh] object-contain" />
+            )}
+            <Textarea
+                placeholder="İsteğe bağlı alt yazı..."
+                value={imageCaption}
+                onChange={(e) => setImageCaption(e.target.value)}
+                className="mt-4"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setImageToSend(null)} disabled={isSendingImage}>İptal</Button>
+            <Button onClick={handleSendImage} disabled={isSendingImage}>
+              {isSendingImage && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Gönder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+        {/* View Image Modal */}
+      <Dialog open={!!imageToView} onOpenChange={(open) => !open && setImageToView(null)}>
+        <DialogContent className="max-w-3xl p-0">
+           {imageToView && (
+              <Image src={imageToView} alt="Sohbet resmi" width={800} height={800} className="rounded-md object-contain w-full h-full" />
+            )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -664,3 +779,4 @@ export default function ChatPage() {
     
 
     
+
