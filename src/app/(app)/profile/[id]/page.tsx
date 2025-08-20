@@ -28,6 +28,8 @@ import {
   Lock,
   Sparkles,
   UserCheck as UserCheckIcon,
+  Grid3x3,
+  List,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -37,6 +39,7 @@ import { doc, getDoc, collection, query, where, getDocs, DocumentData, addDoc, s
 import { auth, db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 type Post = {
     id: string;
@@ -303,15 +306,17 @@ export default function UserProfilePage() {
             }
         });
 
-        // Update state optimistically
         setIsFollowing(!isFollowing);
-        setUserProfile(prev => ({
-            ...prev,
-            stats: {
-                ...prev?.stats,
-                followers: prev?.stats?.followers + (isFollowing ? -1 : 1)
+        setUserProfile(prev => {
+            if (!prev) return null;
+            return {
+                ...prev,
+                stats: {
+                    ...prev.stats,
+                    followers: (prev.stats?.followers || 0) + (isFollowing ? -1 : 1),
+                }
             }
-        }));
+        });
 
     } catch (error) {
         console.error("Error toggling follow:", error);
