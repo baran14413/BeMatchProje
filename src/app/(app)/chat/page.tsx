@@ -451,7 +451,7 @@ export default function ChatPage() {
     const handleDeleteMessageForEveryone = async (messageId: string) => {
         if (!activeChat) return;
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
-        await updateDoc(messageRef, { text: null, imageUrl: null, isDeleted: true, reaction: null });
+        await updateDoc(messageRef, { text: "Bu mesaj silindi.", imageUrl: null, isDeleted: true, reaction: null });
         setMenuOpenFor(null);
     };
 
@@ -620,7 +620,7 @@ export default function ChatPage() {
               </div>
             </header>
             <div className="flex-1 bg-muted/30 relative">
-                <ScrollArea viewportRef={scrollViewportRef} onScroll={handleScroll}>
+                <ScrollArea viewportRef={scrollViewportRef} onScroll={handleScroll} className="h-full">
                   <div className='p-6'>
                     {chatLoading && !messages.length ? (
                         <div className="flex justify-center items-center h-full">
@@ -633,16 +633,6 @@ export default function ChatPage() {
                             if (isUserHidden) {
                                 return null;
                             }
-
-                            if (message.isDeleted) {
-                                 return (
-                                    <div key={message.id} className="flex justify-center items-center my-2">
-                                        <div className="rounded-full bg-background/80 px-4 py-1 text-xs text-muted-foreground italic">
-                                            Bu mesaj silindi
-                                        </div>
-                                    </div>
-                                );
-                            }
                            
                            const hasOnlyImage = message.imageUrl && !message.text;
 
@@ -654,9 +644,10 @@ export default function ChatPage() {
                                         : 'px-4 py-2',
                                     !hasOnlyImage && (message.senderId === currentUser?.uid 
                                         ? 'bg-primary text-primary-foreground rounded-br-none' 
-                                        : 'bg-card border rounded-bl-none')
+                                        : 'bg-card border rounded-bl-none'),
+                                    message.isDeleted && 'px-4 py-2 bg-background/80 text-muted-foreground italic'
                                 )}>
-                                    {message.imageUrl && (
+                                    {message.imageUrl && !message.isDeleted && (
                                          <div className='relative my-2 max-w-[250px]'>
                                             <Image
                                                 src={message.imageUrl}
@@ -671,7 +662,7 @@ export default function ChatPage() {
                                     {message.text && <p className="whitespace-pre-wrap break-all">{message.text}</p>}
                                     <div className={cn('flex items-center gap-2 text-xs mt-1', 
                                         message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70',
-                                        hasOnlyImage && 'hidden'
+                                        (hasOnlyImage || message.isDeleted) && 'hidden'
                                     )}>
                                         {message.isEdited && <span>(düzenlendi)</span>}
                                         <span>{message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
@@ -688,7 +679,7 @@ export default function ChatPage() {
 
                            return (
                                <div key={message.id} className={cn('flex items-end gap-2 group', message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start')}>
-                                    <DropdownMenu open={menuOpenFor === message.id} onOpenChange={(open) => !open && setMenuOpenFor(null)}>
+                                    <DropdownMenu open={!message.isDeleted && menuOpenFor === message.id} onOpenChange={(open) => !open && setMenuOpenFor(null)}>
                                         <DropdownMenuTrigger asChild>
                                             <div
                                                 onMouseDown={() => handleLongPressStart(message.id)}
@@ -849,4 +840,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
