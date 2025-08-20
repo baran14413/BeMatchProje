@@ -22,6 +22,7 @@ type Post = {
     caption?: string;
     likes: number;
     commentsCount: number;
+    createdAt: { seconds: number; nanoseconds: number; };
 };
 
 
@@ -119,9 +120,13 @@ export default function ManagePhotosPage() {
                 const userDoc = await getDoc(userDocRef);
                 setUserProfile(userDoc.exists() ? userDoc.data() : null);
 
-                const postsQuery = query(collection(db, 'posts'), where('authorId', '==', currentUser.uid), orderBy('createdAt', 'desc'));
+                const postsQuery = query(collection(db, 'posts'), where('authorId', '==', currentUser.uid));
                 const postsSnapshot = await getDocs(postsQuery);
                 const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
+                
+                // Sort posts by date client-side
+                postsData.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
+                
                 setPosts(postsData);
 
             } catch (error) {
