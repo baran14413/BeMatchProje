@@ -120,7 +120,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
           </>
         )}
         
-        <main className="h-full w-full flex-1">
+        <main className={cn("flex-1 w-full", isFullScreen ? "h-screen" : "h-full")}>
             <Suspense fallback={<div>BeMatch Yükleniyor...</div>}>
                 {children}
             </Suspense>

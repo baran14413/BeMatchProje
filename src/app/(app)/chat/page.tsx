@@ -89,20 +89,16 @@ export default function ChatPage() {
             setRedirecting(true);
             try {
                 // Check for existing conversation (both user orders)
-                const q1 = query(collection(db, 'conversations'), where('users', '==', [currentUser.uid, userIdToChat]));
-                const q2 = query(collection(db, 'conversations'), where('users', '==', [userIdToChat, currentUser.uid]));
+                const q = query(
+                  collection(db, 'conversations'), 
+                  where('users', 'in', [[currentUser.uid, userIdToChat], [userIdToChat, currentUser.uid]])
+                );
 
-                const [querySnapshot1, querySnapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+                const querySnapshot = await getDocs(q);
 
-                let existingConvoId = null;
-                if (!querySnapshot1.empty) {
-                   existingConvoId = querySnapshot1.docs[0].id;
-                } else if (!querySnapshot2.empty) {
-                   existingConvoId = querySnapshot2.docs[0].id;
-                }
-
-                if (existingConvoId) {
-                    router.replace(`/chat?conversationId=${existingConvoId}`, { scroll: false });
+                if (!querySnapshot.empty) {
+                   const existingConvoId = querySnapshot.docs[0].id;
+                   router.replace(`/chat?conversationId=${existingConvoId}`, { scroll: false });
                 } else {
                     // Create a new conversation
                     const newConvoRef = await addDoc(collection(db, 'conversations'), {
@@ -153,6 +149,13 @@ export default function ChatPage() {
                 }
             }
         }
+        // Sort conversations by last message timestamp before setting state
+        convos.sort((a, b) => {
+            const aTime = a.lastMessage?.timestamp?.toDate()?.getTime() || 0;
+            const bTime = b.lastMessage?.timestamp?.toDate()?.getTime() || 0;
+            return bTime - aTime;
+        });
+
         setConversations(convos);
         setLoading(false);
         setRedirecting(false); // Stop redirecting loader once conversations load
@@ -171,8 +174,38 @@ export default function ChatPage() {
     const conversationId = searchParams.get('conversationId');
     if (conversationId) {
         setChatLoading(true);
+        // Find the chat in the already loaded conversations
         const chatToOpen = conversations.find(c => c.id === conversationId);
-        setActiveChat(chatToOpen || null);
+
+        // If the conversation exists in the list, set it as active
+        if (chatToOpen) {
+            setActiveChat(chatToOpen);
+        } else {
+            // If not found (e.g., direct link), fetch its details
+            const fetchConvoDetails = async () => {
+                const convoDocRef = doc(db, 'conversations', conversationId);
+                const convoDocSnap = await getDoc(convoDocRef);
+                if (convoDocSnap.exists() && currentUser) {
+                     const data = convoDocSnap.data();
+                     const otherUserId = data.users.find((uid: string) => uid !== currentUser.uid);
+                      if (otherUserId) {
+                        const userDoc = await getDoc(doc(db, 'users', otherUserId));
+                         if (userDoc.exists()) {
+                            const userData = userDoc.data() as UserData;
+                            setActiveChat({
+                                id: convoDocSnap.id,
+                                otherUser: { ...userData, uid: otherUserId },
+                                lastMessage: data.lastMessage || null,
+                                isPinned: false,
+                                isMuted: false,
+                                unreadCount: 0,
+                            });
+                         }
+                      }
+                }
+            }
+            fetchConvoDetails();
+        }
         
         const messagesQuery = query(collection(db, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc'));
         const unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
@@ -190,7 +223,7 @@ export default function ChatPage() {
         setActiveChat(null);
         setMessages([]);
     }
-  }, [searchParams, conversations, toast]);
+  }, [searchParams, conversations, toast, currentUser]);
   
   // Scroll to bottom of chat
   useEffect(() => {
@@ -293,7 +326,7 @@ export default function ChatPage() {
   
     if (redirecting) {
         return (
-            <div className="flex h-full w-full items-center justify-center bg-background">
+            <div className="flex h-screen w-full items-center justify-center bg-background">
                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
             </div>
         );
@@ -347,7 +380,7 @@ export default function ChatPage() {
             <ScrollArea className="flex-1">
             {loading ? (
                 <div className="p-4 space-y-4">
-                    {[...Array(3)].map((_, i) => (
+                    {[...Array(5)].map((_, i) => (
                         <div key={i} className="flex items-center gap-3">
                             <Skeleton className="w-12 h-12 rounded-full" />
                             <div className="flex-1 space-y-2">
@@ -384,16 +417,15 @@ export default function ChatPage() {
                         {convo.otherUser.isOnline && <div className='absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background'/>}
                     </div>
                     <div className="flex-1 overflow-hidden">
-                        <div className="flex items-center gap-2">
-                            {convo.isPinned && <Pin className="w-4 h-4 text-muted-foreground" />}
+                        <div className="flex justify-between items-center">
                             <p className={cn("truncate", convo.unreadCount > 0 ? "font-bold" : "font-semibold")}>{convo.otherUser.name}</p>
-                            <span className="text-xs text-muted-foreground font-mono whitespace-nowrap">{formatRelativeTime(convo.lastMessage?.timestamp?.toDate() || null)}</span>
+                            <span className="text-xs text-muted-foreground font-mono whitespace-nowrap ml-2">{formatRelativeTime(convo.lastMessage?.timestamp?.toDate() || null)}</span>
                         </div>
                         <p className={cn("text-sm truncate", convo.unreadCount > 0 ? "font-bold text-foreground" : "text-muted-foreground")}>{convo.lastMessage?.text}</p>
                     </div>
-                     <div className="flex flex-col items-end gap-1">
+                     <div className="flex flex-col items-end gap-1 self-start pt-1">
                         {convo.unreadCount > 0 && (
-                            <Badge className="bg-green-500 text-white w-6 h-6 flex items-center justify-center p-0">{convo.unreadCount}</Badge>
+                            <Badge className="bg-green-500 text-white w-5 h-5 flex items-center justify-center p-0 text-xs">{convo.unreadCount}</Badge>
                         )}
                         {convo.isMuted && <BellOff className="w-4 h-4 text-muted-foreground" />}
                      </div>
@@ -411,7 +443,7 @@ export default function ChatPage() {
 
       {/* Main Chat Area */}
       <main className={cn(
-          "w-full flex-col h-full",
+          "w-full flex flex-col h-full",
           isChatViewOpen ? "flex" : "hidden md:hidden",
       )}>
         {activeChat ? (
@@ -500,7 +532,7 @@ export default function ChatPage() {
             </footer>
           </>
         ) : isChatViewOpen && (
-            <div className="flex h-full w-full items-center justify-center bg-background">
+            <div className="flex h-screen w-full items-center justify-center bg-background">
                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
             </div>
         )}
