@@ -29,23 +29,23 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ audioUrl, isSen
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
 
-  const onReady = (ws: WaveSurfer) => {
+  const onReady = useCallback((ws: WaveSurfer) => {
     setWavesurfer(ws);
     setDuration(ws.getDuration());
     setIsPlaying(false);
-  };
+  }, []);
   
-  const onPlayPause = () => {
+  const onPlayPause = useCallback(() => {
     wavesurfer?.playPause();
-  };
+  }, [wavesurfer]);
   
-  const onTimeUpdate = (time: number) => {
+  const onTimeUpdate = useCallback((time: number) => {
     setCurrentTime(time);
-  };
+  }, []);
   
-  const onFinish = () => {
+  const onFinish = useCallback(() => {
     setIsPlaying(false);
-  };
+  }, []);
   
    useWavesurfer({
     container: containerRef,
@@ -88,6 +88,7 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ audioUrl, isSen
               isSender ? "text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/20" : "text-foreground/80 hover:text-foreground hover:bg-black/10"
            )}
            onClick={() => handleSetPlaybackRate(rate)}
+           disabled={!wavesurfer}
         >
             {rate}x
        </Button>

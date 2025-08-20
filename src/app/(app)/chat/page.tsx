@@ -460,7 +460,7 @@ export default function ChatPage() {
     };
 
     const handleDeleteMessageForEveryone = async (messageId: string) => {
-        if (!activeChat) return;
+        if (!activeChat || !editingMessageId) return;
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', editingMessageId);
         await updateDoc(messageRef, { text: "Bu mesaj silindi.", imageUrl: undefined, audioUrl: undefined, isDeleted: true, reaction: null });
         setMenuOpenFor(null);
@@ -844,7 +844,7 @@ export default function ChatPage() {
                                                 <Trash2 className="mr-2 h-4 w-4" />
                                                 <span>Benden Sil</span>
                                             </DropdownMenuItem>
-                                            {message.senderId === currentUser?.uid && (
+                                            {message.senderId === currentUser?.uid && !message.isDeleted && (
                                                 <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteMessageForEveryone(message.id)}>
                                                     <Undo className="mr-2 h-4 w-4" />
                                                     <span>Herkesten Sil</span>
@@ -1008,4 +1008,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
