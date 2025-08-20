@@ -72,13 +72,6 @@ const PostCard = ({ post, user, isMyProfile }: { post: Post, user: DocumentData,
                         </Badge>
                     )}
                 </div>
-                 {isMyProfile && (
-                    <div className="flex items-center gap-1 ml-auto">
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <Pencil className="w-4 h-4" />
-                        </Button>
-                    </div>
-                )}
             </div>
             
             {post.type === 'photo' && post.url && (
