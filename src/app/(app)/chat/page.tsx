@@ -96,7 +96,6 @@ export default function ChatPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [imageToSend, setImageToSend] = useState<string | null>(null);
-  const [imageCaption, setImageCaption] = useState('');
   const [isSendingImage, setIsSendingImage] = useState(false);
   const [imageToView, setImageToView] = useState<string | null>(null);
   const isRedirectingRef = useRef(false);
@@ -111,8 +110,11 @@ export default function ChatPage() {
     if (userIdToChat && currentUser && !isRedirectingRef.current) {
         const findOrCreateConversation = async () => {
             isRedirectingRef.current = true;
-            setActiveChat(null); // Clear previous chat while loading
-            setChatLoading(true);
+            // Show loading state in the main chat area instead of clearing the whole view
+            if (isChatViewOpen) {
+                setChatLoading(true);
+            }
+            
             try {
                 // Generate a consistent conversation ID by sorting UIDs
                 const conversationId = [currentUser.uid, userIdToChat].sort().join('-');
@@ -134,12 +136,14 @@ export default function ChatPage() {
                 router.replace('/chat');
             } finally {
                  // Do not set redirecting to false here to avoid loops
-                 setChatLoading(false);
+                 if (isChatViewOpen) {
+                    setChatLoading(false);
+                 }
             }
         };
         findOrCreateConversation();
     }
-  }, [searchParams, currentUser, router, toast]);
+  }, [searchParams, currentUser, router, toast, isChatViewOpen]);
 
   // Fetch conversations
   useEffect(() => {
@@ -200,7 +204,6 @@ export default function ChatPage() {
     if (!conversationId || !currentUser) {
         setActiveChat(null);
         setMessages([]);
-        setChatLoading(false);
         isRedirectingRef.current = false; // Reset when there is no convo id
         return;
     }
@@ -321,7 +324,6 @@ export default function ChatPage() {
         const messagesRef = collection(conversationRef, 'messages');
 
         await addDoc(messagesRef, {
-            text: imageCaption,
             imageUrl: downloadURL,
             senderId: currentUser.uid,
             timestamp: serverTimestamp(),
@@ -329,13 +331,12 @@ export default function ChatPage() {
 
         await updateDoc(conversationRef, {
              lastMessage: {
-                text: imageCaption ? `[Resim] ${imageCaption}` : '[Resim]',
+                text: '[Resim]',
                 timestamp: serverTimestamp(),
             }
         });
 
         setImageToSend(null);
-        setImageCaption('');
 
     } catch (error) {
         console.error("Error sending image:", error);
@@ -364,29 +365,32 @@ export default function ChatPage() {
   const handleToggleEditMode = () => { setIsEditMode(!isEditMode); setSelectedIds(new Set()); };
   
   const handleDelete = async () => {
-    const idsToDelete = new Set(selectedIds);
-    if (idsToDelete.size === 0) return;
+    const idsToDelete = Array.from(selectedIds);
+    if (idsToDelete.length === 0) return;
 
     try {
       const batch = writeBatch(db);
 
       for (const id of idsToDelete) {
+        // Delete all messages in the conversation's subcollection
         const messagesRef = collection(db, 'conversations', id, 'messages');
         const messagesSnapshot = await getDocs(messagesRef);
         messagesSnapshot.docs.forEach(messageDoc => {
           batch.delete(messageDoc.ref);
         });
+
+        // Delete the conversation itself
         const conversationRef = doc(db, 'conversations', id);
         batch.delete(conversationRef);
       }
       
       await batch.commit();
 
-      toast({ title: `${idsToDelete.size} sohbet ve içindeki tüm mesajlar silindi.` });
+      toast({ title: `${idsToDelete.length} sohbet ve içindeki tüm mesajlar silindi.` });
       setIsEditMode(false);
       setSelectedIds(new Set());
       
-      if (activeChat && idsToDelete.has(activeChat.id)) {
+      if (activeChat && idsToDelete.includes(activeChat.id)) {
         router.push('/chat');
       }
     } catch (error) {
@@ -426,20 +430,15 @@ export default function ChatPage() {
         if (!activeChat || !currentUser) return;
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
         
-        const message = messages.find(m => m.id === messageId);
-        if (message?.senderId === currentUser.uid) {
-           await updateDoc(messageRef, { text: 'Bu mesaj silindi.', isDeleted: true, reaction: null, imageUrl: null });
-        } else {
-            await updateDoc(messageRef, {
-                deletedFor: arrayUnion(currentUser.uid)
-            });
-        }
+        await updateDoc(messageRef, {
+            deletedFor: arrayUnion(currentUser.uid)
+        });
     };
 
     const handleDeleteMessageForEveryone = async (messageId: string) => {
         if (!activeChat) return;
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
-        await deleteDoc(messageRef);
+        await updateDoc(messageRef, { text: '', imageUrl: null, isDeleted: true, reaction: null });
     };
     
     const handleFormSubmit = (e: React.FormEvent) => {
@@ -612,7 +611,7 @@ export default function ChatPage() {
 
                         if (message.isDeleted) {
                              return (
-                                <div key={message.id} className={cn('flex items-end gap-2 max-w-lg', message.senderId === currentUser?.uid ? 'self-end' : 'self-start')}>
+                                <div key={message.id} className="flex items-end gap-2 self-start">
                                     <div className="rounded-xl px-4 py-2 text-sm text-muted-foreground italic">
                                         Bu mesaj silindi.
                                     </div>
@@ -622,9 +621,9 @@ export default function ChatPage() {
                        
                        const hasOnlyImage = message.imageUrl && !message.text;
 
-                       const messageContent = (
+                       const MessageContent = () => (
                             <div className={cn(
-                                'rounded-xl text-sm relative',
+                                'rounded-xl text-sm relative max-w-lg', // Added max-w-lg here
                                 hasOnlyImage 
                                     ? 'bg-transparent border-none p-0'
                                     : 'px-4 py-2',
@@ -662,10 +661,10 @@ export default function ChatPage() {
                        );
 
                        return (
-                           <div key={message.id} className={cn('flex items-end gap-2 max-w-lg group', message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start')}>
+                           <div key={message.id} className={cn('flex items-end gap-2 group', message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start')}>
                                <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <div className='cursor-pointer'>{messageContent}</div>
+                                        <div className='cursor-pointer'><MessageContent /></div>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align={message.senderId === currentUser?.uid ? 'end' : 'start'}>
                                         <div className="flex gap-1 p-1">
@@ -759,7 +758,7 @@ export default function ChatPage() {
             </footer>
           </>
         ) : (
-          isChatViewOpen && !activeChat && (
+          isChatViewOpen && (chatLoading || !activeChat) && (
             <div className="flex h-full w-full items-center justify-center bg-background">
                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
             </div>
@@ -777,12 +776,6 @@ export default function ChatPage() {
             {imageToSend && (
               <Image src={imageToSend} alt="Önizleme" width={400} height={400} className="rounded-md max-h-[50vh] object-contain" />
             )}
-            <Textarea
-                placeholder="İsteğe bağlı alt yazı..."
-                value={imageCaption}
-                onChange={(e) => setImageCaption(e.target.value)}
-                className="mt-4"
-            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setImageToSend(null)} disabled={isSendingImage}>İptal</Button>
@@ -805,3 +798,5 @@ export default function ChatPage() {
     </div>
   );
 }
+
+    
