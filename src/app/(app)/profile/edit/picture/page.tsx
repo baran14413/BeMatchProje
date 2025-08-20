@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -17,6 +17,10 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Upload, Loader2, ShieldCheck, Ban, Check } from 'lucide-react';
 import { moderateImage, ModerateImageOutput } from '@/ai/flows/moderate-image-flow';
 import { cn } from '@/lib/utils';
+import { auth, db, storage } from '@/lib/firebase';
+import { updateProfile } from 'firebase/auth';
+import { doc, updateDoc } from 'firebase/firestore';
+import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 
 type ModerationStatus = 'idle' | 'checking' | 'safe' | 'unsafe';
 
@@ -25,9 +29,17 @@ export default function EditProfilePicturePage() {
   const [moderationStatus, setModerationStatus] = useState<ModerationStatus>('idle');
   const [moderationResult, setModerationResult] = useState<ModerateImageOutput | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const currentUser = auth.currentUser;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  
+  useEffect(() => {
+    if (currentUser?.photoURL) {
+      setImgSrc(currentUser.photoURL);
+    }
+  }, [currentUser]);
+
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -43,7 +55,10 @@ export default function EditProfilePicturePage() {
   };
 
   const handleModerateImage = async () => {
-    if (!imgSrc) return;
+    if (!imgSrc || imgSrc.startsWith('https://')) {
+        toast({ title: 'Lütfen önce yeni bir fotoğraf seçin.'});
+        return;
+    };
     setModerationStatus('checking');
     try {
       const result = await moderateImage({ photoDataUri: imgSrc });
@@ -64,21 +79,37 @@ export default function EditProfilePicturePage() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!currentUser || !imgSrc) return;
     setIsSaving(true);
     toast({
       title: 'Kaydediliyor...',
       description: 'Yeni profil fotoğrafınız kaydediliyor.',
     });
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false);
-      toast({
-        title: 'Başarılı!',
-        description: 'Profil fotoğrafınız başarıyla güncellendi.',
-        className: 'bg-green-500 text-white',
-      });
-    }, 1500);
+    
+    try {
+        const storageRef = ref(storage, `profile_pictures/${currentUser.uid}`);
+        await uploadString(storageRef, imgSrc, 'data_url');
+        const photoURL = await getDownloadURL(storageRef);
+
+        // Update Firebase Auth profile
+        await updateProfile(currentUser, { photoURL });
+
+        // Update Firestore user document
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userDocRef, { avatarUrl: photoURL });
+
+        setIsSaving(false);
+        toast({
+            title: 'Başarılı!',
+            description: 'Profil fotoğrafınız başarıyla güncellendi.',
+            className: 'bg-green-500 text-white',
+        });
+    } catch(error) {
+         console.error("Error saving profile picture:", error);
+         toast({ variant: 'destructive', title: 'Kaydedilemedi', description: 'Fotoğraf kaydedilirken bir hata oluştu.' });
+         setIsSaving(false);
+    }
   };
 
   return (
@@ -115,7 +146,7 @@ export default function EditProfilePicturePage() {
           )}
         </div>
 
-        {imgSrc && moderationStatus !== 'checking' && moderationStatus !== 'safe' && (
+        {imgSrc && moderationStatus !== 'checking' && moderationStatus !== 'safe' && !imgSrc.startsWith('https://') && (
           <Button onClick={handleModerateImage}>
             Fotoğrafı Denetle
           </Button>
