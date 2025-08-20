@@ -127,7 +127,7 @@ export default function ChatPage() {
         return;
     }
 
-    const q = query(collection(db, 'conversations'), where('users', 'array-contains', currentUser.uid), orderBy('lastMessage.timestamp', 'desc'));
+    const q = query(collection(db, 'conversations'), where('users', 'array-contains', currentUser.uid));
     
     const unsubscribe = onSnapshot(q, async (querySnapshot) => {
         const convosPromises = querySnapshot.docs.map(async (docSnap) => {
@@ -152,6 +152,14 @@ export default function ChatPage() {
         });
         
         const resolvedConvos = (await Promise.all(convosPromises)).filter(c => c !== null) as Conversation[];
+        
+        // Sort conversations by last message timestamp client-side
+        resolvedConvos.sort((a, b) => {
+            const timeA = a.lastMessage?.timestamp?.toMillis() || 0;
+            const timeB = b.lastMessage?.timestamp?.toMillis() || 0;
+            return timeB - timeA;
+        });
+
         setConversations(resolvedConvos);
         setLoading(false);
         setRedirecting(false); // Stop redirecting loader once conversations load
@@ -536,3 +544,4 @@ export default function ChatPage() {
     </div>
   );
 }
+
