@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, Pencil, Trash2, BellOff, Pin, X, Loader2, Undo, Check as CheckIcon, Paperclip } from 'lucide-react';
+import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, Pencil, Trash2, BellOff, Pin, X, Loader2, Undo, Check as CheckIcon, Paperclip, Clipboard, ArrowDownCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -92,6 +92,8 @@ export default function ChatPage() {
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const scrollViewportRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -103,6 +105,8 @@ export default function ChatPage() {
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [menuOpenFor, setMenuOpenFor] = useState<string | null>(null);
   
+  const [showScrollDown, setShowScrollDown] = useState(false);
+
 
   // A chat view is open if a conversationId or userId is present in the URL
   const isChatViewOpen = searchParams.has('conversationId') || searchParams.has('userId');
@@ -257,13 +261,24 @@ export default function ChatPage() {
   }, [searchParams, currentUser, toast, router]);
   
   useEffect(() => {
-    if (scrollAreaRef.current) {
-        const scrollElement = scrollAreaRef.current.children[1] as HTMLDivElement;
-        if(scrollElement) {
-           scrollElement.scrollTop = scrollElement.scrollHeight;
-        }
+    if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+  
+  const handleScroll = () => {
+    const viewport = scrollViewportRef.current;
+    if (viewport) {
+      const isScrolledToBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 200;
+      setShowScrollDown(!isScrolledToBottom);
+    }
+  };
+
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !activeChat || !currentUser) return;
@@ -398,12 +413,14 @@ export default function ChatPage() {
         if (!activeChat) return;
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
         await updateDoc(messageRef, { reaction: reaction });
+        setMenuOpenFor(null);
     };
 
     const startEditing = (message: Message) => {
         setEditingMessageId(message.id);
         setMessageInput(message.text || '');
         textareaRef.current?.focus();
+        setMenuOpenFor(null);
     };
 
     const cancelEditing = () => {
@@ -428,12 +445,20 @@ export default function ChatPage() {
         await updateDoc(messageRef, {
             deletedFor: arrayUnion(currentUser.uid)
         });
+        setMenuOpenFor(null);
     };
 
     const handleDeleteMessageForEveryone = async (messageId: string) => {
         if (!activeChat) return;
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
-        await updateDoc(messageRef, { text: 'Bu mesaj silindi.', imageUrl: null, isDeleted: true, reaction: null });
+        await updateDoc(messageRef, { text: null, imageUrl: null, isDeleted: true, reaction: null });
+        setMenuOpenFor(null);
+    };
+
+    const handleCopyMessage = (text: string) => {
+      navigator.clipboard.writeText(text);
+      toast({ title: "Mesaj kopyalandı." });
+      setMenuOpenFor(null);
     };
     
     const handleFormSubmit = (e: React.FormEvent) => {
@@ -594,123 +619,141 @@ export default function ChatPage() {
                 </Button>
               </div>
             </header>
-            <ScrollArea className="flex-1 bg-muted/30" ref={scrollAreaRef}>
-              <div className='p-6'>
-                {chatLoading && !messages.length ? (
-                    <div className="flex justify-center items-center h-full">
-                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                    </div>
-                ) : (
-                  <div className="flex flex-col gap-1">
-                    {messages.map((message) => {
-                        const isUserHidden = currentUser && message.deletedFor?.includes(currentUser.uid);
-                        if (isUserHidden) {
-                            return null;
-                        }
+            <div className="flex-1 bg-muted/30 relative">
+                <ScrollArea className="h-full" viewportRef={scrollViewportRef} onScroll={handleScroll}>
+                  <div className='p-6'>
+                    {chatLoading && !messages.length ? (
+                        <div className="flex justify-center items-center h-full">
+                          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                        </div>
+                    ) : (
+                      <div className="flex flex-col gap-1">
+                        {messages.map((message) => {
+                            const isUserHidden = currentUser && message.deletedFor?.includes(currentUser.uid);
+                            if (isUserHidden) {
+                                return null;
+                            }
 
-                        if (message.isDeleted) {
-                             return (
-                                <div key={message.id} className="flex items-end gap-2 self-start max-w-lg">
-                                    <div className="rounded-xl px-4 py-2 text-sm text-muted-foreground italic">
-                                        Bu mesaj silindi.
+                            if (message.isDeleted) {
+                                 return (
+                                    <div key={message.id} className="flex justify-center items-center my-2">
+                                        <div className="rounded-full bg-background/80 px-4 py-1 text-xs text-muted-foreground italic">
+                                            Bu mesaj silindi
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        }
-                       
-                       const hasOnlyImage = message.imageUrl && !message.text;
+                                );
+                            }
+                           
+                           const hasOnlyImage = message.imageUrl && !message.text;
 
-                       const MessageContent = () => (
-                            <div className={cn(
-                                'rounded-xl text-sm relative max-w-lg',
-                                hasOnlyImage 
-                                    ? 'bg-transparent border-none p-0'
-                                    : 'px-4 py-2',
-                                !hasOnlyImage && (message.senderId === currentUser?.uid 
-                                    ? 'bg-primary text-primary-foreground rounded-br-none' 
-                                    : 'bg-card border rounded-bl-none')
-                            )}>
-                                {message.imageUrl && (
-                                     <div className='relative my-2 max-w-[250px]'>
-                                        <Image
-                                            src={message.imageUrl}
-                                            alt="Sohbet resmi"
-                                            width={250}
-                                            height={250}
-                                            className="rounded-md object-cover cursor-pointer"
-                                            onClick={() => setImageToView(message.imageUrl!)}
-                                        />
-                                    </div>
-                                )}
-                                {message.text && <p className="whitespace-pre-wrap break-all">{message.text}</p>}
-                                <div className={cn('flex items-center gap-2 text-xs mt-1', 
-                                    message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70',
-                                    hasOnlyImage && 'hidden'
+                           const MessageContent = () => (
+                                <div className={cn(
+                                    'rounded-xl text-sm relative max-w-lg select-none',
+                                    hasOnlyImage 
+                                        ? 'bg-transparent border-none p-0'
+                                        : 'px-4 py-2',
+                                    !hasOnlyImage && (message.senderId === currentUser?.uid 
+                                        ? 'bg-primary text-primary-foreground rounded-br-none' 
+                                        : 'bg-card border rounded-bl-none')
                                 )}>
-                                    {message.isEdited && <span>(düzenlendi)</span>}
-                                    <span>{message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
-                                </div>
-                                {message.reaction && (
-                                    <div className="absolute -bottom-3.5 rounded-full bg-background border px-1 py-0.5 text-xs select-none"
-                                        style={{ [message.senderId === currentUser?.uid ? 'right' : 'left']: '10px' }}>
-                                        {message.reaction}
+                                    {message.imageUrl && (
+                                         <div className='relative my-2 max-w-[250px]'>
+                                            <Image
+                                                src={message.imageUrl}
+                                                alt="Sohbet resmi"
+                                                width={250}
+                                                height={250}
+                                                className="rounded-md object-cover cursor-pointer"
+                                                onClick={() => setImageToView(message.imageUrl!)}
+                                            />
+                                        </div>
+                                    )}
+                                    {message.text && <p className="whitespace-pre-wrap break-all">{message.text}</p>}
+                                    <div className={cn('flex items-center gap-2 text-xs mt-1', 
+                                        message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70',
+                                        hasOnlyImage && 'hidden'
+                                    )}>
+                                        {message.isEdited && <span>(düzenlendi)</span>}
+                                        <span>{message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
                                     </div>
-                                )}
-                            </div>
-                       );
+                                    {message.reaction && (
+                                        <div className="absolute -bottom-3.5 rounded-full bg-background border px-1 py-0.5 text-xs select-none"
+                                            style={{ [message.senderId === currentUser?.uid ? 'right' : 'left']: '10px' }}>
+                                            {message.reaction}
+                                        </div>
+                                    )}
+                                </div>
+                           );
 
 
-                       return (
-                           <div key={message.id} className={cn('flex items-end gap-2 group', message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start')}>
-                                <DropdownMenu open={menuOpenFor === message.id} onOpenChange={(open) => !open && setMenuOpenFor(null)}>
-                                    <DropdownMenuTrigger asChild>
-                                        <div
-                                            onMouseDown={() => handleLongPressStart(message.id)}
-                                            onMouseUp={handleLongPressEnd}
-                                            onMouseLeave={handleLongPressEnd}
-                                            onTouchStart={() => handleLongPressStart(message.id)}
-                                            onTouchEnd={handleLongPressEnd}
-                                        >
-                                           <MessageContent />
-                                        </div>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align={message.senderId === currentUser?.uid ? 'end' : 'start'}>
-                                        <div className="flex gap-1 p-1">
-                                            {REACTIONS.map(r => (
-                                                <Button key={r} variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => handleReaction(message.id, message.reaction === r ? null : r)}>
-                                                    {r}
-                                                </Button>
-                                            ))}
-                                        </div>
-                                        {message.text && message.senderId === currentUser?.uid && (
-                                            <>
-                                                <DropdownMenuSeparator />
+                           return (
+                               <div key={message.id} className={cn('flex items-end gap-2 group', message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start')}>
+                                    <DropdownMenu open={menuOpenFor === message.id} onOpenChange={(open) => !open && setMenuOpenFor(null)}>
+                                        <DropdownMenuTrigger asChild>
+                                            <div
+                                                onMouseDown={() => handleLongPressStart(message.id)}
+                                                onMouseUp={handleLongPressEnd}
+                                                onMouseLeave={handleLongPressEnd}
+                                                onTouchStart={() => handleLongPressStart(message.id)}
+                                                onTouchEnd={handleLongPressEnd}
+                                            >
+                                               <MessageContent />
+                                            </div>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align={message.senderId === currentUser?.uid ? 'end' : 'start'}>
+                                            <div className="flex gap-1 p-1">
+                                                {REACTIONS.map(r => (
+                                                    <Button key={r} variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => handleReaction(message.id, message.reaction === r ? null : r)}>
+                                                        {r}
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                            {message.text && (
+                                                <>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem onClick={() => handleCopyMessage(message.text!)}>
+                                                        <Clipboard className="mr-2 h-4 w-4" />
+                                                        <span>Kopyala</span>
+                                                    </DropdownMenuItem>
+                                                </>
+                                            )}
+                                            {message.text && message.senderId === currentUser?.uid && (
                                                 <DropdownMenuItem onClick={() => startEditing(message)}>
                                                     <Pencil className="mr-2 h-4 w-4" />
                                                     <span>Düzenle</span>
                                                 </DropdownMenuItem>
-                                            </>
-                                        )}
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem onClick={() => handleDeleteMessageForMe(message.id)}>
-                                            <Trash2 className="mr-2 h-4 w-4" />
-                                            <span>Benden Sil</span>
-                                        </DropdownMenuItem>
-                                        {message.senderId === currentUser?.uid && (
-                                            <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteMessageForEveryone(message.id)}>
-                                                <Undo className="mr-2 h-4 w-4" />
-                                                <span>Herkesten Sil</span>
+                                            )}
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem onClick={() => handleDeleteMessageForMe(message.id)}>
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                <span>Benden Sil</span>
                                             </DropdownMenuItem>
-                                        )}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                           </div>
-                       )
-                    })}
+                                            {message.senderId === currentUser?.uid && (
+                                                <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteMessageForEveryone(message.id)}>
+                                                    <Undo className="mr-2 h-4 w-4" />
+                                                    <span>Herkesten Sil</span>
+                                                </DropdownMenuItem>
+                                            )}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                               </div>
+                           )
+                        })}
+                        <div ref={messagesEndRef} />
+                      </div>
+                    )}
                   </div>
+                </ScrollArea>
+                {showScrollDown && (
+                    <Button
+                        size="icon"
+                        className="absolute bottom-4 right-4 rounded-full shadow-lg"
+                        onClick={scrollToBottom}
+                    >
+                        <ArrowDownCircle className="h-6 w-6" />
+                    </Button>
                 )}
-              </div>
-            </ScrollArea>
+            </div>
             <footer className="p-4 border-t bg-card shrink-0">
               <form onSubmit={handleFormSubmit} className="flex items-start gap-2">
                  {editingMessageId ? (
