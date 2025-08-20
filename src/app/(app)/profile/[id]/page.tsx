@@ -27,12 +27,13 @@ import {
   Loader2,
   Lock,
   Sparkles,
+  UserCheck as UserCheckIcon,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
-import { doc, getDoc, collection, query, where, getDocs, DocumentData, addDoc, serverTimestamp, orderBy } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, DocumentData, addDoc, serverTimestamp, orderBy, deleteDoc, runTransaction, increment } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -52,7 +53,7 @@ type Post = {
 
 type RequestStatus = 'idle' | 'loading' | 'sent';
 
-const PostCard = ({ post, user, isMyProfile }: { post: Post, user: DocumentData, isMyProfile: boolean }) => (
+const PostCard = ({ post, user }: { post: Post, user: DocumentData }) => (
     <Card className="rounded-xl overflow-hidden mb-4 relative group">
         <CardContent className="p-0">
              <div className="flex items-center gap-3 p-3">
@@ -159,6 +160,8 @@ export default function UserProfilePage() {
   const [userProfile, setUserProfile] = useState<DocumentData | null>(null);
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowProcessing, setIsFollowProcessing] = useState(false);
   const [hasGalleryAccess, setHasGalleryAccess] = useState(false);
   const [requestStatus, setRequestStatus] = useState<RequestStatus>('idle');
   const [isMyProfile, setIsMyProfile] = useState(false);
@@ -167,32 +170,43 @@ export default function UserProfilePage() {
 
  useEffect(() => {
     const fetchUserProfile = async () => {
-      if (!params.id || !currentUser) {
+      const profileId = params.id as string;
+      if (!profileId || !currentUser) {
         if (!currentUser) setLoading(false);
         return;
       }
       setLoading(true);
       
       try {
-        const profileIsMine = params.id === currentUser.uid;
+        const profileIsMine = profileId === currentUser.uid;
         setIsMyProfile(profileIsMine);
 
-        const userDocRef = doc(db, 'users', params.id as string);
+        // Fetch user data
+        const userDocRef = doc(db, 'users', profileId);
         const userDocSnap = await getDoc(userDocRef);
 
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
           setUserProfile(userData);
 
+          // Check follow status
+          if (!profileIsMine) {
+            const followDocRef = doc(db, 'users', currentUser.uid, 'following', profileId);
+            const followDocSnap = await getDoc(followDocRef);
+            setIsFollowing(followDocSnap.exists());
+          }
+
+          // Check gallery access
           if (userData.isGalleryPrivate && !profileIsMine) {
-              const permissionDocRef = doc(db, 'users', params.id, 'galleryPermissions', currentUser.uid);
+              const permissionDocRef = doc(db, 'users', profileId, 'galleryPermissions', currentUser.uid);
               const permissionDocSnap = await getDoc(permissionDocRef);
               setHasGalleryAccess(permissionDocSnap.exists());
           } else {
               setHasGalleryAccess(true);
           }
           
-          const postsQuery = query(collection(db, 'posts'), where('authorId', '==', params.id));
+          // Fetch posts
+          const postsQuery = query(collection(db, 'posts'), where('authorId', '==', profileId));
           const postsSnapshot = await getDocs(postsQuery);
           const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
           
@@ -245,6 +259,66 @@ export default function UserProfilePage() {
           toast({ variant: 'destructive', title: 'İstek Gönderilemedi' });
           setRequestStatus('idle');
       }
+  };
+
+  const handleFollowToggle = async () => {
+    if (!currentUser || !userProfile || isFollowProcessing) return;
+    setIsFollowProcessing(true);
+
+    const currentUserRef = doc(db, 'users', currentUser.uid);
+    const targetUserRef = doc(db, 'users', userProfile.uid);
+    const followingRef = doc(db, 'users', currentUser.uid, 'following', userProfile.uid);
+    const followerRef = doc(db, 'users', userProfile.uid, 'followers', currentUser.uid);
+    const notificationCollectionRef = collection(db, 'notifications');
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            if (isFollowing) {
+                // Unfollow
+                transaction.delete(followingRef);
+                transaction.delete(followerRef);
+                transaction.update(currentUserRef, { 'stats.following': increment(-1) });
+                transaction.update(targetUserRef, { 'stats.followers': increment(-1) });
+            } else {
+                // Follow
+                transaction.set(followingRef, { uid: userProfile.uid, followedAt: serverTimestamp() });
+                transaction.set(followerRef, { uid: currentUser.uid, followedAt: serverTimestamp() });
+                transaction.update(currentUserRef, { 'stats.following': increment(1) });
+                transaction.update(targetUserRef, { 'stats.followers': increment(1) });
+                
+                // Create Notification
+                const notificationRef = doc(notificationCollectionRef);
+                transaction.set(notificationRef, {
+                    recipientId: userProfile.uid,
+                    type: 'follow',
+                    fromUser: {
+                        uid: currentUser.uid,
+                        name: currentUser.displayName,
+                        avatar: currentUser.photoURL,
+                        aiHint: "current user portrait"
+                    },
+                    read: false,
+                    createdAt: serverTimestamp()
+                });
+            }
+        });
+
+        // Update state optimistically
+        setIsFollowing(!isFollowing);
+        setUserProfile(prev => ({
+            ...prev,
+            stats: {
+                ...prev?.stats,
+                followers: prev?.stats?.followers + (isFollowing ? -1 : 1)
+            }
+        }));
+
+    } catch (error) {
+        console.error("Error toggling follow:", error);
+        toast({ variant: 'destructive', title: 'İşlem Başarısız', description: 'Lütfen tekrar deneyin.' });
+    } finally {
+        setIsFollowProcessing(false);
+    }
   };
 
 
@@ -311,8 +385,11 @@ export default function UserProfilePage() {
                 </Link>
             ) : (
                 <>
-                    <Button className="flex-1">
-                        <UserPlus className="mr-2 h-4 w-4" /> Takip Et
+                    <Button className="flex-1" onClick={handleFollowToggle} disabled={isFollowProcessing}>
+                        {isFollowProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 
+                           isFollowing ? <UserCheckIcon className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />
+                        }
+                        {isFollowing ? 'Takibi Bırak' : 'Takip Et'}
                     </Button>
                     <Link href={`/chat?userId=${params.id}`} className="flex-1">
                         <Button variant="secondary" className="w-full">
@@ -358,7 +435,7 @@ export default function UserProfilePage() {
                 <div>
                     {userPosts.length > 0 ? (
                     userPosts.map((post) => (
-                        <PostCard key={post.id} post={post} user={userProfile} isMyProfile={isMyProfile}/>
+                        <PostCard key={post.id} post={post} user={userProfile} />
                     ))
                     ) : (
                     <div className='text-center py-10 text-muted-foreground'>
