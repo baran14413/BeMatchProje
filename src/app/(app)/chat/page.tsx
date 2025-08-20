@@ -460,8 +460,8 @@ export default function ChatPage() {
     };
 
     const handleDeleteMessageForEveryone = async (messageId: string) => {
-        if (!activeChat || !editingMessageId) return;
-        const messageRef = doc(db, 'conversations', activeChat.id, 'messages', editingMessageId);
+        if (!activeChat || !messageId) return;
+        const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
         await updateDoc(messageRef, { text: "Bu mesaj silindi.", imageUrl: undefined, audioUrl: undefined, isDeleted: true, reaction: null });
         setMenuOpenFor(null);
     };
