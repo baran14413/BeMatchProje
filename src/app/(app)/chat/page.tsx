@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, Pencil, Trash2, BellOff, Pin, X, Loader2, Undo, Check as CheckIcon, Paperclip, Clipboard, ArrowDownCircle } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -138,7 +138,7 @@ export default function ChatPage() {
                 toast({ title: "Sohbet başlatılamadı.", variant: "destructive" });
                 router.replace('/chat');
             } finally {
-                 setChatLoading(false);
+                 // We don't set loading to false here because the next useEffect will handle it
             }
         };
         findOrCreateConversation();
@@ -205,6 +205,7 @@ export default function ChatPage() {
         setActiveChat(null);
         setMessages([]);
         isRedirectingRef.current = false;
+        setChatLoading(false);
         return;
     }
     
@@ -236,6 +237,7 @@ export default function ChatPage() {
     }, (error) => {
         console.error("Error fetching active chat details:", error);
         toast({title: "Sohbet detayları alınamadı.", variant: "destructive"});
+        setChatLoading(false);
     });
 
     const messagesQuery = query(collection(db, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc'));
@@ -447,7 +449,7 @@ export default function ChatPage() {
     const handleDeleteMessageForEveryone = async (messageId: string) => {
         if (!activeChat) return;
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
-        await updateDoc(messageRef, { text: "Bu mesaj silindi.", imageUrl: null, isDeleted: true, reaction: null });
+        await updateDoc(messageRef, { text: "Bu mesaj silindi.", imageUrl: undefined, isDeleted: true, reaction: null });
         setMenuOpenFor(null);
     };
 
@@ -634,7 +636,7 @@ export default function ChatPage() {
 
                            const MessageContent = () => (
                                 <div className={cn(
-                                    'rounded-xl text-sm relative max-w-lg select-none',
+                                    'rounded-xl text-sm relative select-none',
                                     hasOnlyImage 
                                         ? 'bg-transparent border-none p-0'
                                         : 'px-4 py-2',
@@ -674,7 +676,7 @@ export default function ChatPage() {
 
 
                            return (
-                               <div key={message.id} className={cn('flex items-end gap-2 group', message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start')}>
+                               <div key={message.id} className={cn('flex items-end gap-2 group max-w-lg', message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start')}>
                                     <DropdownMenu open={!message.isDeleted && menuOpenFor === message.id} onOpenChange={(open) => !open && setMenuOpenFor(null)}>
                                         <DropdownMenuTrigger asChild>
                                             <div
@@ -796,7 +798,7 @@ export default function ChatPage() {
             </footer>
           </>
         ) : (
-          isChatViewOpen && (chatLoading || !activeChat) && (
+          isChatViewOpen && chatLoading && (
             <div className="flex h-full w-full items-center justify-center bg-background">
                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
             </div>
@@ -828,6 +830,10 @@ export default function ChatPage() {
         {/* View Image Modal */}
       <Dialog open={!!imageToView} onOpenChange={(open) => !open && setImageToView(null)}>
         <DialogContent className="max-w-3xl p-0 bg-transparent border-none">
+           <DialogHeader>
+             <DialogTitle className="sr-only">Görüntülenen Resim</DialogTitle>
+             <DialogDescription className="sr-only">Kullanıcının gönderdiği resmin tam ekran görünümü.</DialogDescription>
+           </DialogHeader>
            {imageToView && (
               <Image src={imageToView} alt="Sohbet resmi" width={800} height={800} className="rounded-md object-contain w-full h-auto max-h-[90vh]" />
             )}
@@ -836,3 +842,5 @@ export default function ChatPage() {
     </div>
   );
 }
+
+    
