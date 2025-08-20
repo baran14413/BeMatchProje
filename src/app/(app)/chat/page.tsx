@@ -15,7 +15,7 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { collection, query, where, getDocs, onSnapshot, doc, orderBy, addDoc, serverTimestamp, Timestamp, updateDoc, getDoc, arrayUnion, setDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot, doc, orderBy, addDoc, serverTimestamp, Timestamp, updateDoc, getDoc, arrayUnion, setDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { auth, db, storage } from '@/lib/firebase';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -42,7 +42,6 @@ type Message = {
     reaction?: string;
     isEdited?: boolean;
     deletedFor?: string[];
-    deletedForEveryone?: boolean;
 };
 
 type Conversation = {
@@ -367,19 +366,38 @@ export default function ChatPage() {
   const handleToggleEditMode = () => { setIsEditMode(!isEditMode); setSelectedIds(new Set()); };
   
   const handleDelete = async () => {
-    if (!activeChat) return;
-    const promises = Array.from(selectedIds).map(id => deleteDoc(doc(db, 'conversations', id)));
+    const idsToDelete = new Set(selectedIds);
+    if (idsToDelete.size === 0) return;
+
     try {
-        await Promise.all(promises);
-        toast({ title: `${selectedIds.size} sohbet silindi.` });
-        setIsEditMode(false);
-        setSelectedIds(new Set());
-         if (selectedIds.has(activeChat.id)) {
-            router.push('/chat');
-        }
-    } catch(error) {
-        console.error("Error deleting conversations: ", error);
-        toast({ title: 'Sohbetler silinirken bir hata oluştu.', variant: 'destructive'});
+      const batch = writeBatch(db);
+
+      // Iterate over each conversation to delete its messages subcollection
+      for (const id of idsToDelete) {
+        const messagesRef = collection(db, 'conversations', id, 'messages');
+        const messagesSnapshot = await getDocs(messagesRef);
+        messagesSnapshot.docs.forEach(messageDoc => {
+          batch.delete(messageDoc.ref);
+        });
+
+        // Then, delete the conversation document itself
+        const conversationRef = doc(db, 'conversations', id);
+        batch.delete(conversationRef);
+      }
+      
+      await batch.commit();
+
+      toast({ title: `${idsToDelete.size} sohbet ve içindeki tüm mesajlar silindi.` });
+      setIsEditMode(false);
+      setSelectedIds(new Set());
+      
+      // If the currently active chat was deleted, navigate away
+      if (activeChat && idsToDelete.has(activeChat.id)) {
+        router.push('/chat');
+      }
+    } catch (error) {
+      console.error("Error deleting conversations: ", error);
+      toast({ title: 'Sohbetler silinirken bir hata oluştu.', variant: 'destructive' });
     }
   };
   
@@ -421,13 +439,8 @@ export default function ChatPage() {
     const handleDeleteMessageForEveryone = async (messageId: string) => {
         if (!activeChat) return;
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
-        await updateDoc(messageRef, {
-            text: 'Bu mesaj silindi.',
-            imageUrl: null, // Also remove image url
-            reaction: null,
-            isEdited: false,
-            deletedForEveryone: true,
-        });
+        await deleteDoc(messageRef);
+        // The onSnapshot listener will automatically update the UI
     };
     
     const handleFormSubmit = (e: React.FormEvent) => {
@@ -594,11 +607,10 @@ export default function ChatPage() {
                 ) : (
                   <div className="flex flex-col gap-1">
                     {messages.map((message) => {
-                       const isDeleted = message.deletedForEveryone;
                        const messageContent = (
                             <div className={cn(
                                 'rounded-xl px-4 py-2 text-sm relative break-words',
-                                 isDeleted ? 'italic text-muted-foreground bg-gray-200 dark:bg-gray-700' : (message.senderId === currentUser?.uid ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none'),
+                                message.senderId === currentUser?.uid ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none',
                             )}>
                                 {message.imageUrl && (
                                      <div className='relative my-2'>
@@ -613,66 +625,57 @@ export default function ChatPage() {
                                     </div>
                                 )}
                                 {message.text && <p>{message.text}</p>}
-
-                                {!isDeleted && (
-                                    <>
-                                        <div className={cn('flex items-center gap-2 text-xs mt-1', message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70')}>
-                                            {message.isEdited && <span>(düzenlendi)</span>}
-                                            <span>{message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
-                                        </div>
-                                        {message.reaction && (
-                                            <div className="absolute -bottom-3.5 rounded-full bg-background border px-1.5 py-0.5 text-xs select-none"
-                                                style={{ [message.senderId === currentUser?.uid ? 'right' : 'left']: '10px' }}>
-                                                {message.reaction}
-                                            </div>
-                                        )}
-                                    </>
+                                <div className={cn('flex items-center gap-2 text-xs mt-1', message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70')}>
+                                    {message.isEdited && <span>(düzenlendi)</span>}
+                                    <span>{message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                </div>
+                                {message.reaction && (
+                                    <div className="absolute -bottom-3.5 rounded-full bg-background border px-1.5 py-0.5 text-xs select-none"
+                                        style={{ [message.senderId === currentUser?.uid ? 'right' : 'left']: '10px' }}>
+                                        {message.reaction}
+                                    </div>
                                 )}
                             </div>
                        );
 
                        return (
                            <div key={message.id} className={cn('flex items-end gap-2 max-w-lg group', message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start')}>
-                                {isDeleted ? (
-                                    messageContent
-                                ) : (
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                           <div className='cursor-pointer'>{messageContent}</div>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align={message.senderId === currentUser?.uid ? 'end' : 'start'}>
-                                           <div className="flex gap-1 p-1">
-                                                {REACTIONS.map(r => (
-                                                    <Button key={r} variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => handleReaction(message.id, message.reaction === r ? null : r)}>
-                                                        {r}
-                                                    </Button>
-                                                ))}
-                                           </div>
-                                           {(message.text && !message.imageUrl) && (
-                                                <>
-                                                 <DropdownMenuSeparator />
-                                                   {message.senderId === currentUser?.uid && (
-                                                     <DropdownMenuItem onClick={() => startEditing(message)}>
-                                                         <Pencil className="mr-2 h-4 w-4" />
-                                                         <span>Düzenle</span>
-                                                     </DropdownMenuItem>
-                                                   )}
-                                                </>
-                                           )}
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem onClick={() => handleDeleteMessageForMe(message.id)}>
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                <span>Benden Sil</span>
-                                            </DropdownMenuItem>
-                                            {message.senderId === currentUser?.uid && (
-                                                <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteMessageForEveryone(message.id)}>
-                                                    <Undo className="mr-2 h-4 w-4" />
-                                                    <span>Herkesten Sil</span>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <div className='cursor-pointer'>{messageContent}</div>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align={message.senderId === currentUser?.uid ? 'end' : 'start'}>
+                                        <div className="flex gap-1 p-1">
+                                            {REACTIONS.map(r => (
+                                                <Button key={r} variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => handleReaction(message.id, message.reaction === r ? null : r)}>
+                                                    {r}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                        {(message.text && !message.imageUrl) && (
+                                            <>
+                                                <DropdownMenuSeparator />
+                                                {message.senderId === currentUser?.uid && (
+                                                <DropdownMenuItem onClick={() => startEditing(message)}>
+                                                    <Pencil className="mr-2 h-4 w-4" />
+                                                    <span>Düzenle</span>
                                                 </DropdownMenuItem>
-                                            )}
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                )}
+                                                )}
+                                            </>
+                                        )}
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => handleDeleteMessageForMe(message.id)}>
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            <span>Benden Sil</span>
+                                        </DropdownMenuItem>
+                                        {message.senderId === currentUser?.uid && (
+                                            <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteMessageForEveryone(message.id)}>
+                                                <Undo className="mr-2 h-4 w-4" />
+                                                <span>Herkesten Sil</span>
+                                            </DropdownMenuItem>
+                                        )}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                            </div>
                        )
                     })}
