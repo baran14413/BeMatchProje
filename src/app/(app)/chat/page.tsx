@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SendHorizonal, Search, Mic, Phone, Video, Image as ImageIcon, Smile, ArrowLeft, Pencil, Trash2, BellOff, Pin, X, Loader2, Undo, Check as CheckIcon, Paperclip, Clipboard, ArrowDownCircle, MessageCircle, Pause, Play } from 'lucide-react';
+import { SendHorizonal, Search, Mic, Phone, Video, Smile, ArrowLeft, Pencil, Trash2, BellOff, Pin, X, Loader2, Undo, Check as CheckIcon, Paperclip, Clipboard, ArrowDownCircle, MessageCircle, Pause } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -752,56 +752,62 @@ export default function ChatPage() {
                            
                            const hasOnlyImage = message.imageUrl && !message.text;
                            const hasAudio = !!message.audioUrl;
+                           const isSender = message.senderId === currentUser?.uid;
 
                            const MessageContent = () => (
-                                <div className={cn(
-                                    'rounded-xl text-sm relative select-none',
-                                     hasAudio
-                                        ? 'w-64 md:w-80' // Specific width for audio player
-                                        : (hasOnlyImage ? 'bg-transparent border-none p-0' : 'px-4 py-2'),
-                                    !hasOnlyImage && !hasAudio && (message.senderId === currentUser?.uid 
-                                        ? 'bg-primary text-primary-foreground rounded-br-none' 
-                                        : 'bg-card border rounded-bl-none'),
-                                    message.isDeleted && 'px-4 py-2 bg-background/80 text-muted-foreground italic'
-                                )}>
+                                <>
                                     {hasAudio && !message.isDeleted && message.audioUrl ? (
-                                        <VoiceMessagePlayer 
-                                            audioUrl={message.audioUrl} 
-                                            isSender={message.senderId === currentUser?.uid}
-                                        />
-                                    ) : null }
-                                    {message.imageUrl && !message.isDeleted && (
-                                         <div onContextMenu={(e) => e.preventDefault()} className='relative my-2 max-w-[250px]'>
-                                            <Image
-                                                src={message.imageUrl}
-                                                alt="Sohbet resmi"
-                                                width={250}
-                                                height={250}
-                                                className="rounded-md object-cover cursor-pointer"
-                                                onClick={() => setImageToView(message.imageUrl!)}
+                                        <div className='w-64 md:w-80'>
+                                            <VoiceMessagePlayer 
+                                                audioUrl={message.audioUrl} 
+                                                isSender={isSender}
+                                                authorImageUrl={isSender ? currentUser?.photoURL || undefined : activeChat.otherUser.avatarUrl}
+                                                authorName={isSender ? currentUser?.displayName || undefined : activeChat.otherUser.name}
                                             />
                                         </div>
-                                    )}
-                                    {message.text && <p className="whitespace-pre-wrap break-all">{message.text}</p>}
-                                    <div className={cn('flex items-center gap-2 text-xs mt-1', 
-                                        message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70',
-                                        (hasOnlyImage || hasAudio || message.isDeleted) && 'hidden'
-                                    )}>
-                                        {message.isEdited && <span>(düzenlendi)</span>}
-                                        <span>{message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
-                                    </div>
-                                    {message.reaction && (
-                                        <div className="absolute -bottom-3.5 rounded-full bg-background border px-1 py-0.5 text-xs select-none"
-                                            style={{ [message.senderId === currentUser?.uid ? 'right' : 'left']: '10px' }}>
-                                            {message.reaction}
+                                    ) : (
+                                        <div className={cn(
+                                            'rounded-xl text-sm relative select-none',
+                                            hasOnlyImage ? 'bg-transparent border-none p-0' : 'px-4 py-2',
+                                            !hasOnlyImage && (isSender 
+                                                ? 'bg-primary text-primary-foreground rounded-br-none' 
+                                                : 'bg-card border rounded-bl-none'),
+                                            message.isDeleted && 'px-4 py-2 bg-background/80 text-muted-foreground italic'
+                                        )}>
+                                            {message.imageUrl && !message.isDeleted && (
+                                                <div onContextMenu={(e) => e.preventDefault()} className='relative my-2 max-w-[250px]'>
+                                                    <Image
+                                                        src={message.imageUrl}
+                                                        alt="Sohbet resmi"
+                                                        width={250}
+                                                        height={250}
+                                                        className="rounded-md object-cover cursor-pointer"
+                                                        onClick={() => setImageToView(message.imageUrl!)}
+                                                    />
+                                                </div>
+                                            )}
+                                            {message.text && <p className="whitespace-pre-wrap break-all">{message.text}</p>}
+                                            <div className={cn('flex items-center gap-2 text-xs mt-1', 
+                                                isSender ? 'text-primary-foreground/70' : 'text-muted-foreground/70',
+                                                (hasOnlyImage || message.isDeleted) && 'hidden'
+                                            )}>
+                                                {message.isEdited && <span>(düzenlendi)</span>}
+                                                <span>{message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                            </div>
+                                            {message.reaction && (
+                                                <div className="absolute -bottom-3.5 rounded-full bg-background border px-1 py-0.5 text-xs select-none"
+                                                    style={{ [isSender ? 'right' : 'left']: '10px' }}>
+                                                    {message.reaction}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
-                                </div>
+                               </>
                            );
 
 
                            return (
-                               <div key={message.id} className={cn('flex items-end gap-2 group max-w-lg', message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start')}>
+                               <div key={message.id} className={cn('flex items-end gap-2 group max-w-lg', isSender ? 'self-end flex-row-reverse' : 'self-start')}>
                                     <DropdownMenu open={!message.isDeleted && menuOpenFor === message.id} onOpenChange={(open) => !open && setMenuOpenFor(null)}>
                                         <DropdownMenuTrigger asChild>
                                             <div
@@ -816,7 +822,7 @@ export default function ChatPage() {
                                                <MessageContent />
                                             </div>
                                         </DropdownMenuTrigger>
-                                        <DropdownMenuContent align={message.senderId === currentUser?.uid ? 'end' : 'start'}>
+                                        <DropdownMenuContent align={isSender ? 'end' : 'start'}>
                                             <div className="flex gap-1 p-1">
                                                 {REACTIONS.map(r => (
                                                     <Button key={r} variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => handleReaction(message.id, message.reaction === r ? null : r)}>
@@ -833,7 +839,7 @@ export default function ChatPage() {
                                                     </DropdownMenuItem>
                                                 </>
                                             )}
-                                            {message.text && message.senderId === currentUser?.uid && (
+                                            {message.text && isSender && (
                                                 <DropdownMenuItem onClick={() => startEditing(message)}>
                                                     <Pencil className="mr-2 h-4 w-4" />
                                                     <span>Düzenle</span>
@@ -844,7 +850,7 @@ export default function ChatPage() {
                                                 <Trash2 className="mr-2 h-4 w-4" />
                                                 <span>Benden Sil</span>
                                             </DropdownMenuItem>
-                                            {message.senderId === currentUser?.uid && !message.isDeleted && (
+                                            {isSender && !message.isDeleted && (
                                                 <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteMessageForEveryone(message.id)}>
                                                     <Undo className="mr-2 h-4 w-4" />
                                                     <span>Herkesten Sil</span>
@@ -890,12 +896,14 @@ export default function ChatPage() {
                      </div>
                  ) : voiceMessageState === 'recording' ? (
                      <div className="flex items-center justify-between w-full h-[40px] px-2">
+                        <Button type="button" size="icon" variant="ghost" className="rounded-full" onClick={handleCancelRecording}>
+                           <Trash2 className="w-5 h-5 text-destructive" />
+                        </Button>
                         <div className="flex items-center gap-2">
                             <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
-                            <span className="text-sm font-mono text-muted-foreground">Kaydediliyor...</span>
+                            <span className="text-sm font-mono text-muted-foreground">{formatRecordingTime(recordingTime)}</span>
                         </div>
-                        <span className="text-sm font-mono text-muted-foreground">{formatRecordingTime(recordingTime)}</span>
-                        <Button type="button" size="icon" className="rounded-full bg-red-500 text-white" onClick={handleStopRecording}>
+                        <Button type="button" size="icon" className="rounded-full bg-primary text-white" onClick={handleStopRecording}>
                            <Pause className="h-5 w-5" />
                         </Button>
                     </div>
@@ -905,7 +913,7 @@ export default function ChatPage() {
                            <Trash2 className="w-5 h-5 text-destructive" />
                         </Button>
                         <div className="flex-1">
-                             <VoiceMessagePlayer audioUrl={recordedAudio.url} isSender={true} />
+                             <VoiceMessagePlayer audioUrl={recordedAudio.url} isSender={true} isPreview={true} />
                         </div>
                         <Button type="button" size="icon" className="rounded-full bg-primary text-primary-foreground shrink-0" onClick={handleSendAudio}>
                            <SendHorizonal className="h-5 w-5" />
