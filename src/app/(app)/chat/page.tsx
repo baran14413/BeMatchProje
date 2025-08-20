@@ -17,12 +17,13 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { collection, query, where, getDocs, onSnapshot, doc, orderBy, addDoc, serverTimestamp, Timestamp, updateDoc, getDoc, arrayUnion, setDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { auth, db, storage } from '@/lib/firebase';
-import { getDownloadURL, ref, uploadString } from 'firebase/storage';
+import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import Image from 'next/image';
 import { Textarea } from '@/components/ui/textarea';
+import VoiceMessagePlayer from '@/components/ui/voice-message-player';
 
 
 type UserData = {
@@ -36,6 +37,8 @@ type Message = {
     id: string;
     text?: string;
     imageUrl?: string;
+    audioUrl?: string;
+    audioDuration?: number;
     senderId: string;
     timestamp: Timestamp;
     reaction?: string;
@@ -106,6 +109,11 @@ export default function ChatPage() {
   const [menuOpenFor, setMenuOpenFor] = useState<string | null>(null);
   
   const [showScrollDown, setShowScrollDown] = useState(false);
+
+  // Voice message states
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
 
   // A chat view is open if a conversationId or userId is present in the URL
@@ -449,7 +457,7 @@ export default function ChatPage() {
     const handleDeleteMessageForEveryone = async (messageId: string) => {
         if (!activeChat) return;
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
-        await updateDoc(messageRef, { text: "Bu mesaj silindi.", imageUrl: undefined, isDeleted: true, reaction: null });
+        await updateDoc(messageRef, { text: "Bu mesaj silindi.", imageUrl: undefined, audioUrl: undefined, isDeleted: true, reaction: null });
         setMenuOpenFor(null);
     };
 
@@ -481,12 +489,80 @@ export default function ChatPage() {
         }
     };
 
+    const handleStartRecording = async () => {
+        if (!activeChat || !currentUser) return;
+        setIsRecording(true);
+        toast({ title: "Kayıt başladı...", description: "Göndermek için bırakın." });
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorderRef.current = new MediaRecorder(stream);
+            audioChunksRef.current = [];
+
+            mediaRecorderRef.current.ondataavailable = (event) => {
+                audioChunksRef.current.push(event.data);
+            };
+
+            mediaRecorderRef.current.start();
+        } catch (error) {
+            console.error("Error starting recording:", error);
+            toast({ title: "Kayıt başlatılamadı.", description: "Lütfen mikrofon izniniz olduğundan emin olun.", variant: "destructive" });
+            setIsRecording(false);
+        }
+    };
+
+    const handleStopRecording = async () => {
+        setIsRecording(false);
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+            mediaRecorderRef.current.stop();
+
+            mediaRecorderRef.current.onstop = async () => {
+                toast({ title: "Kayıt tamamlandı, gönderiliyor..." });
+                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                audioChunksRef.current = [];
+
+                if (!activeChat || !currentUser) return;
+                 // Get duration
+                const audio = new Audio(URL.createObjectURL(audioBlob));
+                audio.onloadedmetadata = async () => {
+                     const duration = audio.duration;
+                
+                    try {
+                        const storageRef = ref(storage, `chat_audio/${activeChat.id}/${Date.now()}.webm`);
+                        const uploadTask = await uploadBytes(storageRef, audioBlob);
+                        const downloadURL = await getDownloadURL(uploadTask.ref);
+
+                        const conversationRef = doc(db, 'conversations', activeChat.id);
+                        const messagesRef = collection(conversationRef, 'messages');
+
+                        await addDoc(messagesRef, {
+                            audioUrl: downloadURL,
+                            audioDuration: duration,
+                            senderId: currentUser.uid,
+                            timestamp: serverTimestamp(),
+                        });
+
+                        await updateDoc(conversationRef, {
+                            lastMessage: {
+                                text: '[Sesli Mesaj]',
+                                timestamp: serverTimestamp(),
+                            }
+                        });
+                        toast({ title: "Sesli mesaj gönderildi.", className: "bg-green-500 text-white" });
+                    } catch (error) {
+                        console.error("Error sending audio message:", error);
+                        toast({ title: "Sesli mesaj gönderilemedi.", variant: "destructive" });
+                    }
+                }
+            };
+        }
+    };
 
   return (
     <div className="flex h-screen bg-background text-foreground">
       <aside className={cn(
-        "w-full flex-col h-full flex",
-        isChatViewOpen ? "hidden md:flex md:w-1/3 md:border-r" : "flex",
+        "w-full flex-col h-full flex md:border-r",
+        isChatViewOpen ? "hidden md:flex md:w-1/3" : "flex",
       )}>
         <header className="flex items-center gap-4 p-3 border-b bg-card shrink-0 sticky top-0">
             {isEditMode ? (
@@ -633,20 +709,27 @@ export default function ChatPage() {
                             }
                            
                            const hasOnlyImage = message.imageUrl && !message.text;
+                           const hasAudio = !!message.audioUrl;
 
                            const MessageContent = () => (
                                 <div className={cn(
                                     'rounded-xl text-sm relative select-none',
-                                    hasOnlyImage 
-                                        ? 'bg-transparent border-none p-0'
-                                        : 'px-4 py-2',
-                                    !hasOnlyImage && (message.senderId === currentUser?.uid 
+                                     hasAudio
+                                        ? 'w-64 md:w-80' // Specific width for audio player
+                                        : (hasOnlyImage ? 'bg-transparent border-none p-0' : 'px-4 py-2'),
+                                    !hasOnlyImage && !hasAudio && (message.senderId === currentUser?.uid 
                                         ? 'bg-primary text-primary-foreground rounded-br-none' 
                                         : 'bg-card border rounded-bl-none'),
                                     message.isDeleted && 'px-4 py-2 bg-background/80 text-muted-foreground italic'
                                 )}>
+                                    {hasAudio && !message.isDeleted && (
+                                        <VoiceMessagePlayer 
+                                            audioUrl={message.audioUrl!} 
+                                            isSender={message.senderId === currentUser?.uid}
+                                        />
+                                    )}
                                     {message.imageUrl && !message.isDeleted && (
-                                         <div className='relative my-2 max-w-[250px]'>
+                                         <div onContextMenu={(e) => e.preventDefault()} className='relative my-2 max-w-[250px]'>
                                             <Image
                                                 src={message.imageUrl}
                                                 alt="Sohbet resmi"
@@ -660,7 +743,7 @@ export default function ChatPage() {
                                     {message.text && <p className="whitespace-pre-wrap break-all">{message.text}</p>}
                                     <div className={cn('flex items-center gap-2 text-xs mt-1', 
                                         message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70',
-                                        (hasOnlyImage || message.isDeleted) && 'hidden'
+                                        (hasOnlyImage || hasAudio || message.isDeleted) && 'hidden'
                                     )}>
                                         {message.isEdited && <span>(düzenlendi)</span>}
                                         <span>{message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
@@ -788,7 +871,15 @@ export default function ChatPage() {
                                 <SendHorizonal className="h-5 w-5" />
                             </Button>
                          ) : (
-                            <Button type="button" size="icon" className="rounded-full bg-primary text-primary-foreground shrink-0 mt-1">
+                            <Button 
+                                type="button" 
+                                size="icon" 
+                                className={cn("rounded-full bg-primary text-primary-foreground shrink-0 mt-1 transition-all", isRecording && "bg-red-500 scale-110")}
+                                onMouseDown={handleStartRecording}
+                                onMouseUp={handleStopRecording}
+                                onTouchStart={handleStartRecording}
+                                onTouchEnd={handleStopRecording}
+                            >
                                 <Mic className="h-5 w-5" />
                             </Button>
                          )}
@@ -798,9 +889,17 @@ export default function ChatPage() {
             </footer>
           </>
         ) : (
-          isChatViewOpen && chatLoading && (
+          isChatViewOpen && chatLoading ? (
             <div className="flex h-full w-full items-center justify-center bg-background">
                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
+            </div>
+          ) : (
+             <div className="hidden md:flex h-full w-full items-center justify-center bg-muted/30">
+                <div className="text-center text-muted-foreground">
+                    <MessageCircle className="w-20 h-20 mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold font-headline">Sohbetlerinizi Seçin</h2>
+                    <p>Başlamak için sol taraftan bir konuşma seçin.</p>
+                </div>
             </div>
           )
         )}
@@ -811,6 +910,9 @@ export default function ChatPage() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Resim Gönder</DialogTitle>
+             <DialogDescription>
+                Seçilen resmi göndermek istediğinizden emin misiniz?
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             {imageToSend && (
@@ -842,5 +944,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
-    
