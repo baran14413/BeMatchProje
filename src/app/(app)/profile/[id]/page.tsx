@@ -185,7 +185,7 @@ export default function UserProfilePage() {
               setHasGalleryAccess(true); // Public gallery or my own profile
           }
           
-          const postsQuery = query(collection(db, 'posts'), where('authorId', '==', params.id), orderBy('createdAt', 'desc'));
+          const postsQuery = query(collection(db, 'posts'), where('authorId', '==', params.id));
           const postsSnapshot = await getDocs(postsQuery);
           const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
           setUserPosts(postsData);
