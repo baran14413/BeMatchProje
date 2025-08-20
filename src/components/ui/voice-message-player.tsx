@@ -24,13 +24,30 @@ const formatTime = (seconds: number) => {
 const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ audioUrl, isSender }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [wavesurfer, setWavesurfer] = useState<WaveSurfer | null>(null);
-  const [isReady, setIsReady] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
 
-  useWavesurfer({
+  const onReady = (ws: WaveSurfer) => {
+    setWavesurfer(ws);
+    setDuration(ws.getDuration());
+    setIsPlaying(false);
+  };
+  
+  const onPlayPause = () => {
+    wavesurfer?.playPause();
+  };
+  
+  const onTimeUpdate = (time: number) => {
+    setCurrentTime(time);
+  };
+  
+  const onFinish = () => {
+    setIsPlaying(false);
+  };
+  
+   useWavesurfer({
     container: containerRef,
     url: audioUrl,
     waveColor: isSender ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.4)',
@@ -42,39 +59,21 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ audioUrl, isSen
     cursorWidth: 0,
     autoplay: false,
     normalize: true,
-    onReady: (ws) => {
-      setWavesurfer(ws);
-      setIsReady(true);
-      setDuration(ws.getDuration());
-    },
+    onReady: onReady,
     onPlay: () => setIsPlaying(true),
     onPause: () => setIsPlaying(false),
-    onFinish: () => {
-        setIsPlaying(false);
-        wavesurfer?.seekTo(0);
-        setCurrentTime(0);
-    },
-    onTimeupdate: (time) => setCurrentTime(time),
+    onFinish: onFinish,
+    onTimeupdate: onTimeUpdate,
   });
 
   useEffect(() => {
-     if(wavesurfer && isReady) {
+     if(wavesurfer) {
          wavesurfer.setPlaybackRate(playbackRate);
      }
-  }, [playbackRate, wavesurfer, isReady]);
-
-  useEffect(() => {
-    if (wavesurfer && audioUrl) {
-      wavesurfer.load(audioUrl);
-    }
-  }, [audioUrl, wavesurfer]);
-
-  const onPlayPause = useCallback(() => {
-    wavesurfer?.playPause();
-  }, [wavesurfer]);
+  }, [playbackRate, wavesurfer]);
   
   const handleSetPlaybackRate = (rate: number) => {
-      if(wavesurfer && isReady) {
+      if(wavesurfer) {
         setPlaybackRate(rate);
       }
   }
@@ -105,14 +104,14 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ audioUrl, isSen
         size="icon"
         variant="ghost"
         onClick={onPlayPause}
-        disabled={!isReady}
+        disabled={!wavesurfer}
         className={cn("h-10 w-10 rounded-full", isSender ? "hover:bg-white/20" : "hover:bg-black/10")}
       >
         {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
       </Button>
       <div className="flex-1">
         <div ref={containerRef} style={{ minHeight: '40px' }} className="w-full">
-            {!isReady && (
+            {!wavesurfer && (
                  <div className="h-10 flex items-center">
                     <Skeleton className={cn("w-full h-2 rounded-full", isSender ? "bg-white/30" : "bg-muted-foreground/30")}/>
                  </div>
