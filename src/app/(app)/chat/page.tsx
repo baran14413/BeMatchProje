@@ -112,6 +112,8 @@ export default function ChatPage() {
 
   // Voice message states
   const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
@@ -456,7 +458,7 @@ export default function ChatPage() {
 
     const handleDeleteMessageForEveryone = async (messageId: string) => {
         if (!activeChat) return;
-        const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
+        const messageRef = doc(db, 'conversations', activeChat.id, 'messages', editingMessageId);
         await updateDoc(messageRef, { text: "Bu mesaj silindi.", imageUrl: undefined, audioUrl: undefined, isDeleted: true, reaction: null });
         setMenuOpenFor(null);
     };
@@ -491,11 +493,15 @@ export default function ChatPage() {
 
     const handleStartRecording = async () => {
         if (!activeChat || !currentUser) return;
-        setIsRecording(true);
-        toast({ title: "Kayıt başladı...", description: "Göndermek için bırakın." });
-
+        
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            setIsRecording(true);
+            setRecordingTime(0);
+            recordingIntervalRef.current = setInterval(() => {
+                setRecordingTime(prev => prev + 1);
+            }, 1000);
+
             mediaRecorderRef.current = new MediaRecorder(stream);
             audioChunksRef.current = [];
 
@@ -508,18 +514,26 @@ export default function ChatPage() {
             console.error("Error starting recording:", error);
             toast({ title: "Kayıt başlatılamadı.", description: "Lütfen mikrofon izniniz olduğundan emin olun.", variant: "destructive" });
             setIsRecording(false);
+            if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
         }
     };
 
     const handleStopRecording = async () => {
         setIsRecording(false);
+        if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
             mediaRecorderRef.current.stop();
 
             mediaRecorderRef.current.onstop = async () => {
-                toast({ title: "Kayıt tamamlandı, gönderiliyor..." });
                 const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
                 audioChunksRef.current = [];
+                
+                if (audioBlob.size < 1000) { // If recording is too short, do nothing
+                    toast({ title: "Kayıt çok kısa.", variant: 'destructive' });
+                    return;
+                }
+
+                toast({ title: "Kayıt tamamlandı, gönderiliyor..." });
 
                 if (!activeChat || !currentUser) return;
                  // Get duration
@@ -556,6 +570,12 @@ export default function ChatPage() {
                 }
             };
         }
+    };
+    
+    const formatRecordingTime = (time: number) => {
+        const minutes = Math.floor(time / 60);
+        const seconds = time % 60;
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     };
 
   return (
@@ -722,12 +742,12 @@ export default function ChatPage() {
                                         : 'bg-card border rounded-bl-none'),
                                     message.isDeleted && 'px-4 py-2 bg-background/80 text-muted-foreground italic'
                                 )}>
-                                    {hasAudio && !message.isDeleted && (
+                                    {hasAudio && !message.isDeleted && message.audioUrl ? (
                                         <VoiceMessagePlayer 
-                                            audioUrl={message.audioUrl!} 
+                                            audioUrl={message.audioUrl} 
                                             isSender={message.senderId === currentUser?.uid}
                                         />
-                                    )}
+                                    ) : null }
                                     {message.imageUrl && !message.isDeleted && (
                                          <div onContextMenu={(e) => e.preventDefault()} className='relative my-2 max-w-[250px]'>
                                             <Image
@@ -768,6 +788,8 @@ export default function ChatPage() {
                                                 onMouseLeave={handleLongPressEnd}
                                                 onTouchStart={() => handleLongPressStart(message.id)}
                                                 onTouchEnd={handleLongPressEnd}
+                                                className="select-none"
+                                                onContextMenu={(e) => e.preventDefault()}
                                             >
                                                <MessageContent />
                                             </div>
@@ -819,7 +841,7 @@ export default function ChatPage() {
                 {showScrollDown && (
                     <Button
                         size="icon"
-                        className="absolute bottom-4 right-4 rounded-full shadow-lg"
+                        className="absolute bottom-20 right-4 rounded-full shadow-lg z-10"
                         onClick={scrollToBottom}
                     >
                         <ArrowDownCircle className="h-6 w-6" />
@@ -827,9 +849,9 @@ export default function ChatPage() {
                 )}
             </div>
             <footer className="p-4 border-t bg-card shrink-0">
-              <form onSubmit={handleFormSubmit} className="flex items-start gap-2">
+              <form onSubmit={handleFormSubmit} className="flex items-start gap-2 min-h-[56px]">
                  {editingMessageId ? (
-                     <>
+                     <div className="flex items-start gap-2 w-full">
                         <Button type="button" size="icon" variant="ghost" className="rounded-full shrink-0 mt-1" onClick={cancelEditing}>
                             <X className="w-5 h-5 text-destructive" />
                         </Button>
@@ -843,7 +865,15 @@ export default function ChatPage() {
                         <Button type="submit" size="icon" className="rounded-full bg-green-500 text-white shrink-0 mt-1">
                             <CheckIcon className="h-5 w-5" />
                         </Button>
-                     </>
+                     </div>
+                 ) : isRecording ? (
+                    <div className="flex items-center justify-between w-full h-full px-2">
+                        <div className="flex items-center gap-2">
+                             <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                             <span className="text-sm font-mono text-muted-foreground">Kaydediliyor...</span>
+                        </div>
+                       <span className="text-sm font-mono text-muted-foreground">{formatRecordingTime(recordingTime)}</span>
+                    </div>
                  ) : (
                     <>
                          <input type="file" ref={fileInputRef} onChange={onFileSelect} accept="image/*" className="hidden" />
@@ -874,7 +904,7 @@ export default function ChatPage() {
                             <Button 
                                 type="button" 
                                 size="icon" 
-                                className={cn("rounded-full bg-primary text-primary-foreground shrink-0 mt-1 transition-all", isRecording && "bg-red-500 scale-110")}
+                                className={cn("rounded-full bg-primary text-primary-foreground shrink-0 mt-1 transition-all")}
                                 onMouseDown={handleStartRecording}
                                 onMouseUp={handleStopRecording}
                                 onTouchStart={handleStartRecording}
@@ -944,3 +974,4 @@ export default function ChatPage() {
     </div>
   );
 }
+
