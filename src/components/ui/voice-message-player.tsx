@@ -7,6 +7,7 @@ import { Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Skeleton } from './skeleton';
+import type WaveSurfer from 'wavesurfer.js';
 
 interface VoiceMessagePlayerProps {
   audioUrl: string;
@@ -14,6 +15,7 @@ interface VoiceMessagePlayerProps {
 }
 
 const formatTime = (seconds: number) => {
+  if (isNaN(seconds) || seconds < 0) return '0:00';
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = Math.floor(seconds % 60);
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
@@ -21,12 +23,15 @@ const formatTime = (seconds: number) => {
 
 const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ audioUrl, isSender }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [wavesurfer, setWavesurfer] = useState<WaveSurfer | null>(null);
+  const [isReady, setIsReady] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
 
-  const { wavesurfer, isReady } = useWavesurfer({
+  // useWavesurfer hook call is now inside useEffect
+  useWavesurfer({
     container: containerRef,
     url: audioUrl,
     waveColor: isSender ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.4)',
@@ -38,49 +43,27 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ audioUrl, isSen
     cursorWidth: 0,
     autoplay: false,
     normalize: true,
+    onReady: (ws) => {
+      setWavesurfer(ws);
+      setIsReady(true);
+      setDuration(ws.getDuration());
+    },
+    onPlay: () => setIsPlaying(true),
+    onPause: () => setIsPlaying(false),
+    onFinish: () => {
+        setIsPlaying(false);
+        // Reset to beginning on finish
+        wavesurfer?.seekTo(0);
+        setCurrentTime(0);
+    },
+    onTimeupdate: (time) => setCurrentTime(time),
   });
 
-  useEffect(() => {
-    if (!wavesurfer) return;
-    
-    const onTimeUpdate = (time: number) => setCurrentTime(time);
-    const onReady = () => setDuration(wavesurfer.getDuration());
-    const onPlay = () => setIsPlaying(true);
-    const onPause = () => setIsPlaying(false);
-    const onFinish = () => {
-      setIsPlaying(false);
-      // Reset to beginning on finish
-      wavesurfer.seekTo(0);
-      setCurrentTime(0);
-    };
-
-    wavesurfer.on('timeupdate', onTimeUpdate);
-    wavesurfer.on('ready', onReady);
-    wavesurfer.on('play', onPlay);
-    wavesurfer.on('pause', onPause);
-    wavesurfer.on('finish', onFinish);
-
-    return () => {
-      wavesurfer.un('timeupdate', onTimeUpdate);
-      wavesurfer.un('ready', onReady);
-      wavesurfer.un('play', onPlay);
-      wavesurfer.un('pause', onPause);
-      wavesurfer.un('finish', onFinish);
-    };
-  }, [wavesurfer]);
-  
   useEffect(() => {
      if(wavesurfer && isReady) {
          wavesurfer.setPlaybackRate(playbackRate);
      }
   }, [playbackRate, wavesurfer, isReady]);
-  
-  // Reload audio when url changes (for preview)
-  useEffect(() => {
-      if (wavesurfer && audioUrl && wavesurfer.options.url !== audioUrl) {
-          wavesurfer.load(audioUrl);
-      }
-  }, [audioUrl, wavesurfer])
 
   const onPlayPause = useCallback(() => {
     wavesurfer?.playPause();
@@ -132,7 +115,7 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ audioUrl, isSen
             )}
         </div>
         <div className="flex justify-between items-center mt-1">
-          <span className="text-xs font-mono">{isReady ? formatTime(currentTime) : '0:00'}</span>
+          <span className="text-xs font-mono">{formatTime(currentTime)}</span>
           <div className="flex gap-1">
               <PlaybackRateButton rate={1} />
               <PlaybackRateButton rate={1.5} />
