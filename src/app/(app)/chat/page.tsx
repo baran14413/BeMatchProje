@@ -620,7 +620,7 @@ export default function ChatPage() {
               </div>
             </header>
             <div className="flex-1 bg-muted/30 relative">
-                <ScrollArea className="h-full" viewportRef={scrollViewportRef} onScroll={handleScroll}>
+                <ScrollArea viewportRef={scrollViewportRef} onScroll={handleScroll}>
                   <div className='p-6'>
                     {chatLoading && !messages.length ? (
                         <div className="flex justify-center items-center h-full">
