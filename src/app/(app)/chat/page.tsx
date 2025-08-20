@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { collection, query, where, getDocs, onSnapshot, doc, orderBy, addDoc, serverTimestamp, Timestamp, updateDoc, getDoc, arrayUnion, arrayRemove, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot, doc, orderBy, addDoc, serverTimestamp, Timestamp, updateDoc, getDoc, arrayUnion, arrayRemove, deleteDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNowStrict } from 'date-fns';
@@ -88,26 +88,21 @@ export default function ChatPage() {
         const findOrCreateConversation = async () => {
             setRedirecting(true);
             try {
-                // Check for existing conversation (both user orders)
-                const q = query(
-                  collection(db, 'conversations'), 
-                  where('users', 'in', [[currentUser.uid, userIdToChat], [userIdToChat, currentUser.uid]])
-                );
+                // Generate a consistent conversation ID
+                const conversationId = [currentUser.uid, userIdToChat].sort().join('-');
+                const conversationRef = doc(db, 'conversations', conversationId);
+                const conversationSnap = await getDoc(conversationRef);
 
-                const querySnapshot = await getDocs(q);
-
-                if (!querySnapshot.empty) {
-                   const existingConvoId = querySnapshot.docs[0].id;
-                   router.replace(`/chat?conversationId=${existingConvoId}`, { scroll: false });
-                } else {
-                    // Create a new conversation
-                    const newConvoRef = await addDoc(collection(db, 'conversations'), {
+                if (!conversationSnap.exists()) {
+                     // Create a new conversation with the specific ID
+                     await setDoc(conversationRef, {
                         users: [currentUser.uid, userIdToChat],
                         createdAt: serverTimestamp(),
                         lastMessage: null,
-                    });
-                    router.replace(`/chat?conversationId=${newConvoRef.id}`, { scroll: false });
+                     });
                 }
+                router.replace(`/chat?conversationId=${conversationId}`, { scroll: false });
+                
             } catch (error) {
                 console.error("Error finding or creating conversation: ", error);
                 toast({ title: "Sohbet başlatılamadı.", variant: "destructive" });
@@ -544,4 +539,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
