@@ -41,6 +41,7 @@ type Message = {
     timestamp: Timestamp;
     reaction?: string;
     isEdited?: boolean;
+    isDeleted?: boolean;
     deletedFor?: string[];
 };
 
@@ -130,6 +131,8 @@ export default function ChatPage() {
                 console.error("Error finding or creating conversation: ", error);
                 toast({ title: "Sohbet başlatılamadı.", variant: "destructive" });
                 router.replace('/chat');
+            } finally {
+                setRedirecting(false);
             }
         };
         findOrCreateConversation();
@@ -178,7 +181,6 @@ export default function ChatPage() {
 
         setConversations(resolvedConvos);
         setLoading(false);
-        setRedirecting(false); 
     }, (error) => {
         console.error("Error fetching conversations: ", error);
         toast({ title: "Sohbetler yüklenirken bir hata oluştu.", variant: 'destructive'});
@@ -227,6 +229,7 @@ export default function ChatPage() {
     }, (error) => {
         console.error("Error fetching active chat details:", error);
         toast({title: "Sohbet detayları alınamadı.", variant: "destructive"});
+        setChatLoading(false);
     });
 
     const messagesQuery = query(collection(db, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc'));
@@ -267,10 +270,11 @@ export default function ChatPage() {
     setMessageInput('');
 
     try {
-        await addDoc(messagesRef, {
+        const newDoc = await addDoc(messagesRef, {
             text: tempMessageInput,
             senderId: currentUser.uid,
             timestamp: serverTimestamp(),
+            isDeleted: false,
         });
         
         await updateDoc(conversationRef, {
@@ -327,6 +331,7 @@ export default function ChatPage() {
             imageUrl: downloadURL,
             senderId: currentUser.uid,
             timestamp: serverTimestamp(),
+            isDeleted: false,
         });
 
         await updateDoc(conversationRef, {
@@ -372,15 +377,12 @@ export default function ChatPage() {
     try {
       const batch = writeBatch(db);
 
-      // Iterate over each conversation to delete its messages subcollection
       for (const id of idsToDelete) {
         const messagesRef = collection(db, 'conversations', id, 'messages');
         const messagesSnapshot = await getDocs(messagesRef);
         messagesSnapshot.docs.forEach(messageDoc => {
           batch.delete(messageDoc.ref);
         });
-
-        // Then, delete the conversation document itself
         const conversationRef = doc(db, 'conversations', id);
         batch.delete(conversationRef);
       }
@@ -391,7 +393,6 @@ export default function ChatPage() {
       setIsEditMode(false);
       setSelectedIds(new Set());
       
-      // If the currently active chat was deleted, navigate away
       if (activeChat && idsToDelete.has(activeChat.id)) {
         router.push('/chat');
       }
@@ -439,8 +440,12 @@ export default function ChatPage() {
     const handleDeleteMessageForEveryone = async (messageId: string) => {
         if (!activeChat) return;
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
-        await deleteDoc(messageRef);
-        // The onSnapshot listener will automatically update the UI
+        await updateDoc(messageRef, {
+            text: 'Bu mesaj silindi.',
+            imageUrl: null,
+            isDeleted: true,
+            reaction: null,
+        });
     };
     
     const handleFormSubmit = (e: React.FormEvent) => {
@@ -607,6 +612,16 @@ export default function ChatPage() {
                 ) : (
                   <div className="flex flex-col gap-1">
                     {messages.map((message) => {
+                        if (message.isDeleted) {
+                            return (
+                                <div key={message.id} className={cn('flex items-end gap-2 max-w-lg', message.senderId === currentUser?.uid ? 'self-end' : 'self-start')}>
+                                    <div className="rounded-xl px-4 py-2 text-sm text-muted-foreground italic">
+                                        Bu mesaj silindi.
+                                    </div>
+                                </div>
+                            )
+                        }
+
                        const messageContent = (
                             <div className={cn(
                                 'rounded-xl px-4 py-2 text-sm relative break-words',
@@ -776,10 +791,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
-    
-
-    
-
-    
-
