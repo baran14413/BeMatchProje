@@ -23,6 +23,7 @@ import {
   ImageIcon,
   Camera,
   Gem,
+  Bookmark,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -63,6 +64,7 @@ export default function EditProfilePage() {
         { icon: <User className="h-6 w-6" />, title: 'Profili Düzenle', href: '/profile/edit/personal' },
         { icon: <Camera className="h-6 w-6" />, title: 'Profil Fotoğrafı Düzenle', href: '/profile/edit/picture' },
         { icon: <ImageIcon className="h-6 w-6" />, title: 'Gönderilerini Yönet', href: '/profile/edit/photos' },
+        { icon: <Bookmark className="h-6 w-6" />, title: 'Kaydedilen Gönderiler', href: '/profile/edit/saved-posts' },
     ];
     
     const premiumItems = [

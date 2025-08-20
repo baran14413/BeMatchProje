@@ -18,25 +18,20 @@ import {
   MoreVertical,
   Flag,
   Ban,
-  Grid3x3,
   Heart,
   Bookmark,
   UserPlus,
   Settings,
-  List,
-  Trash2,
   Pencil,
   Crown,
   Loader2,
-  GalleryVertical,
   Lock,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import { doc, getDoc, collection, query, where, getDocs, DocumentData, orderBy, addDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, DocumentData, addDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -71,9 +66,6 @@ const PostCard = ({ post, user, isMyProfile }: { post: Post, user: DocumentData,
                     <div className="flex items-center gap-1 ml-auto">
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                             <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button variant="destructive" size="icon" className="h-8 w-8">
-                            <Trash2 className="w-4 h-4" />
                         </Button>
                     </div>
                 )}
@@ -113,10 +105,16 @@ const PostCard = ({ post, user, isMyProfile }: { post: Post, user: DocumentData,
 
             <div className="px-3 pb-3 text-sm">
                 <p className="font-semibold">{post.likes.toLocaleString()} beğeni</p>
-                {(post.caption || post.textContent) && (
+                {(post.caption || (post.type === 'photo' && !post.textContent)) && (
                      <p>
                         <span className="font-semibold">{user.name}</span>{' '}
-                        {post.caption || post.textContent}
+                        {post.caption}
+                    </p>
+                )}
+                 {post.type === 'text' && post.textContent && (
+                    <p>
+                        <span className="font-semibold">{user.name}</span>{' '}
+                        {post.textContent}
                     </p>
                 )}
                 {post.commentsCount > 0 && (
@@ -158,10 +156,9 @@ export default function UserProfilePage() {
   const [userProfile, setUserProfile] = useState<DocumentData | null>(null);
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isMyProfile, setIsMyProfile] = useState(false);
   const [hasGalleryAccess, setHasGalleryAccess] = useState(false);
   const [requestStatus, setRequestStatus] = useState<RequestStatus>('idle');
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [isMyProfile, setIsMyProfile] = useState(false);
   const currentUser = auth.currentUser;
   const { toast } = useToast();
 
@@ -196,7 +193,6 @@ export default function UserProfilePage() {
           const postsSnapshot = await getDocs(postsQuery);
           const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
           
-          // Sort posts by date client-side to avoid needing a composite index
           postsData.sort((a, b) => {
               const dateA = a.createdAt?.seconds ?? 0;
               const dateB = b.createdAt?.seconds ?? 0;
@@ -218,7 +214,9 @@ export default function UserProfilePage() {
       }
     };
 
-    fetchUserProfile();
+    if (currentUser && params.id) {
+        fetchUserProfile();
+    }
   }, [params.id, currentUser, toast]);
 
 
@@ -266,7 +264,6 @@ export default function UserProfilePage() {
     return <div className="text-center py-20">Kullanıcı bulunamadı.</div>
   }
   
-  const photoPosts = userPosts.filter(p => p.type === 'photo');
   const showGalleryContent = !userProfile.isGalleryPrivate || hasGalleryAccess || isMyProfile;
 
 
@@ -354,78 +351,33 @@ export default function UserProfilePage() {
 
         {/* Posts Section */}
         <div>
-            <div className="flex justify-end mb-4">
-                <div className="flex items-center gap-1 p-1 bg-muted rounded-md">
-                    <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('list')} className="h-8 w-8">
-                        <List className="h-4 w-4" />
-                    </Button>
-                    <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('grid')} className="h-8 w-8">
-                        <Grid3x3 className="h-4 w-4" />
-                    </Button>
-                </div>
-            </div>
-
-            {viewMode === 'list' ? (
+            {showGalleryContent ? (
                 <div>
-                     {userPosts.length > 0 ? (
-                        userPosts.map((post) => (
-                           <PostCard key={post.id} post={post} user={userProfile} isMyProfile={isMyProfile}/>
-                        ))
+                    {userPosts.length > 0 ? (
+                    userPosts.map((post) => (
+                        <PostCard key={post.id} post={post} user={userProfile} isMyProfile={isMyProfile}/>
+                    ))
                     ) : (
-                        <div className='text-center py-10 text-muted-foreground'>
-                            <p>Henüz gönderi yok.</p>
-                        </div>
+                    <div className='text-center py-10 text-muted-foreground'>
+                        <p>Henüz gönderi yok.</p>
+                    </div>
                     )}
                 </div>
-            ) : ( // Grid view
-                <>
-                {showGalleryContent ? (
-                    <div className="grid grid-cols-3 gap-1">
-                        {photoPosts.map((post) => (
-                            <div key={post.id} className="relative aspect-square rounded-md overflow-hidden group">
-                            <Image
-                                src={post.url!}
-                                alt={post.caption || `Post ${post.id}`}
-                                fill
-                                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                data-ai-hint={post.aiHint}
-                            />
-                            {isMyProfile && (
-                                    <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Button variant="secondary" size="icon" className="h-7 w-7">
-                                            <Pencil className="w-4 h-4" />
-                                        </Button>
-                                        <Button variant="destructive" size="icon" className="h-7 w-7">
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                 ) : (
-                    <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4 rounded-lg border-2 border-dashed">
-                        <Lock className="w-12 h-12 text-muted-foreground/50"/>
-                        <h3 className="font-bold text-lg text-foreground">Bu Galeri Gizli</h3>
-                        <p className="text-sm max-w-xs">
-                            {userProfile.name} kullanıcısının fotoğraflarını görmek için erişim izni istemeniz gerekiyor.
-                        </p>
-                        <Button 
-                            onClick={handleRequestAccess} 
-                            disabled={requestStatus !== 'idle'}
-                        >
-                            {requestStatus === 'loading' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {requestStatus === 'sent' ? 'İstek Gönderildi' : 'İzin İste'}
-                        </Button>
-                    </div>
-                )}
-                 {photoPosts.length === 0 && showGalleryContent && (
-                    <div className='text-center py-10 text-muted-foreground flex flex-col items-center gap-2'>
-                        <GalleryVertical className="w-10 h-10" />
-                        <p>Henüz fotoğraf yok.</p>
-                    </div>
-                )}
-                </>
+            ) : (
+                 <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4 rounded-lg border-2 border-dashed">
+                    <Lock className="w-12 h-12 text-muted-foreground/50"/>
+                    <h3 className="font-bold text-lg text-foreground">Bu Galeri Gizli</h3>
+                    <p className="text-sm max-w-xs">
+                        {userProfile.name} kullanıcısının gönderilerini görmek için erişim izni istemeniz gerekiyor.
+                    </p>
+                    <Button 
+                        onClick={handleRequestAccess} 
+                        disabled={requestStatus !== 'idle'}
+                    >
+                        {requestStatus === 'loading' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {requestStatus === 'sent' ? 'İstek Gönderildi' : 'İzin İste'}
+                    </Button>
+                </div>
             )}
         </div>
       </div>
