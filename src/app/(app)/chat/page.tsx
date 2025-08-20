@@ -172,18 +172,26 @@ export default function ChatPage() {
   // Fetch messages for active chat
   useEffect(() => {
     const conversationId = searchParams.get('conversationId');
-    if (conversationId) {
-        setChatLoading(true);
-        // Find the chat in the already loaded conversations
-        const chatToOpen = conversations.find(c => c.id === conversationId);
+    if (!conversationId) {
+        setActiveChat(null);
+        setMessages([]);
+        return;
+    }
+    
+    // If active chat is already set and correct, don't refetch everything
+    if(activeChat?.id === conversationId) return;
 
-        // If the conversation exists in the list, set it as active
-        if (chatToOpen) {
-            setActiveChat(chatToOpen);
-        } else {
+    setChatLoading(true);
+    
+    const fetchChatDetailsAndMessages = async () => {
+        if (!currentUser) return;
+        
+        try {
+            // Find the chat in the already loaded conversations
+            let chatToOpen = conversations.find(c => c.id === conversationId);
+
             // If not found (e.g., direct link), fetch its details
-            const fetchConvoDetails = async () => {
-                if (!currentUser) return;
+            if (!chatToOpen) {
                 const convoDocRef = doc(db, 'conversations', conversationId);
                 const convoDocSnap = await getDoc(convoDocRef);
                 if (convoDocSnap.exists()) {
@@ -193,38 +201,53 @@ export default function ChatPage() {
                         const userDoc = await getDoc(doc(db, 'users', otherUserId));
                          if (userDoc.exists()) {
                             const userData = userDoc.data() as UserData;
-                            setActiveChat({
+                            chatToOpen = {
                                 id: convoDocSnap.id,
                                 otherUser: { ...userData, uid: otherUserId },
                                 lastMessage: data.lastMessage || null,
                                 isPinned: false,
                                 isMuted: false,
                                 unreadCount: 0,
-                            });
+                            };
                          }
                       }
                 }
             }
-            fetchConvoDetails();
-        }
-        
-        const messagesQuery = query(collection(db, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc'));
-        const unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
-            const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
-            setMessages(msgs);
-            setChatLoading(false);
-        }, (error) => {
-            console.error("Error fetching messages: ", error);
-            toast({ title: "Mesajlar yüklenirken bir hata oluştu.", variant: 'destructive'});
-            setChatLoading(false);
-        });
+            
+            if (chatToOpen) {
+                setActiveChat(chatToOpen);
+            }
 
-        return () => unsubscribe();
-    } else {
-        setActiveChat(null);
-        setMessages([]);
-    }
-  }, [searchParams, conversations, toast, currentUser]);
+            // Unsubscribe from previous listener before creating a new one
+            let unsubscribeMessages: Function = () => {};
+            
+            const messagesQuery = query(collection(db, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc'));
+            unsubscribeMessages = onSnapshot(messagesQuery, (querySnapshot) => {
+                const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
+                setMessages(msgs);
+            }, (error) => {
+                console.error("Error fetching messages: ", error);
+                toast({ title: "Mesajlar yüklenirken bir hata oluştu.", variant: 'destructive'});
+            });
+
+            return () => unsubscribeMessages();
+
+        } catch (error) {
+            console.error("Error setting up chat:", error);
+            toast({ title: "Sohbet yüklenirken bir hata oluştu.", variant: 'destructive'});
+        } finally {
+            setChatLoading(false);
+        }
+    };
+    
+    const unsubscribePromise = fetchChatDetailsAndMessages();
+
+    // Cleanup function for the useEffect
+    return () => {
+        unsubscribePromise.then(unsubscribe => unsubscribe && unsubscribe());
+    };
+
+  }, [searchParams, currentUser, toast, conversations, activeChat?.id]);
   
   // Scroll to bottom of chat
   useEffect(() => {
@@ -242,25 +265,30 @@ export default function ChatPage() {
 
     const conversationRef = doc(db, 'conversations', activeChat.id);
     const messagesRef = collection(conversationRef, 'messages');
+    
+    const tempMessageInput = messageInput.trim();
+    setMessageInput('');
 
     try {
-        await addDoc(messagesRef, {
-            text: messageInput.trim(),
+        const newMessage = {
+            text: tempMessageInput,
             senderId: currentUser.uid,
             timestamp: serverTimestamp(),
-        });
+        };
+
+        await addDoc(messagesRef, newMessage);
         
         await updateDoc(conversationRef, {
             lastMessage: {
-                text: messageInput.trim(),
+                text: tempMessageInput,
                 timestamp: serverTimestamp(),
             }
         });
 
-        setMessageInput('');
     } catch (error) {
          console.error("Error sending message: ", error);
          toast({ title: "Mesaj gönderilemedi.", variant: 'destructive'});
+         setMessageInput(tempMessageInput); // Restore input on error
     }
   };
   
