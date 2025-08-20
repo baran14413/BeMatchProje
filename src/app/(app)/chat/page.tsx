@@ -86,8 +86,7 @@ export default function ChatPage() {
   
   const [loading, setLoading] = useState(true);
   const [chatLoading, setChatLoading] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
-
+  
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   
@@ -101,6 +100,7 @@ export default function ChatPage() {
   const [imageCaption, setImageCaption] = useState('');
   const [isSendingImage, setIsSendingImage] = useState(false);
   const [imageToView, setImageToView] = useState<string | null>(null);
+  const isRedirectingRef = useRef(false);
   
 
   // A chat view is open if a conversationId or userId is present in the URL
@@ -109,9 +109,9 @@ export default function ChatPage() {
   // Find or create conversation when userId is in URL
   useEffect(() => {
     const userIdToChat = searchParams.get('userId');
-    if (userIdToChat && currentUser && !redirecting) {
+    if (userIdToChat && currentUser && !isRedirectingRef.current) {
         const findOrCreateConversation = async () => {
-            setRedirecting(true);
+            isRedirectingRef.current = true;
             try {
                 // Generate a consistent conversation ID by sorting UIDs
                 const conversationId = [currentUser.uid, userIdToChat].sort().join('-');
@@ -131,13 +131,11 @@ export default function ChatPage() {
                 console.error("Error finding or creating conversation: ", error);
                 toast({ title: "Sohbet başlatılamadı.", variant: "destructive" });
                 router.replace('/chat');
-            } finally {
-                setRedirecting(false);
             }
         };
         findOrCreateConversation();
     }
-  }, [searchParams, currentUser, router, toast, redirecting]);
+  }, [searchParams, currentUser, router, toast]);
 
   // Fetch conversations
   useEffect(() => {
@@ -458,7 +456,7 @@ export default function ChatPage() {
     };
 
 
-  if (redirecting) {
+  if (isRedirectingRef.current) {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
             <Loader2 className="w-10 h-10 animate-spin text-primary" />
@@ -577,7 +575,7 @@ export default function ChatPage() {
 
       {/* Main Chat Area */}
       <main className={cn(
-          "w-full flex-col h-full",
+          "w-full flex flex-col h-full",
           isChatViewOpen ? "flex" : "hidden md:hidden",
       )}>
         {activeChat ? (
@@ -746,11 +744,11 @@ export default function ChatPage() {
               </form>
             </footer>
           </>
-        ) : isChatViewOpen && (
+        ) : isChatViewOpen && !isRedirectingRef.current ? (
             <div className="flex h-full w-full items-center justify-center bg-background">
                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
             </div>
-        )}
+        ) : null}
       </main>
 
        {/* Send Image Modal */}
@@ -791,3 +789,4 @@ export default function ChatPage() {
     </div>
   );
 }
+
