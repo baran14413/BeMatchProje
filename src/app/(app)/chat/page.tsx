@@ -438,7 +438,7 @@ export default function ChatPage() {
     const handleDeleteMessageForEveryone = async (messageId: string) => {
         if (!activeChat) return;
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
-        await updateDoc(messageRef, { text: '', imageUrl: null, isDeleted: true, reaction: null });
+        await updateDoc(messageRef, { text: 'Bu mesaj silindi.', imageUrl: null, isDeleted: true, reaction: null });
     };
     
     const handleFormSubmit = (e: React.FormEvent) => {
@@ -449,13 +449,6 @@ export default function ChatPage() {
             handleSendMessage();
         }
     };
-
-  useEffect(() => {
-    if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto'; // Reset height
-        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  }, [messageInput]);
 
 
   return (
@@ -623,7 +616,7 @@ export default function ChatPage() {
 
                        const MessageContent = () => (
                             <div className={cn(
-                                'rounded-xl text-sm relative max-w-lg', // Added max-w-lg here
+                                'rounded-xl text-sm relative max-w-lg',
                                 hasOnlyImage 
                                     ? 'bg-transparent border-none p-0'
                                     : 'px-4 py-2',
@@ -643,7 +636,7 @@ export default function ChatPage() {
                                         />
                                     </div>
                                 )}
-                                {message.text && <p className="whitespace-pre-wrap break-words">{message.text}</p>}
+                                {message.text && <p className="whitespace-pre-wrap break-all">{message.text}</p>}
                                 <div className={cn('flex items-center gap-2 text-xs mt-1', 
                                     message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70',
                                     hasOnlyImage && 'hidden'
@@ -659,6 +652,17 @@ export default function ChatPage() {
                                 )}
                             </div>
                        );
+
+                       if (message.isDeleted) {
+                            return (
+                               <div key={message.id} className={cn('flex items-end gap-2 group', message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start')}>
+                                   <div className="rounded-xl px-4 py-2 text-sm text-muted-foreground italic">
+                                       {message.text}
+                                   </div>
+                               </div>
+                           );
+                       }
+
 
                        return (
                            <div key={message.id} className={cn('flex items-end gap-2 group', message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start')}>
@@ -713,7 +717,7 @@ export default function ChatPage() {
                         <Textarea
                             ref={textareaRef}
                             placeholder="Mesajı düzenle..."
-                            className="flex-1 bg-muted border-none rounded-2xl resize-none min-h-[40px] max-h-[120px] py-2"
+                            className="flex-1 bg-muted border-none rounded-2xl resize-none overflow-y-auto min-h-[40px] max-h-[120px] py-2"
                             value={messageInput}
                             onChange={(e) => setMessageInput(e.target.value)}
                         />
@@ -733,7 +737,7 @@ export default function ChatPage() {
                         <Textarea
                             ref={textareaRef}
                             placeholder="Bir mesaj yaz..."
-                            className="flex-1 bg-muted border-none rounded-2xl resize-none min-h-[40px] max-h-[120px] py-2"
+                            className="flex-1 bg-muted border-none rounded-2xl resize-none overflow-y-auto min-h-[40px] max-h-[120px] py-2"
                             value={messageInput}
                             onChange={(e) => setMessageInput(e.target.value)}
                             onKeyDown={(e) => {
@@ -798,5 +802,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
-    
