@@ -90,14 +90,13 @@ function LayoutContent({ children }: { children: ReactNode }) {
             } as React.CSSProperties}
         >
         <NetworkStatusBanner isOnline={isOnline} isPoorConnection={isPoorConnection} />
-        {!isFullScreen && (
+        {showNavs && !isFullScreen && (
           <>
             <header className={cn(
                 "fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-background/80 px-4 backdrop-blur-sm transition-transform duration-300 md:px-6",
                 "h-[var(--header-height)]",
                 !isOnline || isPoorConnection ? 'top-10' : 'top-0', // Adjust header position based on banner
-                !showNavs && "hidden",
-                isScrolling && showNavs && "-translate-y-full"
+                isScrolling && "-translate-y-full"
             )}>
                 <Link href="/match" className="flex items-center gap-2 text-lg font-semibold">
                     <Heart className="h-7 w-7 text-primary" />
@@ -126,12 +125,11 @@ function LayoutContent({ children }: { children: ReactNode }) {
             </Suspense>
         </main>
 
-        {!isFullScreen && (
+        {showNavs && !isFullScreen && (
             <nav className={cn(
                 "fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/80 backdrop-blur-sm transition-transform duration-300 md:hidden",
                 "h-[var(--bottom-nav-height)]",
-                !showNavs && "hidden",
-                isScrolling && showNavs && "translate-y-full"
+                isScrolling && "translate-y-full"
             )}>
                 <div className="grid h-full grid-cols-3">
                     <Link href="/shuffle" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname === '/shuffle' ? 'text-primary' : '')}>

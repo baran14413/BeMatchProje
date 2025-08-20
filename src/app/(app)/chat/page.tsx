@@ -84,7 +84,7 @@ export default function ChatPage() {
   // Find or create conversation when userId is in URL
   useEffect(() => {
     const userIdToChat = searchParams.get('userId');
-    if (userIdToChat && currentUser) {
+    if (userIdToChat && currentUser && !searchParams.has('conversationId')) {
         const findOrCreateConversation = async () => {
             setRedirecting(true);
             try {
@@ -183,9 +183,10 @@ export default function ChatPage() {
         } else {
             // If not found (e.g., direct link), fetch its details
             const fetchConvoDetails = async () => {
+                if (!currentUser) return;
                 const convoDocRef = doc(db, 'conversations', conversationId);
                 const convoDocSnap = await getDoc(convoDocRef);
-                if (convoDocSnap.exists() && currentUser) {
+                if (convoDocSnap.exists()) {
                      const data = convoDocSnap.data();
                      const otherUserId = data.users.find((uid: string) => uid !== currentUser.uid);
                       if (otherUserId) {
@@ -443,7 +444,7 @@ export default function ChatPage() {
 
       {/* Main Chat Area */}
       <main className={cn(
-          "w-full flex flex-col h-full",
+          "w-full flex-col h-full",
           isChatViewOpen ? "flex" : "hidden md:hidden",
       )}>
         {activeChat ? (
@@ -532,7 +533,7 @@ export default function ChatPage() {
             </footer>
           </>
         ) : isChatViewOpen && (
-            <div className="flex h-screen w-full items-center justify-center bg-background">
+            <div className="flex h-full w-full items-center justify-center bg-background">
                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
             </div>
         )}
