@@ -9,6 +9,9 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { NetworkStatusBanner } from '@/components/ui/network-status-banner';
+import { auth } from '@/lib/firebase';
+import type { User as FirebaseUser } from 'firebase/auth';
+
 
 const NavButton = ({ href, icon, srText, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, hasNotification?: boolean }) => {
     return (
@@ -31,6 +34,15 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { isOnline, isPoorConnection } = useNetworkStatus();
   const [pathname, setPathname] = useState('');
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setCurrentUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
 
   useEffect(() => {
     setPathname(currentPathname);
@@ -38,7 +50,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
   // A chat view is considered open if we are on the /chat page AND a specific userId is in the query params.
   const isChatPage = pathname === '/chat';
-  const isChatViewOpen = isChatPage && searchParams.has('userId');
+  const isChatViewOpen = isChatPage && (searchParams.has('userId') || searchParams.has('conversationId'));
   const isCreatePage = pathname === '/create';
   
   // Show navs unless it's the create page or a specific chat is open.
@@ -95,17 +107,21 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 <span className="font-bold">BeMatch</span>
             </Link>
             <div className="flex items-center gap-2">
-                <Link href="/profile/1"><Button variant="ghost" size="icon" className="relative rounded-full">
-                    <User className="h-5 w-5" />
-                    <span className="sr-only">Profil</span>
-                </Button></Link>
+                {currentUser && (
+                     <Link href={`/profile/${currentUser.uid}`}>
+                        <Button variant="ghost" size="icon" className="relative rounded-full">
+                            <User className="h-5 w-5" />
+                            <span className="sr-only">Profil</span>
+                        </Button>
+                     </Link>
+                )}
                 <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
                 <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
                 <NavButton href="#" icon={<Search className="h-5 w-5" />} srText="Ara" />
             </div>
         </header>
         
-        <main className="h-full w-full flex-1 pt-10">
+        <main className="h-full w-full flex-1">
             <Suspense fallback={<div>BeMatch Yükleniyor...</div>}>
                 {children}
             </Suspense>
