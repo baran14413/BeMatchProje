@@ -112,6 +112,7 @@ export default function ChatPage() {
     if (userIdToChat && currentUser && !isRedirectingRef.current) {
         const findOrCreateConversation = async () => {
             isRedirectingRef.current = true;
+            setChatLoading(true);
             try {
                 // Generate a consistent conversation ID by sorting UIDs
                 const conversationId = [currentUser.uid, userIdToChat].sort().join('-');
@@ -131,6 +132,9 @@ export default function ChatPage() {
                 console.error("Error finding or creating conversation: ", error);
                 toast({ title: "Sohbet başlatılamadı.", variant: "destructive" });
                 router.replace('/chat');
+            } finally {
+                // Do not set chatLoading to false here, the other useEffect will handle it
+                 isRedirectingRef.current = false;
             }
         };
         findOrCreateConversation();
@@ -169,7 +173,7 @@ export default function ChatPage() {
             return null;
         });
         
-        const resolvedConvos = (await Promise.all(convosPromises)).filter(c => c !== null) as Conversation[];
+        let resolvedConvos = (await Promise.all(convosPromises)).filter(c => c !== null) as Conversation[];
         
         resolvedConvos.sort((a, b) => {
             const timeA = a.lastMessage?.timestamp?.toMillis() || 0;
@@ -196,6 +200,7 @@ export default function ChatPage() {
     if (!conversationId || !currentUser) {
         setActiveChat(null);
         setMessages([]);
+        setChatLoading(false);
         return;
     }
     
@@ -268,11 +273,10 @@ export default function ChatPage() {
     setMessageInput('');
 
     try {
-        const newDoc = await addDoc(messagesRef, {
+        await addDoc(messagesRef, {
             text: tempMessageInput,
             senderId: currentUser.uid,
             timestamp: serverTimestamp(),
-            isDeleted: false,
         });
         
         await updateDoc(conversationRef, {
@@ -310,13 +314,6 @@ export default function ChatPage() {
     setIsSendingImage(true);
 
     try {
-        const moderationResult = await moderateImage({ photoDataUri: imageToSend });
-        if (!moderationResult.isSafe) {
-            toast({ variant: 'destructive', title: 'Uygunsuz İçerik', description: `Yapay zeka bu görseli onaylamadı: ${moderationResult.reason}`, duration: 5000 });
-            setIsSendingImage(false);
-            return;
-        }
-        
         const storageRef = ref(storage, `chat_images/${activeChat.id}/${Date.now()}`);
         const uploadTask = await uploadString(storageRef, imageToSend, 'data_url');
         const downloadURL = await getDownloadURL(uploadTask.ref);
@@ -329,7 +326,6 @@ export default function ChatPage() {
             imageUrl: downloadURL,
             senderId: currentUser.uid,
             timestamp: serverTimestamp(),
-            isDeleted: false,
         });
 
         await updateDoc(conversationRef, {
@@ -456,14 +452,6 @@ export default function ChatPage() {
     };
 
 
-  if (isRedirectingRef.current) {
-    return (
-        <div className="flex h-screen w-full items-center justify-center bg-background">
-            <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        </div>
-    );
-  }
-
   return (
     <div className="flex h-screen bg-background text-foreground">
       {/* Sidebar with Conversation List */}
@@ -576,7 +564,7 @@ export default function ChatPage() {
       {/* Main Chat Area */}
       <main className={cn(
           "w-full flex flex-col h-full",
-          isChatViewOpen ? "flex" : "hidden md:hidden",
+          isChatViewOpen ? "flex" : "hidden md:flex",
       )}>
         {activeChat ? (
           <>
@@ -619,26 +607,32 @@ export default function ChatPage() {
                                 </div>
                             )
                         }
+                       
+                       const hasOnlyImage = message.imageUrl && !message.text;
 
                        const messageContent = (
                             <div className={cn(
                                 'rounded-xl px-4 py-2 text-sm relative break-words',
                                 message.senderId === currentUser?.uid ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border rounded-bl-none',
+                                hasOnlyImage && 'bg-transparent border-none p-0'
                             )}>
                                 {message.imageUrl && (
-                                     <div className='relative my-2'>
+                                     <div className='relative my-2 max-w-[250px]'>
                                         <Image
                                             src={message.imageUrl}
                                             alt="Sohbet resmi"
-                                            width={200}
-                                            height={200}
+                                            width={250}
+                                            height={250}
                                             className="rounded-md object-cover cursor-pointer"
                                             onClick={() => setImageToView(message.imageUrl!)}
                                         />
                                     </div>
                                 )}
                                 {message.text && <p>{message.text}</p>}
-                                <div className={cn('flex items-center gap-2 text-xs mt-1', message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70')}>
+                                <div className={cn('flex items-center gap-2 text-xs mt-1', 
+                                    message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70',
+                                    hasOnlyImage && 'hidden'
+                                )}>
                                     {message.isEdited && <span>(düzenlendi)</span>}
                                     <span>{message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
                                 </div>
@@ -653,7 +647,7 @@ export default function ChatPage() {
 
                        return (
                            <div key={message.id} className={cn('flex items-end gap-2 max-w-lg group', message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start')}>
-                                <DropdownMenu>
+                               <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <div className='cursor-pointer'>{messageContent}</div>
                                     </DropdownMenuTrigger>
@@ -665,7 +659,7 @@ export default function ChatPage() {
                                                 </Button>
                                             ))}
                                         </div>
-                                        {(message.text && !message.imageUrl) && (
+                                        {message.text && (
                                             <>
                                                 <DropdownMenuSeparator />
                                                 {message.senderId === currentUser?.uid && (
@@ -744,11 +738,13 @@ export default function ChatPage() {
               </form>
             </footer>
           </>
-        ) : isChatViewOpen && !isRedirectingRef.current ? (
+        ) : (
+          isChatViewOpen && (
             <div className="flex h-full w-full items-center justify-center bg-background">
                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
             </div>
-        ) : null}
+          )
+        )}
       </main>
 
        {/* Send Image Modal */}
@@ -790,3 +786,4 @@ export default function ChatPage() {
   );
 }
 
+    
