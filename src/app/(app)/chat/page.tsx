@@ -507,7 +507,7 @@ export default function ChatPage() {
 
             const options = {
                 mimeType: 'audio/webm;codecs=opus',
-                audioBitsPerSecond: 128000,
+                audioBitsPerSecond: 256000,
             };
 
             mediaRecorderRef.current = new MediaRecorder(stream, options);
@@ -554,7 +554,6 @@ export default function ChatPage() {
     const handleSendAudio = async () => {
         if (!recordedAudio || !activeChat || !currentUser) return;
         
-        toast({ title: "Sesli mesaj gönderiliyor..." });
         setVoiceMessageState('idle');
 
         try {
@@ -578,8 +577,6 @@ export default function ChatPage() {
                     timestamp: serverTimestamp(),
                 }
             });
-            
-            toast({ title: "Sesli mesaj gönderildi.", className: "bg-green-500 text-white" });
 
         } catch (error) {
             console.error("Error sending audio:", error);
