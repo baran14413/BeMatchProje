@@ -50,6 +50,7 @@ type Post = {
     caption?: string;
     likes: number;
     commentsCount: number;
+    createdAt: { seconds: number, nanoseconds: number };
 };
 
 type RequestStatus = 'idle' | 'loading' | 'sent';
@@ -191,9 +192,17 @@ export default function UserProfilePage() {
               setHasGalleryAccess(true);
           }
           
-          const postsQuery = query(collection(db, 'posts'), where('authorId', '==', params.id), orderBy('createdAt', 'desc'));
+          const postsQuery = query(collection(db, 'posts'), where('authorId', '==', params.id));
           const postsSnapshot = await getDocs(postsQuery);
           const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
+          
+          // Sort posts by date client-side to avoid needing a composite index
+          postsData.sort((a, b) => {
+              const dateA = a.createdAt?.seconds ?? 0;
+              const dateB = b.createdAt?.seconds ?? 0;
+              return dateB - dateA;
+          });
+
           setUserPosts(postsData);
 
         } else {
@@ -202,7 +211,7 @@ export default function UserProfilePage() {
         }
       } catch (error) {
         console.error("Error fetching user profile:", error);
-        toast({ variant: 'destructive', title: 'Profil Yüklenemedi', description: 'Profil bilgileri alınırken bir hata oluştu. Bu sorgu için bir index gerekebilir.' });
+        toast({ variant: 'destructive', title: 'Profil Yüklenemedi', description: 'Profil bilgileri alınırken bir hata oluştu.' });
         setUserProfile(null);
       } finally {
         setLoading(false);
