@@ -30,6 +30,7 @@ import {
   Sparkles,
   UserCheck as UserCheckIcon,
   List,
+  Grid3x3,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -492,16 +493,14 @@ export default function UserProfilePage() {
 
         {/* Posts Section */}
         <div>
-            {showGalleryContent ? (
+             {showGalleryContent ? (
                 <div>
                     {userPosts.length > 0 ? (
-                    userPosts.map((post) => (
-                        <PostCard key={post.id} post={post} user={userProfile} />
-                    ))
+                        userPosts.map((post) => <PostCard key={post.id} post={post} user={userProfile} />)
                     ) : (
-                    <div className='text-center py-10 text-muted-foreground'>
-                        <p>Henüz gönderi yok.</p>
-                    </div>
+                        <div className="text-center py-10 text-muted-foreground">
+                            <p>Henüz gönderi yok.</p>
+                        </div>
                     )}
                 </div>
             ) : (

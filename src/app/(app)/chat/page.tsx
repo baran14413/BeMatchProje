@@ -71,6 +71,7 @@ export default function ChatPage() {
   
   const [loading, setLoading] = useState(true);
   const [chatLoading, setChatLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -79,6 +80,44 @@ export default function ChatPage() {
 
   // A chat view is open if a conversationId is present in the URL
   const isChatViewOpen = searchParams.has('conversationId');
+
+  // Find or create conversation when userId is in URL
+  useEffect(() => {
+    const userIdToChat = searchParams.get('userId');
+    if (userIdToChat && currentUser) {
+        const findOrCreateConversation = async () => {
+            setRedirecting(true);
+            try {
+                // Check for existing conversation (both user orders)
+                const q1 = query(collection(db, 'conversations'), where('users', '==', [currentUser.uid, userIdToChat]));
+                const q2 = query(collection(db, 'conversations'), where('users', '==', [userIdToChat, currentUser.uid]));
+
+                const [querySnapshot1, querySnapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+                if (!querySnapshot1.empty) {
+                    const convo = querySnapshot1.docs[0];
+                    router.replace(`/chat?conversationId=${convo.id}`);
+                } else if (!querySnapshot2.empty) {
+                    const convo = querySnapshot2.docs[0];
+                    router.replace(`/chat?conversationId=${convo.id}`);
+                } else {
+                    // Create a new conversation
+                    const newConvoRef = await addDoc(collection(db, 'conversations'), {
+                        users: [currentUser.uid, userIdToChat],
+                        createdAt: serverTimestamp(),
+                        lastMessage: null,
+                    });
+                    router.replace(`/chat?conversationId=${newConvoRef.id}`);
+                }
+            } catch (error) {
+                console.error("Error finding or creating conversation: ", error);
+                toast({ title: "Sohbet başlatılamadı.", variant: "destructive" });
+                router.replace('/chat');
+            }
+        };
+        findOrCreateConversation();
+    }
+  }, [searchParams, currentUser, router, toast]);
 
   // Fetch conversations
   useEffect(() => {
@@ -113,6 +152,7 @@ export default function ChatPage() {
         }
         setConversations(convos);
         setLoading(false);
+        setRedirecting(false); // Stop redirecting loader once conversations load
     }, (error) => {
         console.error("Error fetching conversations: ", error);
         toast({ title: "Sohbetler yüklenirken bir hata oluştu.", variant: 'destructive'});
@@ -247,6 +287,14 @@ export default function ChatPage() {
         return bTime - aTime;
     });
   }, [conversations]);
+  
+    if (redirecting) {
+        return (
+            <div className="flex h-full w-full items-center justify-center bg-background">
+                <Loader2 className="w-10 h-10 animate-spin text-primary" />
+            </div>
+        );
+    }
 
   return (
     <div className="flex h-full bg-background text-foreground">
@@ -447,7 +495,11 @@ export default function ChatPage() {
               </form>
             </footer>
           </>
-        ) : null}
+        ) : isChatViewOpen && (
+            <div className="flex h-full w-full items-center justify-center bg-background">
+                <Loader2 className="w-10 h-10 animate-spin text-primary" />
+            </div>
+        )}
       </main>
     </div>
   );
