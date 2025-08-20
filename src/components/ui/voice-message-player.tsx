@@ -30,7 +30,6 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ audioUrl, isSen
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
 
-  // useWavesurfer hook call is now inside useEffect
   useWavesurfer({
     container: containerRef,
     url: audioUrl,
@@ -52,7 +51,6 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ audioUrl, isSen
     onPause: () => setIsPlaying(false),
     onFinish: () => {
         setIsPlaying(false);
-        // Reset to beginning on finish
         wavesurfer?.seekTo(0);
         setCurrentTime(0);
     },
@@ -64,6 +62,12 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ audioUrl, isSen
          wavesurfer.setPlaybackRate(playbackRate);
      }
   }, [playbackRate, wavesurfer, isReady]);
+
+  useEffect(() => {
+    if (wavesurfer && audioUrl) {
+      wavesurfer.load(audioUrl);
+    }
+  }, [audioUrl, wavesurfer]);
 
   const onPlayPause = useCallback(() => {
     wavesurfer?.playPause();
@@ -115,7 +119,7 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ audioUrl, isSen
             )}
         </div>
         <div className="flex justify-between items-center mt-1">
-          <span className="text-xs font-mono">{formatTime(currentTime)}</span>
+          <span className="text-xs font-mono">{formatTime(currentTime)} / {formatTime(duration)}</span>
           <div className="flex gap-1">
               <PlaybackRateButton rate={1} />
               <PlaybackRateButton rate={1.5} />
