@@ -229,10 +229,10 @@ export default function ChatPage() {
   // Scroll to bottom of chat
   useEffect(() => {
     if (scrollAreaRef.current) {
-        scrollAreaRef.current.scrollTo({
-            top: scrollAreaRef.current.scrollHeight,
-            behavior: 'smooth'
-        });
+        const scrollElement = scrollAreaRef.current.children[1] as HTMLDivElement;
+        if(scrollElement) {
+           scrollElement.scrollTop = scrollElement.scrollHeight;
+        }
     }
   }, [messages]);
 
@@ -334,10 +334,10 @@ export default function ChatPage() {
     }
 
   return (
-    <div className="flex h-full bg-background text-foreground">
+    <div className="flex h-screen bg-background text-foreground">
       {/* Sidebar with Conversation List */}
       <aside className={cn(
-        "w-full flex-col h-full",
+        "w-full flex-col h-full flex",
         isChatViewOpen ? "hidden md:flex md:w-1/3 md:border-r" : "flex",
       )}>
         <header className="flex items-center gap-4 p-3 border-b bg-card shrink-0 sticky top-0">
@@ -449,7 +449,7 @@ export default function ChatPage() {
       )}>
         {activeChat ? (
           <>
-            <header className="flex items-center gap-4 p-3 border-b bg-card shrink-0 sticky top-0">
+            <header className="flex items-center gap-4 p-3 border-b bg-card shrink-0">
                <Button variant="ghost" size="icon" className="rounded-full md:hidden" onClick={handleBackToList}>
                     <ArrowLeft className="w-5 h-5"/>
                 </Button>
@@ -470,41 +470,43 @@ export default function ChatPage() {
                 </Button>
               </div>
             </header>
-            <ScrollArea className="flex-1 p-6 bg-muted/30" ref={scrollAreaRef}>
-              {chatLoading ? (
-                  <div className="flex justify-center items-center h-full">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                  </div>
-              ) : (
-                <div className="flex flex-col gap-4">
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={cn(
-                        'flex items-end gap-2 max-w-md',
-                        message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start'
-                      )}
-                    >
+            <ScrollArea className="flex-1 bg-muted/30" ref={scrollAreaRef}>
+              <div className='p-6'>
+                {chatLoading ? (
+                    <div className="flex justify-center items-center h-full">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    </div>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    {messages.map((message) => (
                       <div
+                        key={message.id}
                         className={cn(
-                          'rounded-xl px-4 py-2 text-sm',
-                          message.senderId === currentUser?.uid
-                            ? 'bg-primary text-primary-foreground rounded-br-none'
-                            : 'bg-card border rounded-bl-none'
+                          'flex items-end gap-2 max-w-md',
+                          message.senderId === currentUser?.uid ? 'self-end flex-row-reverse' : 'self-start'
                         )}
                       >
-                        <p>{message.text}</p>
-                        <p className={cn(
-                          'text-xs mt-1 text-right',
-                          message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70'
-                        )}>
-                          {message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                        </p>
+                        <div
+                          className={cn(
+                            'rounded-xl px-4 py-2 text-sm',
+                            message.senderId === currentUser?.uid
+                              ? 'bg-primary text-primary-foreground rounded-br-none'
+                              : 'bg-card border rounded-bl-none'
+                          )}
+                        >
+                          <p>{message.text}</p>
+                          <p className={cn(
+                            'text-xs mt-1 text-right',
+                            message.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground/70'
+                          )}>
+                            {message.timestamp?.toDate().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
             </ScrollArea>
             <footer className="p-4 border-t bg-card shrink-0">
               <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex items-center gap-2">
