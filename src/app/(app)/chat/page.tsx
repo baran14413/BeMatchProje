@@ -133,7 +133,7 @@ export default function ChatPage() {
                 toast({ title: "Sohbet başlatılamadı.", variant: "destructive" });
                 router.replace('/chat');
             } finally {
-                 isRedirectingRef.current = false;
+                 // Do not set redirecting to false here to avoid loops
                  setChatLoading(false);
             }
         };
@@ -201,6 +201,7 @@ export default function ChatPage() {
         setActiveChat(null);
         setMessages([]);
         setChatLoading(false);
+        isRedirectingRef.current = false; // Reset when there is no convo id
         return;
     }
     
@@ -438,7 +439,7 @@ export default function ChatPage() {
     const handleDeleteMessageForEveryone = async (messageId: string) => {
         if (!activeChat) return;
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
-        await updateDoc(messageRef, { text: 'Bu mesaj silindi.', isDeleted: true, reaction: null, imageUrl: null });
+        await deleteDoc(messageRef);
     };
     
     const handleFormSubmit = (e: React.FormEvent) => {
@@ -597,7 +598,7 @@ export default function ChatPage() {
             </header>
             <ScrollArea className="flex-1 bg-muted/30" ref={scrollAreaRef}>
               <div className='p-6'>
-                {chatLoading ? (
+                {chatLoading && !messages.length ? (
                     <div className="flex justify-center items-center h-full">
                       <Loader2 className="w-8 h-8 animate-spin text-primary" />
                     </div>
@@ -804,9 +805,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
-    
-
-    
-
-    
