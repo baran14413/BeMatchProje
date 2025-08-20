@@ -2,9 +2,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, FastForward } from 'lucide-react';
+import { Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
 
@@ -30,13 +29,14 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
     const handleTimeUpdate = () => {
-        if (audio.duration > 0 && isFinite(audio.duration)) {
+        if (audio.duration > 0 && isFinite(audio.duration) && !isDragging) {
             setProgress((audio.currentTime / audio.duration) * 100);
             setCurrentTime(audio.currentTime);
         }
@@ -45,6 +45,8 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
     const handleLoadedMetadata = () => {
       if (isFinite(audio.duration)) {
           setDuration(audio.duration);
+      } else {
+          setDuration(0);
       }
     };
 
@@ -63,7 +65,7 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [audioUrl]);
+  }, [audioUrl, isDragging]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -78,7 +80,7 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
     if (isPlaying) {
       audio.pause();
     } else {
-      audio.play();
+      audio.play().catch(e => console.error("Error playing audio:", e));
     }
     setIsPlaying(!isPlaying);
   };
@@ -92,6 +94,21 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
           setProgress(value[0]);
       }
   };
+
+  const onSliderCommit = (value: number[]) => {
+    handleSliderChange(value);
+    setIsDragging(false);
+    if (isPlaying) {
+        audioRef.current?.play();
+    }
+  };
+
+  const onSliderValueChange = (value: number[]) => {
+    if (!isDragging) setIsDragging(true);
+    setCurrentTime((value[0] / 100) * duration);
+    setProgress(value[0]);
+  }
+
 
   const togglePlaybackRate = () => {
     const rates = [1, 1.5, 2];
@@ -123,7 +140,9 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
       <div className="flex-1 flex flex-col gap-1.5">
          <Slider 
             value={[progress]} 
-            onValueChange={handleSliderChange}
+            onValueChange={onSliderValueChange}
+            onPointerDown={() => setIsDragging(true)}
+            onPointerUp={() => { if (audioRef.current) handleSliderChange([progress]); setIsDragging(false); }}
             className="w-full h-2" 
             thumbClassName={cn("h-3 w-3", sliderThumbColorClass)}
             trackClassName={sliderTrackColorClass}
