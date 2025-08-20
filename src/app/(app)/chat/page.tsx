@@ -505,7 +505,12 @@ export default function ChatPage() {
                 setRecordingTime(prev => prev + 1);
             }, 1000);
 
-            mediaRecorderRef.current = new MediaRecorder(stream);
+            const options = {
+                mimeType: 'audio/webm;codecs=opus',
+                audioBitsPerSecond: 128000,
+            };
+
+            mediaRecorderRef.current = new MediaRecorder(stream, options);
             audioChunksRef.current = [];
             mediaRecorderRef.current.ondataavailable = (event) => {
                 audioChunksRef.current.push(event.data);
@@ -761,8 +766,6 @@ export default function ChatPage() {
                                             <VoiceMessagePlayer 
                                                 audioUrl={message.audioUrl} 
                                                 isSender={isSender}
-                                                authorImageUrl={isSender ? currentUser?.photoURL || undefined : activeChat.otherUser.avatarUrl}
-                                                authorName={isSender ? currentUser?.displayName || undefined : activeChat.otherUser.name}
                                             />
                                         </div>
                                     ) : (
@@ -802,7 +805,7 @@ export default function ChatPage() {
                                             )}
                                         </div>
                                     )}
-                               </>
+                                </>
                            );
 
 
@@ -913,7 +916,7 @@ export default function ChatPage() {
                            <Trash2 className="w-5 h-5 text-destructive" />
                         </Button>
                         <div className="flex-1">
-                             <VoiceMessagePlayer audioUrl={recordedAudio.url} isSender={true} isPreview={true} />
+                             <VoiceMessagePlayer audioUrl={recordedAudio.url} isSender={true} />
                         </div>
                         <Button type="button" size="icon" className="rounded-full bg-primary text-primary-foreground shrink-0" onClick={handleSendAudio}>
                            <SendHorizonal className="h-5 w-5" />
