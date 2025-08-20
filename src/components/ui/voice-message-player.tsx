@@ -27,7 +27,7 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ audioUrl, isSen
   const [playbackRate, setPlaybackRate] = useState(1);
 
   const { wavesurfer, isReady } = useWavesurfer({
-    container: containerRef.current!,
+    container: containerRef,
     url: audioUrl,
     waveColor: isSender ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.4)',
     progressColor: isSender ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.8)',
@@ -71,13 +71,13 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ audioUrl, isSen
   
   useEffect(() => {
      if(wavesurfer && isReady) {
-         wavesurfer.setPlaybackRate(playbackRate, true);
+         wavesurfer.setPlaybackRate(playbackRate);
      }
   }, [playbackRate, wavesurfer, isReady]);
   
   // Reload audio when url changes (for preview)
   useEffect(() => {
-      if (wavesurfer && audioUrl) {
+      if (wavesurfer && audioUrl && wavesurfer.options.url !== audioUrl) {
           wavesurfer.load(audioUrl);
       }
   }, [audioUrl, wavesurfer])
@@ -87,7 +87,9 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ audioUrl, isSen
   }, [wavesurfer]);
   
   const handleSetPlaybackRate = (rate: number) => {
-      setPlaybackRate(rate);
+      if(wavesurfer && isReady) {
+        setPlaybackRate(rate);
+      }
   }
   
   const PlaybackRateButton = ({rate}: {rate: number}) => (
