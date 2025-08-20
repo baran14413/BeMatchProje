@@ -81,7 +81,7 @@ export default function ChatPage() {
   const [chatLoading, setChatLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
 
-  const [isEditMode, setIsEditMode] = useState(isEditMode);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
@@ -649,6 +649,8 @@ export default function ChatPage() {
     </div>
   );
 }
+
+    
 
     
 
