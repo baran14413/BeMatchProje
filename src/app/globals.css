@@ -10,7 +10,7 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 262 82% 58%; /* Adjusted for better contrast on light bg */
+    --primary: 340 82% 58%; /* Updated from purple to coral pink */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -22,7 +22,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 262 82% 58%;
+    --ring: 340 82% 58%; /* Updated from purple to coral pink */
     --radius: 0.8rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -40,7 +40,7 @@
     --card-foreground: 210 40% 98%;
     --popover: 224 71% 4%;
     --popover-foreground: 210 40% 98%;
-    --primary: 262 82% 65%;
+    --primary: 340 82% 65%; /* Updated from purple to coral pink */
     --primary-foreground: 210 40% 98%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -52,7 +52,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 262 82% 65%;
+    --ring: 340 82% 65%; /* Updated from purple to coral pink */
   }
 }
 
@@ -82,5 +82,17 @@
     }
     .animate-pulse-heart {
         animation: pulse-heart 1.5s ease-in-out infinite;
+    }
+    .animate-beat {
+        animation: beat 1.5s ease-out infinite;
+    }
+    .animate-ripple-1 {
+        animation: ripple 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    .animate-ripple-2 {
+        animation: ripple 1.5s cubic-bezier(0.4, 0, 0.2, 1) 250ms infinite;
+    }
+    .animate-ripple-3 {
+        animation: ripple 1.5s cubic-bezier(0.4, 0, 0.2, 1) 500ms infinite;
     }
 }

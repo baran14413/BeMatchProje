@@ -6,23 +6,22 @@ import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { cn } from '@/lib/utils';
 
-const AnimatedLogo = () => {
-    const text = "BeMatch";
-    return (
-        <div className="flex justify-center items-center" aria-label={text}>
-            {text.split("").map((char, index) => (
-                <span
-                    key={index}
-                    className="text-6xl md:text-8xl font-bold text-primary animate-fade-in-up"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                    {char}
-                </span>
-            ))}
-        </div>
-    );
+
+const SplashScreen = () => {
+  return (
+    <div className="flex items-center justify-center">
+      <div className="relative flex h-24 w-24 items-center justify-center">
+        <div className={cn("animate-ripple-1 absolute h-full w-full rounded-full bg-primary/20")} />
+        <div className={cn("animate-ripple-2 absolute h-full w-full rounded-full bg-primary/20")} />
+        <div className={cn("animate-ripple-3 absolute h-full w-full rounded-full bg-primary/20")} />
+        <Heart className="h-16 w-16 text-primary fill-primary animate-beat" />
+      </div>
+    </div>
+  );
 };
+
 
 export default function Home() {
   const router = useRouter();
@@ -38,7 +37,7 @@ export default function Home() {
           // User is signed out, redirect to the login page
           router.replace('/login');
         }
-      }, 2000); 
+      }, 2500); 
     });
 
     // Cleanup subscription on unmount
@@ -47,12 +46,7 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-8">
-      <div className="flex flex-col items-center gap-8">
-        <AnimatedLogo />
-        <div className="relative flex items-center justify-center">
-            <Heart className="w-12 h-12 text-primary animate-pulse-heart" style={{ animationDelay: '0.7s' }} />
-        </div>
-      </div>
+       <SplashScreen />
     </main>
   );
 }
