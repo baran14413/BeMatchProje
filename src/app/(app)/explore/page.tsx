@@ -1,13 +1,13 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -27,6 +27,7 @@ import { collection, query, orderBy, getDocs, doc, getDoc, DocumentData, writeBa
 import { db, auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
 
 const formatRelativeTime = (date: Date) => {
     try {
@@ -82,7 +83,7 @@ type Post = DocumentData & {
 };
 
 const PostSkeleton = () => (
-    <Card className="rounded-none md:rounded-xl overflow-hidden shadow-none md:shadow-sm border-0 md:border border-b">
+    <Card className="rounded-none md:rounded-xl overflow-hidden shadow-none md:shadow-sm border-0 md:border-b w-full">
         <CardContent className="p-0">
             <div className="flex items-center gap-3 p-3">
                 <Skeleton className="w-8 h-8 rounded-full" />
@@ -103,7 +104,10 @@ export default function ExplorePage() {
     const [commentInput, setCommentInput] = useState('');
     const commentInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
+    const router = useRouter();
     const currentUser = auth.currentUser;
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
 
     useEffect(() => {
         const fetchPostsAndAuthors = async () => {
@@ -159,10 +163,10 @@ export default function ExplorePage() {
         if (currentUser) {
             fetchPostsAndAuthors();
         } else {
-            // Handle case where user is not logged in, maybe show a generic feed or login prompt
+            router.push('/login');
             setLoading(false);
         }
-    }, [toast, currentUser]);
+    }, [toast, currentUser, router]);
 
     const handleLikeClick = async (postId: string) => {
         if (!currentUser) return;
@@ -354,11 +358,29 @@ export default function ExplorePage() {
             toast({ variant: 'destructive', title: 'Kullanıcı engellenirken hata oluştu.' });
         }
     };
+    
+    const onSelectPhoto = (e: ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const reader = new FileReader();
+            reader.addEventListener('load', () => {
+                if (reader.result) {
+                    sessionStorage.setItem('photo_for_upload', reader.result.toString());
+                    router.push('/create?type=photo');
+                }
+            });
+            reader.readAsDataURL(e.target.files[0]);
+        }
+        setIsCreateSheetOpen(false);
+    };
 
+    const handleCreateTextPost = () => {
+        setIsCreateSheetOpen(false);
+        router.push('/create?type=text');
+    };
 
   return (
-    <div className="container mx-auto max-w-lg p-0 md:p-2 md:pb-20">
-      <div className="flex flex-col md:gap-4">
+    <div className="container mx-auto max-w-lg p-0 md:pb-20">
+      <div className="flex flex-col">
         {loading ? (
             <>
                 <PostSkeleton />
@@ -367,7 +389,7 @@ export default function ExplorePage() {
         ) : posts.length > 0 ? (
             posts.map((post) => (
             <Sheet key={post.id}>
-                <Card className="rounded-none md:rounded-xl overflow-hidden shadow-none md:shadow-sm border-0 md:border border-b">
+                <Card className="w-full rounded-none md:rounded-xl overflow-hidden shadow-none border-0 md:border-b">
                     <CardContent className="p-0">
                         <div className="flex items-center gap-3 p-3">
                             <Avatar className="w-8 h-8">
@@ -576,16 +598,28 @@ export default function ExplorePage() {
         )}
       </div>
       
-       <Link href="/create">
-        <Button className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg" size="icon">
-                <Plus className="h-8 w-8" />
-                <span className="sr-only">Yeni Gönderi Ekle</span>
-        </Button>
-       </Link>
+       <Sheet open={isCreateSheetOpen} onOpenChange={setIsCreateSheetOpen}>
+        <SheetTrigger asChild>
+            <Button className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg" size="icon">
+                    <Plus className="h-8 w-8" />
+                    <span className="sr-only">Yeni Gönderi Ekle</span>
+            </Button>
+        </SheetTrigger>
+        <SheetContent side="bottom" className="rounded-t-xl h-auto flex flex-col p-4 gap-4">
+             <SheetHeader className="text-center">
+                <SheetTitle>Yeni Gönderi Oluştur</SheetTitle>
+             </SheetHeader>
+             <input type="file" ref={fileInputRef} onChange={onSelectPhoto} accept="image/*" className="hidden" />
+             <Button variant="outline" className="w-full justify-start p-6" onClick={() => fileInputRef.current?.click()}>
+                 <ImageIcon className="w-6 h-6 mr-4" />
+                 <span className='text-lg'>Fotoğraf Paylaş</span>
+             </Button>
+             <Button variant="outline" className="w-full justify-start p-6" onClick={handleCreateTextPost}>
+                 <Type className="w-6 h-6 mr-4" />
+                 <span className='text-lg'>Yazı Yaz</span>
+             </Button>
+        </SheetContent>
+       </Sheet>
     </div>
   );
 }
-
-    
-
-    
