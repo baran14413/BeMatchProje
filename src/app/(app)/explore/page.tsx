@@ -23,7 +23,7 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { collection, query, orderBy, getDocs, doc, getDoc, DocumentData, writeBatch, arrayUnion, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, doc, getDoc, DocumentData, writeBatch, arrayUnion, updateDoc, increment } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -82,7 +82,7 @@ type Post = DocumentData & {
 };
 
 const PostSkeleton = () => (
-    <Card className="rounded-xl overflow-hidden">
+    <Card className="rounded-none md:rounded-xl overflow-hidden shadow-none md:shadow-sm border-0 md:border border-b">
         <CardContent className="p-0">
             <div className="flex items-center gap-3 p-3">
                 <Skeleton className="w-8 h-8 rounded-full" />
@@ -164,12 +164,39 @@ export default function ExplorePage() {
         }
     }, [toast, currentUser]);
 
-    const handleLikeClick = (postId: string) => {
-        setPosts(posts.map(post => 
-            post.id === postId 
-            ? { ...post, liked: !post.liked, likes: post.liked ? post.likes - 1 : post.likes + 1 } 
-            : post
-        ));
+    const handleLikeClick = async (postId: string) => {
+        if (!currentUser) return;
+        
+        const postIndex = posts.findIndex(p => p.id === postId);
+        if (postIndex === -1) return;
+    
+        const post = posts[postIndex];
+        const newLikedState = !post.liked;
+        const newLikesCount = newLikedState ? post.likes + 1 : post.likes - 1;
+    
+        // Optimistically update UI
+        setPosts(prevPosts => {
+            const newPosts = [...prevPosts];
+            newPosts[postIndex] = { ...post, liked: newLikedState, likes: newLikesCount };
+            return newPosts;
+        });
+
+        try {
+            const postRef = doc(db, 'posts', postId);
+            await updateDoc(postRef, {
+                likes: increment(newLikedState ? 1 : -1)
+            });
+            // Also update user's liked posts subcollection if needed
+        } catch (error) {
+            console.error("Error updating like:", error);
+             // Revert optimistic update on error
+            setPosts(prevPosts => {
+                const newPosts = [...prevPosts];
+                newPosts[postIndex] = post;
+                return newPosts;
+            });
+            toast({ variant: 'destructive', title: 'Beğenme işlemi başarısız oldu.' });
+        }
     };
 
     const handleCommentLikeClick = (postId: string, commentId: string) => {
@@ -330,8 +357,8 @@ export default function ExplorePage() {
 
 
   return (
-    <div className="container mx-auto max-w-lg p-2 pb-20">
-      <div className="flex flex-col gap-4">
+    <div className="container mx-auto max-w-lg p-0 md:p-2 md:pb-20">
+      <div className="flex flex-col md:gap-4">
         {loading ? (
             <>
                 <PostSkeleton />
@@ -340,7 +367,7 @@ export default function ExplorePage() {
         ) : posts.length > 0 ? (
             posts.map((post) => (
             <Sheet key={post.id}>
-                <Card className="rounded-xl overflow-hidden">
+                <Card className="rounded-none md:rounded-xl overflow-hidden shadow-none md:shadow-sm border-0 md:border border-b">
                     <CardContent className="p-0">
                         <div className="flex items-center gap-3 p-3">
                             <Avatar className="w-8 h-8">
@@ -387,13 +414,14 @@ export default function ExplorePage() {
                         </div>
 
                         {post.type === 'photo' && post.url && (
-                            <div className="relative w-full aspect-square group">
+                            <div className="relative w-full aspect-square group" onDoubleClick={() => handleLikeClick(post.id)}>
                                 <Image
                                 src={post.url}
                                 alt={`Post by ${post.user?.name}`}
                                 fill
                                 className={cn("object-cover", post.isGalleryLocked && "blur-md")}
                                 data-ai-hint={post.aiHint}
+                                priority
                                 />
                                 {post.isGalleryLocked && (
                                      <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center text-white p-4">
@@ -557,5 +585,7 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    
 
     

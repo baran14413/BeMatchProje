@@ -32,7 +32,7 @@ export default function Home() {
       setTimeout(() => {
         if (user) {
           // User is signed in, redirect to the main app page
-          router.replace('/match');
+          router.replace('/explore');
         } else {
           // User is signed out, redirect to the login page
           router.replace('/login');
@@ -58,3 +58,5 @@ export default function Home() {
     </main>
   );
 }
+
+    

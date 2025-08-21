@@ -98,7 +98,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 !isOnline || isPoorConnection ? 'top-10' : 'top-0', // Adjust header position based on banner
                 isScrolling && "-translate-y-full"
             )}>
-                <Link href="/match" className="flex items-center gap-2 text-lg font-semibold">
+                <Link href="/explore" className="flex items-center gap-2 text-lg font-semibold">
                     <Heart className="h-7 w-7 text-primary" />
                     <span className="font-bold">BeMatch</span>
                 </Link>
@@ -156,3 +156,5 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
+
+    
