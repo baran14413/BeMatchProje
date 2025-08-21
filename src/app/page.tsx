@@ -19,7 +19,7 @@ const SplashScreen = () => {
             <div className={cn("animate-ripple-1 absolute h-full w-full rounded-full bg-primary/20")} />
             <div className={cn("animate-ripple-2 absolute h-full w-full rounded-full bg-primary/20")} />
             <div className={cn("animate-ripple-3 absolute h-full w-full rounded-full bg-primary/20")} />
-            <Heart className="h-16 w-16 text-primary fill-primary animate-beat" />
+            <Heart className="h-16 w-16 text-primary fill-primary animate-pulse-heart" />
         </div>
     </div>
   );
