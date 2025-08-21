@@ -1,9 +1,10 @@
 
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import {
   Card,
@@ -25,12 +26,13 @@ import {
   Check,
   Image as ImageIcon,
   Type,
+  Gem,
 } from 'lucide-react';
 import { stylizeImage } from '@/ai/flows/stylize-image-flow';
 import { moderateImage } from '@/ai/flows/moderate-image-flow';
 import { cn } from '@/lib/utils';
 import { auth, db, storage } from '@/lib/firebase';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 
 
@@ -102,6 +104,7 @@ const Step3PhotoShare = ({
   handleApplyStyle,
   handleShare,
   onBack,
+  isPremium,
 }: {
   imgSrc: string;
   stylePrompt: string;
@@ -112,6 +115,7 @@ const Step3PhotoShare = ({
   handleApplyStyle: () => void;
   handleShare: () => void;
   onBack: () => void;
+  isPremium: boolean;
 }) => (
   <Card className="w-full max-w-lg">
     <CardHeader>
@@ -143,22 +147,32 @@ const Step3PhotoShare = ({
           placeholder="Yapay zeka stili ekle (Örn: bir Van Gogh tablosu gibi yap...)"
           value={stylePrompt}
           onChange={(e) => setStylePrompt(e.target.value)}
-          disabled={isProcessing}
+          disabled={isProcessing || !isPremium}
           className="min-h-[80px]"
         />
-        <Button
-          onClick={handleApplyStyle}
-          disabled={isProcessing || !stylePrompt}
-          className="w-full"
-          variant="outline"
-        >
-          {isProcessing ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Wand2 className="mr-2 h-4 w-4" />
-          )}
-          Stil Uygula
-        </Button>
+        {isPremium ? (
+             <Button
+                onClick={handleApplyStyle}
+                disabled={isProcessing || !stylePrompt}
+                className="w-full"
+                variant="outline"
+            >
+                {isProcessing ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                    <Wand2 className="mr-2 h-4 w-4" />
+                )}
+                Stil Uygula
+            </Button>
+        ) : (
+             <Link href="/premium" className="w-full">
+                <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-black" variant="default">
+                    <Gem className="mr-2 h-4 w-4" />
+                    AI Düzenleme için Premium'a Yükselt
+                </Button>
+             </Link>
+        )}
+       
       </div>
     </CardContent>
     <CardFooter className="flex justify-between">
@@ -239,10 +253,24 @@ export default function CreatePostPage() {
   const [textContent, setTextContent] = useState('');
   
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
 
   const router = useRouter();
   const { toast } = useToast();
   const currentUser = auth.currentUser;
+
+  useEffect(() => {
+    const checkPremiumStatus = async () => {
+        if (currentUser) {
+            const userDocRef = doc(db, 'users', currentUser.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists() && userDocSnap.data().isPremium) {
+                setIsPremium(true);
+            }
+        }
+    };
+    checkPremiumStatus();
+  }, [currentUser]);
 
   const handleSelectType = (type: 'photo' | 'text') => {
       setPostType(type);
@@ -322,13 +350,6 @@ export default function CreatePostPage() {
         };
 
         if (postType === 'photo') {
-            const moderationResult = await moderateImage({ photoDataUri: imgSrc });
-            if (!moderationResult.isSafe) {
-                toast({ variant: 'destructive', title: 'Uygunsuz İçerik', description: `Yapay zeka bu görseli onaylamadı: ${moderationResult.reason}`, duration: 5000 });
-                setIsProcessing(false);
-                return;
-            }
-            
             const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}`);
             const uploadTask = await uploadString(storageRef, imgSrc, 'data_url');
             const downloadURL = await getDownloadURL(uploadTask.ref);
@@ -400,6 +421,7 @@ export default function CreatePostPage() {
                 handleApplyStyle={handleApplyStyle}
                 handleShare={handleShare}
                 onBack={() => setStep(2)}
+                isPremium={isPremium}
               />
             );
           default:
