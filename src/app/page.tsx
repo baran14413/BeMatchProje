@@ -45,8 +45,16 @@ export default function Home() {
   }, [router]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-background p-8">
-       <SplashScreen />
+    <main className="flex min-h-screen flex-col items-center justify-center bg-background p-8 relative">
+       <div className="flex-1 flex items-center justify-center">
+          <SplashScreen />
+       </div>
+       <div className="absolute bottom-10 flex flex-col items-center gap-2">
+            <p className="text-sm text-muted-foreground">Created by</p>
+            <div className="bg-white rounded-md p-1.5 shadow-md">
+                <span className="font-bold text-xl tracking-wider text-black">BE</span>
+            </div>
+       </div>
     </main>
   );
 }
