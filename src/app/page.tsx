@@ -11,13 +11,14 @@ import { cn } from '@/lib/utils';
 
 const SplashScreen = () => {
   return (
-    <div className="flex items-center justify-center">
-      <div className="relative flex h-24 w-24 items-center justify-center">
-        <div className={cn("animate-ripple-1 absolute h-full w-full rounded-full bg-primary/20")} />
-        <div className={cn("animate-ripple-2 absolute h-full w-full rounded-full bg-primary/20")} />
-        <div className={cn("animate-ripple-3 absolute h-full w-full rounded-full bg-primary/20")} />
-        <Heart className="h-16 w-16 text-primary fill-primary animate-beat" />
-      </div>
+    <div className="flex flex-col items-center justify-center gap-8">
+        <h1 className="text-4xl font-bold font-headline tracking-tighter">be walk</h1>
+        <div className="relative flex h-24 w-24 items-center justify-center">
+            <div className={cn("animate-ripple-1 absolute h-full w-full rounded-full bg-primary/20")} />
+            <div className={cn("animate-ripple-2 absolute h-full w-full rounded-full bg-primary/20")} />
+            <div className={cn("animate-ripple-3 absolute h-full w-full rounded-full bg-primary/20")} />
+            <Heart className="h-16 w-16 text-primary fill-primary animate-beat" />
+        </div>
     </div>
   );
 };
