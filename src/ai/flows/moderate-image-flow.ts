@@ -8,7 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z}from 'genkit';
 
 const ModerateImageInputSchema = z.object({
   photoDataUri: z
@@ -57,7 +57,15 @@ const moderateImageFlow = ai.defineFlow(
     outputSchema: ModerateImageOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    try {
+      const {output} = await prompt(input);
+      return output!;
+    } catch (e: any) {
+        console.error("Image moderation flow failed", e);
+        return { 
+            isSafe: false, 
+            reason: 'Denetleme modeli şu anda yoğun. Lütfen daha sonra tekrar deneyin.'
+        };
+    }
   }
 );
