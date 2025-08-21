@@ -391,20 +391,22 @@ export default function ExplorePage() {
             <Sheet key={post.id}>
                 <Card className="w-full rounded-none md:rounded-xl overflow-hidden shadow-none border-0 md:border-b">
                     <CardContent className="p-0">
-                        <div className="flex items-center gap-3 p-3">
-                            <Avatar className="w-8 h-8">
-                            <AvatarImage src={post.user?.avatarUrl} data-ai-hint={post.user?.aiHint} />
-                            <AvatarFallback>{post.user?.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col">
-                                <span className="font-semibold text-sm">{post.user?.name}</span>
-                                {post.isAiEdited && (
-                                    <Badge variant="outline" className="text-xs w-fit text-purple-500 border-purple-300">
-                                        <Sparkles className="w-3 h-3 mr-1"/>
-                                        BeAI ile düzenlendi
-                                    </Badge>
-                                )}
-                            </div>
+                        <div className="flex items-center justify-between gap-3 p-3">
+                            <Link href={`/profile/${post.authorId}`} className="flex items-center gap-3 flex-1 overflow-hidden">
+                                <Avatar className="w-8 h-8">
+                                <AvatarImage src={post.user?.avatarUrl} data-ai-hint={post.user?.aiHint} />
+                                <AvatarFallback>{post.user?.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col overflow-hidden">
+                                    <span className="font-semibold text-sm truncate">{post.user?.name}</span>
+                                    {post.isAiEdited && (
+                                        <Badge variant="outline" className="text-xs w-fit text-purple-500 border-purple-300">
+                                            <Sparkles className="w-3 h-3 mr-1"/>
+                                            BeAI ile düzenlendi
+                                        </Badge>
+                                    )}
+                                </div>
+                            </Link>
                             <div className="ml-auto">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
@@ -496,7 +498,7 @@ export default function ExplorePage() {
                             <p className="font-semibold">{post.likes.toLocaleString()} beğeni</p>
                             {post.type === 'photo' && post.caption && !post.isGalleryLocked && (
                                 <p>
-                                    <span className="font-semibold">{post.user?.name}</span>{' '}
+                                    <Link href={`/profile/${post.authorId}`} className="font-semibold">{post.user?.name}</Link>{' '}
                                     {post.caption}
                                 </p>
                             )}
