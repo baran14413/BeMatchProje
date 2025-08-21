@@ -72,8 +72,7 @@ export default function NotificationsPage() {
 
         const q = query(
             collection(db, 'notifications'), 
-            where('recipientId', '==', currentUser.uid), 
-            orderBy('createdAt', 'desc')
+            where('recipientId', '==', currentUser.uid)
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -82,6 +81,10 @@ export default function NotificationsPage() {
                 ...doc.data(),
                 createdAt: doc.data().createdAt.toDate(),
             })) as Notification[];
+            
+            // Sort client-side
+            fetchedNotifications.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+            
             setNotifications(fetchedNotifications);
             setLoading(false);
         }, (error) => {
