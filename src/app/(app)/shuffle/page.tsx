@@ -43,7 +43,7 @@ export default function ShufflePage() {
     const [match, setMatch] = useState<UserProfile | null>(null);
     
     const [currentIndex, setCurrentIndex] = useState(0);
-    const canSwipe = currentIndex < profiles.length;
+    const canSwipe = currentIndex >= 0 && currentIndex < profiles.length;
     const canGoBack = !!lastSwipedProfile;
 
     const currentUser = auth.currentUser;
@@ -72,7 +72,7 @@ export default function ShufflePage() {
                 const fetchedProfiles = querySnapshot.docs.map(doc => doc.data() as UserProfile);
                 
                 setProfiles(fetchedProfiles);
-                setCurrentIndex(0);
+                setCurrentIndex(fetchedProfiles.length - 1);
 
             } catch (error) {
                 console.error("Error fetching profiles:", error);
@@ -98,11 +98,10 @@ export default function ShufflePage() {
         setCurrentIndex(val);
     };
 
-
     const swiped = async (direction: SwipeDirection, swipedUser: UserProfile, index: number) => {
         if (!currentUser) return;
         
-        updateCurrentIndex(index + 1);
+        updateCurrentIndex(index - 1);
         setLastSwipedProfile({ profile: swipedUser, dir: direction });
 
         try {
@@ -118,12 +117,14 @@ export default function ShufflePage() {
                 if (otherUserSwipeDoc.exists() && otherUserSwipeDoc.data().swipe === 'right') {
                    setMatch(swipedUser);
                    
-                   const conversationRef = doc(collection(db, 'conversations'));
+                   const conversationId = [currentUser.uid, swipedUser.uid].sort().join('-');
+                   const conversationRef = doc(db, 'conversations', conversationId);
+
                    batch.set(conversationRef, {
                        users: [currentUser.uid, swipedUser.uid],
                        lastMessage: null,
                        createdAt: serverTimestamp()
-                   });
+                   }, { merge: true });
                    
                    const currentUserMatchRef = doc(db, 'users', currentUser.uid, 'matches', swipedUser.uid);
                    batch.set(currentUserMatchRef, {
@@ -153,13 +154,21 @@ export default function ShufflePage() {
     const goBack = async () => {
         if (!canGoBack || !currentUser || !lastSwipedProfile) return;
 
-        const newIndex = currentIndex - 1;
-        
-        const { profile: lastProfile } = lastSwipedProfile;
+        const newIndex = currentIndex + 1;
+        const lastProfile = lastSwipedProfile.profile;
+       
+        updateCurrentIndex(newIndex);
+        setProfiles(prev => {
+            const newProfiles = [...prev];
+            newProfiles.splice(newIndex, 0, lastProfile);
+            return newProfiles;
+        });
 
-        // Optimistically update UI
-        setProfiles(prev => [lastProfile, ...prev.slice(newIndex)]);
-        setCurrentIndex(newIndex);
+        // Use a timeout to allow the card to re-render before trying to restore
+        setTimeout(() => {
+             childRefs[newIndex]?.current?.restoreCard();
+        }, 100);
+
         setLastSwipedProfile(null);
 
 
@@ -242,16 +251,24 @@ export default function ShufflePage() {
                         key={profile.uid}
                         preventSwipe={['up', 'down']}
                         onSwipe={(dir) => swiped(dir as SwipeDirection, profile, index)}
+                        onCardLeftScreen={() => {}}
                     >
-                        <div className="relative w-full h-full rounded-2xl bg-cover bg-center shadow-lg" style={{ backgroundImage: `url(${profile.avatarUrl})` }}>
+                        <div className="relative w-full h-full rounded-2xl bg-cover bg-center shadow-lg group">
+                           <Image
+                                src={profile.avatarUrl}
+                                alt={profile.name}
+                                fill
+                                className="object-cover rounded-2xl"
+                                priority={index === currentIndex}
+                           />
                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent rounded-2xl"/>
-                           <div className="absolute top-6 left-6 text-2xl font-bold text-red-500 border-4 border-red-500 rounded-lg px-4 py-2 -rotate-12 opacity-0 transform transition-all duration-300 ease-in-out"
-                                style={{ transform: childRefs[index]?.current?.getCardState()?.x < -20 ? 'rotate(-20deg) scale(1.1)' : 'rotate(0) scale(0.9)', opacity: childRefs[index]?.current?.getCardState()?.x < -20 ? 1 : 0 }}
+                           <div className="absolute top-6 left-6 text-2xl font-bold text-red-500 border-4 border-red-500 rounded-lg px-4 py-2 -rotate-12 opacity-0 group-hover:opacity-0 transition-opacity"
+                                data-swipe-direction="left"
                             >
                                GEÇ
                            </div>
-                           <div className="absolute top-6 right-6 text-2xl font-bold text-green-400 border-4 border-green-400 rounded-lg px-4 py-2 rotate-12 opacity-0 transform transition-all duration-300 ease-in-out"
-                                style={{ transform: childRefs[index]?.current?.getCardState()?.x > 20 ? 'rotate(20deg) scale(1.1)' : 'rotate(0) scale(0.9)', opacity: childRefs[index]?.current?.getCardState()?.x > 20 ? 1 : 0 }}
+                           <div className="absolute top-6 right-6 text-2xl font-bold text-green-400 border-4 border-green-400 rounded-lg px-4 py-2 rotate-12 opacity-0 group-hover:opacity-0 transition-opacity"
+                                data-swipe-direction="right"
                            >
                                BEĞEN
                            </div>
@@ -282,4 +299,3 @@ export default function ShufflePage() {
         </div>
     );
 }
-
