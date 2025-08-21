@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { db, auth } from '@/lib/firebase';
-import { collection, query, where, getDocs, limit, doc, setDoc, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, doc, setDoc, getDoc, addDoc, serverTimestamp, writeBatch, deleteDoc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -23,8 +23,10 @@ type UserProfile = {
   aiHint?: string;
 };
 
+type SwipeDirection = 'left' | 'right' | 'up' | 'down';
+
 const UserCardSkeleton = () => (
-    <div className="relative w-full h-full rounded-2xl bg-muted shadow-lg">
+    <div className="relative w-full h-full rounded-2xl bg-muted shadow-lg overflow-hidden">
         <Skeleton className="w-full h-full" />
         <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6 text-white rounded-b-2xl">
             <Skeleton className="h-8 w-1/2 mb-2" />
@@ -37,10 +39,13 @@ const UserCardSkeleton = () => (
 export default function ShufflePage() {
     const [profiles, setProfiles] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
-    const [lastDirection, setLastDirection] = useState<string | undefined>();
+    const [lastSwipedProfile, setLastSwipedProfile] = useState<{ profile: UserProfile, dir: SwipeDirection } | null>(null);
     const [match, setMatch] = useState<UserProfile | null>(null);
-    const currentIndexRef = useRef(profiles.length - 1);
-    const canSwipe = currentIndexRef.current >= 0;
+    
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const canSwipe = currentIndex < profiles.length;
+    const canGoBack = !!lastSwipedProfile;
+
     const currentUser = auth.currentUser;
     const { toast } = useToast();
     const router = useRouter();
@@ -52,18 +57,14 @@ export default function ShufflePage() {
         const fetchProfiles = async () => {
             setLoading(true);
             try {
-                // Get IDs of users the current user has already swiped on
                 const swipesQuery = query(collection(db, 'users', currentUser.uid, 'swipes'));
                 const swipesSnapshot = await getDocs(swipesQuery);
                 const swipedIds = swipesSnapshot.docs.map(doc => doc.id);
                 const ignoredIds = [currentUser.uid, ...swipedIds];
 
-                // Fetch profiles that are not in the ignored list
-                // In a real app, you would add more complex filtering (location, age, etc.)
-                // and might need a more scalable query approach.
                 const profilesQuery = query(
                     collection(db, 'users'), 
-                    where('uid', 'not-in', ignoredIds.length > 0 ? ignoredIds : ['dummyId']), // 'not-in' cannot be empty
+                    where('uid', 'not-in', ignoredIds.length > 0 ? ignoredIds : ['dummyId']),
                     limit(10)
                 );
                 
@@ -71,7 +72,7 @@ export default function ShufflePage() {
                 const fetchedProfiles = querySnapshot.docs.map(doc => doc.data() as UserProfile);
                 
                 setProfiles(fetchedProfiles);
-                currentIndexRef.current = fetchedProfiles.length - 1;
+                setCurrentIndex(0);
 
             } catch (error) {
                 console.error("Error fetching profiles:", error);
@@ -92,62 +93,90 @@ export default function ShufflePage() {
             .map((i) => React.createRef<any>()),
         [profiles.length]
     );
+    
+    const updateCurrentIndex = (val: number) => {
+        setCurrentIndex(val);
+    };
 
-    const swiped = async (direction: string, swipedUserId: string, index: number) => {
+
+    const swiped = async (direction: SwipeDirection, swipedUser: UserProfile, index: number) => {
         if (!currentUser) return;
-        setLastDirection(direction);
-        currentIndexRef.current = index - 1;
+        
+        updateCurrentIndex(index + 1);
+        setLastSwipedProfile({ profile: swipedUser, dir: direction });
 
         try {
-            // Record the swipe in the current user's collection
-            const swipeRef = doc(db, 'users', currentUser.uid, 'swipes', swipedUserId);
-            await setDoc(swipeRef, { swipe: direction });
+            const batch = writeBatch(db);
+
+            const swipeRef = doc(db, 'users', currentUser.uid, 'swipes', swipedUser.uid);
+            batch.set(swipeRef, { swipe: direction, swipedAt: serverTimestamp() });
 
             if (direction === 'right') {
-                // Check if the other user has already swiped right on the current user
-                const otherUserSwipeRef = doc(db, 'users', swipedUserId, 'swipes', currentUser.uid);
+                const otherUserSwipeRef = doc(db, 'users', swipedUser.uid, 'swipes', currentUser.uid);
                 const otherUserSwipeDoc = await getDoc(otherUserSwipeRef);
 
                 if (otherUserSwipeDoc.exists() && otherUserSwipeDoc.data().swipe === 'right') {
-                   // It's a MATCH!
-                   console.log("IT'S A MATCH!");
-
-                   const swipedProfile = profiles.find(p => p.uid === swipedUserId);
-                   if (swipedProfile) {
-                       setMatch(swipedProfile);
-                       
-                       // Create a permanent conversation
-                       const conversationRef = await addDoc(collection(db, 'conversations'), {
-                           users: [currentUser.uid, swipedUserId],
-                           lastMessage: null,
-                           createdAt: serverTimestamp()
-                       });
-                       
-                       // Add match info to both users
-                       await setDoc(doc(db, 'users', currentUser.uid, 'matches', swipedUserId), {
-                           name: swipedProfile.name,
-                           avatarUrl: swipedProfile.avatarUrl,
-                           matchedAt: serverTimestamp(),
-                           conversationId: conversationRef.id
-                       });
-                       await setDoc(doc(db, 'users', swipedUserId, 'matches', currentUser.uid), {
-                           name: currentUser.displayName,
-                           avatarUrl: currentUser.photoURL,
-                           matchedAt: serverTimestamp(),
-                           conversationId: conversationRef.id
-                       });
-                   }
+                   setMatch(swipedUser);
+                   
+                   const conversationRef = doc(collection(db, 'conversations'));
+                   batch.set(conversationRef, {
+                       users: [currentUser.uid, swipedUser.uid],
+                       lastMessage: null,
+                       createdAt: serverTimestamp()
+                   });
+                   
+                   const currentUserMatchRef = doc(db, 'users', currentUser.uid, 'matches', swipedUser.uid);
+                   batch.set(currentUserMatchRef, {
+                       name: swipedUser.name,
+                       avatarUrl: swipedUser.avatarUrl,
+                       matchedAt: serverTimestamp(),
+                       conversationId: conversationRef.id
+                   });
+                   
+                   const otherUserMatchRef = doc(db, 'users', swipedUser.uid, 'matches', currentUser.uid);
+                   batch.set(otherUserMatchRef, {
+                       name: currentUser.displayName,
+                       avatarUrl: currentUser.photoURL,
+                       matchedAt: serverTimestamp(),
+                       conversationId: conversationRef.id
+                   });
                 }
             }
+            await batch.commit();
+
         } catch (error) {
              console.error("Error processing swipe:", error);
              toast({ title: "Etkileşim kaydedilirken bir hata oluştu.", variant: 'destructive' });
         }
     };
+    
+    const goBack = async () => {
+        if (!canGoBack || !currentUser || !lastSwipedProfile) return;
 
-    const swipe = async (dir: 'left' | 'right') => {
-        if (canSwipe && currentIndexRef.current < profiles.length) {
-          await childRefs[currentIndexRef.current].current?.swipe(dir);
+        const newIndex = currentIndex - 1;
+        
+        const { profile: lastProfile } = lastSwipedProfile;
+
+        // Optimistically update UI
+        setProfiles(prev => [lastProfile, ...prev.slice(newIndex)]);
+        setCurrentIndex(newIndex);
+        setLastSwipedProfile(null);
+
+
+        try {
+             // Remove swipe from database
+            const swipeRef = doc(db, 'users', currentUser.uid, 'swipes', lastProfile.uid);
+            await deleteDoc(swipeRef);
+        } catch(error) {
+            console.error("Error undoing swipe:", error);
+            toast({ title: "İşlem geri alınamadı.", variant: 'destructive' });
+            // Revert UI if db operation fails (optional, depends on desired UX)
+        }
+    };
+
+    const swipe = async (dir: SwipeDirection) => {
+        if (canSwipe && currentIndex < profiles.length) {
+          await childRefs[currentIndex].current?.swipe(dir);
         }
     };
 
@@ -211,10 +240,21 @@ export default function ShufflePage() {
                         ref={childRefs[index]}
                         className='absolute w-full h-full'
                         key={profile.uid}
-                        onSwipe={(dir) => swiped(dir, profile.uid, index)}
+                        preventSwipe={['up', 'down']}
+                        onSwipe={(dir) => swiped(dir as SwipeDirection, profile, index)}
                     >
                         <div className="relative w-full h-full rounded-2xl bg-cover bg-center shadow-lg" style={{ backgroundImage: `url(${profile.avatarUrl})` }}>
                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent rounded-2xl"/>
+                           <div className="absolute top-6 left-6 text-2xl font-bold text-red-500 border-4 border-red-500 rounded-lg px-4 py-2 -rotate-12 opacity-0 transform transition-all duration-300 ease-in-out"
+                                style={{ transform: childRefs[index]?.current?.getCardState()?.x < -20 ? 'rotate(-20deg) scale(1.1)' : 'rotate(0) scale(0.9)', opacity: childRefs[index]?.current?.getCardState()?.x < -20 ? 1 : 0 }}
+                            >
+                               GEÇ
+                           </div>
+                           <div className="absolute top-6 right-6 text-2xl font-bold text-green-400 border-4 border-green-400 rounded-lg px-4 py-2 rotate-12 opacity-0 transform transition-all duration-300 ease-in-out"
+                                style={{ transform: childRefs[index]?.current?.getCardState()?.x > 20 ? 'rotate(20deg) scale(1.1)' : 'rotate(0) scale(0.9)', opacity: childRefs[index]?.current?.getCardState()?.x > 20 ? 1 : 0 }}
+                           >
+                               BEĞEN
+                           </div>
                            <div className="absolute bottom-0 w-full p-6 text-white">
                                 <h3 className="text-3xl font-bold">{profile.name}, <span className="font-light">{profile.age}</span></h3>
                                 <p className="text-lg opacity-90">{profile.city}</p>
@@ -222,20 +262,24 @@ export default function ShufflePage() {
                         </div>
                     </TinderCard>
                 )) : (
-                   <NoMoreProfiles />
+                   !loading && <NoMoreProfiles />
                 )}
             </div>
 
             {profiles.length > 0 && (
                  <div className="flex items-center justify-center gap-6">
-                    <Button onClick={() => swipe('left')} variant="outline" className="w-20 h-20 rounded-full border-4 border-yellow-500 text-yellow-500 hover:bg-yellow-500/10 hover:text-yellow-600">
+                     <Button onClick={() => swipe('left')} variant="outline" className="w-20 h-20 rounded-full border-4 border-destructive/50 text-destructive/80 hover:bg-destructive/10 hover:text-destructive">
                         <X className="w-10 h-10" />
                     </Button>
-                    <Button onClick={() => swipe('right')} variant="outline" className="w-20 h-20 rounded-full border-4 border-green-500 text-green-500 hover:bg-green-500/10 hover:text-green-600">
-                        <Heart className="w-10 h-10" />
+                     <Button onClick={goBack} variant="outline" disabled={!canGoBack} className="w-16 h-16 rounded-full border-2 border-muted-foreground/50 text-muted-foreground/80 hover:bg-muted/20">
+                        <Undo className="w-8 h-8" />
+                    </Button>
+                    <Button onClick={() => swipe('right')} variant="outline" className="w-20 h-20 rounded-full border-4 border-green-500/50 text-green-500/80 hover:bg-green-500/10 hover:text-green-600">
+                        <Heart className="w-10 h-10 fill-current" />
                     </Button>
                 </div>
             )}
         </div>
     );
 }
+
