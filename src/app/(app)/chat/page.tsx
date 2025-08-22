@@ -31,6 +31,7 @@ type UserData = {
     name: string;
     avatarUrl: string;
     isOnline: boolean;
+    lastSeen?: Timestamp;
 };
 
 type Message = {
@@ -180,24 +181,20 @@ export default function ChatPage() {
                 // Unread count logic
                 let unreadCount = 0;
                 if (data.lastMessage && data.lastMessage.senderId === otherUserId && !data.lastMessage.readBy?.includes(currentUser.uid)) {
-                   const messagesQuery = query(
-                        collection(db, "conversations", docSnap.id, "messages"),
-                        where("senderId", "==", otherUserId),
-                        where("readBy", "not-in", [[currentUser.uid]]) // This is a trick that might not work, Firestore limitation
-                    );
-                    try {
-                        const unreadSnapshot = await getDocs(messagesQuery);
-                        // A more reliable way is to filter client-side if needed, but this is an approximation.
-                        // The most reliable way is a dedicated unread counter field in the conversation doc.
-                        // For now, let's assume a simpler logic based on last message.
-                        const messagesCollection = collection(db, 'conversations', docSnap.id, 'messages');
-                        const unreadQuery = query(messagesCollection, where('senderId', '==', otherUserId));
-                        const unreadMessagesSnapshot = await getDocs(unreadQuery);
-                        unreadCount = unreadMessagesSnapshot.docs.filter(doc => !doc.data().readBy?.includes(currentUser.uid)).length;
-                    } catch (e) {
-                       // Fallback for when 'not-in' is not supported as expected
-                       unreadCount = 0;
-                    }
+                   const messagesCollection = collection(db, 'conversations', docSnap.id, 'messages');
+                   const unreadQuery = query(messagesCollection, where('senderId', '==', otherUserId), where('readBy', 'array-contains-any', [currentUser.uid]));
+                   
+                   try {
+                       const unreadMessagesSnapshot = await getDocs(unreadQuery);
+                       // This is a workaround as Firestore doesn't support 'not-array-contains' directly in this way.
+                       // A better way is a dedicated unread counter field in the conversation doc updated by a cloud function.
+                       // For now, we will do a more reliable check.
+                       const allMessagesSnapshot = await getDocs(query(messagesCollection, where('senderId', '==', otherUserId)));
+                       unreadCount = allMessagesSnapshot.docs.filter(doc => !doc.data().readBy?.includes(currentUser.uid)).length;
+                   } catch(e) {
+                        console.warn("Could not accurately calculate unread count.", e);
+                        unreadCount = data.lastMessage.senderId === otherUserId && !data.lastMessage.readBy?.includes(currentUser.uid) ? 1 : 0;
+                   }
                 }
 
                 if (userDoc.exists()) {
@@ -258,18 +255,22 @@ export default function ChatPage() {
             const otherUserId = data.users.find((uid: string) => uid !== currentUser.uid);
 
             if (otherUserId) {
-                const userDoc = await getDoc(doc(db, 'users', otherUserId));
-                if (userDoc.exists()) {
-                    const userData = userDoc.data() as UserData;
-                    setActiveChat({
-                        id: docSnap.id,
-                        otherUser: { ...userData, uid: otherUserId },
-                        lastMessage: data.lastMessage || null,
-                        isPinned: data.pinnedBy?.includes(currentUser.uid) || false,
-                        isMuted: data.mutedBy?.includes(currentUser.uid) || false,
-                        unreadCount: 0,
-                    });
-                }
+                // Listen to the other user's document for real-time status updates
+                const userUnsubscribe = onSnapshot(doc(db, 'users', otherUserId), (userDoc) => {
+                     if (userDoc.exists()) {
+                        const userData = userDoc.data() as UserData;
+                        setActiveChat(prev => ({
+                            ...(prev as Conversation),
+                            id: docSnap.id,
+                            otherUser: { ...userData, uid: otherUserId },
+                            lastMessage: data.lastMessage || null,
+                            isPinned: data.pinnedBy?.includes(currentUser.uid) || false,
+                            isMuted: data.mutedBy?.includes(currentUser.uid) || false,
+                            unreadCount: 0,
+                        }));
+                    }
+                });
+                return () => userUnsubscribe();
             }
         } else {
              setActiveChat(null);
@@ -282,9 +283,38 @@ export default function ChatPage() {
     });
 
     const messagesQuery = query(collection(db, 'conversations', conversationId, 'messages'), orderBy('timestamp', 'asc'));
-    const messagesUnsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
+    const messagesUnsubscribe = onSnapshot(messagesQuery, async (querySnapshot) => {
         const msgs = querySnapshot.docs
             .map(doc => ({ id: doc.id, ...doc.data() } as Message));
+        
+        // Mark messages as read
+        const batch = writeBatch(db);
+        let hasUnread = false;
+        msgs.forEach(msg => {
+            if (msg.senderId !== currentUser.uid && !msg.deletedFor?.includes(currentUser.uid) && !msg.isDeleted) {
+                if (!msg.readBy || !msg.readBy.includes(currentUser.uid)) {
+                    hasUnread = true;
+                    const msgRef = doc(db, 'conversations', conversationId, 'messages', msg.id);
+                    batch.update(msgRef, { readBy: arrayUnion(currentUser.uid) });
+                }
+            }
+        });
+
+        if (hasUnread) {
+            try {
+                await batch.commit();
+                 const convoRef = doc(db, 'conversations', conversationId);
+                 const convoSnap = await getDoc(convoRef);
+                 if (convoSnap.exists() && convoSnap.data().lastMessage) {
+                    await updateDoc(convoRef, {
+                        'lastMessage.readBy': arrayUnion(currentUser.uid)
+                    });
+                 }
+            } catch (e) {
+                console.error("Error marking messages as read:", e);
+            }
+        }
+        
         setMessages(msgs);
         setChatLoading(false);
     }, (error) => {
@@ -294,7 +324,9 @@ export default function ChatPage() {
     });
 
     return () => {
-        convoUnsubscribe();
+        if (typeof convoUnsubscribe === 'function') {
+            convoUnsubscribe();
+        }
         messagesUnsubscribe();
     };
   }, [searchParams, currentUser, toast, router]);
@@ -674,6 +706,17 @@ export default function ChatPage() {
 
     const isAnySelectedConvoPinned = conversations.some(c => selectedIds.has(c.id) && c.isPinned);
 
+    const renderOnlineStatus = () => {
+        if (!activeChat) return null;
+        if (activeChat.otherUser.isOnline) {
+            return <p className='text-xs text-green-500'>Çevrimiçi</p>;
+        }
+        if (activeChat.otherUser.lastSeen) {
+            return <p className='text-xs text-muted-foreground'>{formatRelativeTime(activeChat.otherUser.lastSeen.toDate())} aktifti</p>;
+        }
+        return <p className='text-xs text-muted-foreground'>Çevrimdışı</p>;
+    };
+
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -800,7 +843,7 @@ export default function ChatPage() {
               </Avatar>
               <div className='flex-1'>
                  <h3 className="text-lg font-semibold">{activeChat.otherUser.name}</h3>
-                 {activeChat.otherUser.isOnline && <p className='text-xs text-green-500'>Çevrimiçi</p>}
+                 {renderOnlineStatus()}
               </div>
               <div className='flex items-center gap-2'>
                 <Button variant="ghost" size="icon" className="rounded-full">
@@ -1090,3 +1133,5 @@ export default function ChatPage() {
     </div>
   );
 }
+
+    
