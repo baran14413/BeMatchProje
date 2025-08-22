@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 6, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"","debugId":null}},
+    {"offset": {"line": 30, "column": 0}, "map": {"version":3,"sources":["file:///home/user/studio/src/app/%28app%29/profile/page.tsx"],"sourcesContent":["// This file is now renamed to [id]/page.tsx.\n// The content has been moved and adapted there.\n// This file can be removed, but we are keeping it to avoid breaking changes if any other part of the system expects it.\nimport { redirect } from 'next/navigation';\n\nexport default function ProfileRedirectPage() {\n  // Redirect to a default or the user's own profile page.\n  // For this example, we'll redirect to the settings page.\n  redirect('/profile/edit');\n}\n"],"names":[],"mappings":"AAAA,6CAA6C;AAC7C,gDAAgD;AAChD,wHAAwH;;;;AACxH;AAAA;;AAEe,SAAS;IACtB,wDAAwD;IACxD,yDAAyD;IACzD,CAAA,GAAA,qLAAA,CAAA,WAAQ,AAAD,EAAE;AACX","debugId":null}}]
+}

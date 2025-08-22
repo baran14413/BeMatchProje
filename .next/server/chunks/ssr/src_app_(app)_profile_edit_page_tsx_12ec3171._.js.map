@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///home/user/studio/src/app/%28app%29/profile/edit/page.tsx"],"sourcesContent":["\n'use client';\n\nimport { redirect } from 'next/navigation';\n\n// Redirect to the personal settings page by default\nexport default function EditProfileRedirectPage() {\n    redirect('/profile/edit/personal');\n}\n"],"names":[],"mappings":";;;AAGA;AAFA;;AAKe,SAAS;IACpB,CAAA,GAAA,kIAAA,CAAA,WAAQ,AAAD,EAAE;AACb","debugId":null}}]
+}

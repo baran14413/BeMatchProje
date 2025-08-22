@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///home/user/studio/src/app/%28auth%29/layout.tsx"],"sourcesContent":["import type { ReactNode } from 'react';\n\nexport default function AuthLayout({ children }: { children: ReactNode }) {\n  return (\n    <main className=\"flex min-h-screen flex-col items-center justify-center bg-background p-4\">\n      {children}\n    </main>\n  );\n}\n"],"names":[],"mappings":";;;;;AAEe,SAAS,WAAW,EAAE,QAAQ,EAA2B;IACtE,qBACE,8OAAC;QAAK,WAAU;kBACb;;;;;;AAGP","debugId":null}}]
+}
