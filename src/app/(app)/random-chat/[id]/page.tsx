@@ -53,8 +53,10 @@ export default function RandomChatPage() {
 
         const unsubscribe = onSnapshot(convoRef, async (docSnap) => {
             if (!docSnap.exists()) {
-                toast({ title: 'Sohbetin süresi doldu veya sohbet sonlandırıldı.', variant: 'destructive' });
-                router.push('/shuffle');
+                if (!isMatchPermanent) {
+                    toast({ title: 'Sohbetin süresi doldu veya sohbet sonlandırıldı.', variant: 'destructive' });
+                    router.push('/shuffle?feedback=true');
+                }
                 return;
             }
 
@@ -62,7 +64,9 @@ export default function RandomChatPage() {
             setConversation(data);
             
             const other = data.user1.uid === currentUser.uid ? data.user2 : data.user1;
-            setOtherUser(other);
+            if (otherUser?.uid !== other.uid) {
+                setOtherUser(other);
+            }
             
             // Check for permanent match
             if (data.user1.heartClicked && data.user2.heartClicked && !isMatchPermanent) {
@@ -100,7 +104,8 @@ export default function RandomChatPage() {
                         clearInterval(interval);
                         // Don't auto-redirect if match became permanent
                         if (!isMatchPermanent) {
-                            router.push('/shuffle');
+                             deleteDoc(docSnap.ref); // Delete conversation on timeout
+                             // onSnapshot listener will catch deletion and redirect
                         }
                     }
                 }, 1000);
@@ -128,7 +133,7 @@ export default function RandomChatPage() {
             messagesQuery();
         };
 
-    }, [currentUser, conversationId, router, toast, isMatchPermanent]);
+    }, [currentUser, conversationId, router, toast, isMatchPermanent, otherUser]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -161,8 +166,10 @@ export default function RandomChatPage() {
     
      const handleExit = () => {
         const convoRef = doc(db, 'temporaryConversations', conversationId);
-        deleteDoc(convoRef).finally(() => {
-            router.push('/shuffle');
+        deleteDoc(convoRef).catch(err => {
+            console.error("Could not delete convo on exit: ", err);
+        }).finally(() => {
+             // The onSnapshot listener will handle the redirect to the feedback page
         });
     };
 

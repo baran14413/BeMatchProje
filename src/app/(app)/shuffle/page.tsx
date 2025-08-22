@@ -1,20 +1,30 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { db, auth } from '@/lib/firebase';
-import { collection, query, where, getDocs, limit, doc, setDoc, addDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
-import { Loader2, Sparkles, Zap } from 'lucide-react';
+import { collection, query, where, getDocs, limit, doc, setDoc, addDoc, serverTimestamp, deleteDoc, onSnapshot } from 'firebase/firestore';
+import { Loader2, Sparkles, Zap, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function ShufflePage() {
+function ShuffleContent() {
     const [status, setStatus] = useState<'idle' | 'searching' | 'matched'>('idle');
     const [userGender, setUserGender] = useState<string | null>(null);
     const router = useRouter();
+    const searchParams = useSearchParams();
     const currentUser = auth.currentUser;
     const { toast } = useToast();
+
+    const [showFeedback, setShowFeedback] = useState(false);
+
+    useEffect(() => {
+        if (searchParams.get('feedback') === 'true') {
+            setShowFeedback(true);
+        }
+    }, [searchParams]);
 
     // Fetch current user's gender
     useEffect(() => {
@@ -35,14 +45,16 @@ export default function ShufflePage() {
     useEffect(() => {
         if (!currentUser || status !== 'searching') return;
 
-        const unsubscribe = onSnapshot(collection(db, 'temporaryConversations'), (snapshot) => {
+        const q = query(
+            collection(db, 'temporaryConversations'), 
+            where('users', 'array-contains', currentUser.uid)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added") {
-                    const data = change.doc.data();
-                    if ((data.user1.uid === currentUser.uid || data.user2.uid === currentUser.uid)) {
-                        setStatus('matched');
-                        router.push(`/random-chat/${change.doc.id}`);
-                    }
+                    setStatus('matched');
+                    router.push(`/random-chat/${change.doc.id}`);
                 }
             });
         });
@@ -78,10 +90,15 @@ export default function ShufflePage() {
                 await deleteDoc(doc(db, 'randomMatchQueue', otherUserDoc.id));
 
                 // Create a temporary conversation
-                const currentUserData = (await getDoc(doc(db, 'users', currentUser.uid))).data();
-                const otherUserInfo = (await getDoc(doc(db, 'users', otherUserData.uid))).data();
+                const currentUserDoc = await getDoc(doc(db, 'users', currentUser.uid));
+                const otherUserInfoDoc = await getDoc(doc(db, 'users', otherUserData.uid));
+                
+                const currentUserData = currentUserDoc.data();
+                const otherUserInfo = otherUserInfoDoc.data();
                 
                 if (!currentUserData || !otherUserInfo) throw new Error("Kullanıcı bilgileri alınamadı.");
+
+                const usersArray = [currentUser.uid, otherUserData.uid];
 
                 const newConvoRef = await addDoc(collection(db, 'temporaryConversations'), {
                     user1: { 
@@ -96,6 +113,7 @@ export default function ShufflePage() {
                         avatarUrl: otherUserInfo.avatarUrl,
                         heartClicked: false
                     },
+                    users: usersArray,
                     createdAt: serverTimestamp(),
                     expiresAt: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes from now
                 });
@@ -131,8 +149,36 @@ export default function ShufflePage() {
         }
     };
 
+    const handleFeedback = (feedback: 'good' | 'bad') => {
+        toast({
+            title: 'Geri bildiriminiz için teşekkürler!',
+            description: 'Deneyiminizi geliştirmek için çalışıyoruz.',
+        });
+        setShowFeedback(false);
+        router.replace('/shuffle', { scroll: false }); // Clean URL
+    };
+
+    if (showFeedback) {
+        return (
+            <Card className="w-full max-w-sm text-center">
+                <CardHeader>
+                    <CardTitle>Deneyiminiz Nasıldı?</CardTitle>
+                    <CardDescription>Son rastgele sohbetiniz hakkındaki geri bildiriminiz, gelecekteki eşleşmeleri iyileştirmemize yardımcı olur.</CardDescription>
+                </CardHeader>
+                <CardFooter className="flex justify-center gap-4">
+                    <Button variant="outline" size="lg" onClick={() => handleFeedback('bad')}>
+                        <ThumbsDown className="mr-2 h-5 w-5" /> Kötüydü
+                    </Button>
+                    <Button size="lg" onClick={() => handleFeedback('good')} className="bg-green-600 hover:bg-green-700">
+                        <ThumbsUp className="mr-2 h-5 w-5" /> İyiydi
+                    </Button>
+                </CardFooter>
+            </Card>
+        );
+    }
+
     return (
-        <div className="flex flex-col items-center justify-center h-full p-4 text-center">
+        <>
             {status === 'idle' && (
                 <>
                     <Zap className="w-24 h-24 text-primary mb-6" />
@@ -178,6 +224,17 @@ export default function ShufflePage() {
                     </p>
                 </>
             )}
-        </div>
+        </>
     );
+}
+
+
+export default function ShufflePage() {
+    return (
+        <div className="flex flex-col items-center justify-center h-full p-4 text-center">
+            <Suspense fallback={<Loader2 className="w-24 h-24 text-primary mb-6 animate-spin" />}>
+                <ShuffleContent />
+            </Suspense>
+        </div>
+    )
 }
