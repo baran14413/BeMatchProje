@@ -541,17 +541,17 @@ export default function ExplorePage() {
               isAiEdited: isStylized,
             };
 
-            await addDoc(collection(db, 'posts'), postData);
+            const postRef = await addDoc(collection(db, 'posts'), postData);
 
             toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı.', className: 'bg-green-500 text-white' });
             
-            // Refetch posts or add to state optimistically
             const newPostForUI: Post = {
                 ...postData,
-                id: `optimistic-${Date.now()}`,
+                id: postRef.id, // Use the real ID from Firestore
                 user: { uid: currentUser.uid, name: currentUser.displayName!, avatarUrl: currentUser.photoURL! },
                 comments: [],
                 liked: false,
+                createdAt: { toDate: () => new Date() } as any // Mock timestamp for UI
             };
             setPosts(prev => [newPostForUI, ...prev]);
 
