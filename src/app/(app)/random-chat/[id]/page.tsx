@@ -207,6 +207,7 @@ export default function RandomChatPage() {
                 </div>
                 <Button variant="ghost" size="icon" className="rounded-full" onClick={handleExit}>
                     <X className="w-5 h-5"/>
+                    <span className="sr-only">Sohbetten Çık</span>
                 </Button>
             </header>
 
@@ -287,4 +288,3 @@ export default function RandomChatPage() {
         </div>
     );
 }
-
