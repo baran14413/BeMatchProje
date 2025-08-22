@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef, ChangeEvent } from 'react';
+import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -137,7 +137,7 @@ export default function ExplorePage() {
     const [isCommentsLoading, setIsCommentsLoading] = useState(false);
     const [isPostingComment, setIsPostingComment] = useState(false);
 
-    const [isLikesDialogValid, setLikesDialogValid] = useState(false);
+    const [isLikesDialogVisible, setIsLikesDialogVisible] = useState(false);
     const [likers, setLikers] = useState<User[]>([]);
     const [isLikersLoading, setIsLikersLoading] = useState(false);
 
@@ -405,7 +405,7 @@ export default function ExplorePage() {
     };
 
     const handleOpenLikes = async (postId: string) => {
-        setLikesDialogValid(true);
+        setIsLikesDialogVisible(true);
         setIsLikersLoading(true);
         setLikers([]);
         try {
@@ -560,20 +560,26 @@ export default function ExplorePage() {
             };
 
             const postRef = await addDoc(collection(db, 'posts'), postData);
-            const newPostId = postRef.id;
 
-            toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı.', className: 'bg-green-500 text-white' });
-            
-            // Optimistic UI update
+            // UI update with the real data from DB
             const newPostForUI: Post = {
+                id: postRef.id,
                 ...postData,
-                id: newPostId,
                 user: { uid: currentUser.uid, name: currentUser.displayName!, avatarUrl: currentUser.photoURL! },
                 comments: [],
                 liked: false,
-                createdAt: { toDate: () => new Date() } as any 
+                createdAt: { toDate: () => new Date() } as any,
+                // Make sure all required fields are here
+                textContent: '',
+                originalTextContent: '',
+                lang: '',
+                isTranslated: false,
+                isTranslating: false,
+                isGalleryLocked: false
             };
             setPosts(prev => [newPostForUI, ...prev]);
+            
+            toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı.', className: 'bg-green-500 text-white' });
 
         } catch (error) {
             console.error("Error sharing post: ", error);
@@ -861,7 +867,7 @@ export default function ExplorePage() {
             </SheetContent>
        </Sheet>
 
-        <Dialog open={isLikesDialogValid} onOpenChange={setLikesDialogValid}>
+        <Dialog open={isLikesDialogVisible} onOpenChange={setIsLikesDialogVisible}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Beğenenler</DialogTitle>
@@ -873,7 +879,7 @@ export default function ExplorePage() {
                     ) : likers.length > 0 ? (
                         <div className="space-y-4">
                             {likers.map(user => (
-                                <Link key={user.uid} href={`/profile/${user.uid}`} className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-muted" onClick={() => setLikesDialogValid(false)}>
+                                <Link key={user.uid} href={`/profile/${user.uid}`} className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-muted" onClick={() => setIsLikesDialogVisible(false)}>
                                     <Avatar>
                                         <AvatarImage src={user.avatarUrl} data-ai-hint={user.name} />
                                         <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
