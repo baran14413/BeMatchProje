@@ -66,7 +66,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
         setHasUnreadNotifications(false);
     });
     
-    // Listener for unread messages (simplified check on conversations)
+    // Listener for unread messages
     const conversationsQuery = query(
         collection(db, 'conversations'),
         where('users', 'array-contains', currentUser.uid)
@@ -206,5 +206,3 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
-
-    

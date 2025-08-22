@@ -185,14 +185,15 @@ export default function ChatPage() {
                 if (data.lastMessage && data.lastMessage.senderId === otherUserId && !data.lastMessage.readBy?.includes(currentUser.uid)) {
                    const messagesCollection = collection(db, 'conversations', docSnap.id, 'messages');
                    // This is a simplified client-side unread count. For a large-scale app, a Cloud Function to manage a dedicated counter field would be better.
-                   const unreadQuery = query(messagesCollection, where('senderId', '==', otherUserId));
+                   const unreadQuery = query(messagesCollection, where('senderId', '==', otherUserId), where('readBy', 'not-in', [[currentUser.uid]]));
                    
                    try {
                        const unreadMessagesSnapshot = await getDocs(unreadQuery);
+                       // The line below was simplified. Firestore 'not-in' can be tricky. Let's count docs that don't have our uid.
                        unreadCount = unreadMessagesSnapshot.docs.filter(doc => !doc.data().readBy?.includes(currentUser.uid)).length;
                    } catch(e) {
                         console.warn("Could not accurately calculate unread count.", e);
-                        // Fallback to simpler check if query fails
+                        // Fallback to simpler check if query fails and last message is unread
                         unreadCount = 1;
                    }
                 }
@@ -300,15 +301,16 @@ export default function ChatPage() {
 
         if (hasUnread) {
             try {
-                await batch.commit();
                  // Also update the lastMessage in the conversation doc to reflect read status
                  const convoRef = doc(db, 'conversations', conversationId as string);
                  const convoSnap = await getDoc(convoRef);
                  if (convoSnap.exists() && convoSnap.data().lastMessage?.senderId !== currentUser.uid) {
-                    await updateDoc(convoRef, {
+                    batch.update(convoRef, {
                         'lastMessage.readBy': arrayUnion(currentUser.uid)
                     });
                  }
+                await batch.commit();
+
             } catch (e) {
                 console.error("Error marking messages as read:", e);
             }
@@ -455,7 +457,7 @@ export default function ChatPage() {
   const handleBackToList = () => router.push('/chat', { scroll: false });
   const handleToggleEditMode = () => { setIsEditMode(!isEditMode); setSelectedIds(new Set()); };
   
-    const handleConversationAction = async (action: 'pin' | 'mute' | 'delete') => {
+    const handleConversationAction = async (action: 'pin' | 'unpin' | 'mute' | 'unmute' | 'delete') => {
         if (!currentUser || selectedIds.size === 0) return;
 
         const ids = Array.from(selectedIds);
@@ -470,27 +472,19 @@ export default function ChatPage() {
                     // For a full delete, you'd need a cloud function.
                     batch.delete(conversationRef);
                 } else {
-                    const field = action === 'pin' ? 'pinnedBy' : 'mutedBy';
-                    const convo = conversations.find(c => c.id === id);
-                    const isCurrentlyActive = action === 'pin' ? convo?.isPinned : convo?.isMuted;
-                    
-                    if (isCurrentlyActive) {
-                        batch.update(conversationRef, { [field]: arrayRemove(currentUser.uid) });
-                    } else {
-                        batch.update(conversationRef, { [field]: arrayUnion(currentUser.uid) });
-                    }
+                    const field = action.includes('pin') ? 'pinnedBy' : 'mutedBy';
+                    const operation = action.includes('un') ? arrayRemove : arrayUnion;
+                     batch.update(conversationRef, { [field]: operation(currentUser.uid) });
                 }
             }
 
             await batch.commit();
 
             switch (action) {
-                case 'pin':
-                    toastMessage = `${ids.length} sohbetin sabitleme durumu değiştirildi.`;
-                    break;
-                case 'mute':
-                    toastMessage = `${ids.length} sohbetin sessize alma durumu değiştirildi.`;
-                    break;
+                case 'pin': toastMessage = `${ids.length} sohbet sabitlendi.`; break;
+                case 'unpin': toastMessage = `${ids.length} sohbetin sabitlemesi kaldırıldı.`; break;
+                case 'mute': toastMessage = `${ids.length} sohbet sessize alındı.`; break;
+                case 'unmute': toastMessage = `${ids.length} sohbetin sessize alması kaldırıldı.`; break;
                 case 'delete':
                     toastMessage = `${ids.length} sohbet silindi.`;
                      if (activeChat && ids.includes(activeChat.id)) {
@@ -509,8 +503,14 @@ export default function ChatPage() {
     };
 
     const handleDelete = () => handleConversationAction('delete');
-    const handleTogglePin = () => handleConversationAction('pin');
-    const handleToggleMute = () => handleConversationAction('mute');
+    const handleTogglePin = () => {
+        const isAnySelectedPinned = conversations.some(c => selectedIds.has(c.id) && c.isPinned);
+        handleConversationAction(isAnySelectedPinned ? 'unpin' : 'pin');
+    }
+    const handleToggleMute = () => {
+        const isAnySelectedMuted = conversations.some(c => selectedIds.has(c.id) && c.isMuted);
+        handleConversationAction(isAnySelectedMuted ? 'unmute' : 'mute');
+    }
     
     const handleReaction = async (messageId: string, reaction: string | null) => {
         if (!activeChat) return;
@@ -703,7 +703,8 @@ export default function ChatPage() {
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     };
 
-    const isAnySelectedConvoPinned = conversations.some(c => selectedIds.has(c.id) && c.isPinned);
+    const isAnySelectedPinned = conversations.some(c => selectedIds.has(c.id) && c.isPinned);
+    const isAnySelectedMuted = conversations.some(c => selectedIds.has(c.id) && c.isMuted);
 
     const renderOnlineStatus = () => {
         if (!activeChat) return null;
@@ -732,9 +733,11 @@ export default function ChatPage() {
                        </Button>
                         <Button variant="ghost" size="icon" className="rounded-full" onClick={handleToggleMute} disabled={selectedIds.size === 0}>
                            <BellOff className="w-5 h-5"/>
+                           <span className='sr-only'>{isAnySelectedMuted ? "Sessizden Al" : "Sessize Al"}</span>
                        </Button>
                         <Button variant="ghost" size="icon" className="rounded-full" onClick={handleTogglePin} disabled={selectedIds.size === 0}>
-                           {isAnySelectedConvoPinned ? <PinOff className="w-5 h-5" /> : <Pin className="w-5 h-5"/>}
+                           {isAnySelectedPinned ? <PinOff className="w-5 h-5" /> : <Pin className="w-5 h-5"/>}
+                           <span className='sr-only'>{isAnySelectedPinned ? "Sabitlemeyi Kaldır" : "Sabitle"}</span>
                        </Button>
                    </div>
                    <div className='flex-1 text-center font-semibold'>
@@ -1132,7 +1135,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
-    
-
-    
