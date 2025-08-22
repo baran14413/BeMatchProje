@@ -177,6 +177,12 @@ export default function TagPage() {
                                             <HashtagAndMentionRenderer text={post.caption} />
                                         </div>
                                     )}
+                                     {post.type === 'text' && (
+                                        <div className='text-sm mt-1'>
+                                             <Link href={`/profile/${post.authorId}`} className="font-semibold mr-1">{post.user?.name}</Link>
+                                            <HashtagAndMentionRenderer text={post.textContent || ''} />
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { collection, query, where, orderBy, onSnapshot, writeBatch, doc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import Link from 'next/link';
 
 
 const formatRelativeTime = (date: Date) => {
@@ -25,6 +26,7 @@ type Notification = {
   id: string;
   type: NotificationType;
   fromUser: {
+    uid: string;
     name: string;
     avatar: string;
     aiHint: string;
@@ -42,16 +44,18 @@ const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
   gallery_request: <Lock className="h-6 w-6 text-purple-500" />,
 };
 
-const getNotificationText = (notification: Notification): string => {
+const getNotificationText = (notification: Notification): React.ReactNode => {
+  const fromUserLink = <Link href={`/profile/${notification.fromUser.uid}`} className="font-semibold hover:underline">{notification.fromUser.name}</Link>;
+  
   switch (notification.type) {
     case 'follow':
-      return 'seni takip etmeye başladı.';
+      return <>{fromUserLink} seni takip etmeye başladı.</>;
     case 'like':
-      return `senin bir ${notification.postType === 'photo' ? 'fotoğrafını' : 'gönderini'} beğendi.`;
+      return <>{fromUserLink} senin bir {notification.postType === 'photo' ? 'fotoğrafını' : 'gönderini'} beğendi.</>;
     case 'comment':
-      return `senin bir ${notification.postType === 'photo' ? 'fotoğrafına' : 'gönderine'} yorum yaptı: "${notification.content}"`;
+      return <>{fromUserLink} senin bir {notification.postType === 'photo' ? 'fotoğrafına' : 'gönderine'} yorum yaptı: "{notification.content}"</>;
     case 'gallery_request':
-        return 'gizli galerini görmek için izin istedi.';
+        return <>{fromUserLink} gizli galerini görmek için izin istedi.</>;
     default:
       return '';
   }
@@ -228,12 +232,13 @@ const NotificationItem = ({ notification }: { notification: Notification }) => {
                 </div>
                 <div className="flex-1">
                     <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src={notification.fromUser.avatar} data-ai-hint={notification.fromUser.aiHint} />
-                            <AvatarFallback>{notification.fromUser.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
+                        <Link href={`/profile/${notification.fromUser.uid}`}>
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={notification.fromUser.avatar} data-ai-hint={notification.fromUser.aiHint} />
+                                <AvatarFallback>{notification.fromUser.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                        </Link>
                         <p className="text-sm">
-                            <span className="font-semibold">{notification.fromUser.name}</span>{' '}
                             {getNotificationText(notification)}
                         </p>
                     </div>
@@ -252,5 +257,3 @@ const NotificationItem = ({ notification }: { notification: Notification }) => {
         </div>
     );
 };
-
-    
