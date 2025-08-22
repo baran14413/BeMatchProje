@@ -57,18 +57,20 @@ export default function TagPage() {
                 const querySnapshot = await getDocs(postsQuery);
                 
                 const postsData = await Promise.all(querySnapshot.docs.map(async (postDoc) => {
-                    const postData = postDoc.data() as Post;
-                    postData.id = postDoc.id;
-
+                    const postData = postDoc.data();
                     const userDocRef = doc(db, 'users', postData.authorId);
                     const userDocSnap = await getDoc(userDocRef);
                     if (userDocSnap.exists()) {
-                        postData.user = userDocSnap.data();
+                        return {
+                            id: postDoc.id,
+                            ...postData,
+                            user: userDocSnap.data()
+                        } as Post;
                     }
-                    return postData;
+                    return null;
                 }));
 
-                setPosts(postsData);
+                setPosts(postsData.filter(p => p !== null) as Post[]);
             } catch (error) {
                 console.error("Error fetching posts by tag: ", error);
                 toast({
