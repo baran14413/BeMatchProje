@@ -141,7 +141,7 @@ export default function ExplorePage() {
     const [likers, setLikers] = useState<User[]>([]);
     const [isLikersLoading, setIsLikersLoading] = useState(false);
 
-    // Create Post States
+    // Create Photo Post States
     const [isCreatePhotoModalOpen, setIsCreatePhotoModalOpen] = useState(false);
     const [imgSrc, setImgSrc] = useState('');
     const [originalImgSrc, setOriginalImgSrc] = useState('');
@@ -151,6 +151,9 @@ export default function ExplorePage() {
     const [isPostProcessing, setIsPostProcessing] = useState(false);
     const [isPremium, setIsPremium] = useState(false);
 
+    // Create Text Post States
+    const [isCreateTextModalOpen, setIsCreateTextModalOpen] = useState(false);
+    const [textContent, setTextContent] = useState('');
 
     useEffect(() => {
         const fetchPostsAndAuthors = async () => {
@@ -478,7 +481,7 @@ export default function ExplorePage() {
     
     // --- Create Post Logic ---
 
-    const resetCreatePostState = () => {
+    const resetCreatePhotoState = () => {
         setImgSrc('');
         setOriginalImgSrc('');
         setStylePrompt('');
@@ -486,6 +489,12 @@ export default function ExplorePage() {
         setIsStylized(false);
         setIsPostProcessing(false);
         setIsCreatePhotoModalOpen(false);
+    };
+
+    const resetCreateTextState = () => {
+        setTextContent('');
+        setIsPostProcessing(false);
+        setIsCreateTextModalOpen(false);
     };
 
     const onSelectPhoto = (e: ChangeEvent<HTMLInputElement>) => {
@@ -506,8 +515,7 @@ export default function ExplorePage() {
 
     const handleCreateTextPost = () => {
         setIsCreateSheetOpen(false);
-        // This can be changed to a modal as well if needed
-        router.push('/create?type=text'); 
+        setIsCreateTextModalOpen(true);
     };
 
     const handleApplyStyle = async () => {
@@ -532,9 +540,9 @@ export default function ExplorePage() {
         }
     };
 
-    const handleShare = async () => {
-        if (!currentUser) {
-            toast({ variant: 'destructive', title: 'Hata', description: 'Gönderi paylaşmak için giriş yapmalısınız.' });
+    const handleSharePhoto = async () => {
+        if (!currentUser || !imgSrc) {
+            toast({ variant: 'destructive', title: 'Hata', description: 'Gönderi paylaşmak için giriş yapmalısınız ve bir fotoğraf seçmelisiniz.' });
             return;
         }
         
@@ -545,7 +553,7 @@ export default function ExplorePage() {
             const uploadTask = await uploadString(storageRef, imgSrc, 'data_url');
             const downloadURL = await getDownloadURL(uploadTask.ref);
 
-            const hashtags = caption.match(/#\w+/g)?.map(h => h.substring(1)) || [];
+            const hashtags = caption.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
 
             const postData = { 
               authorId: currentUser.uid,
@@ -560,23 +568,20 @@ export default function ExplorePage() {
             };
 
             const postRef = await addDoc(collection(db, 'posts'), postData);
+            
+            const docSnap = await getDoc(postRef);
+            if (!docSnap.exists()) throw new Error("Post creation failed in DB");
+            const newPostFromDb = { id: docSnap.id, ...docSnap.data() };
+
 
             // UI update with the real data from DB
             const newPostForUI: Post = {
-                id: postRef.id,
-                ...postData,
+                ...newPostFromDb,
                 user: { uid: currentUser.uid, name: currentUser.displayName!, avatarUrl: currentUser.photoURL! },
                 comments: [],
                 liked: false,
-                createdAt: { toDate: () => new Date() } as any,
-                // Make sure all required fields are here
-                textContent: '',
-                originalTextContent: '',
-                lang: '',
-                isTranslated: false,
-                isTranslating: false,
-                isGalleryLocked: false
-            };
+            } as Post;
+            
             setPosts(prev => [newPostForUI, ...prev]);
             
             toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı.', className: 'bg-green-500 text-white' });
@@ -585,7 +590,53 @@ export default function ExplorePage() {
             console.error("Error sharing post: ", error);
             toast({ variant: 'destructive', title: 'Paylaşım Hatası', description: 'Gönderi paylaşılırken bir hata oluştu.' });
         } finally {
-            resetCreatePostState();
+            resetCreatePhotoState();
+        }
+    };
+
+    const handleShareTextPost = async () => {
+        if (!currentUser || !textContent.trim()) {
+            toast({ variant: 'destructive', title: 'Hata', description: 'Lütfen bir metin girin.' });
+            return;
+        }
+        
+        setIsPostProcessing(true);
+        
+        try {
+            const hashtags = textContent.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
+
+            const postData = { 
+              authorId: currentUser.uid,
+              createdAt: serverTimestamp(),
+              likes: 0,
+              commentsCount: 0,
+              type: 'text',
+              textContent: textContent,
+              hashtags: hashtags,
+              isAiEdited: false,
+            };
+
+            const postRef = await addDoc(collection(db, 'posts'), postData);
+            const docSnap = await getDoc(postRef);
+            if (!docSnap.exists()) throw new Error("Post creation failed in DB");
+            const newPostFromDb = { id: docSnap.id, ...docSnap.data() };
+
+            const newPostForUI: Post = {
+                ...newPostFromDb,
+                user: { uid: currentUser.uid, name: currentUser.displayName!, avatarUrl: currentUser.photoURL! },
+                comments: [],
+                liked: false,
+            } as Post;
+            
+            setPosts(prev => [newPostForUI, ...prev]);
+            
+            toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı.', className: 'bg-green-500 text-white' });
+
+        } catch (error) {
+            console.error("Error sharing text post: ", error);
+            toast({ variant: 'destructive', title: 'Paylaşım Hatası', description: 'Gönderi paylaşılırken bir hata oluştu.' });
+        } finally {
+            resetCreateTextState();
         }
     };
 
@@ -678,7 +729,7 @@ export default function ExplorePage() {
                                 {post.isTranslating ? (
                                     <p className="text-sm text-muted-foreground italic flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</p>
                                 ) : (
-                                    <p className="text-base whitespace-pre-wrap break-words">{post.textContent}</p>
+                                    <HashtagRenderer text={post.textContent || ''} />
                                 )}
 
                                 {((post.lang && post.lang !== 'tr') || post.isTranslated) && (
@@ -753,16 +804,16 @@ export default function ExplorePage() {
        </Sheet>
 
         {/* Create Photo Modal */}
-        <Dialog open={isCreatePhotoModalOpen} onOpenChange={resetCreatePostState}>
+        <Dialog open={isCreatePhotoModalOpen} onOpenChange={resetCreatePhotoState}>
             <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>Düzenle ve Paylaş</DialogTitle>
+                    <DialogTitle>Fotoğraf Paylaş</DialogTitle>
                     <DialogDescription>İsteğe bağlı olarak stil ve açıklama ekleyebilirsiniz.</DialogDescription>
                 </DialogHeader>
                 <div className="flex flex-col items-center gap-4 py-4">
                     {imgSrc && ( <Image alt="Preview" src={imgSrc} width={500} height={500} className="max-h-[40vh] object-contain rounded-md" /> )}
                     <div className="w-full space-y-2">
-                        <Textarea placeholder="İsteğe bağlı açıklama..." value={caption} onChange={(e) => setCaption(e.target.value)} className="min-h-[80px]" />
+                        <Textarea placeholder="Gönderin için bir şeyler yaz... #güzelbirgün" value={caption} onChange={(e) => setCaption(e.target.value)} className="min-h-[80px]" />
                     </div>
                     <div className="w-full space-y-2">
                         <Textarea placeholder="Yapay zeka stili ekle (Örn: bir Van Gogh tablosu gibi yap...)" value={stylePrompt} onChange={(e) => setStylePrompt(e.target.value)} disabled={isPostProcessing || !isPremium} className="min-h-[80px]" />
@@ -782,8 +833,34 @@ export default function ExplorePage() {
                     </div>
                 </div>
                  <DialogFooter>
-                    <Button variant="outline" onClick={resetCreatePostState}>İptal</Button>
-                    <Button onClick={handleShare} disabled={isPostProcessing}>
+                    <Button variant="outline" onClick={resetCreatePhotoState}>İptal</Button>
+                    <Button onClick={handleSharePhoto} disabled={isPostProcessing}>
+                        {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Check className="mr-2 h-4 w-4" /> )}
+                        Paylaş
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+        
+        {/* Create Text Modal */}
+        <Dialog open={isCreateTextModalOpen} onOpenChange={resetCreateTextState}>
+            <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>Metin Paylaş</DialogTitle>
+                    <DialogDescription>Aklındakileri toplulukla paylaş.</DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                    <Textarea 
+                        placeholder="Bugün harika bir gün... #mutluluk" 
+                        value={textContent} 
+                        onChange={(e) => setTextContent(e.target.value)} 
+                        className="min-h-[150px]"
+                        disabled={isPostProcessing}
+                    />
+                </div>
+                 <DialogFooter>
+                    <Button variant="outline" onClick={resetCreateTextState}>İptal</Button>
+                    <Button onClick={handleShareTextPost} disabled={isPostProcessing || !textContent.trim()}>
                         {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Check className="mr-2 h-4 w-4" /> )}
                         Paylaş
                     </Button>
@@ -899,3 +976,5 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    
