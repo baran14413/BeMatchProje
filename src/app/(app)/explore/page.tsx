@@ -3,11 +3,11 @@
 
 import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import Image from 'next/image';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, XIcon } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, XIcon, Check, Wand2, Gem } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -19,16 +19,19 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { translateText } from '@/ai/flows/translate-text-flow';
+import { stylizeImage } from '@/ai/flows/stylize-image-flow';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { collection, query, orderBy, getDocs, doc, getDoc, DocumentData, writeBatch, arrayUnion, updateDoc, increment, addDoc, serverTimestamp, where, documentId, arrayRemove, runTransaction, setDoc } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase';
+import { db, auth, storage } from '@/lib/firebase';
+import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
+import { Textarea } from '@/components/ui/textarea';
 
 const formatRelativeTime = (date: Date) => {
     try {
@@ -47,6 +50,7 @@ type User = {
   avatarUrl: string;
   aiHint?: string;
   isGalleryPrivate?: boolean;
+  isPremium?: boolean;
 };
 
 type Comment = {
@@ -120,6 +124,16 @@ export default function ExplorePage() {
     const [likers, setLikers] = useState<User[]>([]);
     const [isLikersLoading, setIsLikersLoading] = useState(false);
 
+    // Create Post States
+    const [isCreatePhotoModalOpen, setIsCreatePhotoModalOpen] = useState(false);
+    const [imgSrc, setImgSrc] = useState('');
+    const [originalImgSrc, setOriginalImgSrc] = useState('');
+    const [stylePrompt, setStylePrompt] = useState('');
+    const [caption, setCaption] = useState('');
+    const [isStylized, setIsStylized] = useState(false);
+    const [isPostProcessing, setIsPostProcessing] = useState(false);
+    const [isPremium, setIsPremium] = useState(false);
+
 
     useEffect(() => {
         const fetchPostsAndAuthors = async () => {
@@ -186,6 +200,19 @@ export default function ExplorePage() {
             setLoading(false);
         }
     }, [toast, currentUser, router]);
+
+    useEffect(() => {
+        const checkPremiumStatus = async () => {
+            if (currentUser) {
+                const userDocRef = doc(db, 'users', currentUser.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists() && userDocSnap.data().isPremium) {
+                    setIsPremium(true);
+                }
+            }
+        };
+        checkPremiumStatus();
+    }, [currentUser]);
 
     const handleLikeClick = async (postId: string) => {
         if (!currentUser) return;
@@ -432,15 +459,27 @@ export default function ExplorePage() {
         // ... (existing implementation)
     };
     
+    // --- Create Post Logic ---
+
+    const resetCreatePostState = () => {
+        setImgSrc('');
+        setOriginalImgSrc('');
+        setStylePrompt('');
+        setCaption('');
+        setIsStylized(false);
+        setIsPostProcessing(false);
+        setIsCreatePhotoModalOpen(false);
+    };
+
     const onSelectPhoto = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const reader = new FileReader();
             reader.addEventListener('load', () => {
                 if (reader.result) {
                     const dataUri = reader.result.toString();
-                    // Encode the data URI to make it safe for a URL
-                    const encodedDataUri = encodeURIComponent(dataUri);
-                    router.push(`/create?type=photo&data=${encodedDataUri}`);
+                    setImgSrc(dataUri);
+                    setOriginalImgSrc(dataUri);
+                    setIsCreatePhotoModalOpen(true);
                 }
             });
             reader.readAsDataURL(e.target.files[0]);
@@ -450,8 +489,80 @@ export default function ExplorePage() {
 
     const handleCreateTextPost = () => {
         setIsCreateSheetOpen(false);
-        router.push('/create?type=text');
+        // This can be changed to a modal as well if needed
+        router.push('/create?type=text'); 
     };
+
+    const handleApplyStyle = async () => {
+        if (!stylePrompt) {
+            toast({ variant: 'destructive', title: 'Stil Metni Gerekli', description: 'Lütfen bir stil metni girin.' });
+            return;
+        }
+        setIsPostProcessing(true);
+        try {
+            const result = await stylizeImage({ photoDataUri: originalImgSrc, prompt: stylePrompt });
+            if (result.error || !result.stylizedImageDataUri) {
+                throw new Error(result.error || 'Stil uygulanamadı.');
+            }
+            setImgSrc(result.stylizedImageDataUri);
+            setIsStylized(true);
+            toast({ title: 'Stil Uygulandı!', description: 'Yapay zeka harikalar yarattı.', className: 'bg-green-500 text-white' });
+        } catch (e: any) {
+            console.error(e);
+            toast({ variant: 'destructive', title: 'Stil Hatası', description: e.message });
+        } finally {
+            setIsPostProcessing(false);
+        }
+    };
+
+    const handleShare = async () => {
+        if (!currentUser) {
+            toast({ variant: 'destructive', title: 'Hata', description: 'Gönderi paylaşmak için giriş yapmalısınız.' });
+            return;
+        }
+        
+        setIsPostProcessing(true);
+        
+        try {
+            const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}`);
+            const uploadTask = await uploadString(storageRef, imgSrc, 'data_url');
+            const downloadURL = await getDownloadURL(uploadTask.ref);
+
+            const postData = { 
+              authorId: currentUser.uid,
+              authorName: currentUser.displayName,
+              authorAvatarUrl: currentUser.photoURL,
+              createdAt: serverTimestamp(),
+              likes: 0,
+              commentsCount: 0,
+              type: 'photo',
+              url: downloadURL, 
+              caption: caption || '',
+              isAiEdited: isStylized,
+            };
+
+            await addDoc(collection(db, 'posts'), postData);
+
+            toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı.', className: 'bg-green-500 text-white' });
+            
+            // Refetch posts or add to state optimistically
+            const newPostForUI: Post = {
+                ...postData,
+                id: `optimistic-${Date.now()}`,
+                user: { uid: currentUser.uid, name: currentUser.displayName!, avatarUrl: currentUser.photoURL! },
+                comments: [],
+                liked: false,
+            };
+            setPosts(prev => [newPostForUI, ...prev]);
+
+        } catch (error) {
+            console.error("Error sharing post: ", error);
+            toast({ variant: 'destructive', title: 'Paylaşım Hatası', description: 'Gönderi paylaşılırken bir hata oluştu.' });
+        } finally {
+            resetCreatePostState();
+        }
+    };
+
 
   return (
     <div className="container mx-auto max-w-lg p-0 md:pb-20">
@@ -614,6 +725,46 @@ export default function ExplorePage() {
              </Button>
         </SheetContent>
        </Sheet>
+
+        {/* Create Photo Modal */}
+        <Dialog open={isCreatePhotoModalOpen} onOpenChange={resetCreatePostState}>
+            <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>Düzenle ve Paylaş</DialogTitle>
+                    <DialogDescription>İsteğe bağlı olarak stil ve açıklama ekleyebilirsiniz.</DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col items-center gap-4 py-4">
+                    {imgSrc && ( <Image alt="Preview" src={imgSrc} width={500} height={500} className="max-h-[40vh] object-contain rounded-md" /> )}
+                    <div className="w-full space-y-2">
+                        <Textarea placeholder="İsteğe bağlı açıklama..." value={caption} onChange={(e) => setCaption(e.target.value)} className="min-h-[80px]" />
+                    </div>
+                    <div className="w-full space-y-2">
+                        <Textarea placeholder="Yapay zeka stili ekle (Örn: bir Van Gogh tablosu gibi yap...)" value={stylePrompt} onChange={(e) => setStylePrompt(e.target.value)} disabled={isPostProcessing || !isPremium} className="min-h-[80px]" />
+                        {isPremium ? (
+                            <Button onClick={handleApplyStyle} disabled={isPostProcessing || !stylePrompt} className="w-full" variant="outline">
+                                {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Wand2 className="mr-2 h-4 w-4" /> )}
+                                Stil Uygula
+                            </Button>
+                        ) : (
+                            <Link href="/premium" className="w-full">
+                                <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-black" variant="default">
+                                    <Gem className="mr-2 h-4 w-4" />
+                                    AI Düzenleme için Premium'a Yükselt
+                                </Button>
+                            </Link>
+                        )}
+                    </div>
+                </div>
+                 <DialogFooter>
+                    <Button variant="outline" onClick={resetCreatePostState}>İptal</Button>
+                    <Button onClick={handleShare} disabled={isPostProcessing}>
+                        {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Check className="mr-2 h-4 w-4" /> )}
+                        Paylaş
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
 
       <Sheet open={isCommentSheetOpen} onOpenChange={(open) => { if (!open) { setActivePostForComments(null); setCommentInput(''); } setCommentSheetOpen(open); }}>
             <SheetContent side="bottom" className="rounded-t-xl h-[80vh] flex flex-col p-0">
