@@ -16,7 +16,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { translateText } from '@/ai/flows/translate-text-flow';
 import { stylizeImage } from '@/ai/flows/stylize-image-flow';
@@ -32,6 +33,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Textarea } from '@/components/ui/textarea';
+import { MentionTextarea } from '@/components/ui/mention-textarea';
 
 const formatRelativeTime = (date: Date) => {
     try {
@@ -45,7 +47,7 @@ const formatRelativeTime = (date: Date) => {
 };
 
 const HashtagAndMentionRenderer = ({ text }: { text: string }) => {
-    const parts = text.split(/(#\w+|@\w+)/g);
+    const parts = text.split(/([#@]\w+)/g);
     return (
         <p>
             {parts.map((part, i) => {
@@ -133,7 +135,6 @@ export default function ExplorePage() {
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [commentInput, setCommentInput] = useState('');
-    const commentInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
     const router = useRouter();
     const currentUser = auth.currentUser;
@@ -469,7 +470,11 @@ export default function ExplorePage() {
     
 
     const handleAddEmoji = (emoji: string) => setCommentInput(prevInput => prevInput + emoji);
-    const handleReply = (username: string) => { setCommentInput(prev => `@${username} ${prev}`); commentInputRef.current?.focus(); };
+    
+    const handleReply = (username: string) => { 
+        setCommentInput(prev => `@${username} ${prev}`); 
+        // A way to focus the input would be nice, but it's complex with the current structure.
+    };
 
     const handleTranslatePost = async (postId: string) => {
         // ... (existing implementation)
@@ -772,7 +777,7 @@ export default function ExplorePage() {
                         <div className="px-3 pb-3 text-sm">
                              <span className="font-semibold cursor-pointer" onClick={() => handleOpenLikes(post.id)}>{post.likes.toLocaleString()} beğeni</span>
                             {post.type === 'photo' && post.caption && !post.isGalleryLocked && (
-                                 <div>
+                                 <div className="whitespace-pre-wrap break-words">
                                     <Link href={`/profile/${post.authorId}`} className="font-semibold mr-1">{post.user?.name}</Link>
                                     <HashtagAndMentionRenderer text={post.caption} />
                                  </div>
@@ -827,7 +832,12 @@ export default function ExplorePage() {
                 <div className="flex flex-col items-center gap-4 py-4">
                     {imgSrc && ( <Image alt="Preview" src={imgSrc} width={500} height={500} className="max-h-[40vh] object-contain rounded-md" /> )}
                     <div className="w-full space-y-2">
-                        <Textarea placeholder="Gönderin için bir şeyler yaz... #güzelbirgün @kullanici" value={caption} onChange={(e) => setCaption(e.target.value)} className="min-h-[80px]" />
+                         <MentionTextarea 
+                            placeholder="Gönderin için bir şeyler yaz... #güzelbirgün @kullanici" 
+                            value={caption} 
+                            setValue={setCaption} 
+                            className="min-h-[80px]" 
+                         />
                     </div>
                     <div className="w-full space-y-2">
                         <Textarea placeholder="Yapay zeka stili ekle (Örn: bir Van Gogh tablosu gibi yap...)" value={stylePrompt} onChange={(e) => setStylePrompt(e.target.value)} disabled={isPostProcessing || !isPremium} className="min-h-[80px]" />
@@ -864,10 +874,10 @@ export default function ExplorePage() {
                     <DialogDescription>Aklındakileri toplulukla paylaş.</DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
-                    <Textarea 
-                        placeholder="Bugün harika bir gün... #mutluluk" 
+                     <MentionTextarea 
+                        placeholder="Bugün harika bir gün... #mutluluk @kullanici" 
                         value={textContent} 
-                        onChange={(e) => setTextContent(e.target.value)} 
+                        setValue={setTextContent} 
                         className="min-h-[150px]"
                         disabled={isPostProcessing}
                     />
@@ -941,12 +951,12 @@ export default function ExplorePage() {
                             <AvatarFallback>{currentUser?.displayName?.charAt(0) || 'B'}</AvatarFallback>
                         </Avatar>
                         <div className="relative flex-1">
-                            <Input 
-                                ref={commentInputRef}
+                            <MentionTextarea 
+                                isInput={true}
                                 placeholder="Yorum ekle..." 
-                                className="bg-muted border-none rounded-full px-4 pr-10" 
                                 value={commentInput}
-                                onChange={(e) => setCommentInput(e.target.value)}
+                                setValue={setCommentInput}
+                                onEnterPress={handlePostComment}
                                 disabled={isPostingComment}
                             />
                             <Button type="submit" size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" disabled={isPostingComment || !commentInput.trim()}>
