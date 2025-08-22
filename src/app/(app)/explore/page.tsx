@@ -24,7 +24,7 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { collection, query, orderBy, getDocs, doc, getDoc, DocumentData, writeBatch, arrayUnion, updateDoc, increment, addDoc, serverTimestamp, where, documentId, arrayRemove, runTransaction } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, doc, getDoc, DocumentData, writeBatch, arrayUnion, updateDoc, increment, addDoc, serverTimestamp, where, documentId, arrayRemove, runTransaction, setDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -437,8 +437,10 @@ export default function ExplorePage() {
             const reader = new FileReader();
             reader.addEventListener('load', () => {
                 if (reader.result) {
-                    sessionStorage.setItem('photo_for_upload', reader.result.toString());
-                    router.push('/create?type=photo');
+                    const dataUri = reader.result.toString();
+                    // Encode the data URI to make it safe for a URL
+                    const encodedDataUri = encodeURIComponent(dataUri);
+                    router.push(`/create?type=photo&data=${encodedDataUri}`);
                 }
             });
             reader.readAsDataURL(e.target.files[0]);

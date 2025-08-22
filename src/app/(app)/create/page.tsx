@@ -210,12 +210,21 @@ function CreatePostPageContent() {
 
   useEffect(() => {
       if (postType === 'photo') {
-        const dataUri = sessionStorage.getItem('photo_for_upload');
-        if (dataUri) {
-            setImgSrc(dataUri);
-            setOriginalImgSrc(dataUri);
-            setLoading(false);
-            sessionStorage.removeItem('photo_for_upload');
+        const dataUriEncoded = searchParams.get('data');
+        if (dataUriEncoded) {
+            try {
+                const dataUri = decodeURIComponent(dataUriEncoded);
+                setImgSrc(dataUri);
+                setOriginalImgSrc(dataUri);
+            } catch (error) {
+                console.error("Error decoding data URI:", error);
+                toast({
+                    title: 'Fotoğraf verisi bozuk',
+                    description: 'Lütfen tekrar deneyin.',
+                    variant: 'destructive',
+                });
+                router.push('/explore');
+            }
         } else {
              toast({
                 title: 'Fotoğraf bulunamadı',
@@ -224,10 +233,9 @@ function CreatePostPageContent() {
              });
              router.push('/explore');
         }
-      } else {
-         setLoading(false);
       }
-  }, [postType, router, toast]);
+      setLoading(false);
+  }, [postType, router, toast, searchParams]);
 
   const handleApplyStyle = async () => {
     if (!stylePrompt) {
