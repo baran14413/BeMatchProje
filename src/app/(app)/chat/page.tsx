@@ -180,21 +180,20 @@ export default function ChatPage() {
             if (otherUserId) {
                 const userDoc = await getDoc(doc(db, 'users', otherUserId));
                 
-                // Unread count logic
                 let unreadCount = 0;
-                if (data.lastMessage && data.lastMessage.senderId === otherUserId && !data.lastMessage.readBy?.includes(currentUser.uid)) {
-                   const messagesCollection = collection(db, 'conversations', docSnap.id, 'messages');
+                if (data.lastMessage && data.lastMessage.senderId !== currentUser.uid && !data.lastMessage.readBy?.includes(currentUser.uid)) {
                    // This is a simplified client-side unread count. For a large-scale app, a Cloud Function to manage a dedicated counter field would be better.
-                   const unreadQuery = query(messagesCollection, where('senderId', '==', otherUserId), where('readBy', 'not-in', [[currentUser.uid]]));
+                   // The logic for fetching all messages can be performance-intensive. We'll rely on the lastMessage check for the badge for now,
+                   // and a more accurate count can be fetched when a conversation is active.
+                   const messagesCollection = collection(db, 'conversations', docSnap.id, 'messages');
+                   const unreadQuery = query(messagesCollection, where('senderId', '==', otherUserId), where('readBy', 'array-contains-any', [currentUser.uid]));
                    
                    try {
-                       const unreadMessagesSnapshot = await getDocs(unreadQuery);
-                       // The line below was simplified. Firestore 'not-in' can be tricky. Let's count docs that don't have our uid.
+                       const unreadMessagesSnapshot = await getDocs(query(messagesCollection, where('senderId', '==', otherUserId)));
                        unreadCount = unreadMessagesSnapshot.docs.filter(doc => !doc.data().readBy?.includes(currentUser.uid)).length;
                    } catch(e) {
                         console.warn("Could not accurately calculate unread count.", e);
-                        // Fallback to simpler check if query fails and last message is unread
-                        unreadCount = 1;
+                        unreadCount = 1; // Fallback
                    }
                 }
 
@@ -288,29 +287,26 @@ export default function ChatPage() {
         const msgs = querySnapshot.docs
             .map(doc => ({ id: doc.id, ...doc.data() } as Message));
         
-        // Mark messages as read
-        const batch = writeBatch(db);
-        let hasUnread = false;
-        msgs.forEach(msg => {
-            if (msg.senderId !== currentUser.uid && !msg.readBy?.includes(currentUser.uid)) {
-                hasUnread = true;
+        const unreadMessages = msgs.filter(msg => msg.senderId !== currentUser.uid && !msg.readBy?.includes(currentUser.uid));
+
+        if (unreadMessages.length > 0) {
+            const batch = writeBatch(db);
+            unreadMessages.forEach(msg => {
                 const msgRef = doc(db, 'conversations', conversationId as string, 'messages', msg.id);
                 batch.update(msgRef, { readBy: arrayUnion(currentUser.uid) });
+            });
+
+            // Also update the lastMessage in the conversation doc to reflect read status
+            const convoRef = doc(db, 'conversations', conversationId as string);
+            const convoSnap = await getDoc(convoRef);
+            if (convoSnap.exists() && convoSnap.data().lastMessage?.senderId !== currentUser.uid) {
+                batch.update(convoRef, {
+                    'lastMessage.readBy': arrayUnion(currentUser.uid)
+                });
             }
-        });
 
-        if (hasUnread) {
             try {
-                 // Also update the lastMessage in the conversation doc to reflect read status
-                 const convoRef = doc(db, 'conversations', conversationId as string);
-                 const convoSnap = await getDoc(convoRef);
-                 if (convoSnap.exists() && convoSnap.data().lastMessage?.senderId !== currentUser.uid) {
-                    batch.update(convoRef, {
-                        'lastMessage.readBy': arrayUnion(currentUser.uid)
-                    });
-                 }
                 await batch.commit();
-
             } catch (e) {
                 console.error("Error marking messages as read:", e);
             }
@@ -362,13 +358,13 @@ export default function ChatPage() {
     setMessageInput('');
 
     try {
-        const newMessage = {
+        const newMessageData = {
             text: tempMessageInput,
             senderId: currentUser.uid,
             timestamp: serverTimestamp(),
             readBy: [currentUser.uid], // Sender has read it
         };
-        await addDoc(messagesRef, newMessage);
+        await addDoc(messagesRef, newMessageData);
         
         await updateDoc(conversationRef, {
             lastMessage: {
@@ -1135,3 +1131,5 @@ export default function ChatPage() {
     </div>
   );
 }
+
+    
