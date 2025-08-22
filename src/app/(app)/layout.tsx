@@ -9,8 +9,9 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { NetworkStatusBanner } from '@/components/ui/network-status-banner';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import type { User as FirebaseUser } from 'firebase/auth';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 
 const NavButton = ({ href, icon, srText, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, hasNotification?: boolean }) => {
@@ -35,12 +36,53 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const { isOnline, isPoorConnection } = useNetworkStatus();
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
 
+  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
       setCurrentUser(user);
     });
-    return () => unsubscribe();
+    return () => unsubscribeAuth();
   }, []);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    // Listener for unread notifications
+    const notificationsQuery = query(
+      collection(db, 'notifications'),
+      where('recipientId', '==', currentUser.uid),
+      where('read', '==', false)
+    );
+    const unsubscribeNotifications = onSnapshot(notificationsQuery, (snapshot) => {
+      setHasUnreadNotifications(!snapshot.empty);
+    });
+    
+    // Listener for unread messages (simplified check on conversations)
+    const conversationsQuery = query(
+        collection(db, 'conversations'),
+        where('users', 'array-contains', currentUser.uid)
+    );
+    const unsubscribeConversations = onSnapshot(conversationsQuery, (snapshot) => {
+        let unreadFound = false;
+        snapshot.docs.forEach(doc => {
+            const data = doc.data();
+            // This is a simplified logic. A real app would have a dedicated 'unreadCount' field.
+            if (data.lastMessage && data.lastMessage.senderId !== currentUser.uid && !data.lastMessage.readBy?.includes(currentUser.uid)) {
+                unreadFound = true;
+            }
+        });
+        setHasUnreadMessages(unreadFound);
+    });
+
+
+    return () => {
+        unsubscribeNotifications();
+        unsubscribeConversations();
+    };
+  }, [currentUser]);
+
 
   // A chat view is considered open if we are on the /chat page AND a specific userId/conversationId is in the query params.
   const isChatPage = currentPathname === '/chat';
@@ -50,10 +92,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
   // Show navs unless it's the create page or a specific chat is open.
   const showNavs = !isCreatePage && (!isChatPage || (isChatPage && !isChatViewOpen));
   const isFullScreen = isChatPage && isChatViewOpen;
-
-  // Mock state for notifications - in a real app this would come from a global state/context
-  const hasUnreadMessages = true;
-  const hasUnreadNotifications = true;
 
   useEffect(() => {
     const handleScroll = () => {

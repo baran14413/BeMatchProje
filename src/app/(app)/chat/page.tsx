@@ -52,6 +52,7 @@ type Conversation = {
     otherUser: UserData;
     lastMessage: {
         text: string;
+        senderId: string;
         timestamp: Timestamp | null;
     } | null;
     isPinned: boolean;
@@ -175,15 +176,36 @@ export default function ChatPage() {
             
             if (otherUserId) {
                 const userDoc = await getDoc(doc(db, 'users', otherUserId));
+                // Get unread count
+                const messagesQuery = query(
+                    collection(db, 'conversations', docSnap.id, 'messages'),
+                    where('senderId', '==', otherUserId),
+                    where('readBy', 'array-contains', currentUser.uid) // This logic is inverted, should be `not-array-contains`
+                );
+
+                let unreadCount = 0;
+                 // Firestore doesn't support `not-array-contains`, so we fetch all messages from the other user
+                 // and filter locally. This is not efficient for very large chats.
+                 const unreadQuery = query(
+                    collection(db, 'conversations', docSnap.id, 'messages'),
+                    where('senderId', '==', otherUserId)
+                );
+                const unreadSnapshot = await getDocs(unreadQuery);
+                unreadSnapshot.forEach(msgDoc => {
+                    if (!msgDoc.data().readBy?.includes(currentUser.uid)) {
+                        unreadCount++;
+                    }
+                });
+
                 if (userDoc.exists()) {
                     const userData = userDoc.data() as UserData;
                     return {
                         id: docSnap.id,
                         otherUser: { ...userData, uid: otherUserId },
                         lastMessage: data.lastMessage || null,
-                        isPinned: false, 
-                        isMuted: false, 
-                        unreadCount: 0,
+                        isPinned: data.pinnedBy?.includes(currentUser.uid) || false, 
+                        isMuted: data.mutedBy?.includes(currentUser.uid) || false, 
+                        unreadCount: unreadCount,
                     } as Conversation;
                 }
             }
@@ -305,11 +327,13 @@ export default function ChatPage() {
             text: tempMessageInput,
             senderId: currentUser.uid,
             timestamp: serverTimestamp(),
+            readBy: [currentUser.uid], // Sender has read it
         });
         
         await updateDoc(conversationRef, {
             lastMessage: {
                 text: tempMessageInput,
+                senderId: currentUser.uid,
                 timestamp: serverTimestamp(),
             }
         });
@@ -352,11 +376,13 @@ export default function ChatPage() {
             imageUrl: downloadURL,
             senderId: currentUser.uid,
             timestamp: serverTimestamp(),
+            readBy: [currentUser.uid],
         });
 
         await updateDoc(conversationRef, {
              lastMessage: {
                 text: '[Resim]',
+                senderId: currentUser.uid,
                 timestamp: serverTimestamp(),
             }
         });
@@ -575,11 +601,13 @@ export default function ChatPage() {
                 audioDuration: recordedAudio.duration,
                 senderId: currentUser.uid,
                 timestamp: serverTimestamp(),
+                readBy: [currentUser.uid],
             });
 
             await updateDoc(conversationRef, {
                 lastMessage: {
                     text: '[Sesli Mesaj]',
+                    senderId: currentUser.uid,
                     timestamp: serverTimestamp(),
                 }
             });
