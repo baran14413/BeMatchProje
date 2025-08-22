@@ -44,6 +44,23 @@ const formatRelativeTime = (date: Date) => {
     }
 };
 
+const HashtagRenderer = ({ text }: { text: string }) => {
+    const parts = text.split(/(#\w+)/g);
+    return (
+        <p>
+            {parts.map((part, i) =>
+                part.startsWith('#') ? (
+                    <Link key={i} href={`/tag/${part.substring(1)}`} className="text-blue-500 hover:underline">
+                        {part}
+                    </Link>
+                ) : (
+                    <React.Fragment key={i}>{part}</React.Fragment>
+                )
+            )}
+        </p>
+    );
+};
+
 type User = {
   uid: string;
   name: string;
@@ -196,10 +213,10 @@ export default function ExplorePage() {
         if (currentUser) {
             fetchPostsAndAuthors();
         } else {
-            router.push('/login');
+            // router.push('/login'); This can cause redirect loops
             setLoading(false);
         }
-    }, [toast, currentUser, router]);
+    }, [toast, currentUser]);
 
     useEffect(() => {
         const checkPremiumStatus = async () => {
@@ -528,30 +545,33 @@ export default function ExplorePage() {
             const uploadTask = await uploadString(storageRef, imgSrc, 'data_url');
             const downloadURL = await getDownloadURL(uploadTask.ref);
 
+            const hashtags = caption.match(/#\w+/g)?.map(h => h.substring(1)) || [];
+
             const postData = { 
               authorId: currentUser.uid,
-              authorName: currentUser.displayName,
-              authorAvatarUrl: currentUser.photoURL,
               createdAt: serverTimestamp(),
               likes: 0,
               commentsCount: 0,
               type: 'photo',
               url: downloadURL, 
               caption: caption || '',
+              hashtags: hashtags,
               isAiEdited: isStylized,
             };
 
             const postRef = await addDoc(collection(db, 'posts'), postData);
+            const newPostId = postRef.id;
 
             toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı.', className: 'bg-green-500 text-white' });
             
+            // Optimistic UI update
             const newPostForUI: Post = {
                 ...postData,
-                id: postRef.id, // Use the real ID from Firestore
+                id: newPostId,
                 user: { uid: currentUser.uid, name: currentUser.displayName!, avatarUrl: currentUser.photoURL! },
                 comments: [],
                 liked: false,
-                createdAt: { toDate: () => new Date() } as any // Mock timestamp for UI
+                createdAt: { toDate: () => new Date() } as any 
             };
             setPosts(prev => [newPostForUI, ...prev]);
 
@@ -681,10 +701,10 @@ export default function ExplorePage() {
                         <div className="px-3 pb-3 text-sm">
                              <span className="font-semibold cursor-pointer" onClick={() => handleOpenLikes(post.id)}>{post.likes.toLocaleString()} beğeni</span>
                             {post.type === 'photo' && post.caption && !post.isGalleryLocked && (
-                                <p>
-                                    <Link href={`/profile/${post.authorId}`} className="font-semibold">{post.user?.name}</Link>{' '}
-                                    {post.caption}
-                                </p>
+                                 <div>
+                                    <Link href={`/profile/${post.authorId}`} className="font-semibold mr-1">{post.user?.name}</Link>
+                                    <HashtagRenderer text={post.caption} />
+                                 </div>
                             )}
                             {post.commentsCount > 0 && (
                                 <p className="text-muted-foreground mt-1 cursor-pointer" onClick={() => handleOpenComments(post)}>
