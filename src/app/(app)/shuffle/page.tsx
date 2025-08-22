@@ -6,13 +6,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { db, auth } from '@/lib/firebase';
-import { collection, query, where, getDocs, limit, doc, setDoc, addDoc, serverTimestamp, deleteDoc, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, doc, setDoc, addDoc, serverTimestamp, deleteDoc, onSnapshot, getDoc } from 'firebase/firestore';
 import { Loader2, Sparkles, Zap, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 function ShuffleContent() {
     const [status, setStatus] = useState<'idle' | 'searching' | 'matched'>('idle');
     const [userGender, setUserGender] = useState<string | null>(null);
+    const [isLoadingProfile, setIsLoadingProfile] = useState(true);
     const router = useRouter();
     const searchParams = useSearchParams();
     const currentUser = auth.currentUser;
@@ -29,6 +30,7 @@ function ShuffleContent() {
     // Fetch current user's gender
     useEffect(() => {
         const fetchGender = async () => {
+            setIsLoadingProfile(true);
             if (currentUser) {
                 const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
                 if (userDoc.exists()) {
@@ -37,6 +39,7 @@ function ShuffleContent() {
                     toast({ title: 'Profil bilgileri bulunamadı.', variant: 'destructive' });
                 }
             }
+            setIsLoadingProfile(false);
         };
         fetchGender();
     }, [currentUser, toast]);
@@ -191,7 +194,9 @@ function ShuffleContent() {
                         size="lg" 
                         className="h-16 px-10 text-xl rounded-full"
                         onClick={handleSearchClick}
+                        disabled={isLoadingProfile}
                     >
+                        {isLoadingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Eşleşme Bul
                     </Button>
                 </>
