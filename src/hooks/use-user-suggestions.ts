@@ -30,7 +30,7 @@ export const useUserSuggestions = (rawQuery: string | null) => {
     try {
         const uniqueUsers = new Map<string, SuggestedUser>();
 
-        // Function to process and add users to the map
+        // Function to process and add users to the map, preventing duplicates
         const processDocs = (docs: DocumentData[], usersMap: Map<string, SuggestedUser>) => {
             docs.forEach(doc => {
                 const data = doc.data();
@@ -45,7 +45,7 @@ export const useUserSuggestions = (rawQuery: string | null) => {
             });
         };
 
-      // 1. Fetch users based on search query (name or username)
+      // If the user has typed something after '@', search by name and username
       if (debouncedQuery.length > 0) {
         const nameQuery = query(
           collection(db, 'users'),
@@ -69,10 +69,11 @@ export const useUserSuggestions = (rawQuery: string | null) => {
 
         processDocs(nameSnapshot.docs, uniqueUsers);
         processDocs(usernameSnapshot.docs, uniqueUsers);
+
       } else {
-         // 2. If query is empty, fetch following and followers
-         const followingQuery = query(collection(db, 'users', currentUser.uid, 'following'), limit(5));
-         const followersQuery = query(collection(db, 'users', currentUser.uid, 'followers'), limit(5));
+         // If query is empty (just '@'), fetch followers and following
+         const followingQuery = query(collection(db, 'users', currentUser.uid, 'following'), limit(10));
+         const followersQuery = query(collection(db, 'users', currentUser.uid, 'followers'), limit(10));
 
          const [followingSnapshot, followersSnapshot] = await Promise.all([
              getDocs(followingQuery),
@@ -82,12 +83,20 @@ export const useUserSuggestions = (rawQuery: string | null) => {
          const followingIds = followingSnapshot.docs.map(doc => doc.id);
          const followerIds = followersSnapshot.docs.map(doc => doc.id);
 
+         // Combine and get unique IDs
          const suggestionIds = [...new Set([...followingIds, ...followerIds])];
 
          if (suggestionIds.length > 0) {
-             const usersQuery = query(collection(db, 'users'), where('uid', 'in', suggestionIds));
-             const usersSnapshot = await getDocs(usersQuery);
-             processDocs(usersSnapshot.docs, uniqueUsers);
+             // Firestore 'in' query is limited to 30 elements. Chunk if necessary.
+             const userChunks: Promise<DocumentData[]>[] = [];
+             for (let i = 0; i < suggestionIds.length; i += 10) {
+                 const chunk = suggestionIds.slice(i, i + 10);
+                 const usersQuery = query(collection(db, 'users'), where('uid', 'in', chunk));
+                 userChunks.push(getDocs(usersQuery).then(snapshot => snapshot.docs));
+             }
+             
+             const chunkResults = await Promise.all(userChunks);
+             chunkResults.forEach(docs => processDocs(docs, uniqueUsers));
          }
       }
 
