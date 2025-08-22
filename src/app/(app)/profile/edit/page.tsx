@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   User,
   Shield,
@@ -24,41 +24,86 @@ import {
   Camera,
   Gem,
   Bookmark,
+  Download,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface SettingsItemProps {
   icon: React.ReactNode;
   title: string;
-  href: string;
+  href?: string;
+  onClick?: () => void;
   value?: string;
   isFirst?: boolean;
   isLast?: boolean;
 }
 
-const SettingsItem: React.FC<SettingsItemProps> = ({ icon, title, href, value, isFirst, isLast }) => (
-  <Link href={href} className={cn(
-    "flex items-center p-4 transition-colors hover:bg-muted/50",
-    isFirst && "rounded-t-lg",
-    isLast && "rounded-b-lg"
-  )}>
-    <div className="mr-4 text-muted-foreground">{icon}</div>
-    <div className="flex-1 font-medium">{title}</div>
-    <div className="flex items-center text-muted-foreground">
-        {value && <span className="mr-2 text-sm">{value}</span>}
-        <ChevronRight className="h-5 w-5" />
+const SettingsItem: React.FC<SettingsItemProps> = ({ icon, title, href, onClick, value, isFirst, isLast }) => {
+  const content = (
+    <div className={cn(
+      "flex items-center p-4 transition-colors hover:bg-muted/50",
+       isFirst && "rounded-t-lg",
+       isLast && "rounded-b-lg",
+       onClick && "cursor-pointer"
+    )} onClick={onClick}>
+      <div className="mr-4 text-muted-foreground">{icon}</div>
+      <div className="flex-1 font-medium">{title}</div>
+      <div className="flex items-center text-muted-foreground">
+          {value && <span className="mr-2 text-sm">{value}</span>}
+          <ChevronRight className="h-5 w-5" />
+      </div>
     </div>
-  </Link>
-);
+  );
+
+  if (href) {
+    return <Link href={href}>{content}</Link>;
+  }
+  return content;
+};
 
 const SectionTitle = ({ title }: { title: string }) => (
     <h2 className="px-4 py-2 text-sm font-semibold text-primary">{title}</h2>
 );
 
 export default function EditProfilePage() {
+    const { toast } = useToast();
+    const [installPrompt, setInstallPrompt] = useState<any>(null);
+
+    useEffect(() => {
+        const handleBeforeInstallPrompt = (e: Event) => {
+            e.preventDefault();
+            setInstallPrompt(e);
+        };
+
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        };
+    }, []);
+
+    const handleInstallClick = () => {
+        if (!installPrompt) {
+            toast({
+                title: 'Uygulama Zaten Yüklü',
+                description: 'Veya tarayıcınız bu özelliği desteklemiyor.',
+            });
+            return;
+        }
+        installPrompt.prompt();
+        installPrompt.userChoice.then((choiceResult: { outcome: string }) => {
+            if (choiceResult.outcome === 'accepted') {
+                toast({ title: 'Uygulama başarıyla yüklendi!' });
+            } else {
+                 toast({ title: 'Yükleme iptal edildi.', variant: 'destructive' });
+            }
+            setInstallPrompt(null);
+        });
+    };
 
     const accountItems = [
         { icon: <User className="h-6 w-6" />, title: 'Profili Düzenle', href: '/profile/edit/personal' },
@@ -89,6 +134,7 @@ export default function EditProfilePage() {
     
     const applicationItems = [
         { icon: <Bell className="h-6 w-6" />, title: 'Bildirim Ayarları', href: '/profile/edit/notifications' },
+        { icon: <Download className="h-6 w-6" />, title: 'Uygulamayı Yükle', onClick: handleInstallClick },
         { icon: <HelpCircle className="h-6 w-6" />, title: 'Uygulama Kılavuzu', href: '/profile/edit/guide' },
     ];
     
@@ -204,6 +250,7 @@ export default function EditProfilePage() {
                                 icon={item.icon}
                                 title={item.title}
                                 href={item.href}
+                                onClick={item.onClick}
                                 isFirst={index === 0}
                                 isLast={index === applicationItems.length -1}
                             />
@@ -235,5 +282,3 @@ export default function EditProfilePage() {
     </div>
   );
 }
-
-    
