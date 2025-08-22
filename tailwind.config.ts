@@ -89,7 +89,7 @@ export default {
         },
         beat: {
           "0%, 100%": { transform: "scale(1)" },
-          "50%": { transform: "scale(1.1)" },
+          "50%": { transform: "scale(1.05)" },
         },
         ripple: {
           "0%": { transform: "scale(0.3)", opacity: "0.5" },
