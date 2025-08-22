@@ -14,12 +14,33 @@ import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import React from 'react';
+
+
+const HashtagRenderer = ({ text }: { text: string }) => {
+    const parts = text.split(/(#\w+)/g);
+    return (
+        <p>
+            {parts.map((part, i) =>
+                part.startsWith('#') ? (
+                    <Link key={i} href={`/tag/${part.substring(1)}`} className="text-blue-500 hover:underline">
+                        {part}
+                    </Link>
+                ) : (
+                    <React.Fragment key={i}>{part}</React.Fragment>
+                )
+            )}
+        </p>
+    );
+};
+
 
 type Post = {
     id: string;
     type: 'photo' | 'text';
     url?: string;
     caption?: string;
+    textContent?: string;
     likes: number;
     commentsCount: number;
     authorId: string;
@@ -86,7 +107,7 @@ export default function TagPage() {
     }, [tag, toast]);
 
     return (
-        <div className="container mx-auto max-w-lg p-0 md:p-4">
+        <div className="container mx-auto max-w-lg p-0 md:p-4 pb-20">
             <header className="flex items-center gap-4 p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10">
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="w-5 h-5"/>
@@ -127,6 +148,11 @@ export default function TagPage() {
                                         />
                                     </div>
                                 )}
+                                {post.type === 'text' && post.textContent && (
+                                     <div className="px-4 py-8 bg-muted/20">
+                                        <HashtagRenderer text={post.textContent} />
+                                     </div>
+                                )}
                                 <div className="p-3">
                                     <div className='flex items-center gap-3 mb-2'>
                                         <Button variant="ghost" size="icon">
@@ -137,10 +163,12 @@ export default function TagPage() {
                                         </Button>
                                     </div>
                                     <span className="font-semibold text-sm">{post.likes.toLocaleString()} beğeni</span>
-                                    <p className="text-sm mt-1">
-                                        <Link href={`/profile/${post.authorId}`} className="font-semibold">{post.user?.name}</Link>{' '}
-                                        {post.caption}
-                                    </p>
+                                    {post.caption && (
+                                        <div className='text-sm mt-1'>
+                                            <Link href={`/profile/${post.authorId}`} className="font-semibold mr-1">{post.user?.name}</Link>
+                                            <HashtagRenderer text={post.caption} />
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
