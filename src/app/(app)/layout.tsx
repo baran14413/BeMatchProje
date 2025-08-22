@@ -47,7 +47,11 @@ function LayoutContent({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser) {
+        setHasUnreadMessages(false);
+        setHasUnreadNotifications(false);
+        return;
+    };
 
     // Listener for unread notifications
     const notificationsQuery = query(
@@ -57,6 +61,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
     );
     const unsubscribeNotifications = onSnapshot(notificationsQuery, (snapshot) => {
       setHasUnreadNotifications(!snapshot.empty);
+    }, (error) => {
+        console.error("Error fetching notification status:", error);
+        setHasUnreadNotifications(false);
     });
     
     // Listener for unread messages (simplified check on conversations)
@@ -66,14 +73,19 @@ function LayoutContent({ children }: { children: ReactNode }) {
     );
     const unsubscribeConversations = onSnapshot(conversationsQuery, (snapshot) => {
         let unreadFound = false;
-        snapshot.docs.forEach(doc => {
+        for (const doc of snapshot.docs) {
             const data = doc.data();
-            // This is a simplified logic. A real app would have a dedicated 'unreadCount' field.
+            // A message is unread if it exists, it's not from the current user,
+            // and the current user's UID is not in the readBy array.
             if (data.lastMessage && data.lastMessage.senderId !== currentUser.uid && !data.lastMessage.readBy?.includes(currentUser.uid)) {
                 unreadFound = true;
+                break; // Found one, no need to check further
             }
-        });
+        }
         setHasUnreadMessages(unreadFound);
+    }, (error) => {
+        console.error("Error fetching message status:", error);
+        setHasUnreadMessages(false);
     });
 
 
