@@ -46,6 +46,7 @@ type Message = {
     isEdited?: boolean;
     isDeleted?: boolean;
     deletedFor?: string[];
+    readBy?: string[];
 };
 
 type Conversation = {
@@ -55,6 +56,7 @@ type Conversation = {
         text: string;
         senderId: string;
         timestamp: Timestamp | null;
+        readBy?: string[];
     } | null;
     isPinned: boolean;
     isMuted: boolean;
@@ -182,18 +184,16 @@ export default function ChatPage() {
                 let unreadCount = 0;
                 if (data.lastMessage && data.lastMessage.senderId === otherUserId && !data.lastMessage.readBy?.includes(currentUser.uid)) {
                    const messagesCollection = collection(db, 'conversations', docSnap.id, 'messages');
-                   const unreadQuery = query(messagesCollection, where('senderId', '==', otherUserId), where('readBy', 'array-contains-any', [currentUser.uid]));
+                   // This is a simplified client-side unread count. For a large-scale app, a Cloud Function to manage a dedicated counter field would be better.
+                   const unreadQuery = query(messagesCollection, where('senderId', '==', otherUserId));
                    
                    try {
                        const unreadMessagesSnapshot = await getDocs(unreadQuery);
-                       // This is a workaround as Firestore doesn't support 'not-array-contains' directly in this way.
-                       // A better way is a dedicated unread counter field in the conversation doc updated by a cloud function.
-                       // For now, we will do a more reliable check.
-                       const allMessagesSnapshot = await getDocs(query(messagesCollection, where('senderId', '==', otherUserId)));
-                       unreadCount = allMessagesSnapshot.docs.filter(doc => !doc.data().readBy?.includes(currentUser.uid)).length;
+                       unreadCount = unreadMessagesSnapshot.docs.filter(doc => !doc.data().readBy?.includes(currentUser.uid)).length;
                    } catch(e) {
                         console.warn("Could not accurately calculate unread count.", e);
-                        unreadCount = data.lastMessage.senderId === otherUserId && !data.lastMessage.readBy?.includes(currentUser.uid) ? 1 : 0;
+                        // Fallback to simpler check if query fails
+                        unreadCount = 1;
                    }
                 }
 
@@ -291,21 +291,20 @@ export default function ChatPage() {
         const batch = writeBatch(db);
         let hasUnread = false;
         msgs.forEach(msg => {
-            if (msg.senderId !== currentUser.uid && !msg.deletedFor?.includes(currentUser.uid) && !msg.isDeleted) {
-                if (!msg.readBy || !msg.readBy.includes(currentUser.uid)) {
-                    hasUnread = true;
-                    const msgRef = doc(db, 'conversations', conversationId, 'messages', msg.id);
-                    batch.update(msgRef, { readBy: arrayUnion(currentUser.uid) });
-                }
+            if (msg.senderId !== currentUser.uid && !msg.readBy?.includes(currentUser.uid)) {
+                hasUnread = true;
+                const msgRef = doc(db, 'conversations', conversationId as string, 'messages', msg.id);
+                batch.update(msgRef, { readBy: arrayUnion(currentUser.uid) });
             }
         });
 
         if (hasUnread) {
             try {
                 await batch.commit();
-                 const convoRef = doc(db, 'conversations', conversationId);
+                 // Also update the lastMessage in the conversation doc to reflect read status
+                 const convoRef = doc(db, 'conversations', conversationId as string);
                  const convoSnap = await getDoc(convoRef);
-                 if (convoSnap.exists() && convoSnap.data().lastMessage) {
+                 if (convoSnap.exists() && convoSnap.data().lastMessage?.senderId !== currentUser.uid) {
                     await updateDoc(convoRef, {
                         'lastMessage.readBy': arrayUnion(currentUser.uid)
                     });
@@ -1133,5 +1132,7 @@ export default function ChatPage() {
     </div>
   );
 }
+
+    
 
     

@@ -20,7 +20,7 @@ const NavButton = ({ href, icon, srText, hasNotification = false }: { href: stri
             <Button variant="ghost" size="icon" className="relative rounded-full">
                 {icon}
                 {hasNotification && (
-                    <span className="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500" />
+                    <span className="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500 animate-pulse-heart" />
                 )}
                 <span className="sr-only">{srText}</span>
             </Button>
@@ -206,3 +206,5 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
+
+    
