@@ -13,23 +13,30 @@ import { collection, query, where, getDocs, DocumentData, doc, getDoc } from 'fi
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import React from 'react';
 
 
-const HashtagRenderer = ({ text }: { text: string }) => {
-    const parts = text.split(/(#\w+)/g);
+const HashtagAndMentionRenderer = ({ text }: { text: string }) => {
+    const parts = text.split(/(#\w+|@\w+)/g);
     return (
         <p>
-            {parts.map((part, i) =>
-                part.startsWith('#') ? (
-                    <Link key={i} href={`/tag/${part.substring(1)}`} className="text-blue-500 hover:underline">
-                        {part}
-                    </Link>
-                ) : (
-                    <React.Fragment key={i}>{part}</React.Fragment>
-                )
-            )}
+            {parts.map((part, i) => {
+                if (part.startsWith('#')) {
+                    return (
+                        <Link key={i} href={`/tag/${part.substring(1)}`} className="text-blue-500 hover:underline">
+                            {part}
+                        </Link>
+                    );
+                }
+                if (part.startsWith('@')) {
+                     return (
+                        <Link key={i} href={`/profile/${part.substring(1)}`} className="text-blue-500 hover:underline">
+                            {part}
+                        </Link>
+                    );
+                }
+                return <React.Fragment key={i}>{part}</React.Fragment>;
+            })}
         </p>
     );
 };
@@ -81,6 +88,7 @@ export default function TagPage() {
                     const postData = postDoc.data();
                     const userDocRef = doc(db, 'users', postData.authorId);
                     const userDocSnap = await getDoc(userDocRef);
+                    
                     if (userDocSnap.exists()) {
                         return {
                             id: postDoc.id,
@@ -150,7 +158,7 @@ export default function TagPage() {
                                 )}
                                 {post.type === 'text' && post.textContent && (
                                      <div className="px-4 py-8 bg-muted/20">
-                                        <HashtagRenderer text={post.textContent} />
+                                        <HashtagAndMentionRenderer text={post.textContent} />
                                      </div>
                                 )}
                                 <div className="p-3">
@@ -166,7 +174,7 @@ export default function TagPage() {
                                     {post.caption && (
                                         <div className='text-sm mt-1'>
                                             <Link href={`/profile/${post.authorId}`} className="font-semibold mr-1">{post.user?.name}</Link>
-                                            <HashtagRenderer text={post.caption} />
+                                            <HashtagAndMentionRenderer text={post.caption} />
                                         </div>
                                     )}
                                 </div>

@@ -163,7 +163,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                     )}
                     <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
                     <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
-                    <NavButton href="#" icon={<Search className="h-5 w-5" />} srText="Ara" />
+                    <NavButton href="/search" icon={<Search className="h-5 w-5" />} srText="Ara" />
                 </div>
             </header>
           </>
@@ -206,5 +206,3 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
-
-    

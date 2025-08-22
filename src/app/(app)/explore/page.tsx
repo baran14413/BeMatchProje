@@ -44,19 +44,27 @@ const formatRelativeTime = (date: Date) => {
     }
 };
 
-const HashtagRenderer = ({ text }: { text: string }) => {
-    const parts = text.split(/(#\w+)/g);
+const HashtagAndMentionRenderer = ({ text }: { text: string }) => {
+    const parts = text.split(/(#\w+|@\w+)/g);
     return (
         <p>
-            {parts.map((part, i) =>
-                part.startsWith('#') ? (
-                    <Link key={i} href={`/tag/${part.substring(1)}`} className="text-blue-500 hover:underline">
-                        {part}
-                    </Link>
-                ) : (
-                    <React.Fragment key={i}>{part}</React.Fragment>
-                )
-            )}
+            {parts.map((part, i) => {
+                if (part.startsWith('#')) {
+                    return (
+                        <Link key={i} href={`/tag/${part.substring(1)}`} className="text-blue-500 hover:underline">
+                            {part}
+                        </Link>
+                    );
+                }
+                if (part.startsWith('@')) {
+                     return (
+                        <Link key={i} href={`/profile/${part.substring(1)}`} className="text-blue-500 hover:underline">
+                            {part}
+                        </Link>
+                    );
+                }
+                return <React.Fragment key={i}>{part}</React.Fragment>;
+            })}
         </p>
     );
 };
@@ -554,6 +562,8 @@ export default function ExplorePage() {
             const downloadURL = await getDownloadURL(uploadTask.ref);
 
             const hashtags = caption.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
+            const mentions = caption.match(/@\w+/g)?.map(m => m.substring(1)) || [];
+
 
             const postData = { 
               authorId: currentUser.uid,
@@ -564,6 +574,7 @@ export default function ExplorePage() {
               url: downloadURL, 
               caption: caption || '',
               hashtags: hashtags,
+              mentions: mentions,
               isAiEdited: isStylized,
             };
 
@@ -604,6 +615,8 @@ export default function ExplorePage() {
         
         try {
             const hashtags = textContent.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
+            const mentions = textContent.match(/@\w+/g)?.map(m => m.substring(1)) || [];
+
 
             const postData = { 
               authorId: currentUser.uid,
@@ -613,6 +626,7 @@ export default function ExplorePage() {
               type: 'text',
               textContent: textContent,
               hashtags: hashtags,
+              mentions: mentions,
               isAiEdited: false,
             };
 
@@ -729,7 +743,7 @@ export default function ExplorePage() {
                                 {post.isTranslating ? (
                                     <p className="text-sm text-muted-foreground italic flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</p>
                                 ) : (
-                                    <HashtagRenderer text={post.textContent || ''} />
+                                    <HashtagAndMentionRenderer text={post.textContent || ''} />
                                 )}
 
                                 {((post.lang && post.lang !== 'tr') || post.isTranslated) && (
@@ -760,7 +774,7 @@ export default function ExplorePage() {
                             {post.type === 'photo' && post.caption && !post.isGalleryLocked && (
                                  <div>
                                     <Link href={`/profile/${post.authorId}`} className="font-semibold mr-1">{post.user?.name}</Link>
-                                    <HashtagRenderer text={post.caption} />
+                                    <HashtagAndMentionRenderer text={post.caption} />
                                  </div>
                             )}
                             {post.commentsCount > 0 && (
@@ -813,7 +827,7 @@ export default function ExplorePage() {
                 <div className="flex flex-col items-center gap-4 py-4">
                     {imgSrc && ( <Image alt="Preview" src={imgSrc} width={500} height={500} className="max-h-[40vh] object-contain rounded-md" /> )}
                     <div className="w-full space-y-2">
-                        <Textarea placeholder="Gönderin için bir şeyler yaz... #güzelbirgün" value={caption} onChange={(e) => setCaption(e.target.value)} className="min-h-[80px]" />
+                        <Textarea placeholder="Gönderin için bir şeyler yaz... #güzelbirgün @kullanici" value={caption} onChange={(e) => setCaption(e.target.value)} className="min-h-[80px]" />
                     </div>
                     <div className="w-full space-y-2">
                         <Textarea placeholder="Yapay zeka stili ekle (Örn: bir Van Gogh tablosu gibi yap...)" value={stylePrompt} onChange={(e) => setStylePrompt(e.target.value)} disabled={isPostProcessing || !isPremium} className="min-h-[80px]" />
@@ -976,5 +990,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-    
