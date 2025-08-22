@@ -56,8 +56,6 @@ type Post = {
     isAiEdited?: boolean;
 };
 
-type RequestStatus = 'idle' | 'loading' | 'sent';
-type FollowListType = 'followers' | 'following';
 type FollowUser = {
   uid: string;
   name: string;
@@ -69,13 +67,15 @@ const PostCard = ({ post, user }: { post: Post, user: DocumentData }) => (
     <Card className="rounded-xl overflow-hidden mb-4 relative group">
         <CardContent className="p-0">
              <div className="flex items-center gap-3 p-3">
-                <Avatar className="w-8 h-8">
-                <AvatarImage src={user.avatarUrl} data-ai-hint={user.aiHint} />
-                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                </Avatar>
+                <Link href={`/profile/${user.uid}`}>
+                    <Avatar className="w-8 h-8">
+                        <AvatarImage src={user.avatarUrl} data-ai-hint={user.aiHint} />
+                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                </Link>
                 <div className='flex flex-col'>
                     <div className='flex items-center gap-2'>
-                        <span className="font-semibold text-sm">{user.name}</span>
+                        <Link href={`/profile/${user.uid}`} className="font-semibold text-sm">{user.name}</Link>
                         {user.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
                     </div>
                      {post.isAiEdited && (
@@ -123,13 +123,13 @@ const PostCard = ({ post, user }: { post: Post, user: DocumentData }) => (
                 <p className="font-semibold">{post.likes.toLocaleString()} beğeni</p>
                 {(post.caption || (post.type === 'photo' && !post.textContent)) && (
                      <p>
-                        <span className="font-semibold">{user.name}</span>{' '}
+                        <Link href={`/profile/${user.uid}`} className="font-semibold">{user.name}</Link>{' '}
                         {post.caption}
                     </p>
                 )}
                  {post.type === 'text' && post.textContent && (
                     <p>
-                        <span className="font-semibold">{user.name}</span>{' '}
+                        <Link href={`/profile/${user.uid}`} className="font-semibold">{user.name}</Link>{' '}
                         {post.textContent}
                     </p>
                 )}
@@ -176,14 +176,14 @@ export default function UserProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowProcessing, setIsFollowProcessing] = useState(false);
   const [hasGalleryAccess, setHasGalleryAccess] = useState(false);
-  const [requestStatus, setRequestStatus] = useState<RequestStatus>('idle' as RequestStatus);
+  const [requestStatus, setRequestStatus] = useState<'idle' | 'loading' | 'sent'>('idle');
   const [isMyProfile, setIsMyProfile] = useState(false);
   const currentUser = auth.currentUser;
   const { toast } = useToast();
   
   const [followList, setFollowList] = useState<FollowUser[]>([]);
   const [isFollowListLoading, setIsFollowListLoading] = useState(false);
-  const [followListType, setFollowListType] = useState<FollowListType | null>(null);
+  const [followListType, setFollowListType] = useState<'followers' | 'following' | null>(null);
   const [isListSheetOpen, setIsListSheetOpen] = useState(false);
 
  useEffect(() => {
@@ -224,12 +224,10 @@ export default function UserProfilePage() {
           }
           
           // Fetch posts
-          const postsQuery = query(collection(db, 'posts'), where('authorId', '==', profileId));
+          const postsQuery = query(collection(db, 'posts'), where('authorId', '==', profileId), orderBy('createdAt', 'desc'));
           const postsSnapshot = await getDocs(postsQuery);
           const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
           
-          postsData.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
-
           setUserPosts(postsData);
 
         } else {
@@ -285,47 +283,53 @@ export default function UserProfilePage() {
     const followerRef = doc(db, 'users', userProfile.uid, 'followers', currentUser.uid);
     
     try {
-        const batch = writeBatch(db);
+        await runTransaction(db, async (transaction) => {
+            const currentUserDoc = await transaction.get(currentUserRef);
+            const targetUserDoc = await transaction.get(targetUserRef);
 
-        if (isFollowing) {
-            // Unfollow
-            batch.delete(followingRef);
-            batch.delete(followerRef);
-            batch.update(currentUserRef, { 'stats.following': increment(-1) });
-            batch.update(targetUserRef, { 'stats.followers': increment(-1) });
-        } else {
-            // Follow
-            batch.set(followingRef, { uid: userProfile.uid, followedAt: serverTimestamp() });
-            batch.set(followerRef, { uid: currentUser.uid, followedAt: serverTimestamp() });
-            batch.update(currentUserRef, { 'stats.following': increment(1) });
-            batch.update(targetUserRef, { 'stats.followers': increment(1) });
-            
-            // Create Notification
-            const notificationRef = doc(collection(db, 'notifications'));
-             batch.set(notificationRef, {
-                recipientId: userProfile.uid,
-                type: 'follow',
-                fromUser: {
-                    uid: currentUser.uid,
-                    name: currentUser.displayName,
-                    avatar: currentUser.photoURL,
-                    aiHint: "current user portrait"
-                },
-                read: false,
-                createdAt: serverTimestamp()
-            });
-        }
-        
-        await batch.commit();
+            if (!currentUserDoc.exists() || !targetUserDoc.exists()) {
+                throw "User document not found.";
+            }
+
+            if (isFollowing) {
+                // Unfollow
+                transaction.delete(followingRef);
+                transaction.delete(followerRef);
+                transaction.update(currentUserRef, { 'stats.following': increment(-1) });
+                transaction.update(targetUserRef, { 'stats.followers': increment(-1) });
+            } else {
+                // Follow
+                transaction.set(followingRef, { uid: userProfile.uid, followedAt: serverTimestamp() });
+                transaction.set(followerRef, { uid: currentUser.uid, followedAt: serverTimestamp() });
+                transaction.update(currentUserRef, { 'stats.following': increment(1) });
+                transaction.update(targetUserRef, { 'stats.followers': increment(1) });
+                
+                // Create Notification
+                const notificationRef = doc(collection(db, 'notifications'));
+                transaction.set(notificationRef, {
+                    recipientId: userProfile.uid,
+                    type: 'follow',
+                    fromUser: {
+                        uid: currentUser.uid,
+                        name: currentUser.displayName,
+                        avatar: currentUser.photoURL,
+                        aiHint: "current user portrait"
+                    },
+                    read: false,
+                    createdAt: serverTimestamp()
+                });
+            }
+        });
 
         setIsFollowing(!isFollowing);
         setUserProfile(prev => {
             if (!prev) return null;
+            const newFollowerCount = (prev.stats?.followers || 0) + (isFollowing ? -1 : 1);
             return {
                 ...prev,
                 stats: {
                     ...prev.stats,
-                    followers: (prev.stats?.followers || 0) + (isFollowing ? -1 : 1),
+                    followers: newFollowerCount < 0 ? 0 : newFollowerCount,
                 }
             }
         });
@@ -338,8 +342,8 @@ export default function UserProfilePage() {
     }
   };
 
-   const fetchFollowList = async (listType: FollowListType) => {
-    if (!userProfile) return;
+   const fetchFollowList = async (listType: 'followers' | 'following') => {
+    if (!userProfile || !currentUser) return;
     setFollowListType(listType);
     setIsFollowListLoading(true);
     setIsListSheetOpen(true);
@@ -358,8 +362,7 @@ export default function UserProfilePage() {
         const usersQuery = query(collection(db, 'users'), where(documentId(), 'in', listUserIds));
         const usersSnapshot = await getDocs(usersQuery);
         
-        // Check which of these users the current user is following
-        const myFollowingRef = collection(db, 'users', currentUser!.uid, 'following');
+        const myFollowingRef = collection(db, 'users', currentUser.uid, 'following');
         const myFollowingSnapshot = await getDocs(myFollowingRef);
         const myFollowingIds = new Set(myFollowingSnapshot.docs.map(d => d.id));
         
@@ -538,20 +541,20 @@ export default function UserProfilePage() {
                   ) : followList.length > 0 ? (
                       <div className="divide-y">
                           {followList.map(user => (
-                              <div key={user.uid} className="flex items-center p-4 gap-4">
+                            <Link href={`/profile/${user.uid}`} key={user.uid} className="flex items-center p-4 gap-4" onClick={() => setIsListSheetOpen(false)}>
                                   <Avatar className="w-12 h-12">
-                                      <AvatarImage src={user.avatarUrl} data-ai-hint={user.name} onClick={() => { setIsListSheetOpen(false); router.push(`/profile/${user.uid}`);}}/>
+                                      <AvatarImage src={user.avatarUrl} data-ai-hint={user.name}/>
                                       <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                                   </Avatar>
-                                  <div className="flex-1 overflow-hidden" onClick={() => { setIsListSheetOpen(false); router.push(`/profile/${user.uid}`);}}>
+                                  <div className="flex-1 overflow-hidden">
                                       <p className="font-semibold truncate">{user.name}</p>
                                   </div>
                                   {user.uid !== currentUser?.uid && (
-                                     <Button size="sm" variant={user.isFollowing ? 'outline' : 'default'}>
+                                     <Button size="sm" variant={user.isFollowing ? 'outline' : 'default'} onClick={(e) => e.preventDefault()}>
                                         {user.isFollowing ? 'Takibi Bırak' : 'Takip Et'}
                                     </Button>
                                   )}
-                              </div>
+                            </Link>
                           ))}
                       </div>
                   ) : (
@@ -566,7 +569,3 @@ export default function UserProfilePage() {
     </div>
   );
 }
-
-    
-
-    
