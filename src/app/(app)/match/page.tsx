@@ -4,22 +4,19 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Crown, Loader2 } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { collection, query, where, getDocs, DocumentData } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import Image from 'next/image';
+import { cn } from '@/lib/utils';
+
 
 const UserSkeleton = () => (
-  <div className="p-4 flex items-center gap-4 border-b">
-    <Skeleton className="w-16 h-16 rounded-full" />
-    <div className="flex-1 space-y-2">
-      <Skeleton className="h-6 w-1/2" />
-      <Skeleton className="h-4 w-1/4" />
+    <div className="w-full aspect-[3/4] bg-muted rounded-xl animate-pulse">
+        <Skeleton className="w-full h-full" />
     </div>
-  </div>
 );
 
 export default function MatchPage() {
@@ -49,48 +46,44 @@ export default function MatchPage() {
   }, [currentUser]);
 
   return (
-    <div className="flex flex-col h-full">
-      <h1 className="text-2xl font-bold px-4 pt-4 pb-2 font-headline">Sana Uygun Kişiler</h1>
-      <ScrollArea className="flex-1">
-        <div className="flex flex-col">
-          {loading ? (
-            <>
-              <UserSkeleton />
-              <UserSkeleton />
-              <UserSkeleton />
-              <UserSkeleton />
-            </>
-          ) : users.length > 0 ? (
-            users.map((user) => (
-              <Link href={`/profile/${user.id}`} key={user.id} className="block hover:bg-muted/50 transition-colors">
-                <div className="p-4 flex items-center gap-4 border-b">
-                  <Avatar className="w-16 h-16 border">
-                    <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint={user.aiHint} />
-                    <AvatarFallback>{user.name?.charAt(0) || 'U'}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-baseline gap-2">
-                        <h3 className="text-xl font-bold">{user.name}{user.age ? ',' : ''}</h3>
-                        {user.age && <p className="text-lg text-muted-foreground">{user.age}</p>}
-                      </div>
-                      {user.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
-                    </div>
-                     <div className="flex items-center gap-1.5 mt-1 text-muted-foreground">
-                        {user.city && <><MapPin className="w-4 h-4" /><p className="text-sm">{user.city}</p></>}
-                     </div>
-                  </div>
-                </div>
-              </Link>
-            ))
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-10">
-              <h3 className="text-xl font-bold">Görünüşe Göre Etrafta Kimse Kalmadı</h3>
-              <p className="mt-2">Daha fazla kişi görmek için daha sonra tekrar kontrol et.</p>
+    <div className="container mx-auto p-4">
+        {loading ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {[...Array(8)].map((_, i) => <UserSkeleton key={i} />)}
             </div>
-          )}
-        </div>
-      </ScrollArea>
+        ) : users.length > 0 ? (
+             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {users.map((user) => (
+                <Link href={`/profile/${user.id}`} key={user.id} className="block group">
+                    <Card className="w-full aspect-[3/4] rounded-xl overflow-hidden relative border-none shadow-lg transition-transform duration-300 ease-in-out group-hover:scale-105">
+                        <Image
+                            src={user.avatarUrl || 'https://placehold.co/400x533.png'}
+                            alt={user.name}
+                            fill
+                            className="object-cover transition-transform duration-300 ease-in-out group-hover:scale-110"
+                            data-ai-hint={user.aiHint || 'portrait'}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                             <div className="flex items-baseline gap-2">
+                                <h3 className="text-xl font-bold truncate">{user.name}</h3>
+                                {user.age && <p className="text-lg">{user.age}</p>}
+                             </div>
+                             <div className="flex items-center gap-1.5 mt-1 text-sm opacity-80">
+                                {user.isPremium && <Crown className="w-4 h-4 text-yellow-400" />}
+                                {user.city && <p className="truncate">{user.city}</p>}
+                             </div>
+                        </div>
+                    </Card>
+                </Link>
+                ))}
+            </div>
+        ) : (
+            <div className="flex flex-col items-center justify-center h-[70vh] text-center text-muted-foreground">
+                <h3 className="text-xl font-bold">Görünüşe Göre Etrafta Kimse Kalmadı</h3>
+                <p className="mt-2 text-sm">Daha fazla kişi görmek için daha sonra tekrar kontrol et.</p>
+            </div>
+        )}
     </div>
   );
 }
