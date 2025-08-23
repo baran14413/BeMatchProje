@@ -24,7 +24,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { moderateImage, ModerateImageOutput } from '@/ai/flows/moderate-image-flow';
 import Image from 'next/image';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { doc, setDoc, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { auth, db, storage } from '@/lib/firebase';
@@ -80,16 +80,34 @@ export default function SignupPage() {
   
   const nextStep = async () => {
       if (step === 1) {
-      if (!formData.username) {
-        toast({ variant: 'destructive', title: 'Kullanıcı adı gerekli' });
-        return;
-      }
-      const q = query(collection(db, 'users'), where('username', '==', formData.username));
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        toast({ variant: 'destructive', title: 'Kullanıcı adı zaten alınmış' });
-        return;
-      }
+        if (!formData.username) {
+            toast({ variant: 'destructive', title: 'Kullanıcı adı gerekli' });
+            return;
+        }
+         if (!formData.email) {
+            toast({ variant: 'destructive', title: 'E-posta gerekli' });
+            return;
+        }
+        
+        // Proactive check for username and email
+        try {
+            const usernameQuery = query(collection(db, 'users'), where('username', '==', formData.username));
+            const usernameSnapshot = await getDocs(usernameQuery);
+            if (!usernameSnapshot.empty) {
+                toast({ variant: 'destructive', title: 'Kullanıcı adı zaten alınmış' });
+                return;
+            }
+
+            const signInMethods = await fetchSignInMethodsForEmail(auth, formData.email);
+            if (signInMethods.length > 0) {
+                 toast({ variant: 'destructive', title: 'E-posta zaten kullanımda', description: 'Bu e-posta adresi ile zaten bir hesap mevcut. Lütfen giriş yapın.' });
+                 return;
+            }
+
+        } catch (error) {
+             toast({ variant: 'destructive', title: 'Doğrulama Hatası', description: 'Kullanıcı adı veya e-posta kontrol edilirken bir hata oluştu.' });
+             return;
+        }
     }
     setStep((prev) => prev + 1);
   }
