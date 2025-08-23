@@ -2375,6 +2375,10 @@ img {
   color: rgb(234 179 8 / var(--tw-text-opacity, 1));
 }
 
+.text-white\/80 {
+  color: #fffc;
+}
+
 .underline {
   text-decoration-line: underline;
 }
@@ -3436,6 +3440,18 @@ img {
     display: flex;
   }
 
+  .sm\:hidden {
+    display: none;
+  }
+
+  .sm\:h-auto {
+    height: auto;
+  }
+
+  .sm\:max-h-\[90vh\] {
+    max-height: 90vh;
+  }
+
   .sm\:w-auto {
     width: auto;
   }
@@ -3450,6 +3466,14 @@ img {
 
   .sm\:max-w-sm {
     max-width: 24rem;
+  }
+
+  .sm\:flex-1 {
+    flex: 1;
+  }
+
+  .sm\:flex-\[2\] {
+    flex: 2;
   }
 
   .sm\:grid-cols-2 {
@@ -3488,6 +3512,15 @@ img {
 
   .sm\:rounded-lg {
     border-radius: var(--radius);
+  }
+
+  .sm\:rounded-2xl {
+    border-radius: 1rem;
+  }
+
+  .sm\:rounded-l-2xl {
+    border-top-left-radius: 1rem;
+    border-bottom-left-radius: 1rem;
   }
 
   .sm\:border {

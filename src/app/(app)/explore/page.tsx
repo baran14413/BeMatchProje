@@ -618,23 +618,24 @@ export default function ExplorePage() {
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 const { latitude, longitude } = position.coords;
+                // IMPORTANT: Ensure this key is available in your .env.local file
                 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
                 if (!GOOGLE_MAPS_API_KEY) {
                     console.error("Google Maps API key is not configured on the client.");
-                    toast({ variant: 'destructive', title: 'API Anahtarı Eksik', description: 'Geliştirici, konum servisi için API anahtarını yapılandırmamış.' });
-                    setLocation('Bilinmeyen Konum');
+                    toast({ variant: 'destructive', title: 'API Anahtarı Eksik', description: 'Konum servisi için istemci anahtarı yapılandırılmamış.' });
+                    setLocation(''); // Clear location to prevent using a stale one
                     setIsFetchingLocation(false);
                     return;
                 }
 
                 try {
-                    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}&language=tr&result_type=administrative_area_level_1|administrative_area_level_2`;
+                    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}&language=tr&result_type=administrative_area_level_2|administrative_area_level_1`;
                     const response = await fetch(url);
                     const data = await response.json();
-
+                     
                     if (data.status !== 'OK' || !data.results || data.results.length === 0) {
-                        throw new Error(`Adres bulunamadı: ${data.status}`);
+                        throw new Error(`Adres bulunamadı: ${data.status} - ${data.error_message || ''}`);
                     }
                     
                     const cityComponent = data.results[0].address_components.find(
@@ -780,9 +781,9 @@ export default function ExplorePage() {
                                     <div className="flex items-center gap-2">
                                         <span className="font-semibold text-sm truncate">{post.user?.name}</span>
                                         {post.location && (
-                                            <span className='text-xs text-muted-foreground truncate flex items-center gap-1'>
+                                            <Link href={`/location/${encodeURIComponent(post.location)}`} className='text-xs text-muted-foreground truncate flex items-center gap-1 hover:underline'>
                                                 <MapPin className='w-3 h-3'/> {post.location}
-                                            </span>
+                                            </Link>
                                         )}
                                     </div>
                                     <span className="text-xs text-muted-foreground truncate">@{post.user?.username}</span>
@@ -955,21 +956,36 @@ export default function ExplorePage() {
        </Sheet>
 
         {/* Create or Edit Photo Modal */}
-        <Dialog open={isCreatePhotoModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
-            <DialogContent className="max-w-3xl p-0 h-full md:h-auto md:max-h-[90vh] flex flex-col">
-                <DialogHeader className="p-4 flex flex-row items-center justify-between border-b">
-                    <DialogTitle>{editingPost ? "Gönderiyi Düzenle" : "Yeni Gönderi"}</DialogTitle>
-                    <Button onClick={handleSharePost} disabled={isPostProcessing} size="sm">
-                        {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Check className="mr-2 h-4 w-4" /> )}
-                        {editingPost ? "Kaydet" : "Paylaş"}
+       <Dialog open={isCreatePhotoModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
+            <DialogContent className="max-w-4xl w-full h-full sm:h-auto sm:max-h-[90vh] p-0 flex flex-col sm:flex-row sm:rounded-2xl">
+                <DialogHeader className="p-4 flex-row items-center justify-between border-b sm:hidden">
+                    <DialogClose asChild>
+                        <Button variant="ghost" size="icon"><XIcon/></Button>
+                    </DialogClose>
+                    <DialogTitle className="text-base font-semibold">{editingPost ? "Gönderiyi Düzenle" : "Yeni Gönderi"}</DialogTitle>
+                    <Button variant="link" onClick={handleSharePost} disabled={isPostProcessing} className="p-0 h-auto">
+                        {isPostProcessing ? <Loader2 className="h-5 w-5 animate-spin"/> : "Paylaş" }
                     </Button>
                 </DialogHeader>
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 overflow-hidden">
-                    <div className='relative bg-black flex items-center justify-center md:border-r'>
-                        {imgSrc && ( <Image alt="Preview" src={imgSrc} width={800} height={800} className="w-full h-auto object-contain max-h-full" /> )}
+
+                <div className='flex-1 sm:flex-[2] bg-black flex items-center justify-center sm:rounded-l-2xl overflow-hidden'>
+                     {imgSrc ? (
+                        <Image alt="Preview" src={imgSrc} width={800} height={800} className="w-full h-auto object-contain max-h-full" />
+                     ) : (
+                         <div className='text-white/80'>Resim Yükleniyor...</div>
+                     )}
+                </div>
+                
+                <div className='flex flex-col sm:flex-1'>
+                    <div className="hidden sm:flex items-center justify-between p-4 border-b">
+                         <DialogTitle className="text-lg font-semibold">{editingPost ? "Gönderiyi Düzenle" : "Yeni Gönderi"}</DialogTitle>
+                         <Button onClick={handleSharePost} disabled={isPostProcessing} size="sm">
+                            {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Check className="mr-2 h-4 w-4" /> )}
+                            {editingPost ? "Kaydet" : "Paylaş"}
+                        </Button>
                     </div>
-                    
-                    <div className='flex flex-col p-4 space-y-4'>
+
+                    <div className='flex flex-col p-4 space-y-4 overflow-y-auto'>
                         <div className="flex items-center gap-3">
                             <Avatar>
                                 <AvatarImage src={currentUser?.photoURL || ''} />
@@ -1010,7 +1026,6 @@ export default function ExplorePage() {
                             )}
                         </div>
                     </div>
-
                 </div>
             </DialogContent>
         </Dialog>
