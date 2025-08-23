@@ -21,7 +21,7 @@ import { DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { translateText } from '@/ai/flows/translate-text-flow';
 import { stylizeImage } from '@/ai/flows/stylize-image-flow';
-import { getLocation } from '@/services/location-service';
+import { getLocationFromCoordinates } from '@/ai/flows/get-location-flow';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
@@ -620,10 +620,14 @@ export default function ExplorePage() {
             async (position) => {
                 try {
                     const { latitude, longitude } = position.coords;
-                    const address = await getLocation(latitude, longitude);
-                    setLocation(address);
+                    const result = await getLocationFromCoordinates({ latitude, longitude });
+                    if(result.error || !result.address) {
+                        throw new Error(result.error || 'Adres alınamadı.');
+                    }
+                    setLocation(result.address);
                 } catch(e: any) {
                     toast({ variant: 'destructive', title: 'Konum Hatası', description: e.message });
+                    setLocation('');
                 } finally {
                     setIsFetchingLocation(false);
                 }

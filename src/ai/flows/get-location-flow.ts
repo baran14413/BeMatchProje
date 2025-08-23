@@ -38,6 +38,8 @@ const getLocationFlow = ai.defineFlow(
   },
   async ({ latitude, longitude }) => {
     try {
+      // Note: The actual API call is now in the service, but the flow orchestrates it.
+      // This allows for potential future steps like logging, caching, etc.
       const address = await getLocation(latitude, longitude);
       return { address };
     } catch (e: any) {

@@ -1,12 +1,19 @@
 
+
 'use client';
 
 // This function is designed to be called from the client-side.
 // Do not use 'use server' here.
+// Note: This service now calls the backend flow instead of Google API directly.
+// This is a placeholder for that interaction logic. In a real app,
+// you might use a library like tanstack-query or just fetch to call your backend endpoint
+// which in turn runs the Genkit flow.
 
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+import { getLocationFromCoordinates as getLocationFlow } from "@/ai/flows/get-location-flow";
 
 export async function getLocation(lat: number, lon: number): Promise<string> {
+    const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
     if (!GOOGLE_MAPS_API_KEY) {
         console.error("Google Maps API key is not configured on the client.");
         // Fallback for development if API key is not set
