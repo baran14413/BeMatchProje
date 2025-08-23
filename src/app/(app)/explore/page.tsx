@@ -21,7 +21,6 @@ import { DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { translateText } from '@/ai/flows/translate-text-flow';
 import { stylizeImage } from '@/ai/flows/stylize-image-flow';
-import { getLocationFromCoordinates } from '@/ai/flows/get-location-flow';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
@@ -611,32 +610,63 @@ export default function ExplorePage() {
     };
 
     const handleFetchLocation = () => {
-        if (!navigator.geolocation) {
-            toast({ variant: 'destructive', title: 'Konum Desteklenmiyor', description: 'Tarayıcınız konum servisini desteklemiyor.' });
-            return;
-        }
-        setIsFetchingLocation(true);
-        navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                try {
-                    const { latitude, longitude } = position.coords;
-                    const result = await getLocationFromCoordinates({ latitude, longitude });
-                    if(result.error || !result.address) {
-                        throw new Error(result.error || 'Adres alınamadı.');
-                    }
-                    setLocation(result.address);
-                } catch(e: any) {
-                    toast({ variant: 'destructive', title: 'Konum Hatası', description: e.message });
-                    setLocation('');
-                } finally {
-                    setIsFetchingLocation(false);
-                }
-            },
-            (error) => {
-                 toast({ variant: 'destructive', title: 'Konum İzni Reddedildi', description: 'Konum eklemek için tarayıcı ayarlarından izin vermeniz gerekiyor.' });
-                 setIsFetchingLocation(false);
+      if (!navigator.geolocation) {
+        toast({ variant: 'destructive', title: 'Konum Desteklenmiyor', description: 'Tarayıcınız konum servisini desteklemiyor.' });
+        return;
+      }
+      setIsFetchingLocation(true);
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+            if (!GOOGLE_MAPS_API_KEY) {
+              console.error("Google Maps API key is not configured on the client.");
+              toast({ variant: 'destructive', title: 'API Anahtarı Eksik', description: 'Geliştirici, konum servisi için API anahtarını yapılandırmamış.' });
+              setLocation('Konum Alınamadı');
+              return;
             }
-        );
+
+            const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}&language=tr&result_type=administrative_area_level_2|locality`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.status !== 'OK' || !data.results || data.results.length === 0) {
+              throw new Error(`Adres bulunamadı: ${data.status}`);
+            }
+
+            const cityComponent = data.results[0].address_components.find(
+              (c: any) => c.types.includes('administrative_area_level_1')
+            );
+            const districtComponent = data.results[0].address_components.find(
+              (c: any) => c.types.includes('administrative_area_level_2') || c.types.includes('locality')
+            );
+            
+            const city = cityComponent ? cityComponent.long_name : null;
+            const district = districtComponent ? districtComponent.long_name : null;
+
+            if (city && district && city !== district) {
+              setLocation(`${city}, ${district}`);
+            } else if (city) {
+              setLocation(city);
+            } else {
+              setLocation('Bilinmeyen Konum');
+            }
+
+          } catch (e: any) {
+            console.error("Error fetching location:", e);
+            toast({ variant: 'destructive', title: 'Konum Hatası', description: 'Adres bilgisi alınamadı.' });
+            setLocation('');
+          } finally {
+            setIsFetchingLocation(false);
+          }
+        },
+        (error) => {
+          toast({ variant: 'destructive', title: 'Konum İzni Reddedildi', description: 'Konum eklemek için tarayıcı ayarlarından izin vermeniz gerekiyor.' });
+          setIsFetchingLocation(false);
+        }
+      );
     };
 
     const handleSharePost = async () => {
