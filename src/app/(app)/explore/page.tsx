@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, XIcon, Check, Wand2, Gem } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, XIcon, Check, Wand2, Gem, Trash2, Pencil } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
 import { DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { translateText } from '@/ai/flows/translate-text-flow';
@@ -26,14 +26,15 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { collection, query, orderBy, getDocs, doc, getDoc, DocumentData, writeBatch, arrayUnion, updateDoc, increment, addDoc, serverTimestamp, where, documentId, arrayRemove, runTransaction, setDoc } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, doc, getDoc, DocumentData, writeBatch, arrayUnion, updateDoc, increment, addDoc, serverTimestamp, where, documentId, arrayRemove, runTransaction, setDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth, storage } from '@/lib/firebase';
-import { getDownloadURL, ref, uploadString } from 'firebase/storage';
+import { getDownloadURL, ref, uploadString, deleteObject } from 'firebase/storage';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Textarea } from '@/components/ui/textarea';
 import { MentionTextarea } from '@/components/ui/mention-textarea';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const formatRelativeTime = (date: Date) => {
     try {
@@ -150,8 +151,9 @@ export default function ExplorePage() {
     const [likers, setLikers] = useState<User[]>([]);
     const [isLikersLoading, setIsLikersLoading] = useState(false);
 
-    // Create Photo Post States
+    // Create/Edit Photo Post States
     const [isCreatePhotoModalOpen, setIsCreatePhotoModalOpen] = useState(false);
+    const [editingPost, setEditingPost] = useState<Post | null>(null);
     const [imgSrc, setImgSrc] = useState('');
     const [originalImgSrc, setOriginalImgSrc] = useState('');
     const [stylePrompt, setStylePrompt] = useState('');
@@ -160,7 +162,7 @@ export default function ExplorePage() {
     const [isPostProcessing, setIsPostProcessing] = useState(false);
     const [isPremium, setIsPremium] = useState(false);
 
-    // Create Text Post States
+    // Create/Edit Text Post States
     const [isCreateTextModalOpen, setIsCreateTextModalOpen] = useState(false);
     const [textContent, setTextContent] = useState('');
 
@@ -492,7 +494,7 @@ export default function ExplorePage() {
         // ... (existing implementation)
     };
     
-    // --- Create Post Logic ---
+    // --- Create / Edit Post Logic ---
 
     const resetCreatePhotoState = () => {
         setImgSrc('');
@@ -501,12 +503,14 @@ export default function ExplorePage() {
         setCaption('');
         setIsStylized(false);
         setIsPostProcessing(false);
+        setEditingPost(null);
         setIsCreatePhotoModalOpen(false);
     };
 
     const resetCreateTextState = () => {
         setTextContent('');
         setIsPostProcessing(false);
+        setEditingPost(null);
         setIsCreateTextModalOpen(false);
     };
 
@@ -529,6 +533,48 @@ export default function ExplorePage() {
     const handleCreateTextPost = () => {
         setIsCreateSheetOpen(false);
         setIsCreateTextModalOpen(true);
+    };
+    
+     const handleEditPost = (post: Post) => {
+        setEditingPost(post);
+        if (post.type === 'photo') {
+            setImgSrc(post.url || '');
+            setOriginalImgSrc(post.url || '');
+            setCaption(post.caption || '');
+            setIsStylized(post.isAiEdited || false);
+            setIsCreatePhotoModalOpen(true);
+        } else {
+            setTextContent(post.textContent || '');
+            setIsCreateTextModalOpen(true);
+        }
+    };
+    
+    const handleDeletePost = async (post: Post) => {
+        if (!currentUser || post.authorId !== currentUser.uid) return;
+        
+        try {
+            // Delete from Firestore
+            await deleteDoc(doc(db, "posts", post.id));
+
+            // If it's a photo, delete from Storage
+            if (post.type === 'photo' && post.url) {
+                const imageRef = ref(storage, post.url);
+                await deleteObject(imageRef).catch((error) => {
+                    // It's okay if file doesn't exist, maybe it was already deleted
+                    if (error.code !== 'storage/object-not-found') {
+                        throw error;
+                    }
+                });
+            }
+            
+            // Remove post from UI
+            setPosts(prev => prev.filter(p => p.id !== post.id));
+
+            toast({ title: "Gönderi silindi." });
+        } catch (error) {
+            console.error("Error deleting post:", error);
+            toast({ variant: 'destructive', title: "Gönderi silinirken hata oluştu." });
+        }
     };
 
     const handleApplyStyle = async () => {
@@ -554,53 +600,67 @@ export default function ExplorePage() {
     };
 
     const handleSharePhoto = async () => {
-        if (!currentUser || !imgSrc) {
-            toast({ variant: 'destructive', title: 'Hata', description: 'Gönderi paylaşmak için giriş yapmalısınız ve bir fotoğraf seçmelisiniz.' });
-            return;
-        }
+        if (!currentUser) return;
+        if (editingPost && !imgSrc) return;
+        if (!editingPost && !imgSrc) return;
         
         setIsPostProcessing(true);
         
         try {
-            const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}`);
-            const uploadTask = await uploadString(storageRef, imgSrc, 'data_url');
-            const downloadURL = await getDownloadURL(uploadTask.ref);
-
             const hashtags = caption.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
             const mentions = caption.match(/@\w+/g)?.map(m => m.substring(1)) || [];
-
-
-            const postData = { 
-              authorId: currentUser.uid,
-              createdAt: serverTimestamp(),
-              likes: 0,
-              commentsCount: 0,
-              type: 'photo',
-              url: downloadURL, 
-              caption: caption || '',
-              hashtags: hashtags,
-              mentions: mentions,
-              isAiEdited: isStylized,
-            };
-
-            const postRef = await addDoc(collection(db, 'posts'), postData);
             
-            const docSnap = await getDoc(postRef);
-            if (!docSnap.exists()) throw new Error("Post creation failed in DB");
-            const newPostFromDb = { id: docSnap.id, ...docSnap.data() };
+            if (editingPost) { // Update existing post
+                 const postRef = doc(db, 'posts', editingPost.id);
+                 await updateDoc(postRef, {
+                    caption: caption || '',
+                    hashtags: hashtags,
+                    mentions: mentions,
+                    isAiEdited: isStylized, // This assumes imgSrc might have changed
+                 });
+                 
+                 // Update UI
+                 setPosts(prev => prev.map(p => p.id === editingPost.id ? {...p, caption: caption || '', isAiEdited: isStylized} : p));
+                 
+                 toast({ title: 'Güncellendi!', description: 'Gönderiniz başarıyla güncellendi.' });
+
+            } else { // Create new post
+                const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}`);
+                const uploadTask = await uploadString(storageRef, imgSrc, 'data_url');
+                const downloadURL = await getDownloadURL(uploadTask.ref);
+
+                const postData = { 
+                  authorId: currentUser.uid,
+                  createdAt: serverTimestamp(),
+                  likes: 0,
+                  commentsCount: 0,
+                  type: 'photo',
+                  url: downloadURL, 
+                  caption: caption || '',
+                  hashtags: hashtags,
+                  mentions: mentions,
+                  isAiEdited: isStylized,
+                };
+
+                const postRef = await addDoc(collection(db, 'posts'), postData);
+                
+                const docSnap = await getDoc(postRef);
+                if (!docSnap.exists()) throw new Error("Post creation failed in DB");
+                const newPostFromDb = { id: docSnap.id, ...docSnap.data() };
 
 
-            // UI update with the real data from DB
-            const newPostForUI: Post = {
-                ...newPostFromDb,
-                user: { uid: currentUser.uid, name: currentUser.displayName!, avatarUrl: currentUser.photoURL! },
-                comments: [],
-                liked: false,
-            } as Post;
-            
-            setPosts(prev => [newPostForUI, ...prev]);
-            
-            toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı.', className: 'bg-green-500 text-white' });
+                // UI update with the real data from DB
+                const newPostForUI: Post = {
+                    ...newPostFromDb,
+                    user: { uid: currentUser.uid, name: currentUser.displayName!, avatarUrl: currentUser.photoURL! },
+                    comments: [],
+                    liked: false,
+                } as Post;
+                
+                setPosts(prev => [newPostForUI, ...prev]);
+                
+                toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı.', className: 'bg-green-500 text-white' });
+            }
 
         } catch (error) {
             console.error("Error sharing post: ", error);
@@ -611,46 +671,54 @@ export default function ExplorePage() {
     };
 
     const handleShareTextPost = async () => {
-        if (!currentUser || !textContent.trim()) {
-            toast({ variant: 'destructive', title: 'Hata', description: 'Lütfen bir metin girin.' });
-            return;
-        }
+         if (!currentUser || !textContent.trim()) return;
         
         setIsPostProcessing(true);
         
         try {
             const hashtags = textContent.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
             const mentions = textContent.match(/@\w+/g)?.map(m => m.substring(1)) || [];
-
-
-            const postData = { 
-              authorId: currentUser.uid,
-              createdAt: serverTimestamp(),
-              likes: 0,
-              commentsCount: 0,
-              type: 'text',
-              textContent: textContent,
-              hashtags: hashtags,
-              mentions: mentions,
-              isAiEdited: false,
-            };
-
-            const postRef = await addDoc(collection(db, 'posts'), postData);
-            const docSnap = await getDoc(postRef);
-            if (!docSnap.exists()) throw new Error("Post creation failed in DB");
-            const newPostFromDb = { id: docSnap.id, ...docSnap.data() };
-
-            const newPostForUI: Post = {
-                ...newPostFromDb,
-                user: { uid: currentUser.uid, name: currentUser.displayName!, avatarUrl: currentUser.photoURL! },
-                comments: [],
-                liked: false,
-            } as Post;
             
-            setPosts(prev => [newPostForUI, ...prev]);
-            
-            toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı.', className: 'bg-green-500 text-white' });
+            if (editingPost) { // Update Text Post
+                const postRef = doc(db, 'posts', editingPost.id);
+                await updateDoc(postRef, {
+                    textContent: textContent,
+                    hashtags,
+                    mentions,
+                });
+                
+                setPosts(prev => prev.map(p => p.id === editingPost.id ? {...p, textContent} : p));
+                toast({ title: 'Güncellendi!', description: 'Gönderiniz başarıyla güncellendi.' });
 
+            } else { // Create Text Post
+                const postData = { 
+                  authorId: currentUser.uid,
+                  createdAt: serverTimestamp(),
+                  likes: 0,
+                  commentsCount: 0,
+                  type: 'text',
+                  textContent: textContent,
+                  hashtags: hashtags,
+                  mentions: mentions,
+                  isAiEdited: false,
+                };
+
+                const postRef = await addDoc(collection(db, 'posts'), postData);
+                const docSnap = await getDoc(postRef);
+                if (!docSnap.exists()) throw new Error("Post creation failed in DB");
+                const newPostFromDb = { id: docSnap.id, ...docSnap.data() };
+
+                const newPostForUI: Post = {
+                    ...newPostFromDb,
+                    user: { uid: currentUser.uid, name: currentUser.displayName!, avatarUrl: currentUser.photoURL! },
+                    comments: [],
+                    liked: false,
+                } as Post;
+                
+                setPosts(prev => [newPostForUI, ...prev]);
+                
+                toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı.', className: 'bg-green-500 text-white' });
+            }
         } catch (error) {
             console.error("Error sharing text post: ", error);
             toast({ variant: 'destructive', title: 'Paylaşım Hatası', description: 'Gönderi paylaşılırken bir hata oluştu.' });
@@ -697,6 +765,38 @@ export default function ExplorePage() {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
+                                        {post.authorId === currentUser?.uid ? (
+                                            <>
+                                                <DropdownMenuItem onClick={() => handleEditPost(post)}>
+                                                    <Pencil className="mr-2 h-4 w-4"/>
+                                                    <span>Düzenle</span>
+                                                </DropdownMenuItem>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                            <Trash2 className="mr-2 h-4 w-4"/>
+                                                            <span>Sil</span>
+                                                        </DropdownMenuItem>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Bu işlem geri alınamaz. Bu gönderiyi kalıcı olarak silecektir.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>İptal</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleDeletePost(post)} className={cn(buttonVariants({variant: "destructive"}))}>
+                                                                Sil
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                                <DropdownMenuSeparator />
+                                            </>
+                                        ) : null}
+
                                         <DropdownMenuItem onClick={() => hidePost(post.id)}>
                                             <EyeOff className="mr-2 h-4 w-4"/>
                                             <span>Gönderiyi Gizle</span>
@@ -822,12 +922,12 @@ export default function ExplorePage() {
         </SheetContent>
        </Sheet>
 
-        {/* Create Photo Modal */}
-        <Dialog open={isCreatePhotoModalOpen} onOpenChange={resetCreatePhotoState}>
+        {/* Create or Edit Photo Modal */}
+        <Dialog open={isCreatePhotoModalOpen} onOpenChange={(open) => !open && resetCreatePhotoState()}>
             <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>Fotoğraf Paylaş</DialogTitle>
-                    <DialogDescription>İsteğe bağlı olarak stil ve açıklama ekleyebilirsiniz.</DialogDescription>
+                    <DialogTitle>{editingPost ? "Fotoğrafı Düzenle" : "Fotoğraf Paylaş"}</DialogTitle>
+                    <DialogDescription>{editingPost ? "Açıklamayı veya stili değiştirin." : "İsteğe bağlı olarak stil ve açıklama ekleyebilirsiniz."}</DialogDescription>
                 </DialogHeader>
                 <div className="flex flex-col items-center gap-4 py-4">
                     {imgSrc && ( <Image alt="Preview" src={imgSrc} width={500} height={500} className="max-h-[40vh] object-contain rounded-md" /> )}
@@ -840,15 +940,15 @@ export default function ExplorePage() {
                          />
                     </div>
                     <div className="w-full space-y-2">
-                        <Textarea placeholder="Yapay zeka stili ekle (Örn: bir Van Gogh tablosu gibi yap...)" value={stylePrompt} onChange={(e) => setStylePrompt(e.target.value)} disabled={isPostProcessing || !isPremium} className="min-h-[80px]" />
+                        <Textarea placeholder="Yapay zeka stili ekle (Örn: bir Van Gogh tablosu gibi yap...)" value={stylePrompt} onChange={(e) => setStylePrompt(e.target.value)} disabled={isPostProcessing || !isPremium || !!editingPost} className="min-h-[80px]" />
                         {isPremium ? (
-                            <Button onClick={handleApplyStyle} disabled={isPostProcessing || !stylePrompt} className="w-full" variant="outline">
+                            <Button onClick={handleApplyStyle} disabled={isPostProcessing || !stylePrompt || !!editingPost} className="w-full" variant="outline">
                                 {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Wand2 className="mr-2 h-4 w-4" /> )}
                                 Stil Uygula
                             </Button>
                         ) : (
                             <Link href="/premium" className="w-full">
-                                <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-black" variant="default">
+                                <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-black" variant="default" disabled={!!editingPost}>
                                     <Gem className="mr-2 h-4 w-4" />
                                     AI Düzenleme için Premium'a Yükselt
                                 </Button>
@@ -860,17 +960,17 @@ export default function ExplorePage() {
                     <Button variant="outline" onClick={resetCreatePhotoState}>İptal</Button>
                     <Button onClick={handleSharePhoto} disabled={isPostProcessing}>
                         {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Check className="mr-2 h-4 w-4" /> )}
-                        Paylaş
+                        {editingPost ? "Değişiklikleri Kaydet" : "Paylaş"}
                     </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
         
-        {/* Create Text Modal */}
-        <Dialog open={isCreateTextModalOpen} onOpenChange={resetCreateTextState}>
+        {/* Create or Edit Text Modal */}
+        <Dialog open={isCreateTextModalOpen} onOpenChange={(open) => !open && resetCreateTextState()}>
             <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>Metin Paylaş</DialogTitle>
+                    <DialogTitle>{editingPost ? "Metni Düzenle" : "Metin Paylaş"}</DialogTitle>
                     <DialogDescription>Aklındakileri toplulukla paylaş.</DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
@@ -886,7 +986,7 @@ export default function ExplorePage() {
                     <Button variant="outline" onClick={resetCreateTextState}>İptal</Button>
                     <Button onClick={handleShareTextPost} disabled={isPostProcessing || !textContent.trim()}>
                         {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Check className="mr-2 h-4 w-4" /> )}
-                        Paylaş
+                        {editingPost ? "Değişiklikleri Kaydet" : "Paylaş"}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -1000,3 +1100,5 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    
