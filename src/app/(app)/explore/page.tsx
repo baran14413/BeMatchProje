@@ -793,27 +793,28 @@ export default function ExplorePage() {
                                                         </AlertDialogFooter>
                                                     </AlertDialogContent>
                                                 </AlertDialog>
-                                                <DropdownMenuSeparator />
                                             </>
-                                        ) : null}
-
-                                        <DropdownMenuItem onClick={() => hidePost(post.id)}>
-                                            <EyeOff className="mr-2 h-4 w-4"/>
-                                            <span>Gönderiyi Gizle</span>
-                                        </DropdownMenuItem>
-                                         <DropdownMenuItem onClick={() => hideAllFromUser(post.authorId)}>
-                                            <EyeOff className="mr-2 h-4 w-4"/>
-                                            <span>Bu Kullanıcıdan Gizle</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => blockUser(post.authorId)}>
-                                            <UserX className="mr-2 h-4 w-4"/>
-                                            <span>Kullanıcıyı Engelle</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem>
-                                            <Flag className="mr-2 h-4 w-4"/>
-                                            <span>Gönderiyi Şikayet Et</span>
-                                        </DropdownMenuItem>
+                                        ) : (
+                                            <>
+                                                <DropdownMenuItem onClick={() => hidePost(post.id)}>
+                                                    <EyeOff className="mr-2 h-4 w-4"/>
+                                                    <span>Gönderiyi Gizle</span>
+                                                </DropdownMenuItem>
+                                                 <DropdownMenuItem onClick={() => hideAllFromUser(post.authorId)}>
+                                                    <EyeOff className="mr-2 h-4 w-4"/>
+                                                    <span>Bu Kullanıcıdan Gizle</span>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => blockUser(post.authorId)}>
+                                                    <UserX className="mr-2 h-4 w-4"/>
+                                                    <span>Kullanıcıyı Engelle</span>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem>
+                                                    <Flag className="mr-2 h-4 w-4"/>
+                                                    <span>Gönderiyi Şikayet Et</span>
+                                                </DropdownMenuItem>
+                                            </>
+                                        )}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
@@ -1100,5 +1101,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-    
