@@ -130,9 +130,8 @@ export default function SignupPage() {
       
       // This is a mock liveness check.
       // In a real app, you would use a face verification service.
-      verificationTimeoutRef.current = setTimeout(() => {
-          setVerificationStatus('verified');
-      }, 2000); 
+      // The delay is removed for a faster user experience.
+      setVerificationStatus('verified');
   };
 
   useEffect(() => {
