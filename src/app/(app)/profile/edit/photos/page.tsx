@@ -4,13 +4,15 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Trash2, Grid3x3, List, Heart, MessageSquare, Bookmark, Pencil, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { db, auth, storage } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, getDoc, DocumentData, deleteDoc, orderBy } from 'firebase/firestore';
 import { deleteObject, ref } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { cn } from '@/lib/utils';
 
 
 type Post = {
@@ -39,9 +41,27 @@ const PostCard = ({ post, user, onDelete }: { post: Post, user: DocumentData, on
                     <Button variant="ghost" size="icon" className="h-8 w-8">
                         <Pencil className="w-4 h-4" />
                     </Button>
-                    <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => onDelete(post.id, post.url)}>
-                        <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="icon" className="h-8 w-8">
+                                <Trash2 className="w-4 h-4" />
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Bu işlem geri alınamaz. Bu gönderiyi kalıcı olarak silecektir.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>İptal</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => onDelete(post.id, post.url)} className={cn(buttonVariants({variant: "destructive"}))}>
+                                    Sil
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
             </div>
 
@@ -205,9 +225,27 @@ export default function ManagePhotosPage() {
                                    <Button variant="secondary" size="icon" className="h-9 w-9">
                                        <Pencil className="h-4 w-4" />
                                    </Button>
-                                   <Button variant="destructive" size="icon" className="h-9 w-9" onClick={() => handleDeletePost(post.id, post.url)}>
-                                       <Trash2 className="h-4 w-4" />
-                                   </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="destructive" size="icon" className="h-9 w-9">
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Bu işlem geri alınamaz. Bu gönderiyi kalıcı olarak silecektir.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>İptal</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDeletePost(post.id, post.url)} className={cn(buttonVariants({variant: "destructive"}))}>
+                                                    Sil
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
                             </div>
                         ))}
@@ -223,3 +261,6 @@ export default function ManagePhotosPage() {
         </Card>
     );
 }
+
+
+    

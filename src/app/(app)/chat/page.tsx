@@ -464,8 +464,13 @@ export default function ChatPage() {
             for (const id of ids) {
                 const conversationRef = doc(db, 'conversations', id);
                 if (action === 'delete') {
-                    // Note: This only deletes the conversation doc, not subcollections.
-                    // For a full delete, you'd need a cloud function.
+                    // Delete all messages in the subcollection first
+                    const messagesQuery = query(collection(conversationRef, 'messages'));
+                    const messagesSnapshot = await getDocs(messagesQuery);
+                    messagesSnapshot.forEach(messageDoc => {
+                        batch.delete(messageDoc.ref);
+                    });
+                    // Then delete the conversation document itself
                     batch.delete(conversationRef);
                 } else {
                     const field = action.includes('pin') ? 'pinnedBy' : 'mutedBy';
@@ -482,7 +487,7 @@ export default function ChatPage() {
                 case 'mute': toastMessage = `${ids.length} sohbet sessize alındı.`; break;
                 case 'unmute': toastMessage = `${ids.length} sohbetin sessize alması kaldırıldı.`; break;
                 case 'delete':
-                    toastMessage = `${ids.length} sohbet silindi.`;
+                    toastMessage = `${ids.length} sohbet kalıcı olarak silindi.`;
                      if (activeChat && ids.includes(activeChat.id)) {
                         router.push('/chat');
                     }
@@ -1131,5 +1136,7 @@ export default function ChatPage() {
     </div>
   );
 }
+
+    
 
     
