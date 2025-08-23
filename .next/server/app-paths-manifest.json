@@ -1,3 +1,7 @@
 {
+  "/(app)/chat/page": "app/(app)/chat/page.js",
+  "/(app)/explore/page": "app/(app)/explore/page.js",
+  "/(app)/match/page": "app/(app)/match/page.js",
+  "/(app)/profile/[id]/page": "app/(app)/profile/[id]/page.js",
   "/page": "app/page.js"
 }

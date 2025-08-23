@@ -19,24 +19,56 @@ const formatTime = (seconds: number | undefined) => {
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
+// A simple, static waveform-like SVG for visual flair.
+// In a real-world scenario, this could be generated from the audio data.
+const Waveform = ({ progress, isSender }: { progress: number, isSender: boolean }) => {
+    const bars = Array.from({ length: 30 }, (_, i) => {
+        const height = Math.sin((i / 30) * Math.PI) * 80 + 20; // Simple sine wave for visual effect
+        return { y: (100 - height) / 2, height };
+    });
+    
+    const activeColor = isSender ? 'hsl(var(--primary-foreground))' : 'hsl(var(--primary))';
+    const inactiveColor = isSender ? 'hsla(var(--primary-foreground), 0.4)' : 'hsl(var(--muted-foreground), 0.4)';
+
+    return (
+        <svg width="100%" height="40" viewBox="0 0 150 40" preserveAspectRatio="none" className="w-full h-10">
+        <g>
+            {bars.map((bar, i) => (
+            <rect
+                key={i}
+                x={i * 5}
+                y={bar.y * 0.4}
+                width="2"
+                height={bar.height * 0.4}
+                rx="1"
+                fill={i / bars.length * 100 < progress ? activeColor : inactiveColor}
+                className="transition-colors duration-100"
+            />
+            ))}
+        </g>
+        </svg>
+    );
+};
+
+
 const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ 
     audioUrl, 
     isSender
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const waveformContainerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
-  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
     const handleTimeUpdate = () => {
-        if (audio.duration > 0 && isFinite(audio.duration) && !isDragging) {
+        if (audio.duration > 0 && isFinite(audio.duration)) {
             setProgress((audio.currentTime / audio.duration) * 100);
             setCurrentTime(audio.currentTime);
         }
@@ -65,7 +97,7 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [audioUrl, isDragging]);
+  }, [audioUrl]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -85,32 +117,23 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
     setIsPlaying(!isPlaying);
   };
   
-  const handleSliderChange = (value: number[]) => {
-      const audio = audioRef.current;
-      if (audio && duration > 0) {
-          const newTime = (value[0] / 100) * duration;
-          audio.currentTime = newTime;
-          setCurrentTime(newTime);
-          setProgress(value[0]);
-      }
+  const handleSeek = (event: React.MouseEvent<HTMLDivElement>) => {
+    const audio = audioRef.current;
+    const waveformContainer = waveformContainerRef.current;
+    if (!audio || !waveformContainer || duration === 0) return;
+
+    const rect = waveformContainer.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const percentage = (clickX / rect.width) * 100;
+    
+    const newTime = (percentage / 100) * duration;
+    audio.currentTime = newTime;
+    setCurrentTime(newTime);
+    setProgress(percentage);
   };
 
-  const onSliderCommit = (value: number[]) => {
-    handleSliderChange(value);
-    setIsDragging(false);
-    if (isPlaying && audioRef.current) {
-        audioRef.current.play();
-    }
-  };
-
-  const onSliderValueChange = (value: number[]) => {
-    if (!isDragging) setIsDragging(true);
-    setCurrentTime((value[0] / 100) * duration);
-    setProgress(value[0]);
-  }
-
-
-  const togglePlaybackRate = () => {
+  const togglePlaybackRate = (e: React.MouseEvent) => {
+    e.stopPropagation(); // prevent seek
     const rates = [1, 1.5, 2];
     const currentIndex = rates.indexOf(playbackRate);
     const nextIndex = (currentIndex + 1) % rates.length;
@@ -118,9 +141,6 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
   };
   
   const playerColorClass = isSender ? 'bg-primary text-primary-foreground' : 'bg-card border';
-  const sliderThumbColorClass = isSender ? 'border-primary-foreground' : 'border-primary';
-  const sliderTrackColorClass = isSender ? 'bg-primary-foreground/30' : 'bg-secondary';
-  const sliderRangeColorClass = isSender ? 'bg-primary-foreground' : 'bg-primary';
 
   return (
     <div className={cn('flex w-full items-center gap-2 p-2 rounded-xl', playerColorClass)}>
@@ -137,40 +157,34 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
         {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 fill-current" />}
       </Button>
       
-      <div className="flex-1 flex flex-col gap-1.5">
-         <Slider 
-            value={[progress]} 
-            onValueChange={onSliderValueChange}
-            onPointerDown={() => setIsDragging(true)}
-            onPointerUp={(e) => {
-              if (audioRef.current) {
-                // The slider value is a percentage (0-100), we need to find the point on the bar
-                const slider = e.currentTarget as HTMLSpanElement;
-                const rect = slider.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const newProgress = (x / rect.width) * 100;
-                handleSliderChange([newProgress]);
-              }
-              setIsDragging(false);
-            }}
-            onCommit={onSliderCommit}
-            className="w-full h-2" 
-            thumbClassName={cn("h-3 w-3", sliderThumbColorClass)}
-            trackClassName={sliderTrackColorClass}
-            rangeClassName={sliderRangeColorClass}
-        />
-        <div className="flex justify-between items-center">
+      <div className="flex-1 flex flex-col gap-1 w-full overflow-hidden">
+        <div 
+            ref={waveformContainerRef}
+            className="w-full cursor-pointer"
+            onClick={handleSeek}
+        >
+            <Waveform progress={progress} isSender={isSender} />
+        </div>
+        <div className="flex justify-between items-center px-1">
             <span className="text-xs font-mono opacity-80">
-            {formatTime(currentTime)} / {formatTime(duration)}
+                {formatTime(currentTime)}
             </span>
-             <button
-                onClick={togglePlaybackRate}
-                className="text-xs font-semibold rounded-md px-1.5 py-0.5"
-            >
-                {playbackRate}x
-            </button>
+            <span className="text-xs font-mono opacity-80">
+                {formatTime(duration)}
+            </span>
         </div>
       </div>
+       <Button
+          variant="ghost"
+          size="sm"
+          onClick={togglePlaybackRate}
+          className={cn(
+              "h-8 w-12 rounded-full shrink-0 text-xs font-bold",
+               isSender ? "hover:bg-white/20" : "hover:bg-black/10"
+          )}
+      >
+          {playbackRate}x
+      </Button>
     </div>
   );
 };

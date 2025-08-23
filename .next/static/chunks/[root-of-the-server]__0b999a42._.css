@@ -353,6 +353,10 @@ img {
   visibility: hidden;
 }
 
+.static {
+  position: static;
+}
+
 .fixed {
   position: fixed;
 }
@@ -2527,6 +2531,10 @@ img {
   transition-duration: .3s;
 }
 
+.duration-100 {
+  transition-duration: .1s;
+}
+
 .ease-in-out {
   transition-timing-function: cubic-bezier(.4, 0, .2, 1);
 }
@@ -2573,6 +2581,10 @@ img {
 
 .duration-300 {
   animation-duration: .3s;
+}
+
+.duration-100 {
+  animation-duration: .1s;
 }
 
 .ease-in-out {
