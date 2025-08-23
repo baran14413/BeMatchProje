@@ -93,7 +93,7 @@ export default function TagPage() {
                         return {
                             id: postDoc.id,
                             ...postData,
-                            user: userDocSnap.data()
+                            user: { uid: userDocSnap.id, ...userDocSnap.data() }
                         } as Post;
                     }
                     return null;

@@ -10,19 +10,19 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 210 40% 98%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 200 100% 35%;
+    --primary: 221 83% 53%; /* New Blue */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 0 0% 25.1%;
+    --accent: 210 40% 94%; /* Lighter Accent */
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 221 83% 53%; /* Ring matches new primary */
     --radius: 0.8rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -34,25 +34,25 @@
   }
  
   .dark {
-    --background: 224 71% 4%;
+    --background: 222 47% 11%; /* Darker Blue BG */
     --foreground: 210 40% 98%;
-    --card: 224 71% 8%;
+    --card: 222 47% 14%; /* Slightly lighter card */
     --card-foreground: 210 40% 98%;
     --popover: 224 71% 4%;
     --popover-foreground: 210 40% 98%;
-    --primary: 200 100% 45%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 217 91% 60%; /* Vibrant Blue for Dark Mode */
+    --primary-foreground: 222 47% 11%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 0 0% 50.2%;
+    --accent: 217.2 32.6% 25.5%; /* Darker Accent */
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 217.2 32.6% 17.5%;
+    --ring: 217 91% 60%; /* Ring matches new primary */
   }
 }
 
