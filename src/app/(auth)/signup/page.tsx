@@ -30,6 +30,7 @@ import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { auth, db, storage } from '@/lib/firebase';
 import { cities, districts } from '@/lib/turkey-locations';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 
 const HOBBIES = [
   'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi',
@@ -60,6 +61,7 @@ export default function SignupPage() {
     hobbies: [] as string[],
     password: '',
     confirmPassword: '',
+    bio: '',
     profilePicture: null as string | null,
   });
   
@@ -77,6 +79,8 @@ export default function SignupPage() {
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const bioMaxLength = 250;
   
   const nextStep = async () => {
       if (step === 1) {
@@ -112,7 +116,7 @@ export default function SignupPage() {
     setStep((prev) => prev + 1);
   }
   const prevStep = () => {
-    if (step === 5) {
+    if (step === 6) {
        if (verificationTimeoutRef.current) {
         clearTimeout(verificationTimeoutRef.current);
       }
@@ -130,12 +134,11 @@ export default function SignupPage() {
       
       // This is a mock liveness check.
       // In a real app, you would use a face verification service.
-      // The delay is removed for a faster user experience.
       setVerificationStatus('verified');
   };
 
   useEffect(() => {
-    if (step === 5) {
+    if (step === 6) {
       const getCameraPermission = async () => {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -207,8 +210,11 @@ export default function SignupPage() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
+    if (id === 'bio' && value.length > bioMaxLength) {
+        return;
+    }
     setFormData((prev) => ({ ...prev, [id]: value }));
     if (id === 'password') { checkPasswordStrength(value); }
   };
@@ -304,9 +310,9 @@ export default function SignupPage() {
   const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.username || !formData.email;
   const isStep2Invalid = !formData.age || !formData.gender || !formData.country || !formData.city || !formData.district || formData.hobbies.length < 3;
   const isStep3Invalid = !formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf';
-  // Step 4 is always valid if we allow skipping
-  const isStep4Invalid = false;
-  const isStep5Invalid = verificationStatus !== 'verified';
+  const isStep4Invalid = !formData.bio;
+  const isStep5Invalid = false; // Step 5 is profile picture, can be skipped
+  const isStep6Invalid = verificationStatus !== 'verified';
 
   const isNextButtonDisabled = () => {
     switch (step) {
@@ -314,6 +320,7 @@ export default function SignupPage() {
         case 2: return isStep2Invalid;
         case 3: return isStep3Invalid;
         case 4: return isStep4Invalid;
+        case 5: return isStep5Invalid;
         default: return false;
     }
   };
@@ -337,7 +344,7 @@ export default function SignupPage() {
       }
   }
 
-  const progress = (step / 5) * 100;
+  const progress = (step / 6) * 100;
 
   const getPasswordStrengthColor = () => {
     switch (passwordStrength) {
@@ -363,8 +370,9 @@ export default function SignupPage() {
           {step === 1 && "Adım 1: Kişisel bilgilerinizi girin."}
           {step === 2 && "Adım 2: Sizi daha iyi tanımamıza yardımcı olun."}
           {step === 3 && "Adım 3: Güçlü bir şifre oluşturun."}
-          {step === 4 && "Adım 4: Profil fotoğrafınızı yükleyin."}
-          {step === 5 && "Adım 5: Neredeyse bitti! Son bir onay."}
+          {step === 4 && "Adım 4: Kendinizi tanıtın."}
+          {step === 5 && "Adım 5: Profil fotoğrafınızı yükleyin."}
+          {step === 6 && "Adım 6: Neredeyse bitti! Son bir onay."}
         </CardDescription>
         <Progress value={progress} className="w-full mt-2" />
       </CardHeader>
@@ -478,6 +486,24 @@ export default function SignupPage() {
             </div>
         )}
         {step === 4 && (
+             <div className="space-y-2">
+                <div className="flex justify-between items-baseline">
+                    <Label htmlFor="bio">Hakkımda</Label>
+                    <span className="text-xs text-muted-foreground">
+                        {formData.bio.length} / {bioMaxLength}
+                    </span>
+                </div>
+                <Textarea 
+                    id="bio"
+                    placeholder="Kendinden kısaca bahset..."
+                    value={formData.bio} 
+                    onChange={handleChange}
+                    maxLength={bioMaxLength}
+                    className="min-h-[200px]" 
+                />
+            </div>
+        )}
+        {step === 5 && (
             <div className="flex flex-col items-center gap-4">
               <p className="font-medium text-center">Lütfen profil fotoğrafınızı yükleyin.</p>
               <div
@@ -528,7 +554,7 @@ export default function SignupPage() {
               )}
             </div>
         )}
-        {step === 5 && (
+        {step === 6 && (
             <div className="flex flex-col items-center gap-4">
               <p className="font-medium text-center">Canlılık kontrolü için lütfen kameraya bakın.</p>
                <div className={cn(
@@ -590,14 +616,14 @@ export default function SignupPage() {
                 </Link>
             </div>
         )}
-        {step < 4 ? (
+        {step < 5 ? (
           <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>
-        ) : step === 4 ? (
+        ) : step === 5 ? (
            <div className="flex gap-2">
                 <Button variant="secondary" onClick={handlePhotoSkip}>Bu Adımı Atla</Button>
                 <Button onClick={handleNextPhotoStep} disabled={moderationStatus !== 'safe'}>İleri</Button>
             </div>
-        ) : step === 5 ? (
+        ) : step === 6 ? (
              <Button onClick={handleFinishSignup} disabled={isFinishing || !termsAccepted || verificationStatus !== 'verified'}>
                 {isFinishing && <Loader className="mr-2 h-4 w-4 animate-spin" />}
                 Bitir ve Keşfet

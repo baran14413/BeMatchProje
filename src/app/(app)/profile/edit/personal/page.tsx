@@ -26,7 +26,7 @@ export default function PersonalInfoPage() {
     city: '',
   });
 
-  const bioMaxLength = 150;
+  const bioMaxLength = 250;
 
   useEffect(() => {
     const fetchUserData = async () => {
