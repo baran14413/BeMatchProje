@@ -15,7 +15,7 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { collection, query, where, getDocs, onSnapshot, doc, orderBy, addDoc, serverTimestamp, Timestamp, updateDoc, getDoc, arrayUnion, setDoc, deleteDoc, writeBatch, arrayRemove } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot, doc, orderBy, addDoc, serverTimestamp, Timestamp, updateDoc, getDoc, arrayUnion, setDoc, deleteDoc, writeBatch, arrayRemove, documentId } from 'firebase/firestore';
 import { auth, db, storage } from '@/lib/firebase';
 import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -173,36 +173,52 @@ export default function ChatPage() {
     
     const unsubscribe = onSnapshot(q, async (querySnapshot) => {
         setLoading(true);
-        const convosPromises = querySnapshot.docs.map(async (docSnap) => {
+        if (querySnapshot.empty) {
+            setConversations([]);
+            setLoading(false);
+            return;
+        }
+
+        const otherUserIds = querySnapshot.docs.map(doc => {
+            const users = doc.data().users as string[];
+            return users.find(uid => uid !== currentUser.uid);
+        }).filter((id): id is string => !!id);
+        
+        const usersData: Record<string, UserData> = {};
+        if (otherUserIds.length > 0) {
+            const usersQuery = query(collection(db, 'users'), where(documentId(), 'in', otherUserIds));
+            const usersSnapshot = await getDocs(usersQuery);
+            usersSnapshot.forEach(doc => {
+                usersData[doc.id] = { ...doc.data(), uid: doc.id } as UserData;
+            });
+        }
+        
+        const convos = querySnapshot.docs.map(docSnap => {
             const data = docSnap.data();
             const otherUserId = data.users.find((uid: string) => uid !== currentUser.uid);
             
-            if (otherUserId) {
-                const userDoc = await getDoc(doc(db, 'users', otherUserId));
-                
-                let unreadCount = 0;
-                if (data.lastMessage && data.lastMessage.senderId !== currentUser.uid && !data.lastMessage.readBy?.includes(currentUser.uid)) {
-                   unreadCount = 1; // Simplified: 1 indicates "new messages", not an exact count.
-                }
+            let unreadCount = 0;
+            if (data.lastMessage && data.lastMessage.senderId !== currentUser.uid && !data.lastMessage.readBy?.includes(currentUser.uid)) {
+               unreadCount = 1; // Simplified: 1 indicates "new messages", not an exact count.
+            }
+            
+            const otherUser = otherUserId ? usersData[otherUserId] : null;
 
-                if (userDoc.exists()) {
-                    const userData = userDoc.data() as UserData;
-                    return {
-                        id: docSnap.id,
-                        otherUser: { ...userData, uid: otherUserId },
-                        lastMessage: data.lastMessage || null,
-                        isPinned: data.pinnedBy?.includes(currentUser.uid) || false, 
-                        isMuted: data.mutedBy?.includes(currentUser.uid) || false, 
-                        unreadCount: unreadCount,
-                    } as Conversation;
-                }
+            if (otherUser) {
+                 return {
+                    id: docSnap.id,
+                    otherUser: otherUser,
+                    lastMessage: data.lastMessage || null,
+                    isPinned: data.pinnedBy?.includes(currentUser.uid) || false, 
+                    isMuted: data.mutedBy?.includes(currentUser.uid) || false, 
+                    unreadCount: unreadCount,
+                } as Conversation;
             }
             return null;
-        });
-        
-        let resolvedConvos = (await Promise.all(convosPromises)).filter(c => c !== null) as Conversation[];
-        
-        resolvedConvos.sort((a, b) => {
+
+        }).filter((c): c is Conversation => c !== null);
+
+        convos.sort((a, b) => {
             if (a.isPinned !== b.isPinned) {
                 return a.isPinned ? -1 : 1;
             }
@@ -211,7 +227,7 @@ export default function ChatPage() {
             return timeB - timeA;
         });
 
-        setConversations(resolvedConvos);
+        setConversations(convos);
         setLoading(false);
     }, (error) => {
         console.error("Error fetching conversations: ", error);
@@ -238,31 +254,32 @@ export default function ChatPage() {
     setChatLoading(true);
 
     const convoUnsubscribe = onSnapshot(doc(db, 'conversations', conversationId), async (docSnap) => {
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            const otherUserId = data.users.find((uid: string) => uid !== currentUser.uid);
+        if (!docSnap.exists()) {
+            setActiveChat(null);
+            router.replace('/chat?error=not_found', {scroll: false});
+            return;
+        }
+        
+        const data = docSnap.data();
+        const otherUserId = data.users.find((uid: string) => uid !== currentUser.uid);
 
-            if (otherUserId) {
-                // Listen to the other user's document for real-time status updates
-                const userUnsubscribe = onSnapshot(doc(db, 'users', otherUserId), (userDoc) => {
-                     if (userDoc.exists()) {
-                        const userData = userDoc.data() as UserData;
-                        setActiveChat(prev => ({
-                            ...(prev as Conversation),
-                            id: docSnap.id,
-                            otherUser: { ...userData, uid: otherUserId },
-                            lastMessage: data.lastMessage || null,
-                            isPinned: data.pinnedBy?.includes(currentUser.uid) || false,
-                            isMuted: data.mutedBy?.includes(currentUser.uid) || false,
-                            unreadCount: 0,
-                        }));
-                    }
-                });
-                return () => userUnsubscribe();
-            }
-        } else {
-             setActiveChat(null);
-             router.replace('/chat', {scroll: false});
+        if (otherUserId) {
+            // Listen to the other user's document for real-time status updates
+            const userUnsubscribe = onSnapshot(doc(db, 'users', otherUserId), (userDoc) => {
+                 if (userDoc.exists()) {
+                    const userData = userDoc.data() as UserData;
+                    setActiveChat(prev => ({
+                        ...(prev as Conversation),
+                        id: docSnap.id,
+                        otherUser: { ...userData, uid: otherUserId },
+                        lastMessage: data.lastMessage || null,
+                        isPinned: data.pinnedBy?.includes(currentUser.uid) || false,
+                        isMuted: data.mutedBy?.includes(currentUser.uid) || false,
+                        unreadCount: 0,
+                    }));
+                }
+            });
+            return () => userUnsubscribe();
         }
     }, (error) => {
         console.error("Error fetching active chat details:", error);

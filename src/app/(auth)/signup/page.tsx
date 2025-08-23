@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Camera, AlertTriangle, Loader, Eye, EyeOff, Sparkles, Ban, Upload, ShieldCheck, UserCheck, Check } from 'lucide-react';
+import { Camera, AlertTriangle, Loader2, Eye, EyeOff, Sparkles, Ban, Upload, ShieldCheck, UserCheck, Check } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -120,6 +120,7 @@ export default function SignupPage() {
   const startVerification = () => {
       setVerificationStatus('checking');
       setVerificationError(null);
+      // Simulate verification
       setVerificationStatus('verified');
   };
 
@@ -512,7 +513,7 @@ export default function SignupPage() {
 
               {formData.profilePicture && (
                 <Button onClick={handleModerateImage} disabled={moderationStatus === 'checking'}>
-                  {moderationStatus === 'checking' && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+                  {moderationStatus === 'checking' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {moderationStatus === 'checking' ? 'Denetleniyor...' : 'Fotoğrafı Denetle'}
                 </Button>
               )}
@@ -553,7 +554,7 @@ export default function SignupPage() {
                   )}
                   {verificationStatus === 'checking' && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4">
-                          <Loader className="w-12 h-12 mb-2 animate-spin"/>
+                          <Loader2 className="w-12 h-12 mb-2 animate-spin"/>
                           <p>Doğrulanıyor...</p>
                       </div>
                   )}
@@ -608,7 +609,7 @@ export default function SignupPage() {
             </div>
         ) : step === 6 ? (
              <Button onClick={handleFinishSignup} disabled={isFinishing || !termsAccepted || verificationStatus !== 'verified'}>
-                {isFinishing && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+                {isFinishing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Bitir ve Keşfet
             </Button>
         ) : null}

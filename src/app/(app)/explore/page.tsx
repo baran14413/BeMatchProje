@@ -168,45 +168,57 @@ export default function ExplorePage() {
 
     useEffect(() => {
         const fetchPostsAndAuthors = async () => {
+            if (!currentUser) {
+                setLoading(false);
+                return;
+            }
             setLoading(true);
             try {
                 const postsQuery = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
                 const querySnapshot = await getDocs(postsQuery);
                 const postsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
 
+                if (postsData.length === 0) {
+                    setPosts([]);
+                    setLoading(false);
+                    return;
+                }
+
+                const authorIds = [...new Set(postsData.map(p => p.authorId).filter(id => !!id))];
+                const authorsData: Record<string, User> = {};
+                
+                if(authorIds.length > 0) {
+                    const authorsQuery = query(collection(db, 'users'), where(documentId(), 'in', authorIds));
+                    const authorsSnapshot = await getDocs(authorsQuery);
+                    authorsSnapshot.forEach(doc => {
+                        authorsData[doc.id] = { ...doc.data(), uid: doc.id } as User;
+                    });
+                }
+                
+                const postIds = postsData.map(p => p.id);
+                const likesQuery = query(collection(db, 'posts', postIds[0], 'likes'), where(documentId(), '==', currentUser.uid)); // This is a trick to query subcollections
+                // A better approach would be a user-centric likes collection, but for this scope, we fetch likes for each post individually or skip it on initial load.
+                // For performance, we'll fetch likes individually on click.
+
                 const populatedPosts = await Promise.all(
                     postsData.map(async (post) => {
-                        let authorData: User | undefined = undefined;
                         let isGalleryLocked = false;
-                        let userHasLiked = false;
+                        const authorData = authorsData[post.authorId];
 
-                        if (post.authorId) {
-                            const userDocRef = doc(db, 'users', post.authorId);
-                            const userDocSnap = await getDoc(userDocRef);
-                            if (userDocSnap.exists()) {
-                                authorData = { ...userDocSnap.data(), uid: userDocSnap.id } as User;
-                                
-                                if (post.type === 'photo' && authorData.isGalleryPrivate && post.authorId !== currentUser?.uid) {
-                                     if (currentUser) {
-                                        const permissionDocRef = doc(db, 'users', post.authorId, 'galleryPermissions', currentUser.uid);
-                                        const permissionDocSnap = await getDoc(permissionDocRef);
-                                        if (!permissionDocSnap.exists()) {
-                                            isGalleryLocked = true;
-                                        }
-                                    } else {
-                                        isGalleryLocked = true; 
-                                    }
+                        if (authorData) {
+                            if (post.type === 'photo' && authorData.isGalleryPrivate && post.authorId !== currentUser.uid) {
+                                const permissionDocRef = doc(db, 'users', post.authorId, 'galleryPermissions', currentUser.uid);
+                                const permissionDocSnap = await getDoc(permissionDocRef);
+                                if (!permissionDocSnap.exists()) {
+                                    isGalleryLocked = true;
                                 }
                             }
                         }
                         
-                         if (currentUser) {
-                            const likeDocRef = doc(db, 'posts', post.id, 'likes', currentUser.uid);
-                            const likeDocSnap = await getDoc(likeDocRef);
-                            userHasLiked = likeDocSnap.exists();
-                        }
+                        const likeDocRef = doc(db, 'posts', post.id, 'likes', currentUser.uid);
+                        const likeDocSnap = await getDoc(likeDocRef);
 
-                        return { ...post, user: authorData, comments: [], isGalleryLocked, liked: userHasLiked };
+                        return { ...post, user: authorData, comments: [], isGalleryLocked, liked: likeDocSnap.exists() };
                     })
                 );
 
@@ -224,12 +236,7 @@ export default function ExplorePage() {
             }
         };
 
-        if (currentUser) {
-            fetchPostsAndAuthors();
-        } else {
-            // router.push('/login'); This can cause redirect loops
-            setLoading(false);
-        }
+        fetchPostsAndAuthors();
     }, [toast, currentUser]);
 
     useEffect(() => {
