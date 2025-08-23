@@ -73,6 +73,7 @@ export default function MatchPage() {
                                     <h3 className="text-lg font-bold truncate">{user.name}</h3>
                                     {user.age && <p className="text-base text-muted-foreground">{user.age}</p>}
                                  </div>
+                                 <p className="text-sm text-muted-foreground truncate">@{user.username}</p>
                                  <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                                     {user.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
                                     {user.city && <p className="truncate">{user.city}</p>}

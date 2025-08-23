@@ -29,6 +29,7 @@ import VoiceMessagePlayer from '@/components/ui/voice-message-player';
 type UserData = {
     uid: string;
     name: string;
+    username: string;
     avatarUrl: string;
     isOnline: boolean;
     lastSeen?: Timestamp;
@@ -813,16 +814,18 @@ export default function ChatPage() {
                     <div className="flex-1 overflow-hidden">
                         <div className="flex justify-between items-center">
                             <p className={cn("truncate", convo.unreadCount > 0 && !convo.isMuted ? "font-bold" : "font-semibold")}>{convo.otherUser.name}</p>
-                            <span className="text-xs text-muted-foreground font-mono whitespace-nowrap ml-2">{formatRelativeTime(convo.lastMessage?.timestamp?.toDate() || null)}</span>
+                             <span className="text-xs text-muted-foreground font-mono whitespace-nowrap ml-2">{formatRelativeTime(convo.lastMessage?.timestamp?.toDate() || null)}</span>
                         </div>
-                        <p className={cn("text-sm truncate", convo.unreadCount > 0 && !convo.isMuted ? "font-bold text-foreground" : "text-muted-foreground")}>{convo.lastMessage?.text}</p>
+                        <div className="flex justify-between items-center">
+                             <p className="text-sm text-muted-foreground truncate">@{convo.otherUser.username}</p>
+                             <div className="flex flex-col items-end gap-1 self-start">
+                                {convo.unreadCount > 0 && !convo.isMuted && (
+                                    <Badge className="bg-green-500 text-white w-5 h-5 flex items-center justify-center p-0 text-xs">{convo.unreadCount}</Badge>
+                                )}
+                                {convo.isMuted && <BellOff className="w-4 h-4 text-muted-foreground" />}
+                             </div>
+                        </div>
                     </div>
-                     <div className="flex flex-col items-end gap-1 self-start pt-1">
-                        {convo.unreadCount > 0 && !convo.isMuted && (
-                            <Badge className="bg-green-500 text-white w-5 h-5 flex items-center justify-center p-0 text-xs">{convo.unreadCount}</Badge>
-                        )}
-                        {convo.isMuted && <BellOff className="w-4 h-4 text-muted-foreground" />}
-                     </div>
                     </div>
                 ))
             ) : (
@@ -851,7 +854,7 @@ export default function ChatPage() {
               </Avatar>
               <div className='flex-1'>
                  <h3 className="text-lg font-semibold">{activeChat.otherUser.name}</h3>
-                 {renderOnlineStatus()}
+                 <p className="text-sm text-muted-foreground">@{activeChat.otherUser.username}</p>
               </div>
               <div className='flex items-center gap-2'>
                 <Button variant="ghost" size="icon" className="rounded-full">

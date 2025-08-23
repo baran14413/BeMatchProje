@@ -75,6 +75,7 @@ const HashtagAndMentionRenderer = ({ text }: { text: string }) => {
 type User = {
   uid: string;
   name: string;
+  username: string;
   avatarUrl: string;
   aiHint?: string;
   isGalleryPrivate?: boolean;
@@ -399,7 +400,7 @@ export default function ExplorePage() {
             const newCommentForUI = {
                 ...newCommentData,
                 id: newCommentRef.id,
-                user: { uid: currentUser.uid, name: currentUser.displayName || 'Siz', avatarUrl: currentUser.photoURL || '' },
+                user: { uid: currentUser.uid, name: currentUser.displayName || 'Siz', avatarUrl: currentUser.photoURL || '', username: 'you' },
                 createdAt: new Date(),
                 liked: false,
             };
@@ -659,7 +660,7 @@ export default function ExplorePage() {
                 // UI update with the real data from DB
                 const newPostForUI: Post = {
                     ...newPostFromDb,
-                    user: { uid: currentUser.uid, name: currentUser.displayName!, avatarUrl: currentUser.photoURL! },
+                    user: { uid: currentUser.uid, name: currentUser.displayName!, username: currentUser.email?.split('@')[0] || 'user', avatarUrl: currentUser.photoURL! },
                     comments: [],
                     liked: false,
                 } as Post;
@@ -717,7 +718,7 @@ export default function ExplorePage() {
 
                 const newPostForUI: Post = {
                     ...newPostFromDb,
-                    user: { uid: currentUser.uid, name: currentUser.displayName!, avatarUrl: currentUser.photoURL! },
+                    user: { uid: currentUser.uid, name: currentUser.displayName!, username: currentUser.email?.split('@')[0] || 'user', avatarUrl: currentUser.photoURL! },
                     comments: [],
                     liked: false,
                 } as Post;
@@ -750,18 +751,13 @@ export default function ExplorePage() {
                     <CardContent className="p-0">
                         <div className="flex items-center justify-between gap-3 p-3">
                             <Link href={`/profile/${post.authorId}`} className="flex items-center gap-3 flex-1 overflow-hidden">
-                                <Avatar className="w-8 h-8">
+                                <Avatar className="w-10 h-10">
                                 <AvatarImage src={post.user?.avatarUrl} data-ai-hint={post.user?.aiHint} />
                                 <AvatarFallback>{post.user?.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex flex-col overflow-hidden">
                                     <span className="font-semibold text-sm truncate">{post.user?.name}</span>
-                                    {post.isAiEdited && (
-                                        <Badge variant="outline" className="text-xs w-fit text-purple-500 border-purple-300">
-                                            <Sparkles className="w-3 h-3 mr-1"/>
-                                            BeAI ile düzenlendi
-                                        </Badge>
-                                    )}
+                                    <span className="text-xs text-muted-foreground truncate">@{post.user?.username}</span>
                                 </div>
                             </Link>
                             <div className="ml-auto">

@@ -435,6 +435,7 @@ export default function UserProfilePage() {
                  <h1 className="text-lg font-bold">{userProfile.name}</h1>
                  {userProfile.isPremium && <Crown className="w-5 h-5 text-yellow-500" />}
             </div>
+             <p className="text-muted-foreground text-sm">@{userProfile.username}</p>
             <div className="flex items-center gap-1.5 mt-1">
                 <ShieldCheck className="w-4 h-4 text-green-500" />
                 <p className="text-xs font-medium text-green-600">Doğrulanmış Profil</p>
