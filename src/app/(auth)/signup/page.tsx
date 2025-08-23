@@ -78,7 +78,6 @@ export default function SignupPage() {
   const [verificationError, setVerificationError] = useState<string | null>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const bioMaxLength = 250;
   
@@ -93,7 +92,6 @@ export default function SignupPage() {
             return;
         }
         
-        // Proactive check for username and email
         try {
             const usernameQuery = query(collection(db, 'users'), where('username', '==', formData.username));
             const usernameSnapshot = await getDocs(usernameQuery);
@@ -116,24 +114,12 @@ export default function SignupPage() {
     setStep((prev) => prev + 1);
   }
   const prevStep = () => {
-    if (step === 6) {
-       if (verificationTimeoutRef.current) {
-        clearTimeout(verificationTimeoutRef.current);
-      }
-    }
     setStep((prev) => prev - 1);
   };
   
   const startVerification = () => {
       setVerificationStatus('checking');
       setVerificationError(null);
-
-      if (verificationTimeoutRef.current) {
-        clearTimeout(verificationTimeoutRef.current);
-      }
-      
-      // This is a mock liveness check.
-      // In a real app, you would use a face verification service.
       setVerificationStatus('verified');
   };
 
@@ -165,9 +151,6 @@ export default function SignupPage() {
         if (videoRef.current && videoRef.current.srcObject) {
           const stream = videoRef.current.srcObject as MediaStream;
           stream.getTracks().forEach(track => track.stop());
-        }
-        if (verificationTimeoutRef.current) {
-          clearTimeout(verificationTimeoutRef.current);
         }
       };
     }

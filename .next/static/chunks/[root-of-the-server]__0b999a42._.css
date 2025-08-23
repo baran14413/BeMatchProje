@@ -877,6 +877,10 @@ img {
   min-height: 150px;
 }
 
+.min-h-\[200px\] {
+  min-height: 200px;
+}
+
 .min-h-\[400px\] {
   min-height: 400px;
 }
@@ -899,10 +903,6 @@ img {
 
 .min-h-svh {
   min-height: 100svh;
-}
-
-.min-h-\[200px\] {
-  min-height: 200px;
 }
 
 .w-0 {

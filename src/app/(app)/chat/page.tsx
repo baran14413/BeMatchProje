@@ -182,19 +182,7 @@ export default function ChatPage() {
                 
                 let unreadCount = 0;
                 if (data.lastMessage && data.lastMessage.senderId !== currentUser.uid && !data.lastMessage.readBy?.includes(currentUser.uid)) {
-                   // This is a simplified client-side unread count. For a large-scale app, a Cloud Function to manage a dedicated counter field would be better.
-                   // The logic for fetching all messages can be performance-intensive. We'll rely on the lastMessage check for the badge for now,
-                   // and a more accurate count can be fetched when a conversation is active.
-                   const messagesCollection = collection(db, 'conversations', docSnap.id, 'messages');
-                   const unreadQuery = query(messagesCollection, where('senderId', '==', otherUserId), where('readBy', 'array-contains-any', [currentUser.uid]));
-                   
-                   try {
-                       const unreadMessagesSnapshot = await getDocs(query(messagesCollection, where('senderId', '==', otherUserId)));
-                       unreadCount = unreadMessagesSnapshot.docs.filter(doc => !doc.data().readBy?.includes(currentUser.uid)).length;
-                   } catch(e) {
-                        console.warn("Could not accurately calculate unread count.", e);
-                        unreadCount = 1; // Fallback
-                   }
+                   unreadCount = 1; // Simplified: 1 indicates "new messages", not an exact count.
                 }
 
                 if (userDoc.exists()) {
@@ -1136,7 +1124,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
-    
-
-    
