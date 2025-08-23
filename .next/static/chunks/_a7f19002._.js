@@ -385,6 +385,17 @@ function MatchPage() {
                                             lineNumber: 72,
                                             columnNumber: 34
                                         }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                            className: "text-sm text-muted-foreground truncate",
+                                            children: [
+                                                "@",
+                                                user.username
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/app/(app)/match/page.tsx",
+                                            lineNumber: 76,
+                                            columnNumber: 34
+                                        }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             className: "flex items-center gap-2 mt-1 text-sm text-muted-foreground",
                                             children: [
@@ -392,7 +403,7 @@ function MatchPage() {
                                                     className: "w-4 h-4 text-yellow-500"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                    lineNumber: 77,
+                                                    lineNumber: 78,
                                                     columnNumber: 56
                                                 }, this),
                                                 user.city && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -400,13 +411,13 @@ function MatchPage() {
                                                     children: user.city
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                    lineNumber: 78,
+                                                    lineNumber: 79,
                                                     columnNumber: 51
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/match/page.tsx",
-                                            lineNumber: 76,
+                                            lineNumber: 77,
                                             columnNumber: 34
                                         }, this)
                                     ]
@@ -443,7 +454,7 @@ function MatchPage() {
                     children: "Görünüşe Göre Etrafta Kimse Kalmadı"
                 }, void 0, false, {
                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                    lineNumber: 88,
+                    lineNumber: 89,
                     columnNumber: 17
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -451,13 +462,13 @@ function MatchPage() {
                     children: "Daha fazla kişi görmek için daha sonra tekrar kontrol et."
                 }, void 0, false, {
                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                    lineNumber: 89,
+                    lineNumber: 90,
                     columnNumber: 17
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/(app)/match/page.tsx",
-            lineNumber: 87,
+            lineNumber: 88,
             columnNumber: 13
         }, this)
     }, void 0, false, {

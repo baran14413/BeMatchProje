@@ -11,7 +11,7 @@ import { useNetworkStatus } from '@/hooks/use-network-status';
 import { NetworkStatusBanner } from '@/components/ui/network-status-banner';
 import { auth, db } from '@/lib/firebase';
 import type { User as FirebaseUser } from 'firebase/auth';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/firestore';
 
 
 const NavButton = ({ href, icon, srText, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, hasNotification?: boolean }) => {
@@ -35,13 +35,23 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { isOnline, isPoorConnection } = useNetworkStatus();
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<{username?: string} | null>(null);
 
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
 
   useEffect(() => {
-    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+    const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
       setCurrentUser(user);
+      if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          setCurrentUserProfile(userDocSnap.data());
+        }
+      } else {
+        setCurrentUserProfile(null);
+      }
     });
     return () => unsubscribeAuth();
   }, []);
@@ -156,8 +166,8 @@ function LayoutContent({ children }: { children: ReactNode }) {
                     <NavButton href="/search" icon={<Search className="h-5 w-5" />} srText="Ara" />
                     <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
                     <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
-                    {currentUser && (
-                        <Link href={`/profile/${currentUser.uid}`}>
+                    {currentUser && currentUserProfile?.username && (
+                        <Link href={`/profile/${currentUserProfile.username}`}>
                             <Button variant="ghost" size="icon" className="relative rounded-full">
                                 <User className="h-5 w-5" />
                                 <span className="sr-only">Profil</span>
@@ -206,3 +216,4 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
+

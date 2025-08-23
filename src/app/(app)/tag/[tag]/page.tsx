@@ -138,7 +138,7 @@ export default function TagPage() {
                         <Card key={post.id} className="w-full rounded-none md:rounded-xl overflow-hidden shadow-none border-0 md:border-b mb-4">
                             <CardContent className="p-0">
                                 <div className="flex items-center justify-between gap-3 p-3">
-                                    <Link href={`/profile/${post.authorId}`} className="flex items-center gap-3">
+                                    <Link href={`/profile/${post.user?.username}`} className="flex items-center gap-3">
                                         <Avatar className="w-8 h-8">
                                             <AvatarImage src={post.user?.avatarUrl} />
                                             <AvatarFallback>{post.user?.name?.charAt(0)}</AvatarFallback>
@@ -174,13 +174,13 @@ export default function TagPage() {
                                     <span className="font-semibold text-sm">{post.likes.toLocaleString()} beğeni</span>
                                     {post.caption && (
                                         <div className='text-sm mt-1 whitespace-pre-wrap break-words'>
-                                            <Link href={`/profile/${post.authorId}`} className="font-semibold mr-1">{post.user?.name}</Link>
+                                            <Link href={`/profile/${post.user?.username}`} className="font-semibold mr-1">{post.user?.name}</Link>
                                             <HashtagAndMentionRenderer text={post.caption} />
                                         </div>
                                     )}
                                      {post.type === 'text' && (
                                         <div className='text-sm mt-1 whitespace-pre-wrap break-words'>
-                                             <Link href={`/profile/${post.authorId}`} className="font-semibold mr-1">{post.user?.name}</Link>
+                                             <Link href={`/profile/${post.user?.username}`} className="font-semibold mr-1">{post.user?.name}</Link>
                                             <HashtagAndMentionRenderer text={post.textContent || ''} />
                                         </div>
                                     )}
@@ -197,3 +197,4 @@ export default function TagPage() {
         </div>
     );
 }
+

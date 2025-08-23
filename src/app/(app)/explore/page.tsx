@@ -6,8 +6,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin, ArrowLeft } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -32,7 +31,6 @@ import { getDownloadURL, ref, uploadString, deleteObject } from 'firebase/storag
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
-import { Textarea } from '@/components/ui/textarea';
 import { MentionTextarea } from '@/components/ui/mention-textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
@@ -51,7 +49,7 @@ const HashtagAndMentionRenderer = ({ text }: { text: string }) => {
     if (!text) return null;
     const parts = text.split(/([#@]\w+)/g);
     return (
-        <React.Fragment>
+        <>
             {parts.map((part, i) => {
                 if (part.startsWith('#')) {
                     return (
@@ -67,9 +65,9 @@ const HashtagAndMentionRenderer = ({ text }: { text: string }) => {
                         </Link>
                     );
                 }
-                return part;
+                return <React.Fragment key={i}>{part}</React.Fragment>;
             })}
-        </React.Fragment>
+        </>
     );
 };
 
@@ -193,7 +191,7 @@ export default function ExplorePage() {
                 const authorsData: Record<string, User> = {};
                 
                 if(authorIds.length > 0) {
-                    const authorsQuery = query(collection(db, 'users'), where(documentId(), 'in', authorIds));
+                    const authorsQuery = query(collection(db, 'users'), where('uid', 'in', authorIds));
                     const authorsSnapshot = await getDocs(authorsQuery);
                     authorsSnapshot.forEach(doc => {
                         authorsData[doc.id] = { ...doc.data(), uid: doc.id } as User;
@@ -201,7 +199,6 @@ export default function ExplorePage() {
                 }
                 
                 const postIds = postsData.map(p => p.id);
-                const likesQuery = query(collection(db, 'posts', postIds[0], 'likes'), where(documentId(), '==', currentUser.uid)); // This is a trick to query subcollections
                 // A better approach would be a user-centric likes collection, but for this scope, we fetch likes for each post individually or skip it on initial load.
                 // For performance, we'll fetch likes individually on click.
 
@@ -404,7 +401,7 @@ export default function ExplorePage() {
             const newCommentForUI = {
                 ...newCommentData,
                 id: newCommentRef.id,
-                user: { uid: currentUser.uid, name: currentUser.displayName || 'Siz', avatarUrl: currentUser.photoURL || '', username: 'you' },
+                user: { uid: currentUser.uid, name: currentUser.displayName || 'Siz', avatarUrl: currentUser.photoURL || '', username: currentUser.email?.split('@')[0] || 'user' },
                 createdAt: new Date(),
                 liked: false,
             };
@@ -772,7 +769,7 @@ export default function ExplorePage() {
                 <Card className="w-full rounded-none md:rounded-xl overflow-hidden shadow-none border-0 md:border-b">
                     <CardContent className="p-0">
                         <div className="flex items-center justify-between gap-3 p-3">
-                            <Link href={`/profile/${post.authorId}`} className="flex items-center gap-3 flex-1 overflow-hidden">
+                            <Link href={`/profile/${post.user?.username}`} className="flex items-center gap-3 flex-1 overflow-hidden">
                                 <Avatar className="w-10 h-10">
                                 <AvatarImage src={post.user?.avatarUrl} data-ai-hint={post.user?.aiHint} />
                                 <AvatarFallback>{post.user?.name.charAt(0)}</AvatarFallback>
@@ -866,7 +863,7 @@ export default function ExplorePage() {
                                      <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center text-white p-4">
                                         <Lock className="w-10 h-10 mb-4"/>
                                         <h3 className="font-bold">Bu Galeri Gizli</h3>
-                                        <Link href={`/profile/${post.authorId}`} className='mt-4'>
+                                        <Link href={`/profile/${post.user?.username}`} className='mt-4'>
                                             <Button variant="secondary">
                                                 Galeriyi görmek için izin iste
                                             </Button>
@@ -911,7 +908,7 @@ export default function ExplorePage() {
                              <span className="font-semibold cursor-pointer" onClick={() => handleOpenLikes(post.id)}>{post.likes.toLocaleString()} beğeni</span>
                             {post.type === 'photo' && post.caption && !post.isGalleryLocked && (
                                  <div className="whitespace-pre-wrap break-words">
-                                    <Link href={`/profile/${post.authorId}`} className="font-semibold mr-1">{post.user?.name}</Link>
+                                    <Link href={`/profile/${post.user?.username}`} className="font-semibold mr-1">{post.user?.name}</Link>
                                     <HashtagAndMentionRenderer text={post.caption} />
                                  </div>
                             )}
@@ -957,18 +954,16 @@ export default function ExplorePage() {
 
         {/* Create or Edit Photo Modal */}
        <Dialog open={isCreatePhotoModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
-            <DialogContent className="max-w-4xl w-full h-full sm:h-auto sm:max-h-[90vh] p-0 flex flex-col sm:flex-row sm:rounded-2xl">
-                <DialogHeader className="p-4 flex-row items-center justify-between border-b sm:hidden">
-                    <DialogClose asChild>
-                        <Button variant="ghost" size="icon"><XIcon/></Button>
-                    </DialogClose>
+            <DialogContent className="max-w-4xl w-full h-full sm:h-auto sm:max-h-[90vh] p-0 flex flex-col sm:flex-row sm:rounded-2xl data-[state=open]:h-screen sm:data-[state=open]:h-auto">
+                <DialogHeader className="p-2 flex-row items-center justify-between border-b sm:hidden">
+                    <Button variant="ghost" size="icon" onClick={resetCreateState}><ArrowLeft/></Button>
                     <DialogTitle className="text-base font-semibold">{editingPost ? "Gönderiyi Düzenle" : "Yeni Gönderi"}</DialogTitle>
                     <Button variant="link" onClick={handleSharePost} disabled={isPostProcessing} className="p-0 h-auto">
                         {isPostProcessing ? <Loader2 className="h-5 w-5 animate-spin"/> : "Paylaş" }
                     </Button>
                 </DialogHeader>
 
-                <div className='flex-1 sm:flex-[2] bg-black flex items-center justify-center sm:rounded-l-2xl overflow-hidden'>
+                <div className='flex-1 bg-black flex items-center justify-center sm:rounded-l-2xl overflow-hidden'>
                      {imgSrc ? (
                         <Image alt="Preview" src={imgSrc} width={800} height={800} className="w-full h-auto object-contain max-h-full" />
                      ) : (
@@ -1010,7 +1005,7 @@ export default function ExplorePage() {
                             {isPremium ? (
                                 <div className="space-y-2">
                                     <Label className="text-xs text-muted-foreground">Yapay Zeka Stil</Label>
-                                    <Textarea placeholder="Örn: bir Van Gogh tablosu gibi yap..." value={stylePrompt} onChange={(e) => setStylePrompt(e.target.value)} disabled={isPostProcessing || !!editingPost} className="min-h-[60px]" />
+                                    <MentionTextarea placeholder="Örn: bir Van Gogh tablosu gibi yap..." value={stylePrompt} setValue={setStylePrompt} disabled={isPostProcessing || !!editingPost} className="min-h-[60px]" />
                                     <Button onClick={handleApplyStyle} disabled={isPostProcessing || !stylePrompt || !!editingPost} className="w-full" variant="outline">
                                         {isPostProcessing && imgSrc !== originalImgSrc ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Wand2 className="mr-2 h-4 w-4" /> )}
                                         Stil Uygula
@@ -1082,7 +1077,7 @@ export default function ExplorePage() {
                        ) : activePostForComments && activePostForComments.comments.length > 0 ? (
                             activePostForComments.comments.map(comment => (
                                 <div key={comment.id} className="flex items-start gap-3">
-                                    <Link href={`/profile/${comment.authorId}`}>
+                                    <Link href={`/profile/${comment.user?.username}`}>
                                         <Avatar className="w-8 h-8">
                                             <AvatarImage src={comment.user?.avatarUrl} data-ai-hint={comment.user?.aiHint} />
                                             <AvatarFallback>{comment.user?.name.charAt(0)}</AvatarFallback>
@@ -1090,13 +1085,13 @@ export default function ExplorePage() {
                                     </Link>
                                     <div className="flex-1 text-sm">
                                         <div className="flex items-baseline gap-2">
-                                            <Link href={`/profile/${comment.authorId}`} className="font-semibold">{comment.user?.name}</Link>
+                                            <Link href={`/profile/${comment.user?.username}`} className="font-semibold">{comment.user?.name}</Link>
                                             <span className="text-xs text-muted-foreground font-mono">{comment.createdAt ? formatRelativeTime(comment.createdAt) : ''}</span>
                                         </div>
                                         
-                                        <p className="mt-1">{comment.text}</p>
+                                        <p className="mt-1"><HashtagAndMentionRenderer text={comment.text}/></p>
                                         <div className="flex gap-4 text-xs text-muted-foreground mt-2 items-center">
-                                            <span className="cursor-pointer hover:underline" onClick={() => handleReply(comment.user!.name)}>Yanıtla</span>
+                                            <span className="cursor-pointer hover:underline" onClick={() => handleReply(comment.user!.username)}>Yanıtla</span>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center gap-0.5">
@@ -1156,7 +1151,7 @@ export default function ExplorePage() {
                     ) : likers.length > 0 ? (
                         <div className="space-y-4">
                             {likers.map(user => (
-                                <Link key={user.uid} href={`/profile/${user.uid}`} className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-muted" onClick={() => setIsLikesDialogVisible(false)}>
+                                <Link key={user.uid} href={`/profile/${user.username}`} className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-muted" onClick={() => setIsLikesDialogVisible(false)}>
                                     <Avatar>
                                         <AvatarImage src={user.avatarUrl} data-ai-hint={user.name} />
                                         <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
@@ -1176,3 +1171,4 @@ export default function ExplorePage() {
     </div>
   );
 }
+

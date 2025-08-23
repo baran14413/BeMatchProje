@@ -3000,6 +3000,10 @@ img {
   pointer-events: none;
 }
 
+.data-\[state\=open\]\:h-screen[data-state="open"] {
+  height: 100vh;
+}
+
 .data-\[side\=bottom\]\:translate-y-1[data-side="bottom"] {
   --tw-translate-y: .25rem;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
@@ -3535,6 +3539,10 @@ img {
     --tw-shadow: 0 1px 2px 0 #0000000d;
     --tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color);
     box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+  }
+
+  .sm\:data-\[state\=open\]\:h-auto[data-state="open"] {
+    height: auto;
   }
 
   .data-\[state\=open\]\:sm\:slide-in-from-bottom-full[data-state="open"] {

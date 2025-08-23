@@ -45,8 +45,7 @@ export const useUserSuggestions = (rawQuery: string | null) => {
             });
         };
 
-      // If the user has typed something after '@', search by name and username
-      if (debouncedQuery.length > 0) {
+      // Search by name and username based on the query
         const nameQuery = query(
           collection(db, 'users'),
           orderBy('name'),
@@ -69,37 +68,7 @@ export const useUserSuggestions = (rawQuery: string | null) => {
 
         processDocs(nameSnapshot.docs, uniqueUsers);
         processDocs(usernameSnapshot.docs, uniqueUsers);
-
-      } else {
-         // If query is empty (just '@'), fetch followers and following
-         const followingQuery = query(collection(db, 'users', currentUser.uid, 'following'), limit(10));
-         const followersQuery = query(collection(db, 'users', currentUser.uid, 'followers'), limit(10));
-
-         const [followingSnapshot, followersSnapshot] = await Promise.all([
-             getDocs(followingQuery),
-             getDocs(followersQuery),
-         ]);
-         
-         const followingIds = followingSnapshot.docs.map(doc => doc.id);
-         const followerIds = followersSnapshot.docs.map(doc => doc.id);
-
-         // Combine and get unique IDs
-         const suggestionIds = [...new Set([...followingIds, ...followerIds])];
-
-         if (suggestionIds.length > 0) {
-             // Firestore 'in' query is limited to 30 elements. Chunk if necessary.
-             const userChunks: Promise<DocumentData[]>[] = [];
-             for (let i = 0; i < suggestionIds.length; i += 10) {
-                 const chunk = suggestionIds.slice(i, i + 10);
-                 const usersQuery = query(collection(db, 'users'), where('uid', 'in', chunk));
-                 userChunks.push(getDocs(usersQuery).then(snapshot => snapshot.docs));
-             }
-             
-             const chunkResults = await Promise.all(userChunks);
-             chunkResults.forEach(docs => processDocs(docs, uniqueUsers));
-         }
-      }
-
+      
       setSuggestions(Array.from(uniqueUsers.values()));
 
     } catch (error) {
@@ -115,3 +84,4 @@ export const useUserSuggestions = (rawQuery: string | null) => {
 
   return { suggestions, loading };
 };
+

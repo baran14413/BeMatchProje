@@ -59,7 +59,7 @@ export default function MatchPage() {
         ) : users.length > 0 ? (
              <div className="flex flex-col gap-3">
                 {users.map((user) => (
-                <Link href={`/profile/${user.id}`} key={user.id} className="block group">
+                <Link href={`/profile/${user.username}`} key={user.id} className="block group">
                     <Card className="w-full rounded-xl overflow-hidden transition-all duration-200 ease-in-out hover:bg-muted/50 hover:shadow-md">
                         <div className="flex items-center p-4 gap-4">
                             <Avatar className="w-16 h-16 border-2 border-primary/50">
@@ -93,3 +93,4 @@ export default function MatchPage() {
     </div>
   );
 }
+
