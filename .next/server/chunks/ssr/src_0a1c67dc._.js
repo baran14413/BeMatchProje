@@ -1967,16 +1967,9 @@ function ExplorePage() {
         navigator.geolocation.getCurrentPosition(async (position)=>{
             try {
                 const { latitude, longitude } = position.coords;
-                const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-                if (!GOOGLE_MAPS_API_KEY) {
-                    console.error("Google Maps API key is not configured on the client.");
-                    toast({
-                        variant: 'destructive',
-                        title: 'API Anahtarı Eksik',
-                        description: 'Geliştirici, konum servisi için API anahtarını yapılandırmamış.'
-                    });
-                    setLocation('Konum Alınamadı');
-                    return;
+                const GOOGLE_MAPS_API_KEY = ("TURBOPACK compile-time value", "AIzaSyA2AdByD8JOJEX04fzL6HMWkBR86I5SGCU");
+                if ("TURBOPACK compile-time falsy", 0) {
+                    "TURBOPACK unreachable";
                 }
                 const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}&language=tr&result_type=administrative_area_level_2|locality`;
                 const response = await fetch(url);

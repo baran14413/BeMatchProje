@@ -49,10 +49,10 @@ export const MentionTextarea: React.FC<MentionTextareaProps> = ({
       if (cursorPos === null) return;
       
       const textBeforeCursor = value.substring(0, cursorPos);
-      const mentionMatch = textBeforeCursor.match(/(?:\s|^)@(\w*)$/);
+      const mentionMatch = textBeforeCursor.match(/(?:\s|^)([@#])(\w*)$/);
       
       if (mentionMatch) {
-        setMentionQuery(mentionMatch[1]);
+        setMentionQuery(mentionMatch[2]);
         setShowSuggestions(true);
       } else {
         setMentionQuery(null);
@@ -71,11 +71,13 @@ export const MentionTextarea: React.FC<MentionTextareaProps> = ({
      if (cursorPos === null) return;
      
     const textBeforeCursor = value.substring(0, cursorPos);
-    const mentionMatch = textBeforeCursor.match(/(?:\s|^)@(\w*)$/);
+    const mentionMatch = textBeforeCursor.match(/(?:\s|^)([@#])(\w*)$/);
+
 
     if (mentionMatch) {
+      const mentionChar = mentionMatch[1]; // @ or #
       const startIndex = mentionMatch.index === 0 ? 0 : (mentionMatch.index || 0) + 1;
-      const newValue = `${value.substring(0, startIndex)}@${username} ${value.substring(cursorPos)}`;
+      const newValue = `${value.substring(0, startIndex)}${mentionChar}${username} ${value.substring(cursorPos)}`;
       setValue(newValue);
       
       // Move cursor after the inserted username
@@ -122,7 +124,7 @@ export const MentionTextarea: React.FC<MentionTextareaProps> = ({
                         />
                     ))
                  ) : (
-                    <p className='p-2 text-sm text-center text-muted-foreground'>Kullanıcı bulunamadı.</p>
+                    <p className='p-2 text-sm text-center text-muted-foreground'>Sonuç bulunamadı.</p>
                  )}
             </UserSuggestionList>
         </div>

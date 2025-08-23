@@ -610,63 +610,65 @@ export default function ExplorePage() {
     };
 
     const handleFetchLocation = () => {
-      if (!navigator.geolocation) {
-        toast({ variant: 'destructive', title: 'Konum Desteklenmiyor', description: 'Tarayıcınız konum servisini desteklemiyor.' });
-        return;
-      }
-      setIsFetchingLocation(true);
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const { latitude, longitude } = position.coords;
-            const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-            if (!GOOGLE_MAPS_API_KEY) {
-              console.error("Google Maps API key is not configured on the client.");
-              toast({ variant: 'destructive', title: 'API Anahtarı Eksik', description: 'Geliştirici, konum servisi için API anahtarını yapılandırmamış.' });
-              setLocation('Konum Alınamadı');
-              return;
-            }
-
-            const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}&language=tr&result_type=administrative_area_level_2|locality`;
-            const response = await fetch(url);
-            const data = await response.json();
-
-            if (data.status !== 'OK' || !data.results || data.results.length === 0) {
-              throw new Error(`Adres bulunamadı: ${data.status}`);
-            }
-
-            const cityComponent = data.results[0].address_components.find(
-              (c: any) => c.types.includes('administrative_area_level_1')
-            );
-            const districtComponent = data.results[0].address_components.find(
-              (c: any) => c.types.includes('administrative_area_level_2') || c.types.includes('locality')
-            );
-            
-            const city = cityComponent ? cityComponent.long_name : null;
-            const district = districtComponent ? districtComponent.long_name : null;
-
-            if (city && district && city !== district) {
-              setLocation(`${city}, ${district}`);
-            } else if (city) {
-              setLocation(city);
-            } else {
-              setLocation('Bilinmeyen Konum');
-            }
-
-          } catch (e: any) {
-            console.error("Error fetching location:", e);
-            toast({ variant: 'destructive', title: 'Konum Hatası', description: 'Adres bilgisi alınamadı.' });
-            setLocation('');
-          } finally {
-            setIsFetchingLocation(false);
-          }
-        },
-        (error) => {
-          toast({ variant: 'destructive', title: 'Konum İzni Reddedildi', description: 'Konum eklemek için tarayıcı ayarlarından izin vermeniz gerekiyor.' });
-          setIsFetchingLocation(false);
+        if (!navigator.geolocation) {
+            toast({ variant: 'destructive', title: 'Konum Desteklenmiyor' });
+            return;
         }
-      );
+        setIsFetchingLocation(true);
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+                const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+                if (!GOOGLE_MAPS_API_KEY) {
+                    console.error("Google Maps API key is not configured on the client.");
+                    toast({ variant: 'destructive', title: 'API Anahtarı Eksik', description: 'Geliştirici, konum servisi için API anahtarını yapılandırmamış.' });
+                    setLocation('Bilinmeyen Konum');
+                    setIsFetchingLocation(false);
+                    return;
+                }
+
+                try {
+                    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}&language=tr&result_type=administrative_area_level_1|administrative_area_level_2`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    if (data.status !== 'OK' || !data.results || data.results.length === 0) {
+                        throw new Error(`Adres bulunamadı: ${data.status}`);
+                    }
+                    
+                    const cityComponent = data.results[0].address_components.find(
+                        (c: any) => c.types.includes('administrative_area_level_1')
+                    );
+                    const districtComponent = data.results[0].address_components.find(
+                        (c: any) => c.types.includes('administrative_area_level_2') || c.types.includes('locality')
+                    );
+
+                    const city = cityComponent ? cityComponent.long_name : null;
+                    const district = districtComponent ? districtComponent.long_name : null;
+
+                    if (district && city && city !== district) {
+                        setLocation(`${district}, ${city}`);
+                    } else if (city) {
+                        setLocation(city);
+                    } else if (district) {
+                         setLocation(district);
+                    } else {
+                        setLocation('Bilinmeyen Konum');
+                    }
+                } catch (e: any) {
+                    console.error("Error fetching location:", e);
+                    toast({ variant: 'destructive', title: 'Konum Hatası', description: 'Adres bilgisi alınamadı.' });
+                    setLocation('');
+                } finally {
+                    setIsFetchingLocation(false);
+                }
+            },
+            (error) => {
+                toast({ variant: 'destructive', title: 'Konum İzni Reddedildi', description: 'Konum eklemek için tarayıcı ayarlarından izin vermeniz gerekiyor.' });
+                setIsFetchingLocation(false);
+            }
+        );
     };
 
     const handleSharePost = async () => {
@@ -954,52 +956,62 @@ export default function ExplorePage() {
 
         {/* Create or Edit Photo Modal */}
         <Dialog open={isCreatePhotoModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
-            <DialogContent className="sm:max-w-lg p-0">
-                <DialogHeader className="p-6 pb-0">
-                    <DialogTitle>{editingPost ? "Fotoğrafı Düzenle" : "Yeni Fotoğraf Gönderisi"}</DialogTitle>
-                </DialogHeader>
-                <div className="flex flex-col">
-                    {imgSrc && ( <Image alt="Preview" src={imgSrc} width={500} height={500} className="w-full h-auto max-h-[50vh] object-contain border-y" /> )}
-                    
-                    <div className='p-6 space-y-4'>
-                        <MentionTextarea 
-                            placeholder="Gönderin için bir şeyler yaz... #güzelbirgün @kullanici" 
-                            value={caption} 
-                            setValue={setCaption} 
-                            className="min-h-[80px] border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0" 
-                        />
-                         
-                        <Button variant="outline" size="sm" onClick={handleFetchLocation} disabled={isFetchingLocation} className='w-full justify-start gap-2'>
-                            <MapPin className={cn("w-4 h-4 text-muted-foreground", isFetchingLocation && "animate-pulse")}/>
-                            <span className="text-muted-foreground">{isFetchingLocation ? "Konum alınıyor..." : location ? location : "Konum Ekle"}</span>
-                        </Button>
-
-                         {isPremium ? (
-                            <div className="space-y-2">
-                                <Textarea placeholder="Yapay zeka stili ekle (Örn: bir Van Gogh tablosu gibi yap...)" value={stylePrompt} onChange={(e) => setStylePrompt(e.target.value)} disabled={isPostProcessing || !!editingPost} className="min-h-[80px]" />
-                                <Button onClick={handleApplyStyle} disabled={isPostProcessing || !stylePrompt || !!editingPost} className="w-full" variant="outline">
-                                    {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Wand2 className="mr-2 h-4 w-4" /> )}
-                                    Stil Uygula
-                                </Button>
-                            </div>
-                        ) : (
-                             <Link href="/premium" className="w-full block">
-                                <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-black" variant="default" disabled={!!editingPost}>
-                                    <Gem className="mr-2 h-4 w-4" />
-                                    AI Düzenleme için Premium'a Yükselt
-                                </Button>
-                            </Link>
-                        )}
-                    </div>
-
-                </div>
-                 <DialogFooter className="p-6 border-t">
-                    <Button variant="outline" onClick={resetCreateState} className="w-full sm:w-auto">İptal</Button>
-                    <Button onClick={handleSharePost} disabled={isPostProcessing} className="w-full sm:w-auto">
+            <DialogContent className="max-w-3xl p-0 h-full md:h-auto md:max-h-[90vh] flex flex-col">
+                <DialogHeader className="p-4 flex flex-row items-center justify-between border-b">
+                    <DialogTitle>{editingPost ? "Gönderiyi Düzenle" : "Yeni Gönderi"}</DialogTitle>
+                    <Button onClick={handleSharePost} disabled={isPostProcessing} size="sm">
                         {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Check className="mr-2 h-4 w-4" /> )}
                         {editingPost ? "Kaydet" : "Paylaş"}
                     </Button>
-                </DialogFooter>
+                </DialogHeader>
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 overflow-hidden">
+                    <div className='relative bg-black flex items-center justify-center md:border-r'>
+                        {imgSrc && ( <Image alt="Preview" src={imgSrc} width={800} height={800} className="w-full h-auto object-contain max-h-full" /> )}
+                    </div>
+                    
+                    <div className='flex flex-col p-4 space-y-4'>
+                        <div className="flex items-center gap-3">
+                            <Avatar>
+                                <AvatarImage src={currentUser?.photoURL || ''} />
+                                <AvatarFallback>{currentUser?.displayName?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <span className="font-semibold">{currentUser?.displayName}</span>
+                        </div>
+
+                        <MentionTextarea 
+                            placeholder="Bir şeyler yaz..." 
+                            value={caption} 
+                            setValue={setCaption} 
+                            className="min-h-[120px] flex-1 border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0" 
+                        />
+                         
+                        <Button variant="outline" size="sm" onClick={handleFetchLocation} disabled={isFetchingLocation} className='justify-start gap-2 text-muted-foreground'>
+                            <MapPin className={cn("w-4 h-4", isFetchingLocation && "animate-pulse", location && "text-primary")}/>
+                            <span className={cn(location && "text-foreground")}>{isFetchingLocation ? "Konum alınıyor..." : location ? location : "Konum Ekle"}</span>
+                        </Button>
+                        
+                        <div className="mt-auto pt-4">
+                            {isPremium ? (
+                                <div className="space-y-2">
+                                    <Label className="text-xs text-muted-foreground">Yapay Zeka Stil</Label>
+                                    <Textarea placeholder="Örn: bir Van Gogh tablosu gibi yap..." value={stylePrompt} onChange={(e) => setStylePrompt(e.target.value)} disabled={isPostProcessing || !!editingPost} className="min-h-[60px]" />
+                                    <Button onClick={handleApplyStyle} disabled={isPostProcessing || !stylePrompt || !!editingPost} className="w-full" variant="outline">
+                                        {isPostProcessing && imgSrc !== originalImgSrc ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Wand2 className="mr-2 h-4 w-4" /> )}
+                                        Stil Uygula
+                                    </Button>
+                                </div>
+                            ) : (
+                                <Link href="/premium" className="w-full block">
+                                    <Button className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:opacity-90" variant="default" disabled={!!editingPost}>
+                                        <Gem className="mr-2 h-4 w-4" />
+                                        AI Düzenleme için Premium'a Yükselt
+                                    </Button>
+                                </Link>
+                            )}
+                        </div>
+                    </div>
+
+                </div>
             </DialogContent>
         </Dialog>
         
