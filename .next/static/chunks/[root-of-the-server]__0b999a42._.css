@@ -3460,6 +3460,10 @@ img {
     width: auto;
   }
 
+  .sm\:w-80 {
+    width: 20rem;
+  }
+
   .sm\:max-w-\[425px\] {
     max-width: 425px;
   }
@@ -3577,6 +3581,10 @@ img {
 
   .md\:w-80 {
     width: 20rem;
+  }
+
+  .md\:w-96 {
+    width: 24rem;
   }
 
   .md\:max-w-\[420px\] {

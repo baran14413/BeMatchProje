@@ -33,6 +33,7 @@ import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { MentionTextarea } from '@/components/ui/mention-textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
 
 const formatRelativeTime = (date: Date) => {
     try {
@@ -49,7 +50,7 @@ const HashtagAndMentionRenderer = ({ text }: { text: string }) => {
     if (!text) return null;
     const parts = text.split(/([#@]\w+)/g);
     return (
-        <>
+        <React.Fragment>
             {parts.map((part, i) => {
                 if (part.startsWith('#')) {
                     return (
@@ -67,7 +68,7 @@ const HashtagAndMentionRenderer = ({ text }: { text: string }) => {
                 }
                 return <React.Fragment key={i}>{part}</React.Fragment>;
             })}
-        </>
+        </React.Fragment>
     );
 };
 
@@ -769,14 +770,18 @@ export default function ExplorePage() {
                 <Card className="w-full rounded-none md:rounded-xl overflow-hidden shadow-none border-0 md:border-b">
                     <CardContent className="p-0">
                         <div className="flex items-center justify-between gap-3 p-3">
-                            <Link href={`/profile/${post.user?.username}`} className="flex items-center gap-3 flex-1 overflow-hidden">
-                                <Avatar className="w-10 h-10">
-                                <AvatarImage src={post.user?.avatarUrl} data-ai-hint={post.user?.aiHint} />
-                                <AvatarFallback>{post.user?.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
+                            <div className="flex items-center gap-3 flex-1 overflow-hidden">
+                                <Link href={`/profile/${post.user?.username}`}>
+                                    <Avatar className="w-10 h-10">
+                                        <AvatarImage src={post.user?.avatarUrl} data-ai-hint={post.user?.aiHint} />
+                                        <AvatarFallback>{post.user?.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                </Link>
                                 <div className="flex flex-col overflow-hidden">
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-semibold text-sm truncate">{post.user?.name}</span>
+                                    <div className="flex items-baseline gap-2">
+                                        <Link href={`/profile/${post.user?.username}`} className="font-semibold text-sm truncate hover:underline">
+                                            {post.user?.name}
+                                        </Link>
                                         {post.location && (
                                             <Link href={`/location/${encodeURIComponent(post.location)}`} className='text-xs text-muted-foreground truncate flex items-center gap-1 hover:underline'>
                                                 <MapPin className='w-3 h-3'/> {post.location}
@@ -785,7 +790,7 @@ export default function ExplorePage() {
                                     </div>
                                     <span className="text-xs text-muted-foreground truncate">@{post.user?.username}</span>
                                 </div>
-                            </Link>
+                            </div>
                             <div className="ml-auto">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
@@ -878,7 +883,7 @@ export default function ExplorePage() {
                                 {post.isTranslating ? (
                                     <p className="text-sm text-muted-foreground italic flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</p>
                                 ) : (
-                                    <p className="whitespace-pre-wrap break-words"><HashtagAndMentionRenderer text={post.textContent || ''} /></p>
+                                    <div className="whitespace-pre-wrap break-words"><HashtagAndMentionRenderer text={post.textContent || ''} /></div>
                                 )}
 
                                 {((post.lang && post.lang !== 'tr') || post.isTranslated) && (
@@ -913,9 +918,9 @@ export default function ExplorePage() {
                                  </div>
                             )}
                             {post.commentsCount > 0 && (
-                                <p className="text-muted-foreground mt-1 cursor-pointer" onClick={() => handleOpenComments(post)}>
+                                <button className="text-muted-foreground mt-1 cursor-pointer" onClick={() => handleOpenComments(post)}>
                                 {post.commentsCount.toLocaleString()} yorumun tümünü gör
-                                </p>
+                                </button>
                             )}
                         </div>
                     </CardContent>
@@ -971,7 +976,7 @@ export default function ExplorePage() {
                      )}
                 </div>
                 
-                <div className='flex flex-col sm:flex-1'>
+                <div className='flex flex-col sm:w-80 md:w-96'>
                     <div className="hidden sm:flex items-center justify-between p-4 border-b">
                          <DialogTitle className="text-lg font-semibold">{editingPost ? "Gönderiyi Düzenle" : "Yeni Gönderi"}</DialogTitle>
                          <Button onClick={handleSharePost} disabled={isPostProcessing} size="sm">
@@ -1089,9 +1094,9 @@ export default function ExplorePage() {
                                             <span className="text-xs text-muted-foreground font-mono">{comment.createdAt ? formatRelativeTime(comment.createdAt) : ''}</span>
                                         </div>
                                         
-                                        <p className="mt-1"><HashtagAndMentionRenderer text={comment.text}/></p>
+                                        <div className="mt-1"><HashtagAndMentionRenderer text={comment.text}/></div>
                                         <div className="flex gap-4 text-xs text-muted-foreground mt-2 items-center">
-                                            <span className="cursor-pointer hover:underline" onClick={() => handleReply(comment.user!.username)}>Yanıtla</span>
+                                            <button className="cursor-pointer hover:underline" onClick={() => handleReply(comment.user!.username)}>Yanıtla</button>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center gap-0.5">
@@ -1171,4 +1176,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-

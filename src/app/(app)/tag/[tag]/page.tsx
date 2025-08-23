@@ -20,7 +20,7 @@ const HashtagAndMentionRenderer = ({ text }: { text: string }) => {
     if (!text) return null;
     const parts = text.split(/([#@]\w+)/g);
     return (
-        <>
+        <React.Fragment>
             {parts.map((part, i) => {
                 if (part.startsWith('#')) {
                     return (
@@ -38,7 +38,7 @@ const HashtagAndMentionRenderer = ({ text }: { text: string }) => {
                 }
                 return <React.Fragment key={i}>{part}</React.Fragment>;
             })}
-        </>
+        </React.Fragment>
     );
 };
 
@@ -159,7 +159,7 @@ export default function TagPage() {
                                 )}
                                 {post.type === 'text' && post.textContent && (
                                      <div className="px-4 py-8 bg-muted/20">
-                                        <p className="whitespace-pre-wrap break-words"><HashtagAndMentionRenderer text={post.textContent} /></p>
+                                        <div className="whitespace-pre-wrap break-words"><HashtagAndMentionRenderer text={post.textContent} /></div>
                                      </div>
                                 )}
                                 <div className="p-3">
@@ -197,4 +197,3 @@ export default function TagPage() {
         </div>
     );
 }
-
