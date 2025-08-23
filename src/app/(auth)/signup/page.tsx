@@ -117,13 +117,7 @@ export default function SignupPage() {
     setStep((prev) => prev - 1);
   };
   
-  const startVerification = () => {
-      setVerificationStatus('checking');
-      setVerificationError(null);
-      // Simulate verification
-      setVerificationStatus('verified');
-  };
-
+  
   useEffect(() => {
     if (step === 6) {
       const getCameraPermission = async () => {
@@ -133,7 +127,7 @@ export default function SignupPage() {
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
             videoRef.current.onloadedmetadata = () => {
-              startVerification();
+              setVerificationStatus('verified'); // Simulate verification on stream start
             };
           }
         } catch (error) {

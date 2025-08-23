@@ -98,8 +98,8 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
   const onSliderCommit = (value: number[]) => {
     handleSliderChange(value);
     setIsDragging(false);
-    if (isPlaying) {
-        audioRef.current?.play();
+    if (isPlaying && audioRef.current) {
+        audioRef.current.play();
     }
   };
 
@@ -142,7 +142,18 @@ const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({
             value={[progress]} 
             onValueChange={onSliderValueChange}
             onPointerDown={() => setIsDragging(true)}
-            onPointerUp={() => { if (audioRef.current) handleSliderChange([progress]); setIsDragging(false); }}
+            onPointerUp={(e) => {
+              if (audioRef.current) {
+                // The slider value is a percentage (0-100), we need to find the point on the bar
+                const slider = e.currentTarget as HTMLSpanElement;
+                const rect = slider.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const newProgress = (x / rect.width) * 100;
+                handleSliderChange([newProgress]);
+              }
+              setIsDragging(false);
+            }}
+            onCommit={onSliderCommit}
             className="w-full h-2" 
             thumbClassName={cn("h-3 w-3", sliderThumbColorClass)}
             trackClassName={sliderTrackColorClass}
