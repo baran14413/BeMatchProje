@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { moderateImage, ModerateImageOutput } from '@/ai/flows/moderate-image-flow';
 import Image from 'next/image';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { auth, db, storage } from '@/lib/firebase';
 import { cities, districts } from '@/lib/turkey-locations';
@@ -78,7 +78,21 @@ export default function SignupPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  const nextStep = () => setStep((prev) => prev + 1);
+  const nextStep = async () => {
+      if (step === 1) {
+      if (!formData.username) {
+        toast({ variant: 'destructive', title: 'Kullanıcı adı gerekli' });
+        return;
+      }
+      const q = query(collection(db, 'users'), where('username', '==', formData.username));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        toast({ variant: 'destructive', title: 'Kullanıcı adı zaten alınmış' });
+        return;
+      }
+    }
+    setStep((prev) => prev + 1);
+  }
   const prevStep = () => {
     if (step === 5) {
        if (verificationTimeoutRef.current) {
@@ -374,7 +388,6 @@ export default function SignupPage() {
                             <SelectContent>
                                 <SelectItem value="female">Kadın</SelectItem>
                                 <SelectItem value="male">Erkek</SelectItem>
-                                <SelectItem value="other">Diğer</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

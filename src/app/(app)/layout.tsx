@@ -153,6 +153,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
                     <span className="font-bold">BeMatch</span>
                 </Link>
                 <div className="flex items-center gap-2">
+                    <NavButton href="/search" icon={<Search className="h-5 w-5" />} srText="Ara" />
+                    <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
+                    <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
                     {currentUser && (
                         <Link href={`/profile/${currentUser.uid}`}>
                             <Button variant="ghost" size="icon" className="relative rounded-full">
@@ -161,9 +164,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
                             </Button>
                         </Link>
                     )}
-                    <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
-                    <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
-                    <NavButton href="/search" icon={<Search className="h-5 w-5" />} srText="Ara" />
                 </div>
             </header>
           </>
