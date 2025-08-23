@@ -929,10 +929,16 @@ export default function ExplorePage() {
                     <div className='w-full flex items-center gap-2'>
                         <Button variant="outline" size="sm" onClick={handleFetchLocation} disabled={isFetchingLocation}>
                             <MapPin className={cn("w-4 h-4 mr-2", isFetchingLocation && "animate-pulse")}/>
-                            {location ? 'Konumu Değiştir' : 'Konum Ekle'}
+                            {isFetchingLocation ? "Alınıyor..." : location ? location : "Konum Ekle"}
                         </Button>
-                        {isFetchingLocation ? <Loader2 className="w-4 h-4 animate-spin"/> : location && <p className="text-sm text-muted-foreground truncate">{location}</p>}
+                        {isFetchingLocation && <Loader2 className="w-4 h-4 animate-spin"/>}
+                        {location && !isFetchingLocation && 
+                            <Button variant="ghost" size="icon" className='h-6 w-6' onClick={() => setLocation('')}>
+                                <XIcon className='w-4 h-4'/>
+                            </Button>
+                        }
                     </div>
+
 
                     <div className="w-full space-y-2">
                          <MentionTextarea 
@@ -976,12 +982,17 @@ export default function ExplorePage() {
                     <DialogTitle>{editingPost ? "Metni Düzenle" : "Metin Paylaş"}</DialogTitle>
                 </DialogHeader>
                 <div className="py-4 space-y-4">
-                    <div className='w-full flex items-center gap-2'>
+                     <div className='w-full flex items-center gap-2'>
                         <Button variant="outline" size="sm" onClick={handleFetchLocation} disabled={isFetchingLocation}>
-                             <MapPin className={cn("w-4 h-4 mr-2", isFetchingLocation && "animate-pulse")}/>
-                            {location ? 'Konumu Değiştir' : 'Konum Ekle'}
+                            <MapPin className={cn("w-4 h-4 mr-2", isFetchingLocation && "animate-pulse")}/>
+                            {isFetchingLocation ? "Alınıyor..." : location ? location : "Konum Ekle"}
                         </Button>
-                        {isFetchingLocation ? <Loader2 className="w-4 h-4 animate-spin"/> : location && <p className="text-sm text-muted-foreground truncate">{location}</p>}
+                        {isFetchingLocation && <Loader2 className="w-4 h-4 animate-spin"/>}
+                         {location && !isFetchingLocation && 
+                            <Button variant="ghost" size="icon" className='h-6 w-6' onClick={() => setLocation('')}>
+                                <XIcon className='w-4 h-4'/>
+                            </Button>
+                        }
                     </div>
 
                      <MentionTextarea 
