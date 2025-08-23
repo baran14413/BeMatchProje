@@ -31,6 +31,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { auth } from '@/lib/firebase';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 interface SettingsItemProps {
   icon: React.ReactNode;
@@ -59,7 +62,7 @@ const SettingsItem: React.FC<SettingsItemProps> = ({ icon, title, href, onClick,
     </div>
   );
 
-  if (href) {
+  if (href && !onClick) {
     return <Link href={href}>{content}</Link>;
   }
   return content;
@@ -71,6 +74,7 @@ const SectionTitle = ({ title }: { title: string }) => (
 
 export default function EditProfilePage() {
     const { toast } = useToast();
+    const router = useRouter();
     const [installPrompt, setInstallPrompt] = useState<any>(null);
 
     useEffect(() => {
@@ -103,6 +107,24 @@ export default function EditProfilePage() {
             }
             setInstallPrompt(null);
         });
+    };
+    
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            toast({
+                title: 'Çıkış Yapıldı',
+                description: 'Başarıyla çıkış yaptınız. Yönlendiriliyorsunuz...',
+            });
+            router.push('/login');
+        } catch (error) {
+            console.error("Error signing out: ", error);
+            toast({
+                variant: 'destructive',
+                title: 'Çıkış Yapılamadı',
+                description: 'Çıkış yaparken bir hata oluştu. Lütfen tekrar deneyin.',
+            });
+        }
     };
 
     const accountItems = [
@@ -140,7 +162,7 @@ export default function EditProfilePage() {
     
     const otherItems = [
         { icon: <Trash2 className="h-6 w-6" />, title: 'Hesabı Sil', href: '/profile/edit/delete' },
-        { icon: <LogOut className="h-6 w-6" />, title: 'Çıkış Yap', href: '#' },
+        { icon: <LogOut className="h-6 w-6" />, title: 'Çıkış Yap', onClick: handleLogout },
     ];
 
   return (
@@ -270,6 +292,7 @@ export default function EditProfilePage() {
                                 icon={item.icon}
                                 title={item.title}
                                 href={item.href}
+                                onClick={item.onClick}
                                 isFirst={index === 0}
                                 isLast={index === otherItems.length -1}
                             />

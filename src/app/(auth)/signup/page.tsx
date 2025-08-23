@@ -226,10 +226,10 @@ export default function SignupPage() {
         
         toast({
             title: "Hesap Oluşturuldu!",
-            description: "Harika, aramıza hoş geldin! Eşleşme sayfasına yönlendiriliyorsun...",
+            description: "Harika, aramıza hoş geldin! Uygulama turuna yönlendiriliyorsun...",
             className: "bg-green-500 text-white",
         });
-        router.push('/match');
+        router.push('/tutorial');
 
       } catch (error: any) {
         console.error("Signup error: ", error);
