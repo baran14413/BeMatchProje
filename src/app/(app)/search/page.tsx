@@ -79,7 +79,7 @@ export default function SearchPage() {
                 ) : results.length > 0 ? (
                     <div className="flex flex-col gap-2">
                         {results.map((user) => (
-                            <Link href={`/profile/${user.uid}`} key={user.uid} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                            <Link href={`/profile/${user.username}`} key={user.uid} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
                                 <Avatar className="w-12 h-12">
                                     <AvatarImage src={user.avatarUrl} data-ai-hint={user.aiHint} />
                                     <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
