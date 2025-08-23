@@ -49,7 +49,7 @@ export const MentionTextarea: React.FC<MentionTextareaProps> = ({
       if (cursorPos === null) return;
       
       const textBeforeCursor = value.substring(0, cursorPos);
-      const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+      const mentionMatch = textBeforeCursor.match(/(?:\s|^)@(\w*)$/);
       
       if (mentionMatch) {
         setMentionQuery(mentionMatch[1]);
@@ -71,10 +71,10 @@ export const MentionTextarea: React.FC<MentionTextareaProps> = ({
      if (cursorPos === null) return;
      
     const textBeforeCursor = value.substring(0, cursorPos);
-    const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+    const mentionMatch = textBeforeCursor.match(/(?:\s|^)@(\w*)$/);
 
     if (mentionMatch) {
-      const startIndex = mentionMatch.index || 0;
+      const startIndex = mentionMatch.index === 0 ? 0 : (mentionMatch.index || 0) + 1;
       const newValue = `${value.substring(0, startIndex)}@${username} ${value.substring(cursorPos)}`;
       setValue(newValue);
       

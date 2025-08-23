@@ -21,7 +21,7 @@ import { DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { translateText } from '@/ai/flows/translate-text-flow';
 import { stylizeImage } from '@/ai/flows/stylize-image-flow';
-import { getLocationFromCoordinates } from '@/ai/flows/get-location-flow';
+import { getLocation } from '@/services/location-service';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
@@ -52,7 +52,7 @@ const HashtagAndMentionRenderer = ({ text }: { text: string }) => {
     if (!text) return null;
     const parts = text.split(/([#@]\w+)/g);
     return (
-        <>
+        <React.Fragment>
             {parts.map((part, i) => {
                 if (part.startsWith('#')) {
                     return (
@@ -68,9 +68,9 @@ const HashtagAndMentionRenderer = ({ text }: { text: string }) => {
                         </Link>
                     );
                 }
-                return <React.Fragment key={i}>{part}</React.Fragment>;
+                return part;
             })}
-        </>
+        </React.Fragment>
     );
 };
 
@@ -611,16 +611,17 @@ export default function ExplorePage() {
     };
 
     const handleFetchLocation = () => {
+        if (!navigator.geolocation) {
+            toast({ variant: 'destructive', title: 'Konum Desteklenmiyor', description: 'Tarayıcınız konum servisini desteklemiyor.' });
+            return;
+        }
         setIsFetchingLocation(true);
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 try {
                     const { latitude, longitude } = position.coords;
-                    const result = await getLocationFromCoordinates({ latitude, longitude });
-                    if (result.error || !result.address) {
-                        throw new Error(result.error || 'Konum bilgisi alınamadı.');
-                    }
-                    setLocation(result.address);
+                    const address = await getLocation(latitude, longitude);
+                    setLocation(address);
                 } catch(e: any) {
                     toast({ variant: 'destructive', title: 'Konum Hatası', description: e.message });
                 } finally {
@@ -919,44 +920,36 @@ export default function ExplorePage() {
 
         {/* Create or Edit Photo Modal */}
         <Dialog open={isCreatePhotoModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
-            <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>{editingPost ? "Fotoğrafı Düzenle" : "Fotoğraf Paylaş"}</DialogTitle>
+            <DialogContent className="sm:max-w-lg p-0">
+                <DialogHeader className="p-6 pb-0">
+                    <DialogTitle>{editingPost ? "Fotoğrafı Düzenle" : "Yeni Fotoğraf Gönderisi"}</DialogTitle>
                 </DialogHeader>
-                <div className="flex flex-col items-center gap-4 py-4">
-                    {imgSrc && ( <Image alt="Preview" src={imgSrc} width={500} height={500} className="max-h-[40vh] object-contain rounded-md" /> )}
+                <div className="flex flex-col">
+                    {imgSrc && ( <Image alt="Preview" src={imgSrc} width={500} height={500} className="w-full h-auto max-h-[50vh] object-contain border-y" /> )}
                     
-                    <div className='w-full flex items-center gap-2'>
-                        <Button variant="outline" size="sm" onClick={handleFetchLocation} disabled={isFetchingLocation}>
-                            <MapPin className={cn("w-4 h-4 mr-2", isFetchingLocation && "animate-pulse")}/>
-                            {isFetchingLocation ? "Alınıyor..." : location ? location : "Konum Ekle"}
-                        </Button>
-                        {isFetchingLocation && <Loader2 className="w-4 h-4 animate-spin"/>}
-                        {location && !isFetchingLocation && 
-                            <Button variant="ghost" size="icon" className='h-6 w-6' onClick={() => setLocation('')}>
-                                <XIcon className='w-4 h-4'/>
-                            </Button>
-                        }
-                    </div>
-
-
-                    <div className="w-full space-y-2">
-                         <MentionTextarea 
+                    <div className='p-6 space-y-4'>
+                        <MentionTextarea 
                             placeholder="Gönderin için bir şeyler yaz... #güzelbirgün @kullanici" 
                             value={caption} 
                             setValue={setCaption} 
-                            className="min-h-[80px]" 
-                         />
-                    </div>
-                    <div className="w-full space-y-2">
-                        <Textarea placeholder="Yapay zeka stili ekle (Örn: bir Van Gogh tablosu gibi yap...)" value={stylePrompt} onChange={(e) => setStylePrompt(e.target.value)} disabled={isPostProcessing || !isPremium || !!editingPost} className="min-h-[80px]" />
-                        {isPremium ? (
-                            <Button onClick={handleApplyStyle} disabled={isPostProcessing || !stylePrompt || !!editingPost} className="w-full" variant="outline">
-                                {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Wand2 className="mr-2 h-4 w-4" /> )}
-                                Stil Uygula
-                            </Button>
+                            className="min-h-[80px] border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0" 
+                        />
+                         
+                        <Button variant="outline" size="sm" onClick={handleFetchLocation} disabled={isFetchingLocation} className='w-full justify-start gap-2'>
+                            <MapPin className={cn("w-4 h-4 text-muted-foreground", isFetchingLocation && "animate-pulse")}/>
+                            <span className="text-muted-foreground">{isFetchingLocation ? "Konum alınıyor..." : location ? location : "Konum Ekle"}</span>
+                        </Button>
+
+                         {isPremium ? (
+                            <div className="space-y-2">
+                                <Textarea placeholder="Yapay zeka stili ekle (Örn: bir Van Gogh tablosu gibi yap...)" value={stylePrompt} onChange={(e) => setStylePrompt(e.target.value)} disabled={isPostProcessing || !!editingPost} className="min-h-[80px]" />
+                                <Button onClick={handleApplyStyle} disabled={isPostProcessing || !stylePrompt || !!editingPost} className="w-full" variant="outline">
+                                    {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Wand2 className="mr-2 h-4 w-4" /> )}
+                                    Stil Uygula
+                                </Button>
+                            </div>
                         ) : (
-                            <Link href="/premium" className="w-full">
+                             <Link href="/premium" className="w-full block">
                                 <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-black" variant="default" disabled={!!editingPost}>
                                     <Gem className="mr-2 h-4 w-4" />
                                     AI Düzenleme için Premium'a Yükselt
@@ -964,12 +957,13 @@ export default function ExplorePage() {
                             </Link>
                         )}
                     </div>
+
                 </div>
-                 <DialogFooter>
-                    <Button variant="outline" onClick={resetCreateState}>İptal</Button>
-                    <Button onClick={handleSharePost} disabled={isPostProcessing}>
+                 <DialogFooter className="p-6 border-t">
+                    <Button variant="outline" onClick={resetCreateState} className="w-full sm:w-auto">İptal</Button>
+                    <Button onClick={handleSharePost} disabled={isPostProcessing} className="w-full sm:w-auto">
                         {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Check className="mr-2 h-4 w-4" /> )}
-                        {editingPost ? "Değişiklikleri Kaydet" : "Paylaş"}
+                        {editingPost ? "Kaydet" : "Paylaş"}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -1007,7 +1001,7 @@ export default function ExplorePage() {
                     <Button variant="outline" onClick={resetCreateState}>İptal</Button>
                     <Button onClick={handleSharePost} disabled={isPostProcessing || !textContent.trim()}>
                         {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Check className="mr-2 h-4 w-4" /> )}
-                        {editingPost ? "Değişiklikleri Kaydet" : "Paylaş"}
+                        {editingPost ? "Kaydet" : "Paylaş"}
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -1,11 +1,14 @@
 
-'use server';
+'use client';
 
-const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+// This function is designed to be called from the client-side.
+// Do not use 'use server' here.
+
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 export async function getLocation(lat: number, lon: number): Promise<string> {
     if (!GOOGLE_MAPS_API_KEY) {
-        console.error("Google Maps API key is not configured.");
+        console.error("Google Maps API key is not configured on the client.");
         // Fallback for development if API key is not set
         return "Bilinmeyen Konum"; 
     }
@@ -17,7 +20,8 @@ export async function getLocation(lat: number, lon: number): Promise<string> {
         const data = await response.json();
 
         if (data.status !== 'OK' || !data.results || data.results.length === 0) {
-            throw new Error(`Google Maps API error: ${data.status} - ${data.error_message || 'No results found.'}`);
+            console.error(`Google Maps API error: ${data.status} - ${data.error_message || 'No results found.'}`);
+            throw new Error('Adres bulunamadı.');
         }
 
         const cityComponent = data.results[0].address_components.find(
@@ -29,16 +33,21 @@ export async function getLocation(lat: number, lon: number): Promise<string> {
 
         const city = cityComponent ? cityComponent.long_name : null;
         const district = districtComponent ? districtComponent.long_name : null;
-
+        
+        let formattedAddress = "Bilinmeyen Konum";
         if (city && district) {
-            return `${city}, ${district}`;
+            if (city === district) {
+                formattedAddress = city;
+            } else {
+                 formattedAddress = `${city}, ${district}`;
+            }
         } else if (city) {
-            return city;
+            formattedAddress = city;
         } else if (district) {
-            return district;
+            formattedAddress = district;
         }
 
-        return "Bilinmeyen Konum";
+        return formattedAddress;
 
     } catch (error) {
         console.error("Failed to fetch location from Google Maps API:", error);
