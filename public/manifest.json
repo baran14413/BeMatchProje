@@ -1,11 +1,11 @@
 {
     "name": "BeMatch",
     "short_name": "BeMatch",
-    "description": "Find your perfect match and walk together",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#E6F2FF",
-    "theme_color": "#ADD8E6",
+    "background_color": "#20254f",
+    "theme_color": "#1976d2",
+    "description": "Find your perfect match and walk together.",
     "icons": [
         {
             "src": "/icons/app-logo.svg",

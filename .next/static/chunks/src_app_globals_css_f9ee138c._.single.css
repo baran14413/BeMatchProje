@@ -246,25 +246,25 @@ img, video {
 }
 
 :root {
-  --background: 0 0% 100%;
+  --background: 210 40% 98%;
   --foreground: 222.2 84% 4.9%;
-  --card: 0 0% 100%;
+  --card: 210 40% 98%;
   --card-foreground: 222.2 84% 4.9%;
-  --popover: 0 0% 100%;
+  --popover: 210 40% 98%;
   --popover-foreground: 222.2 84% 4.9%;
-  --primary: 340 82% 58%;
+  --primary: 200 100% 35%;
   --primary-foreground: 210 40% 98%;
   --secondary: 210 40% 96.1%;
   --secondary-foreground: 222.2 47.4% 11.2%;
   --muted: 210 40% 96.1%;
   --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96.1%;
+  --accent: 0 0% 25.1%;
   --accent-foreground: 222.2 47.4% 11.2%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
-  --ring: 340 82% 58%;
+  --ring: 222.2 84% 4.9%;
   --radius: .8rem;
   --chart-1: 12 76% 61%;
   --chart-2: 173 58% 39%;
@@ -282,19 +282,19 @@ img, video {
   --card-foreground: 210 40% 98%;
   --popover: 224 71% 4%;
   --popover-foreground: 210 40% 98%;
-  --primary: 340 82% 65%;
+  --primary: 200 100% 45%;
   --primary-foreground: 210 40% 98%;
   --secondary: 217.2 32.6% 17.5%;
   --secondary-foreground: 210 40% 98%;
   --muted: 217.2 32.6% 17.5%;
   --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
+  --accent: 0 0% 50.2%;
   --accent-foreground: 210 40% 98%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 210 40% 98%;
   --border: 217.2 32.6% 17.5%;
   --input: 217.2 32.6% 17.5%;
-  --ring: 340 82% 65%;
+  --ring: 217.2 32.6% 17.5%;
 }
 
 * {
@@ -304,6 +304,7 @@ img, video {
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
+  overscroll-behavior-y: contain;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -312,6 +313,7 @@ body {
 
 img {
   -webkit-touch-callout: none;
+  pointer-events: none;
   -webkit-user-drag: none;
 }
 
@@ -1615,10 +1617,6 @@ img {
   border-color: hsl(var(--primary));
 }
 
-.border-primary-foreground {
-  border-color: hsl(var(--primary-foreground));
-}
-
 .border-primary\/50 {
   border-color: hsl(var(--primary) / .5);
 }
@@ -1756,14 +1754,6 @@ img {
 
 .bg-primary {
   background-color: hsl(var(--primary));
-}
-
-.bg-primary-foreground {
-  background-color: hsl(var(--primary-foreground));
-}
-
-.bg-primary-foreground\/30 {
-  background-color: hsl(var(--primary-foreground) / .3);
 }
 
 .bg-primary\/10 {
@@ -1927,11 +1917,6 @@ img {
 .px-1 {
   padding-left: .25rem;
   padding-right: .25rem;
-}
-
-.px-1\.5 {
-  padding-left: .375rem;
-  padding-right: .375rem;
 }
 
 .px-10 {
@@ -2523,16 +2508,16 @@ img {
   transition-timing-function: cubic-bezier(.4, 0, .2, 1);
 }
 
+.duration-100 {
+  transition-duration: .1s;
+}
+
 .duration-200 {
   transition-duration: .2s;
 }
 
 .duration-300 {
   transition-duration: .3s;
-}
-
-.duration-100 {
-  transition-duration: .1s;
 }
 
 .ease-in-out {
@@ -2575,16 +2560,16 @@ img {
   --tw-enter-scale: .95;
 }
 
+.duration-100 {
+  animation-duration: .1s;
+}
+
 .duration-200 {
   animation-duration: .2s;
 }
 
 .duration-300 {
   animation-duration: .3s;
-}
-
-.duration-100 {
-  animation-duration: .1s;
 }
 
 .ease-in-out {
