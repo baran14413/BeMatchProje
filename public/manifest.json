@@ -1,33 +1,23 @@
-
 {
-  "theme_color": "#8a2be2",
-  "background_color": "#ffffff",
-  "display": "standalone",
-  "scope": "/",
-  "start_url": "/",
-  "name": "BeMatch",
-  "short_name": "BeMatch",
-  "description": "Find your perfect match and walk together.",
-  "icons": [
-    {
-      "src": "/icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-256x256.png",
-      "sizes": "256x256",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-384x384.png",
-      "sizes": "384x384",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+    "name": "BeMatch",
+    "short_name": "BeMatch",
+    "description": "Find your perfect match and walk together",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#E6F2FF",
+    "theme_color": "#ADD8E6",
+    "icons": [
+        {
+            "src": "/icons/app-logo.svg",
+            "sizes": "192x192",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/app-logo.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
 }
