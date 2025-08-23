@@ -17,27 +17,28 @@ import React from 'react';
 
 
 const HashtagAndMentionRenderer = ({ text }: { text: string }) => {
-    const parts = text.split(/(#\w+|@\w+)/g);
+    if (!text) return null;
+    const parts = text.split(/([#@]\w+)/g);
     return (
-        <p>
+        <>
             {parts.map((part, i) => {
                 if (part.startsWith('#')) {
                     return (
-                        <Link key={i} href={`/tag/${part.substring(1)}`} className="text-blue-500 hover:underline">
+                        <Link key={i} href={`/tag/${part.substring(1)}`} className="text-blue-500 hover:underline" onClick={(e) => e.stopPropagation()}>
                             {part}
                         </Link>
                     );
                 }
                 if (part.startsWith('@')) {
                      return (
-                        <Link key={i} href={`/profile/${part.substring(1)}`} className="text-blue-500 hover:underline">
+                        <Link key={i} href={`/profile/${part.substring(1)}`} className="text-blue-500 hover:underline" onClick={(e) => e.stopPropagation()}>
                             {part}
                         </Link>
                     );
                 }
                 return <React.Fragment key={i}>{part}</React.Fragment>;
             })}
-        </p>
+        </>
     );
 };
 
@@ -158,7 +159,7 @@ export default function TagPage() {
                                 )}
                                 {post.type === 'text' && post.textContent && (
                                      <div className="px-4 py-8 bg-muted/20">
-                                        <HashtagAndMentionRenderer text={post.textContent} />
+                                        <p className="whitespace-pre-wrap break-words"><HashtagAndMentionRenderer text={post.textContent} /></p>
                                      </div>
                                 )}
                                 <div className="p-3">
@@ -172,13 +173,13 @@ export default function TagPage() {
                                     </div>
                                     <span className="font-semibold text-sm">{post.likes.toLocaleString()} beğeni</span>
                                     {post.caption && (
-                                        <div className='text-sm mt-1'>
+                                        <div className='text-sm mt-1 whitespace-pre-wrap break-words'>
                                             <Link href={`/profile/${post.authorId}`} className="font-semibold mr-1">{post.user?.name}</Link>
                                             <HashtagAndMentionRenderer text={post.caption} />
                                         </div>
                                     )}
                                      {post.type === 'text' && (
-                                        <div className='text-sm mt-1'>
+                                        <div className='text-sm mt-1 whitespace-pre-wrap break-words'>
                                              <Link href={`/profile/${post.authorId}`} className="font-semibold mr-1">{post.user?.name}</Link>
                                             <HashtagAndMentionRenderer text={post.textContent || ''} />
                                         </div>

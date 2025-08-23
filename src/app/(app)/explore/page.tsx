@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, XIcon, Check, Wand2, Gem, Trash2, Pencil } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -21,6 +21,7 @@ import { DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { translateText } from '@/ai/flows/translate-text-flow';
 import { stylizeImage } from '@/ai/flows/stylize-image-flow';
+import { getLocationFromCoordinates } from '@/ai/flows/get-location-flow';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
@@ -48,27 +49,28 @@ const formatRelativeTime = (date: Date) => {
 };
 
 const HashtagAndMentionRenderer = ({ text }: { text: string }) => {
+    if (!text) return null;
     const parts = text.split(/([#@]\w+)/g);
     return (
-        <p>
+        <>
             {parts.map((part, i) => {
                 if (part.startsWith('#')) {
                     return (
-                        <Link key={i} href={`/tag/${part.substring(1)}`} className="text-blue-500 hover:underline">
+                        <Link key={i} href={`/tag/${part.substring(1)}`} className="text-blue-500 hover:underline" onClick={(e) => e.stopPropagation()}>
                             {part}
                         </Link>
                     );
                 }
                 if (part.startsWith('@')) {
                      return (
-                        <Link key={i} href={`/profile/${part.substring(1)}`} className="text-blue-500 hover:underline">
+                        <Link key={i} href={`/profile/${part.substring(1)}`} className="text-blue-500 hover:underline" onClick={(e) => e.stopPropagation()}>
                             {part}
                         </Link>
                     );
                 }
                 return <React.Fragment key={i}>{part}</React.Fragment>;
             })}
-        </p>
+        </>
     );
 };
 
@@ -115,6 +117,7 @@ type Post = DocumentData & {
   comments: Comment[];
   isGalleryLocked?: boolean; 
   isAiEdited?: boolean;
+  location?: string;
 };
 
 const PostSkeleton = () => (
@@ -159,6 +162,8 @@ export default function ExplorePage() {
     const [originalImgSrc, setOriginalImgSrc] = useState('');
     const [stylePrompt, setStylePrompt] = useState('');
     const [caption, setCaption] = useState('');
+    const [location, setLocation] = useState('');
+    const [isFetchingLocation, setIsFetchingLocation] = useState(false);
     const [isStylized, setIsStylized] = useState(false);
     const [isPostProcessing, setIsPostProcessing] = useState(false);
     const [isPremium, setIsPremium] = useState(false);
@@ -504,21 +509,17 @@ export default function ExplorePage() {
     
     // --- Create / Edit Post Logic ---
 
-    const resetCreatePhotoState = () => {
+    const resetCreateState = () => {
         setImgSrc('');
         setOriginalImgSrc('');
         setStylePrompt('');
         setCaption('');
+        setTextContent('');
+        setLocation('');
         setIsStylized(false);
         setIsPostProcessing(false);
         setEditingPost(null);
         setIsCreatePhotoModalOpen(false);
-    };
-
-    const resetCreateTextState = () => {
-        setTextContent('');
-        setIsPostProcessing(false);
-        setEditingPost(null);
         setIsCreateTextModalOpen(false);
     };
 
@@ -549,10 +550,12 @@ export default function ExplorePage() {
             setImgSrc(post.url || '');
             setOriginalImgSrc(post.url || '');
             setCaption(post.caption || '');
+            setLocation(post.location || '');
             setIsStylized(post.isAiEdited || false);
             setIsCreatePhotoModalOpen(true);
         } else {
             setTextContent(post.textContent || '');
+            setLocation(post.location || '');
             setIsCreateTextModalOpen(true);
         }
     };
@@ -607,51 +610,89 @@ export default function ExplorePage() {
         }
     };
 
-    const handleSharePhoto = async () => {
+    const handleFetchLocation = () => {
+        setIsFetchingLocation(true);
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                try {
+                    const { latitude, longitude } = position.coords;
+                    const result = await getLocationFromCoordinates({ latitude, longitude });
+                    if (result.error || !result.address) {
+                        throw new Error(result.error || 'Konum bilgisi alınamadı.');
+                    }
+                    setLocation(result.address);
+                } catch(e: any) {
+                    toast({ variant: 'destructive', title: 'Konum Hatası', description: e.message });
+                } finally {
+                    setIsFetchingLocation(false);
+                }
+            },
+            (error) => {
+                 toast({ variant: 'destructive', title: 'Konum İzni Reddedildi', description: 'Konum eklemek için tarayıcı ayarlarından izin vermeniz gerekiyor.' });
+                 setIsFetchingLocation(false);
+            }
+        );
+    };
+
+    const handleSharePost = async () => {
         if (!currentUser) return;
-        if (editingPost && !imgSrc) return;
-        if (!editingPost && !imgSrc) return;
-        
+        const isEditing = !!editingPost;
+        const postType = isCreatePhotoModalOpen ? 'photo' : 'text';
+
+        if (postType === 'photo' && !imgSrc) return;
+        if (postType === 'text' && !textContent.trim()) return;
+
         setIsPostProcessing(true);
         
         try {
-            const hashtags = caption.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
-            const mentions = caption.match(/@\w+/g)?.map(m => m.substring(1)) || [];
+            const textForTags = postType === 'photo' ? caption : textContent;
+            const hashtags = textForTags.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
+            const mentions = textForTags.match(/@\w+/g)?.map(m => m.substring(1)) || [];
             
-            if (editingPost) { // Update existing post
-                 const postRef = doc(db, 'posts', editingPost.id);
-                 await updateDoc(postRef, {
-                    caption: caption || '',
-                    hashtags: hashtags,
-                    mentions: mentions,
-                    isAiEdited: isStylized, // This assumes imgSrc might have changed
-                 });
-                 
-                 // Update UI
-                 setPosts(prev => prev.map(p => p.id === editingPost.id ? {...p, caption: caption || '', isAiEdited: isStylized} : p));
-                 
-                 toast({ title: 'Güncellendi!', description: 'Gönderiniz başarıyla güncellendi.' });
+            let postData: any = {
+                hashtags: hashtags,
+                mentions: mentions,
+                location: location || '',
+            };
 
-            } else { // Create new post
-                const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}`);
-                const uploadTask = await uploadString(storageRef, imgSrc, 'data_url');
-                const downloadURL = await getDownloadURL(uploadTask.ref);
+            if (isEditing) {
+                // UPDATE POST
+                const postRef = doc(db, 'posts', editingPost.id);
+                if (postType === 'photo') {
+                    postData.caption = caption || '';
+                    postData.isAiEdited = isStylized;
+                } else {
+                    postData.textContent = textContent;
+                }
+                
+                await updateDoc(postRef, postData);
+                
+                // Update UI
+                setPosts(prev => prev.map(p => p.id === editingPost.id ? {...p, ...postData} : p));
+                toast({ title: 'Güncellendi!', description: 'Gönderiniz başarıyla güncellendi.' });
 
-                const postData = { 
-                  authorId: currentUser.uid,
-                  createdAt: serverTimestamp(),
-                  likes: 0,
-                  commentsCount: 0,
-                  type: 'photo',
-                  url: downloadURL, 
-                  caption: caption || '',
-                  hashtags: hashtags,
-                  mentions: mentions,
-                  isAiEdited: isStylized,
-                };
+            } else {
+                // CREATE NEW POST
+                postData.authorId = currentUser.uid;
+                postData.createdAt = serverTimestamp();
+                postData.likes = 0;
+                postData.commentsCount = 0;
+                postData.type = postType;
+
+                if (postType === 'photo') {
+                    const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}`);
+                    const uploadTask = await uploadString(storageRef, imgSrc, 'data_url');
+                    const downloadURL = await getDownloadURL(uploadTask.ref);
+
+                    postData.url = downloadURL;
+                    postData.caption = caption || '';
+                    postData.isAiEdited = isStylized;
+                } else {
+                    postData.textContent = textContent;
+                    postData.isAiEdited = false;
+                }
 
                 const postRef = await addDoc(collection(db, 'posts'), postData);
-                
                 const docSnap = await getDoc(postRef);
                 if (!docSnap.exists()) throw new Error("Post creation failed in DB");
                 const newPostFromDb = { id: docSnap.id, ...docSnap.data() };
@@ -674,64 +715,7 @@ export default function ExplorePage() {
             console.error("Error sharing post: ", error);
             toast({ variant: 'destructive', title: 'Paylaşım Hatası', description: 'Gönderi paylaşılırken bir hata oluştu.' });
         } finally {
-            resetCreatePhotoState();
-        }
-    };
-
-    const handleShareTextPost = async () => {
-         if (!currentUser || !textContent.trim()) return;
-        
-        setIsPostProcessing(true);
-        
-        try {
-            const hashtags = textContent.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
-            const mentions = textContent.match(/@\w+/g)?.map(m => m.substring(1)) || [];
-            
-            if (editingPost) { // Update Text Post
-                const postRef = doc(db, 'posts', editingPost.id);
-                await updateDoc(postRef, {
-                    textContent: textContent,
-                    hashtags,
-                    mentions,
-                });
-                
-                setPosts(prev => prev.map(p => p.id === editingPost.id ? {...p, textContent} : p));
-                toast({ title: 'Güncellendi!', description: 'Gönderiniz başarıyla güncellendi.' });
-
-            } else { // Create Text Post
-                const postData = { 
-                  authorId: currentUser.uid,
-                  createdAt: serverTimestamp(),
-                  likes: 0,
-                  commentsCount: 0,
-                  type: 'text',
-                  textContent: textContent,
-                  hashtags: hashtags,
-                  mentions: mentions,
-                  isAiEdited: false,
-                };
-
-                const postRef = await addDoc(collection(db, 'posts'), postData);
-                const docSnap = await getDoc(postRef);
-                if (!docSnap.exists()) throw new Error("Post creation failed in DB");
-                const newPostFromDb = { id: docSnap.id, ...docSnap.data() };
-
-                const newPostForUI: Post = {
-                    ...newPostFromDb,
-                    user: { uid: currentUser.uid, name: currentUser.displayName!, username: currentUser.email?.split('@')[0] || 'user', avatarUrl: currentUser.photoURL! },
-                    comments: [],
-                    liked: false,
-                } as Post;
-                
-                setPosts(prev => [newPostForUI, ...prev]);
-                
-                toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı.', className: 'bg-green-500 text-white' });
-            }
-        } catch (error) {
-            console.error("Error sharing text post: ", error);
-            toast({ variant: 'destructive', title: 'Paylaşım Hatası', description: 'Gönderi paylaşılırken bir hata oluştu.' });
-        } finally {
-            resetCreateTextState();
+            resetCreateState();
         }
     };
 
@@ -756,7 +740,14 @@ export default function ExplorePage() {
                                 <AvatarFallback>{post.user?.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex flex-col overflow-hidden">
-                                    <span className="font-semibold text-sm truncate">{post.user?.name}</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-semibold text-sm truncate">{post.user?.name}</span>
+                                        {post.location && (
+                                            <span className='text-xs text-muted-foreground truncate flex items-center gap-1'>
+                                                <MapPin className='w-3 h-3'/> {post.location}
+                                            </span>
+                                        )}
+                                    </div>
                                     <span className="text-xs text-muted-foreground truncate">@{post.user?.username}</span>
                                 </div>
                             </Link>
@@ -852,7 +843,7 @@ export default function ExplorePage() {
                                 {post.isTranslating ? (
                                     <p className="text-sm text-muted-foreground italic flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</p>
                                 ) : (
-                                    <HashtagAndMentionRenderer text={post.textContent || ''} />
+                                    <p className="whitespace-pre-wrap break-words"><HashtagAndMentionRenderer text={post.textContent || ''} /></p>
                                 )}
 
                                 {((post.lang && post.lang !== 'tr') || post.isTranslated) && (
@@ -927,14 +918,22 @@ export default function ExplorePage() {
        </Sheet>
 
         {/* Create or Edit Photo Modal */}
-        <Dialog open={isCreatePhotoModalOpen} onOpenChange={(open) => !open && resetCreatePhotoState()}>
+        <Dialog open={isCreatePhotoModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
             <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
                     <DialogTitle>{editingPost ? "Fotoğrafı Düzenle" : "Fotoğraf Paylaş"}</DialogTitle>
-                    <DialogDescription>{editingPost ? "Açıklamayı veya stili değiştirin." : "İsteğe bağlı olarak stil ve açıklama ekleyebilirsiniz."}</DialogDescription>
                 </DialogHeader>
                 <div className="flex flex-col items-center gap-4 py-4">
                     {imgSrc && ( <Image alt="Preview" src={imgSrc} width={500} height={500} className="max-h-[40vh] object-contain rounded-md" /> )}
+                    
+                    <div className='w-full flex items-center gap-2'>
+                        <Button variant="outline" size="sm" onClick={handleFetchLocation} disabled={isFetchingLocation}>
+                            <MapPin className={cn("w-4 h-4 mr-2", isFetchingLocation && "animate-pulse")}/>
+                            {location ? 'Konumu Değiştir' : 'Konum Ekle'}
+                        </Button>
+                        {isFetchingLocation ? <Loader2 className="w-4 h-4 animate-spin"/> : location && <p className="text-sm text-muted-foreground truncate">{location}</p>}
+                    </div>
+
                     <div className="w-full space-y-2">
                          <MentionTextarea 
                             placeholder="Gönderin için bir şeyler yaz... #güzelbirgün @kullanici" 
@@ -961,8 +960,8 @@ export default function ExplorePage() {
                     </div>
                 </div>
                  <DialogFooter>
-                    <Button variant="outline" onClick={resetCreatePhotoState}>İptal</Button>
-                    <Button onClick={handleSharePhoto} disabled={isPostProcessing}>
+                    <Button variant="outline" onClick={resetCreateState}>İptal</Button>
+                    <Button onClick={handleSharePost} disabled={isPostProcessing}>
                         {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Check className="mr-2 h-4 w-4" /> )}
                         {editingPost ? "Değişiklikleri Kaydet" : "Paylaş"}
                     </Button>
@@ -971,13 +970,20 @@ export default function ExplorePage() {
         </Dialog>
         
         {/* Create or Edit Text Modal */}
-        <Dialog open={isCreateTextModalOpen} onOpenChange={(open) => !open && resetCreateTextState()}>
+        <Dialog open={isCreateTextModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
             <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
                     <DialogTitle>{editingPost ? "Metni Düzenle" : "Metin Paylaş"}</DialogTitle>
-                    <DialogDescription>Aklındakileri toplulukla paylaş.</DialogDescription>
                 </DialogHeader>
-                <div className="py-4">
+                <div className="py-4 space-y-4">
+                    <div className='w-full flex items-center gap-2'>
+                        <Button variant="outline" size="sm" onClick={handleFetchLocation} disabled={isFetchingLocation}>
+                             <MapPin className={cn("w-4 h-4 mr-2", isFetchingLocation && "animate-pulse")}/>
+                            {location ? 'Konumu Değiştir' : 'Konum Ekle'}
+                        </Button>
+                        {isFetchingLocation ? <Loader2 className="w-4 h-4 animate-spin"/> : location && <p className="text-sm text-muted-foreground truncate">{location}</p>}
+                    </div>
+
                      <MentionTextarea 
                         placeholder="Bugün harika bir gün... #mutluluk @kullanici" 
                         value={textContent} 
@@ -987,8 +993,8 @@ export default function ExplorePage() {
                     />
                 </div>
                  <DialogFooter>
-                    <Button variant="outline" onClick={resetCreateTextState}>İptal</Button>
-                    <Button onClick={handleShareTextPost} disabled={isPostProcessing || !textContent.trim()}>
+                    <Button variant="outline" onClick={resetCreateState}>İptal</Button>
+                    <Button onClick={handleSharePost} disabled={isPostProcessing || !textContent.trim()}>
                         {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Check className="mr-2 h-4 w-4" /> )}
                         {editingPost ? "Değişiklikleri Kaydet" : "Paylaş"}
                     </Button>
