@@ -396,7 +396,7 @@ export default function SignupPage() {
                     {renderStatusIcon(usernameStatus)}
                 </div>
               </div>
-              {usernameStatus === 'taken' && <p className="text-sm text-destructive">Bu kullanıcı adı kullanımda.</p>}
+              {usernameStatus === 'taken' && <p className="text-xs text-destructive mt-1">Bu kullanıcı adı kullanımda.</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">E-posta</Label>
@@ -406,7 +406,7 @@ export default function SignupPage() {
                     {renderStatusIcon(emailStatus)}
                 </div>
               </div>
-              {emailStatus === 'taken' && <p className="text-sm text-destructive">Bu e-posta adresi kullanımda.</p>}
+              {emailStatus === 'taken' && <p className="text-xs text-destructive mt-1">Bu e-posta adresi kullanımda.</p>}
             </div>
           </div>
         )}
@@ -644,4 +644,3 @@ export default function SignupPage() {
     </Card>
   );
 }
-
