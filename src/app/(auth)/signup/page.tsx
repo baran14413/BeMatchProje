@@ -83,8 +83,6 @@ export default function SignupPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('idle');
-  const [verificationError, setVerificationError] = useState<string | null>(null);
-  const [hasCameraPermission, setHasCameraPermission] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   
   const bioMaxLength = 250;
@@ -100,7 +98,7 @@ export default function SignupPage() {
       const querySnapshot = await getDocs(q);
       setUsernameStatus(querySnapshot.empty ? 'available' : 'taken');
     };
-    checkUsername();
+    if(debouncedUsername) checkUsername();
   }, [debouncedUsername]);
 
   useEffect(() => {
@@ -115,7 +113,7 @@ export default function SignupPage() {
       const querySnapshot = await getDocs(q);
       setEmailStatus(querySnapshot.empty ? 'available' : 'taken');
     };
-    checkEmail();
+    if(debouncedEmail) checkEmail();
   }, [debouncedEmail]);
   
 
@@ -128,7 +126,6 @@ export default function SignupPage() {
       const getCameraPermission = async () => {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-          setHasCameraPermission(true);
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
             videoRef.current.onloadedmetadata = () => {
@@ -137,7 +134,6 @@ export default function SignupPage() {
           }
         } catch (error) {
           console.error('Error accessing camera:', error);
-          setHasCameraPermission(false);
           toast({
             variant: 'destructive',
             title: 'Kamera İzni Reddedildi',
@@ -287,7 +283,6 @@ export default function SignupPage() {
     if (id === 'city') {
         const city = cities.find(c => c.name === value);
         setSelectedCityPlate(city ? city.id : null);
-        // Reset district when city changes
         setFormData(prev => ({...prev, district: ''}));
     }
   };
@@ -354,8 +349,7 @@ export default function SignupPage() {
       return 'border-primary/50';
   };
   
-  const renderStatusIcon = (field: 'username' | 'email') => {
-    const status = field === 'username' ? usernameStatus : emailStatus;
+  const renderStatusIcon = (status: AvailabilityStatus) => {
     if (status === 'checking') {
         return <Loader2 className="w-4 h-4 animate-spin" />;
     }
@@ -400,7 +394,7 @@ export default function SignupPage() {
               <div className="relative">
                 <Input id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required className="pr-8"/>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                    {renderStatusIcon('username')}
+                    {renderStatusIcon(usernameStatus)}
                 </div>
               </div>
               {usernameStatus === 'taken' && <p className="text-xs text-destructive mt-1">Bu kullanıcı adı kullanımda.</p>}
@@ -410,7 +404,7 @@ export default function SignupPage() {
               <div className="relative">
                 <Input id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required className="pr-8"/>
                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                    {renderStatusIcon('email')}
+                    {renderStatusIcon(emailStatus)}
                 </div>
               </div>
               {emailStatus === 'taken' && <p className="text-xs text-destructive mt-1">Bu e-posta adresi kullanımda.</p>}
@@ -580,12 +574,6 @@ export default function SignupPage() {
                    getVerificationBorderColor()
                )}>
                  <video ref={videoRef} className="w-full h-full object-cover scale-x-[-1]" autoPlay muted playsInline />
-                  {!hasCameraPermission && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4">
-                          <Camera className="w-12 h-12 mb-2"/>
-                          <p>Kamera izni bekleniyor...</p>
-                      </div>
-                  )}
                   {verificationStatus === 'checking' && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4">
                           <Loader2 className="w-12 h-12 mb-2 animate-spin"/>
@@ -651,3 +639,5 @@ export default function SignupPage() {
     </Card>
   );
 }
+
+    
