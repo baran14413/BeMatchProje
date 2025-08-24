@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { moderateImage, ModerateImageOutput } from '@/ai/flows/moderate-image-flow';
 import Image from 'next/image';
 import { createUserWithEmailAndPassword, updateProfile, fetchSignInMethodsForEmail } from 'firebase/auth';
-import { doc, setDoc, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, getDoc, query, collection, where, getDocs, or } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { auth, db, storage } from '@/lib/firebase';
 import { cities, districts } from '@/lib/turkey-locations';
@@ -70,8 +70,8 @@ export default function SignupPage() {
   const [debouncedUsername] = useDebounce(formData.username, 500);
   const [debouncedEmail] = useDebounce(formData.email, 500);
   
-  const [usernameStatus, setUsernameStatus] = useState<AvailabilityStatus>('idle');
-  const [emailStatus, setEmailStatus] = useState<AvailabilityStatus>('idle');
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   
   const [selectedCityPlate, setSelectedCityPlate] = useState<number | null>(null);
 
@@ -90,36 +90,58 @@ export default function SignupPage() {
   const bioMaxLength = 250;
   
   useEffect(() => {
-    const checkUsername = async () => {
-      if (debouncedUsername.length < 3) {
-        setUsernameStatus('idle');
-        return;
-      }
-      setUsernameStatus('checking');
-      const usernameQuery = query(collection(db, 'users'), where('username', '==', debouncedUsername));
-      const usernameSnapshot = await getDocs(usernameQuery);
-      setUsernameStatus(usernameSnapshot.empty ? 'available' : 'taken');
-    };
-    checkUsername();
-  }, [debouncedUsername]);
+    const checkAvailability = async () => {
+        if (!debouncedUsername && !debouncedEmail) {
+            setFormError(null);
+            setIsCheckingAvailability(false);
+            return;
+        }
 
-  useEffect(() => {
-    const checkEmail = async () => {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(debouncedEmail)) {
-        setEmailStatus('idle');
-        return;
-      }
-      setEmailStatus('checking');
-      try {
-        const signInMethods = await fetchSignInMethodsForEmail(auth, debouncedEmail);
-        setEmailStatus(signInMethods.length > 0 ? 'taken' : 'available');
-      } catch (error) {
-        setEmailStatus('idle'); // Could be invalid email format for firebase
-      }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const isUsernameValid = debouncedUsername.length >= 3;
+        const isEmailValid = emailRegex.test(debouncedEmail);
+
+        if (!isUsernameValid && !isEmailValid) {
+            setFormError(null);
+            setIsCheckingAvailability(false);
+            return;
+        }
+
+        setIsCheckingAvailability(true);
+        setFormError(null);
+
+        try {
+            const conditions = [];
+            if (isUsernameValid) conditions.push(where('username', '==', debouncedUsername));
+            if (isEmailValid) conditions.push(where('email', '==', debouncedEmail));
+            
+            if (conditions.length === 0) {
+                 setIsCheckingAvailability(false);
+                 return;
+            }
+
+            const q = query(collection(db, 'users'), or(...conditions));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                const docData = querySnapshot.docs[0].data();
+                if (isUsernameValid && docData.username === debouncedUsername) {
+                    setFormError("Bu kullanıcı adı zaten alınmış.");
+                } else if (isEmailValid && docData.email === debouncedEmail) {
+                    setFormError("Bu e-posta adresi zaten kullanımda.");
+                }
+            } else {
+                setFormError(null);
+            }
+        } catch (e) {
+            console.error(e);
+            setFormError("Kullanılabilirlik kontrol edilemedi.");
+        } finally {
+            setIsCheckingAvailability(false);
+        }
     };
-    checkEmail();
-  }, [debouncedEmail]);
+    checkAvailability();
+}, [debouncedUsername, debouncedEmail]);
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
@@ -197,13 +219,13 @@ export default function SignupPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
-     if (id === 'username') {
-      setUsernameStatus('idle');
+    if (id === 'username' || id === 'email') {
+        setFormError(null);
+    }
+
+    if (id === 'username') {
       const sanitizedValue = value.toLowerCase().replace(/[^a-z0-9_]/g, '');
       setFormData(prev => ({ ...prev, [id]: sanitizedValue }));
-    } else if (id === 'email') {
-      setEmailStatus('idle');
-      setFormData(prev => ({ ...prev, [id]: value }));
     } else if (id === 'bio' && value.length > bioMaxLength) {
         return;
     } else {
@@ -300,7 +322,7 @@ export default function SignupPage() {
     });
   };
 
-  const isStep1Invalid = !formData.firstName || !formData.lastName || usernameStatus !== 'available' || emailStatus !== 'available';
+  const isStep1Invalid = !formData.firstName || !formData.lastName || formData.username.length < 3 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) || !!formError || isCheckingAvailability;
   const isStep2Invalid = !formData.age || !formData.gender || !formData.country || !formData.city || !formData.district || formData.hobbies.length < 3;
   const isStep3Invalid = !formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf';
   const isStep4Invalid = !formData.bio;
@@ -355,13 +377,17 @@ export default function SignupPage() {
       return 'border-primary/50';
   };
   
-  const renderStatusIcon = (status: AvailabilityStatus) => {
-    switch(status) {
-      case 'checking': return <Loader2 className="w-4 h-4 animate-spin" />;
-      case 'available': return <Check className="w-4 h-4 text-green-500" />;
-      case 'taken': return <CircleX className="w-4 h-4 text-destructive" />;
-      default: return null;
+  const renderStatusIcon = (field: 'username' | 'email') => {
+    if (isCheckingAvailability && ( (field === 'username' && formData.username) || (field === 'email' && formData.email) )) {
+        return <Loader2 className="w-4 h-4 animate-spin" />;
     }
+    if (formError && ((field === 'username' && formError.includes('kullanıcı')) || (field === 'email' && formError.includes('e-posta')))) {
+        return <CircleX className="w-4 h-4 text-destructive" />;
+    }
+    if ((field === 'username' && formData.username.length >= 3) || (field === 'email' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))) {
+        return <Check className="w-4 h-4 text-green-500" />;
+    }
+    return null;
   }
 
   return (
@@ -396,21 +422,25 @@ export default function SignupPage() {
               <div className="relative">
                 <Input id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required className="pr-8"/>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                    {renderStatusIcon(usernameStatus)}
+                    {renderStatusIcon('username')}
                 </div>
               </div>
-              {usernameStatus === 'taken' && <p className="text-xs text-destructive mt-1">Bu kullanıcı adı kullanımda.</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">E-posta</Label>
               <div className="relative">
                 <Input id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required className="pr-8"/>
                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                    {renderStatusIcon(emailStatus)}
+                    {renderStatusIcon('email')}
                 </div>
               </div>
-              {emailStatus === 'taken' && <p className="text-xs text-destructive mt-1">Bu e-posta adresi kullanımda.</p>}
             </div>
+            {formError && (
+                <Alert variant="destructive" className="mt-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>{formError}</AlertDescription>
+                </Alert>
+            )}
           </div>
         )}
         {step === 2 && (
