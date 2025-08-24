@@ -5351,7 +5351,7 @@ function SignupPage() {
                         return;
                     }
                     if (debouncedUsername.length < 3) {
-                        setUsernameStatus('idle');
+                        setUsernameStatus('taken'); // Or a different status for "too short"
                         return;
                     }
                     setUsernameStatus('checking');

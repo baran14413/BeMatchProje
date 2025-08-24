@@ -91,12 +91,8 @@ export default function SignupPage() {
 
   useEffect(() => {
     const checkUsername = async () => {
-      if (!debouncedUsername) {
-        setUsernameStatus('idle');
-        return;
-      }
       if (debouncedUsername.length < 3) {
-        setUsernameStatus('taken'); // Or a different status for "too short"
+        setUsernameStatus('idle');
         return;
       }
       setUsernameStatus('checking');
