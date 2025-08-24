@@ -12,7 +12,9 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getFirestore, collection, query, where, getDocs, writeBatch, doc } from 'firebase/firestore';
 import { getStorage, ref, deleteObject } from 'firebase/storage';
-import { initializeApp, getApps, App, getAuth } from 'firebase-admin/app';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+
 
 // Initialize Firebase Admin SDK if not already initialized
 let adminApp: App;

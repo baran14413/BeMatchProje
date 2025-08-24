@@ -1,50 +1,5 @@
 {
-  "node": {
-    "40803c2a23dd35c36bbf929ece9b7092e4145d6dec": {
-      "workers": {
-        "app/(app)/explore/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/explore/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/stylize-image-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false
-        }
-      },
-      "layer": {
-        "app/(app)/explore/page": "action-browser"
-      }
-    },
-    "4027a3c2514dea80f0671fd996b6b9be4c1afd6550": {
-      "workers": {
-        "app/(auth)/signup/page": {
-          "moduleId": "[project]/.next-internal/server/app/(auth)/signup/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/moderate-image-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false
-        }
-      },
-      "layer": {
-        "app/(auth)/signup/page": "action-browser"
-      }
-    },
-    "40bf163586b9749c4d42659156f8a2a9ed2e915b55": {
-      "workers": {
-        "app/(app)/admin/users/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/admin/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/delete-user-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false
-        }
-      },
-      "layer": {
-        "app/(app)/admin/users/page": "action-browser"
-      }
-    },
-    "4076365984dec01c64a5fd543a3b6e6674f10ecaec": {
-      "workers": {
-        "app/(app)/profile/edit/delete/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/profile/edit/delete/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/delete-user-data-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false
-        }
-      },
-      "layer": {
-        "app/(app)/profile/edit/delete/page": "action-browser"
-      }
-    }
-  },
+  "node": {},
   "edge": {},
   "encryptionKey": "RR9qWedF7LKg52rPaWB/UVfEmrz1et13H2Cfbow2Pes="
 }
