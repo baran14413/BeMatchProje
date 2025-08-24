@@ -91,33 +91,33 @@ export default function SignupPage() {
 
   useEffect(() => {
     const checkUsername = async () => {
-        if (!debouncedUsername) {
-            setUsernameStatus('idle');
-            return;
-        }
-        if (debouncedUsername.length < 3) {
-            setUsernameStatus('idle');
-            return;
-        }
-        setUsernameStatus('checking');
-        const q = query(collection(db, 'users'), where('username', '==', debouncedUsername));
-        const querySnapshot = await getDocs(q);
-        setUsernameStatus(querySnapshot.empty ? 'available' : 'taken');
+      if (!debouncedUsername) {
+        setUsernameStatus('idle');
+        return;
+      }
+      if (debouncedUsername.length < 3) {
+        setUsernameStatus('idle');
+        return;
+      }
+      setUsernameStatus('checking');
+      const q = query(collection(db, 'users'), where('username', '==', debouncedUsername));
+      const querySnapshot = await getDocs(q);
+      setUsernameStatus(querySnapshot.empty ? 'available' : 'taken');
     };
     checkUsername();
   }, [debouncedUsername]);
 
   useEffect(() => {
     const checkEmail = async () => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!debouncedEmail || !emailRegex.test(debouncedEmail)) {
-            setEmailStatus('idle');
-            return;
-        }
-        setEmailStatus('checking');
-        const q = query(collection(db, 'users'), where('email', '==', debouncedEmail));
-        const querySnapshot = await getDocs(q);
-        setEmailStatus(querySnapshot.empty ? 'available' : 'taken');
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!debouncedEmail || !emailRegex.test(debouncedEmail)) {
+        setEmailStatus('idle');
+        return;
+      }
+      setEmailStatus('checking');
+      const q = query(collection(db, 'users'), where('email', '==', debouncedEmail));
+      const querySnapshot = await getDocs(q);
+      setEmailStatus(querySnapshot.empty ? 'available' : 'taken');
     };
     checkEmail();
   }, [debouncedEmail]);
@@ -655,5 +655,3 @@ export default function SignupPage() {
     </Card>
   );
 }
-
-    
