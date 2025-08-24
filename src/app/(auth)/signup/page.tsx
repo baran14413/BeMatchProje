@@ -24,8 +24,8 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { moderateImage, ModerateImageOutput } from '@/ai/flows/moderate-image-flow';
 import Image from 'next/image';
-import { createUserWithEmailAndPassword, updateProfile, fetchSignInMethodsForEmail } from 'firebase/auth';
-import { doc, setDoc, getDoc, query, collection, where, getDocs, or } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, setDoc, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { auth, db, storage } from '@/lib/firebase';
 import { cities, districts } from '@/lib/turkey-locations';
@@ -70,8 +70,8 @@ export default function SignupPage() {
   const [debouncedUsername] = useDebounce(formData.username, 500);
   const [debouncedEmail] = useDebounce(formData.email, 500);
   
-  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [usernameStatus, setUsernameStatus] = useState<AvailabilityStatus>('idle');
+  const [emailStatus, setEmailStatus] = useState<AvailabilityStatus>('idle');
   
   const [selectedCityPlate, setSelectedCityPlate] = useState<number | null>(null);
 
@@ -88,60 +88,40 @@ export default function SignupPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   
   const bioMaxLength = 250;
-  
+
   useEffect(() => {
-    const checkAvailability = async () => {
-        if (!debouncedUsername && !debouncedEmail) {
-            setFormError(null);
-            setIsCheckingAvailability(false);
+    const checkUsername = async () => {
+        if (!debouncedUsername) {
+            setUsernameStatus('idle');
             return;
         }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const isUsernameValid = debouncedUsername.length >= 3;
-        const isEmailValid = emailRegex.test(debouncedEmail);
-
-        if (!isUsernameValid && !isEmailValid) {
-            setFormError(null);
-            setIsCheckingAvailability(false);
+        if (debouncedUsername.length < 3) {
+            setUsernameStatus('idle');
             return;
         }
-
-        setIsCheckingAvailability(true);
-        setFormError(null);
-
-        try {
-            const conditions = [];
-            if (isUsernameValid) conditions.push(where('username', '==', debouncedUsername));
-            if (isEmailValid) conditions.push(where('email', '==', debouncedEmail));
-            
-            if (conditions.length === 0) {
-                 setIsCheckingAvailability(false);
-                 return;
-            }
-
-            const q = query(collection(db, 'users'), or(...conditions));
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-                const docData = querySnapshot.docs[0].data();
-                if (isUsernameValid && docData.username === debouncedUsername) {
-                    setFormError("Bu kullanıcı adı zaten alınmış.");
-                } else if (isEmailValid && docData.email === debouncedEmail) {
-                    setFormError("Bu e-posta adresi zaten kullanımda.");
-                }
-            } else {
-                setFormError(null);
-            }
-        } catch (e) {
-            console.error(e);
-            setFormError("Kullanılabilirlik kontrol edilemedi.");
-        } finally {
-            setIsCheckingAvailability(false);
-        }
+        setUsernameStatus('checking');
+        const q = query(collection(db, 'users'), where('username', '==', debouncedUsername));
+        const querySnapshot = await getDocs(q);
+        setUsernameStatus(querySnapshot.empty ? 'available' : 'taken');
     };
-    checkAvailability();
-}, [debouncedUsername, debouncedEmail]);
+    checkUsername();
+  }, [debouncedUsername]);
+
+  useEffect(() => {
+    const checkEmail = async () => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!debouncedEmail || !emailRegex.test(debouncedEmail)) {
+            setEmailStatus('idle');
+            return;
+        }
+        setEmailStatus('checking');
+        const q = query(collection(db, 'users'), where('email', '==', debouncedEmail));
+        const querySnapshot = await getDocs(q);
+        setEmailStatus(querySnapshot.empty ? 'available' : 'taken');
+    };
+    checkEmail();
+  }, [debouncedEmail]);
+  
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
@@ -219,13 +199,14 @@ export default function SignupPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
-    if (id === 'username' || id === 'email') {
-        setFormError(null);
-    }
-
+    
     if (id === 'username') {
+      setUsernameStatus('idle');
       const sanitizedValue = value.toLowerCase().replace(/[^a-z0-9_]/g, '');
       setFormData(prev => ({ ...prev, [id]: sanitizedValue }));
+    } else if (id === 'email') {
+      setEmailStatus('idle');
+      setFormData(prev => ({...prev, [id]: value}));
     } else if (id === 'bio' && value.length > bioMaxLength) {
         return;
     } else {
@@ -322,7 +303,7 @@ export default function SignupPage() {
     });
   };
 
-  const isStep1Invalid = !formData.firstName || !formData.lastName || formData.username.length < 3 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) || !!formError || isCheckingAvailability;
+  const isStep1Invalid = !formData.firstName || !formData.lastName || formData.username.length < 3 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) || usernameStatus === 'taken' || emailStatus === 'taken' || usernameStatus === 'checking' || emailStatus === 'checking';
   const isStep2Invalid = !formData.age || !formData.gender || !formData.country || !formData.city || !formData.district || formData.hobbies.length < 3;
   const isStep3Invalid = !formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf';
   const isStep4Invalid = !formData.bio;
@@ -378,13 +359,14 @@ export default function SignupPage() {
   };
   
   const renderStatusIcon = (field: 'username' | 'email') => {
-    if (isCheckingAvailability && ( (field === 'username' && formData.username) || (field === 'email' && formData.email) )) {
+    const status = field === 'username' ? usernameStatus : emailStatus;
+    if (status === 'checking') {
         return <Loader2 className="w-4 h-4 animate-spin" />;
     }
-    if (formError && ((field === 'username' && formError.includes('kullanıcı')) || (field === 'email' && formError.includes('e-posta')))) {
+    if (status === 'taken') {
         return <CircleX className="w-4 h-4 text-destructive" />;
     }
-    if ((field === 'username' && formData.username.length >= 3) || (field === 'email' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))) {
+    if (status === 'available') {
         return <Check className="w-4 h-4 text-green-500" />;
     }
     return null;
@@ -425,6 +407,7 @@ export default function SignupPage() {
                     {renderStatusIcon('username')}
                 </div>
               </div>
+              {usernameStatus === 'taken' && <p className="text-xs text-destructive mt-1">Bu kullanıcı adı kullanımda.</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">E-posta</Label>
@@ -434,13 +417,8 @@ export default function SignupPage() {
                     {renderStatusIcon('email')}
                 </div>
               </div>
+              {emailStatus === 'taken' && <p className="text-xs text-destructive mt-1">Bu e-posta adresi kullanımda.</p>}
             </div>
-            {formError && (
-                <Alert variant="destructive" className="mt-2">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>{formError}</AlertDescription>
-                </Alert>
-            )}
           </div>
         )}
         {step === 2 && (
@@ -677,3 +655,5 @@ export default function SignupPage() {
     </Card>
   );
 }
+
+    
