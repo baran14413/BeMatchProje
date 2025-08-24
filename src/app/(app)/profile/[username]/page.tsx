@@ -227,10 +227,13 @@ export default function UserProfilePage() {
             }
             
             // Fetch posts
-            const postsQuery = query(collection(db, 'posts'), where('authorId', '==', profileId), orderBy('createdAt', 'desc'));
+            const postsQuery = query(collection(db, 'posts'), where('authorId', '==', profileId));
             const postsSnapshot = await getDocs(postsQuery);
-            const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
+            let postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
             
+            // Sort posts by date client-side
+            postsData.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
+
             setUserPosts(postsData);
         } else {
           console.log("No such document!");
@@ -575,3 +578,4 @@ export default function UserProfilePage() {
   );
 }
 
+    
