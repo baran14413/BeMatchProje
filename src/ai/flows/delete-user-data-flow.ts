@@ -12,16 +12,12 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getFirestore, collection, query, where, getDocs, writeBatch, doc } from 'firebase/firestore';
 import { getStorage, ref, deleteObject } from 'firebase/storage';
-import { getAuth } from 'firebase-admin/auth';
-import { initializeApp, getApps, App } from 'firebase-admin/app';
-import {getServiceAccountCredentials, serviceAccount} from "firebase-admin/app";
+import { initializeApp, getApps, App, getAuth } from 'firebase-admin/app';
 
 // Initialize Firebase Admin SDK if not already initialized
 let adminApp: App;
 if (!getApps().length) {
-    adminApp = initializeApp({
-       credential: serviceAccount()
-    });
+    adminApp = initializeApp();
 } else {
     adminApp = getApps()[0];
 }

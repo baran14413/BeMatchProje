@@ -32,6 +32,17 @@
       "layer": {
         "app/(app)/admin/users/page": "action-browser"
       }
+    },
+    "4076365984dec01c64a5fd543a3b6e6674f10ecaec": {
+      "workers": {
+        "app/(app)/profile/edit/delete/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/profile/edit/delete/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/delete-user-data-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/(app)/profile/edit/delete/page": "action-browser"
+      }
     }
   },
   "edge": {},

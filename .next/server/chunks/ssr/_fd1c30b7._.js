@@ -171,7 +171,7 @@ const SettingsItem = ({ icon, title, href, onClick, value, isFirst, isLast })=>{
                 children: icon
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 56,
+                lineNumber: 57,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -179,7 +179,7 @@ const SettingsItem = ({ icon, title, href, onClick, value, isFirst, isLast })=>{
                 children: title
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 57,
+                lineNumber: 58,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -190,26 +190,26 @@ const SettingsItem = ({ icon, title, href, onClick, value, isFirst, isLast })=>{
                         children: value
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                        lineNumber: 59,
+                        lineNumber: 60,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chevron$2d$right$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ChevronRight$3e$__["ChevronRight"], {
                         className: "h-5 w-5"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                        lineNumber: 60,
+                        lineNumber: 61,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 58,
+                lineNumber: 59,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-        lineNumber: 50,
+        lineNumber: 51,
         columnNumber: 5
     }, this);
     if (href && !onClick) {
@@ -218,7 +218,7 @@ const SettingsItem = ({ icon, title, href, onClick, value, isFirst, isLast })=>{
             children: content
         }, void 0, false, {
             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-            lineNumber: 66,
+            lineNumber: 67,
             columnNumber: 12
         }, this);
     }
@@ -229,7 +229,7 @@ const SectionTitle = ({ title })=>/*#__PURE__*/ (0, __TURBOPACK__imported__modul
         children: title
     }, void 0, false, {
         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-        lineNumber: 72,
+        lineNumber: 73,
         columnNumber: 5
     }, this);
 function EditProfilePage() {
@@ -292,7 +292,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 131,
+                lineNumber: 132,
                 columnNumber: 17
             }, this),
             title: 'Profili Düzenle',
@@ -303,7 +303,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 132,
+                lineNumber: 133,
                 columnNumber: 17
             }, this),
             title: 'Profil Fotoğrafı Düzenle',
@@ -314,7 +314,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 133,
+                lineNumber: 134,
                 columnNumber: 17
             }, this),
             title: 'Gönderilerini Yönet',
@@ -325,7 +325,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 134,
+                lineNumber: 135,
                 columnNumber: 17
             }, this),
             title: 'Kaydedilen Gönderiler',
@@ -338,7 +338,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 138,
+                lineNumber: 139,
                 columnNumber: 17
             }, this),
             title: 'BeMatch Premium',
@@ -349,7 +349,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 139,
+                lineNumber: 140,
                 columnNumber: 17
             }, this),
             title: 'Cüzdanım',
@@ -362,7 +362,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 143,
+                lineNumber: 144,
                 columnNumber: 17
             }, this),
             title: 'Ana Akış Ayarları',
@@ -375,7 +375,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 147,
+                lineNumber: 148,
                 columnNumber: 17
             }, this),
             title: 'Hesap Gizliliği',
@@ -386,7 +386,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 148,
+                lineNumber: 149,
                 columnNumber: 17
             }, this),
             title: 'E-posta & Şifre',
@@ -397,7 +397,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 149,
+                lineNumber: 150,
                 columnNumber: 17
             }, this),
             title: 'Oturum Yönetimi',
@@ -408,7 +408,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 150,
+                lineNumber: 151,
                 columnNumber: 17
             }, this),
             title: 'Engellenen Hesaplar',
@@ -421,7 +421,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 154,
+                lineNumber: 155,
                 columnNumber: 17
             }, this),
             title: 'Görünüm',
@@ -434,7 +434,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 158,
+                lineNumber: 159,
                 columnNumber: 17
             }, this),
             title: 'Bildirim Ayarları',
@@ -445,7 +445,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 159,
+                lineNumber: 160,
                 columnNumber: 17
             }, this),
             title: 'Uygulamayı Yükle',
@@ -456,7 +456,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 160,
+                lineNumber: 161,
                 columnNumber: 17
             }, this),
             title: 'Uygulama Kılavuzu',
@@ -469,7 +469,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 164,
+                lineNumber: 165,
                 columnNumber: 17
             }, this),
             title: 'Hesabı Sil',
@@ -480,7 +480,7 @@ function EditProfilePage() {
                 className: "h-6 w-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 165,
+                lineNumber: 166,
                 columnNumber: 17
             }, this),
             title: 'Çıkış Yap',
@@ -496,7 +496,7 @@ function EditProfilePage() {
                         title: "Hesap"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                        lineNumber: 171,
+                        lineNumber: 172,
                         columnNumber: 13
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -512,36 +512,36 @@ function EditProfilePage() {
                                             isLast: index === accountItems.length - 1
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                            lineNumber: 176,
+                                            lineNumber: 177,
                                             columnNumber: 29
                                         }, this),
                                         index < accountItems.length - 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$separator$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Separator"], {
                                             className: "bg-border/50"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                            lineNumber: 183,
+                                            lineNumber: 184,
                                             columnNumber: 65
                                         }, this)
                                     ]
                                 }, item.title, true, {
                                     fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                    lineNumber: 175,
+                                    lineNumber: 176,
                                     columnNumber: 25
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                            lineNumber: 173,
+                            lineNumber: 174,
                             columnNumber: 17
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                        lineNumber: 172,
+                        lineNumber: 173,
                         columnNumber: 13
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 170,
+                lineNumber: 171,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -550,7 +550,7 @@ function EditProfilePage() {
                         title: "Premium"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                        lineNumber: 190,
+                        lineNumber: 191,
                         columnNumber: 13
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -566,36 +566,36 @@ function EditProfilePage() {
                                             isLast: index === premiumItems.length - 1
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                            lineNumber: 195,
+                                            lineNumber: 196,
                                             columnNumber: 29
                                         }, this),
                                         index < premiumItems.length - 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$separator$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Separator"], {
                                             className: "bg-border/50"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                            lineNumber: 202,
+                                            lineNumber: 203,
                                             columnNumber: 65
                                         }, this)
                                     ]
                                 }, item.title, true, {
                                     fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                    lineNumber: 194,
+                                    lineNumber: 195,
                                     columnNumber: 25
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                            lineNumber: 192,
+                            lineNumber: 193,
                             columnNumber: 17
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                        lineNumber: 191,
+                        lineNumber: 192,
                         columnNumber: 13
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 189,
+                lineNumber: 190,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -604,7 +604,7 @@ function EditProfilePage() {
                         title: "İçerik Tercihleri"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                        lineNumber: 209,
+                        lineNumber: 210,
                         columnNumber: 13
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -620,36 +620,36 @@ function EditProfilePage() {
                                             isLast: index === contentPreferenceItems.length - 1
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                            lineNumber: 214,
+                                            lineNumber: 215,
                                             columnNumber: 29
                                         }, this),
                                         index < contentPreferenceItems.length - 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$separator$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Separator"], {
                                             className: "bg-border/50"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                            lineNumber: 221,
+                                            lineNumber: 222,
                                             columnNumber: 76
                                         }, this)
                                     ]
                                 }, item.title, true, {
                                     fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                    lineNumber: 213,
+                                    lineNumber: 214,
                                     columnNumber: 26
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                            lineNumber: 211,
+                            lineNumber: 212,
                             columnNumber: 17
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                        lineNumber: 210,
+                        lineNumber: 211,
                         columnNumber: 13
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 208,
+                lineNumber: 209,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -658,7 +658,7 @@ function EditProfilePage() {
                         title: "Gizlilik ve Güvenlik"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                        lineNumber: 228,
+                        lineNumber: 229,
                         columnNumber: 13
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -674,36 +674,36 @@ function EditProfilePage() {
                                             isLast: index === privacyAndSecurityItems.length - 1
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                            lineNumber: 233,
+                                            lineNumber: 234,
                                             columnNumber: 29
                                         }, this),
                                         index < privacyAndSecurityItems.length - 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$separator$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Separator"], {
                                             className: "bg-border/50"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                            lineNumber: 240,
+                                            lineNumber: 241,
                                             columnNumber: 77
                                         }, this)
                                     ]
                                 }, item.title, true, {
                                     fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                    lineNumber: 232,
+                                    lineNumber: 233,
                                     columnNumber: 26
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                            lineNumber: 230,
+                            lineNumber: 231,
                             columnNumber: 17
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                        lineNumber: 229,
+                        lineNumber: 230,
                         columnNumber: 13
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 227,
+                lineNumber: 228,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -712,7 +712,7 @@ function EditProfilePage() {
                         title: "Görünüm"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                        lineNumber: 247,
+                        lineNumber: 248,
                         columnNumber: 13
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -728,36 +728,36 @@ function EditProfilePage() {
                                             isLast: index === appearanceItems.length - 1
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                            lineNumber: 252,
+                                            lineNumber: 253,
                                             columnNumber: 29
                                         }, this),
                                         index < appearanceItems.length - 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$separator$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Separator"], {
                                             className: "bg-border/50"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                            lineNumber: 259,
+                                            lineNumber: 260,
                                             columnNumber: 68
                                         }, this)
                                     ]
                                 }, item.title, true, {
                                     fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                    lineNumber: 251,
+                                    lineNumber: 252,
                                     columnNumber: 25
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                            lineNumber: 249,
+                            lineNumber: 250,
                             columnNumber: 17
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                        lineNumber: 248,
+                        lineNumber: 249,
                         columnNumber: 13
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 246,
+                lineNumber: 247,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -766,7 +766,7 @@ function EditProfilePage() {
                         title: "Uygulama"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                        lineNumber: 266,
+                        lineNumber: 267,
                         columnNumber: 13
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -783,36 +783,36 @@ function EditProfilePage() {
                                             isLast: index === applicationItems.length - 1
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                            lineNumber: 271,
+                                            lineNumber: 272,
                                             columnNumber: 29
                                         }, this),
                                         index < applicationItems.length - 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$separator$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Separator"], {
                                             className: "bg-border/50"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                            lineNumber: 279,
+                                            lineNumber: 280,
                                             columnNumber: 70
                                         }, this)
                                     ]
                                 }, item.title, true, {
                                     fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                    lineNumber: 270,
+                                    lineNumber: 271,
                                     columnNumber: 26
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                            lineNumber: 268,
+                            lineNumber: 269,
                             columnNumber: 17
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                        lineNumber: 267,
+                        lineNumber: 268,
                         columnNumber: 13
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 265,
+                lineNumber: 266,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -821,7 +821,7 @@ function EditProfilePage() {
                         title: "Diğer"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                        lineNumber: 286,
+                        lineNumber: 287,
                         columnNumber: 13
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -838,42 +838,42 @@ function EditProfilePage() {
                                             isLast: index === otherItems.length - 1
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                            lineNumber: 291,
+                                            lineNumber: 292,
                                             columnNumber: 29
                                         }, this),
                                         index < otherItems.length - 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$separator$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Separator"], {
                                             className: "bg-border/50"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                            lineNumber: 299,
+                                            lineNumber: 300,
                                             columnNumber: 64
                                         }, this)
                                     ]
                                 }, item.title, true, {
                                     fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                                    lineNumber: 290,
+                                    lineNumber: 291,
                                     columnNumber: 26
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                            lineNumber: 288,
+                            lineNumber: 289,
                             columnNumber: 17
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                        lineNumber: 287,
+                        lineNumber: 288,
                         columnNumber: 13
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-                lineNumber: 285,
+                lineNumber: 286,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(app)/profile/edit/page.tsx",
-        lineNumber: 169,
+        lineNumber: 170,
         columnNumber: 5
     }, this);
 }

@@ -5,6 +5,7 @@
   "/(app)/profile/[username]/page": "app/(app)/profile/[username]/page.js",
   "/(app)/profile/edit/appearance/page": "app/(app)/profile/edit/appearance/page.js",
   "/(app)/profile/edit/blocked/page": "app/(app)/profile/edit/blocked/page.js",
+  "/(app)/profile/edit/delete/page": "app/(app)/profile/edit/delete/page.js",
   "/(app)/profile/edit/page": "app/(app)/profile/edit/page.js",
   "/(app)/tutorial/page": "app/(app)/tutorial/page.js",
   "/(auth)/signup/page": "app/(auth)/signup/page.js",
