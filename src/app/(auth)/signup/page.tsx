@@ -198,9 +198,12 @@ export default function SignupPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
      if (id === 'username') {
-      // Allow only letters, numbers, and underscores, and convert to lowercase
+      setUsernameStatus('idle');
       const sanitizedValue = value.toLowerCase().replace(/[^a-z0-9_]/g, '');
       setFormData(prev => ({ ...prev, [id]: sanitizedValue }));
+    } else if (id === 'email') {
+      setEmailStatus('idle');
+      setFormData(prev => ({ ...prev, [id]: value }));
     } else if (id === 'bio' && value.length > bioMaxLength) {
         return;
     } else {
@@ -547,7 +550,7 @@ export default function SignupPage() {
 
               {moderationStatus === 'unsafe' && (
                 <Alert variant="destructive" className="mt-4">
-                  <Ban className="h-4 w-4" />
+                  <Ban className="h-4 h-4" />
                   <AlertTitle>Uygunsuz İçerik Tespit Edildi</AlertTitle>
                   <AlertDescription>
                     {moderationResult?.reason || 'Lütfen kurallarımıza uygun başka bir fotoğraf yükleyin.'}
