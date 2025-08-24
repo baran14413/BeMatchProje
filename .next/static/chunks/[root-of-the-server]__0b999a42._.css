@@ -2072,6 +2072,10 @@ img {
   padding-right: .5rem;
 }
 
+.pr-3 {
+  padding-right: .75rem;
+}
+
 .pr-8 {
   padding-right: 2rem;
 }
@@ -2094,10 +2098,6 @@ img {
 
 .pt-6 {
   padding-top: 1.5rem;
-}
-
-.pr-3 {
-  padding-right: .75rem;
 }
 
 .text-left {
@@ -2191,10 +2191,6 @@ img {
 
 .font-semibold {
   font-weight: 600;
-}
-
-.lowercase {
-  text-transform: lowercase;
 }
 
 .italic {
