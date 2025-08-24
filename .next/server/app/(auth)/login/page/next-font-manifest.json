@@ -2,8 +2,8 @@
   "pages": {},
   "app": {
     "[project]/src/app/(auth)/login/page": [
-      "static/media/KFO7CnqEu92Fr1ME7kSn66aGLdTylUAMa3yUBHMdazQ-s.p.a797655c.woff2",
-      "static/media/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw-s.p.0faac26c.woff2"
+      "static/media/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw-s.p.0faac26c.woff2",
+      "static/media/KFO7CnqEu92Fr1ME7kSn66aGLdTylUAMa3yUBHMdazQ-s.p.a797655c.woff2"
     ]
   },
   "appUsingSizeAdjust": true,

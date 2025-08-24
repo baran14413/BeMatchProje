@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Camera, AlertTriangle, Loader2, Eye, EyeOff, Sparkles, Ban, Upload, ShieldCheck, UserCheck, Check } from 'lucide-react';
+import { Camera, AlertTriangle, Loader2, Eye, EyeOff, Sparkles, Ban, Upload, ShieldCheck, UserCheck, Check, CircleX } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -31,6 +31,7 @@ import { auth, db, storage } from '@/lib/firebase';
 import { cities, districts } from '@/lib/turkey-locations';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { useDebounce } from 'use-debounce';
 
 const HOBBIES = [
   'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi',
@@ -40,6 +41,7 @@ const HOBBIES = [
 type PasswordStrength = 'yok' | 'zayıf' | 'orta' | 'güçlü';
 type ModerationStatus = 'idle' | 'checking' | 'safe' | 'unsafe';
 type VerificationStatus = 'idle' | 'checking' | 'verified' | 'failed';
+type AvailabilityStatus = 'idle' | 'checking' | 'available' | 'taken';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -64,6 +66,12 @@ export default function SignupPage() {
     bio: '',
     profilePicture: null as string | null,
   });
+
+  const [debouncedUsername] = useDebounce(formData.username, 500);
+  const [debouncedEmail] = useDebounce(formData.email, 500);
+  
+  const [usernameStatus, setUsernameStatus] = useState<AvailabilityStatus>('idle');
+  const [emailStatus, setEmailStatus] = useState<AvailabilityStatus>('idle');
   
   const [selectedCityPlate, setSelectedCityPlate] = useState<number | null>(null);
 
@@ -81,41 +89,40 @@ export default function SignupPage() {
   
   const bioMaxLength = 250;
   
-  const nextStep = async () => {
-      if (step === 1) {
-        if (!formData.username) {
-            toast({ variant: 'destructive', title: 'Kullanıcı adı gerekli' });
-            return;
-        }
-         if (!formData.email) {
-            toast({ variant: 'destructive', title: 'E-posta gerekli' });
-            return;
-        }
-        
-        try {
-            const usernameQuery = query(collection(db, 'users'), where('username', '==', formData.username));
-            const usernameSnapshot = await getDocs(usernameQuery);
-            if (!usernameSnapshot.empty) {
-                toast({ variant: 'destructive', title: 'Kullanıcı adı zaten alınmış' });
-                return;
-            }
+  useEffect(() => {
+    const checkUsername = async () => {
+      if (debouncedUsername.length < 3) {
+        setUsernameStatus('idle');
+        return;
+      }
+      setUsernameStatus('checking');
+      const usernameQuery = query(collection(db, 'users'), where('username', '==', debouncedUsername));
+      const usernameSnapshot = await getDocs(usernameQuery);
+      setUsernameStatus(usernameSnapshot.empty ? 'available' : 'taken');
+    };
+    checkUsername();
+  }, [debouncedUsername]);
 
-            const signInMethods = await fetchSignInMethodsForEmail(auth, formData.email);
-            if (signInMethods.length > 0) {
-                 toast({ variant: 'destructive', title: 'E-posta zaten kullanımda', description: 'Bu e-posta adresi ile zaten bir hesap mevcut. Lütfen giriş yapın.' });
-                 return;
-            }
+  useEffect(() => {
+    const checkEmail = async () => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(debouncedEmail)) {
+        setEmailStatus('idle');
+        return;
+      }
+      setEmailStatus('checking');
+      try {
+        const signInMethods = await fetchSignInMethodsForEmail(auth, debouncedEmail);
+        setEmailStatus(signInMethods.length > 0 ? 'taken' : 'available');
+      } catch (error) {
+        setEmailStatus('idle'); // Could be invalid email format for firebase
+      }
+    };
+    checkEmail();
+  }, [debouncedEmail]);
 
-        } catch (error) {
-             toast({ variant: 'destructive', title: 'Doğrulama Hatası', description: 'Kullanıcı adı veya e-posta kontrol edilirken bir hata oluştu.' });
-             return;
-        }
-    }
-    setStep((prev) => prev + 1);
-  }
-  const prevStep = () => {
-    setStep((prev) => prev - 1);
-  };
+  const nextStep = () => setStep((prev) => prev + 1);
+  const prevStep = () => setStep((prev) => prev - 1);
   
   
   useEffect(() => {
@@ -190,10 +197,15 @@ export default function SignupPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
-    if (id === 'bio' && value.length > bioMaxLength) {
+     if (id === 'username') {
+      // Allow only letters, numbers, and underscores, and convert to lowercase
+      const sanitizedValue = value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+      setFormData(prev => ({ ...prev, [id]: sanitizedValue }));
+    } else if (id === 'bio' && value.length > bioMaxLength) {
         return;
+    } else {
+        setFormData((prev) => ({ ...prev, [id]: value }));
     }
-    setFormData((prev) => ({ ...prev, [id]: value }));
     if (id === 'password') { checkPasswordStrength(value); }
   };
 
@@ -285,7 +297,7 @@ export default function SignupPage() {
     });
   };
 
-  const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.username || !formData.email;
+  const isStep1Invalid = !formData.firstName || !formData.lastName || usernameStatus !== 'available' || emailStatus !== 'available';
   const isStep2Invalid = !formData.age || !formData.gender || !formData.country || !formData.city || !formData.district || formData.hobbies.length < 3;
   const isStep3Invalid = !formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf';
   const isStep4Invalid = !formData.bio;
@@ -339,6 +351,15 @@ export default function SignupPage() {
       if (verificationStatus === 'checking') return 'border-yellow-500 animate-pulse';
       return 'border-primary/50';
   };
+  
+  const renderStatusIcon = (status: AvailabilityStatus) => {
+    switch(status) {
+      case 'checking': return <Loader2 className="w-4 h-4 animate-spin" />;
+      case 'available': return <Check className="w-4 h-4 text-green-500" />;
+      case 'taken': return <CircleX className="w-4 h-4 text-destructive" />;
+      default: return null;
+    }
+  }
 
   return (
     <Card className="w-full max-w-md">
@@ -369,11 +390,23 @@ export default function SignupPage() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="username">Kullanıcı Adı</Label>
-              <Input id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required />
+              <div className="relative">
+                <Input id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required className="pr-8"/>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    {renderStatusIcon(usernameStatus)}
+                </div>
+              </div>
+              {usernameStatus === 'taken' && <p className="text-sm text-destructive">Bu kullanıcı adı alınmış.</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">E-posta</Label>
-              <Input id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required />
+              <div className="relative">
+                <Input id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required className="pr-8"/>
+                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    {renderStatusIcon(emailStatus)}
+                </div>
+              </div>
+              {emailStatus === 'taken' && <p className="text-sm text-destructive">Bu e-posta adresi zaten kullanımda.</p>}
             </div>
           </div>
         )}
@@ -611,3 +644,5 @@ export default function SignupPage() {
     </Card>
   );
 }
+
+    

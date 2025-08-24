@@ -2096,6 +2096,10 @@ img {
   padding-top: 1.5rem;
 }
 
+.pr-3 {
+  padding-right: .75rem;
+}
+
 .text-left {
   text-align: left;
 }
@@ -2187,6 +2191,10 @@ img {
 
 .font-semibold {
   font-weight: 600;
+}
+
+.lowercase {
+  text-transform: lowercase;
 }
 
 .italic {
