@@ -1,6 +1,6 @@
 {
   "pages": {
-    "/(app)/profile/edit/page": [
+    "/(app)/admin/users/page": [
       "static/chunks/node_modules_next_dist_1a6ee436._.js",
       "static/chunks/src_app_favicon_ico_mjs_8a7a8fdc._.js",
       "static/chunks/node_modules_f01c488d._.js",
@@ -14,10 +14,9 @@
       "static/chunks/node_modules_5333c80e._.js",
       "static/chunks/src_108dcdcc._.js",
       "static/chunks/src_app_(app)_layout_tsx_c049a2e8._.js",
-      "static/chunks/_6897390c._.js",
-      "static/chunks/src_app_(app)_profile_edit_layout_tsx_a273e5c3._.js",
-      "static/chunks/_9d8412d1._.js",
-      "static/chunks/src_app_(app)_profile_edit_page_tsx_e2ebe66e._.js",
+      "static/chunks/node_modules_339217b5._.js",
+      "static/chunks/src_fbabb8af._.js",
+      "static/chunks/src_app_(app)_admin_users_page_tsx_a273e5c3._.js",
       "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_fd44f5a4._.js",
       "static/chunks/node_modules_next_dist_compiled_2ce9398a._.js",
       "static/chunks/node_modules_next_dist_client_8f19e6fb._.js",

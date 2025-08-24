@@ -160,10 +160,6 @@ export default function EditProfilePage() {
         { icon: <Download className="h-6 w-6" />, title: 'Uygulamayı Yükle', onClick: handleInstallClick },
         { icon: <HelpCircle className="h-6 w-6" />, title: 'Uygulama Kılavuzu', href: '/profile/edit/guide' },
     ];
-
-     const adminItems = [
-        { icon: <Users className="h-6 w-6" />, title: 'Kullanıcıları Yönet', href: '/admin/users' },
-    ];
     
     const otherItems = [
         { icon: <Trash2 className="h-6 w-6" />, title: 'Hesabı Sil', href: '/profile/edit/delete' },
@@ -248,25 +244,6 @@ export default function EditProfilePage() {
                 </CardContent>
             </Card>
         </div>
-         <div>
-            <SectionTitle title="Yönetici Paneli" />
-            <Card>
-                <CardContent className="p-0">
-                    {adminItems.map((item, index) => (
-                        <React.Fragment key={item.title}>
-                            <SettingsItem 
-                                icon={item.icon} 
-                                title={item.title} 
-                                href={item.href}
-                                isFirst={index === 0}
-                                isLast={index === adminItems.length -1}
-                            />
-                            {index < adminItems.length - 1 && <Separator className="bg-border/50" />}
-                        </React.Fragment>
-                    ))}
-                </CardContent>
-            </Card>
-        </div>
         <div>
             <SectionTitle title="Görünüm" />
             <Card>
@@ -329,4 +306,3 @@ export default function EditProfilePage() {
     </div>
   );
 }
-
