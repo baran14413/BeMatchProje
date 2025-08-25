@@ -41,8 +41,6 @@ const HOBBIES = [
 type PasswordStrength = 'yok' | 'zayıf' | 'orta' | 'güçlü';
 type ModerationStatus = 'idle' | 'checking' | 'safe' | 'unsafe';
 type VerificationStatus = 'idle' | 'checking' | 'verified' | 'failed';
-type ValidationStatus = 'idle' | 'checking' | 'available' | 'taken';
-
 
 export default function SignupPage() {
   const router = useRouter();
@@ -68,10 +66,12 @@ export default function SignupPage() {
     profilePicture: null as string | null,
   });
 
-  // --- Start: Real-time Username Validation States ---
-  const [usernameStatus, setUsernameStatus] = useState<ValidationStatus>('idle');
-  const [debouncedUsername] = useDebounce(formData.username, 500); // Debounce for 500ms
-  // --- End: Real-time Username Validation States ---
+  const [formErrors, setFormErrors] = useState<{ username?: string; email?: string }>({});
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  
+  const [debouncedUsername] = useDebounce(formData.username, 500);
+  const [debouncedEmail] = useDebounce(formData.email, 500);
 
   const [selectedCityPlate, setSelectedCityPlate] = useState<number | null>(null);
 
@@ -87,36 +87,63 @@ export default function SignupPage() {
   
   const bioMaxLength = 250;
 
-  // --- Start: Real-time Username Validation Logic ---
+  // Username validation effect
   useEffect(() => {
     const checkUsername = async () => {
-      if (!debouncedUsername) {
-        setUsernameStatus('idle');
-        return;
-      }
-      // Basic client-side validation
       if (debouncedUsername.length < 3) {
-        setUsernameStatus('taken'); // Re-using 'taken' status for invalid format
+        if(debouncedUsername.length > 0) {
+            setFormErrors(prev => ({ ...prev, username: 'Kullanıcı adı en az 3 karakter olmalıdır.' }));
+        }
         return;
       }
-      setUsernameStatus('checking');
+      setIsCheckingUsername(true);
       try {
         const q = query(collection(db, 'users'), where('username', '==', debouncedUsername));
         const querySnapshot = await getDocs(q);
         if (querySnapshot.empty) {
-          setUsernameStatus('available');
+          setFormErrors(prev => ({ ...prev, username: undefined }));
         } else {
-          setUsernameStatus('taken');
+          setFormErrors(prev => ({ ...prev, username: 'Bu kullanıcı adı zaten kullanımda.' }));
         }
       } catch (error) {
         console.error("Error checking username:", error);
-        setUsernameStatus('idle'); // Reset on error
+      } finally {
+        setIsCheckingUsername(false);
       }
     };
-
-    checkUsername();
+    if (debouncedUsername) {
+      checkUsername();
+    }
   }, [debouncedUsername]);
-  // --- End: Real-time Username Validation Logic ---
+
+  // Email validation effect
+  useEffect(() => {
+    const checkEmail = async () => {
+       if (!/^\S+@\S+\.\S+$/.test(debouncedEmail)) {
+           if (debouncedEmail.length > 0) {
+                 setFormErrors(prev => ({ ...prev, email: 'Lütfen geçerli bir e-posta adresi girin.' }));
+           }
+            return;
+        }
+      setIsCheckingEmail(true);
+      try {
+        const q = query(collection(db, 'users'), where('email', '==', debouncedEmail));
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) {
+          setFormErrors(prev => ({ ...prev, email: undefined }));
+        } else {
+          setFormErrors(prev => ({ ...prev, email: 'Bu e-posta adresi zaten kullanımda.' }));
+        }
+      } catch (error) {
+        console.error("Error checking email:", error);
+      } finally {
+        setIsCheckingEmail(false);
+      }
+    };
+    if (debouncedEmail) {
+      checkEmail();
+    }
+  }, [debouncedEmail]);
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
@@ -129,16 +156,12 @@ export default function SignupPage() {
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
             videoRef.current.onloadedmetadata = () => {
-              setVerificationStatus('verified'); // Simulate verification on stream start
+              setVerificationStatus('verified');
             };
           }
         } catch (error) {
           console.error('Error accessing camera:', error);
-          toast({
-            variant: 'destructive',
-            title: 'Kamera İzni Reddedildi',
-            description: 'Yüz doğrulama için kamera izni vermeniz gerekiyor.',
-          });
+          setVerificationStatus('failed');
         }
       };
       getCameraPermission();
@@ -150,7 +173,7 @@ export default function SignupPage() {
         }
       };
     }
-  }, [step, toast]);
+  }, [step]);
 
 
   const handleProfilePictureChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -173,11 +196,7 @@ export default function SignupPage() {
     try {
       const result = await moderateImage({ photoDataUri: formData.profilePicture });
       setModerationResult(result);
-      if (result.isSafe) {
-        setModerationStatus('safe');
-      } else {
-        setModerationStatus('unsafe');
-      }
+      setModerationStatus(result.isSafe ? 'safe' : 'unsafe');
     } catch (error) {
       console.error("Moderation failed", error);
       toast({
@@ -197,7 +216,10 @@ export default function SignupPage() {
     }
     
     if (id === 'username') {
-        setUsernameStatus('idle'); // Reset status on new input
+      setFormErrors(prev => ({ ...prev, username: undefined }));
+    }
+    if (id === 'email') {
+        setFormErrors(prev => ({...prev, email: undefined}));
     }
     
     setFormData((prev) => ({ ...prev, [id]: value }));
@@ -229,7 +251,7 @@ export default function SignupPage() {
             name: `${formData.firstName} ${formData.lastName}`,
             uid: user.uid,
             avatarUrl: photoURL,
-            createdAt: new Date().toISOString(),
+            createdAt: serverTimestamp(),
             isPremium: false,
             stats: { followers: 0, following: 0 }
         });
@@ -293,11 +315,11 @@ export default function SignupPage() {
     });
   };
 
-  const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.username || !formData.email || usernameStatus === 'checking' || usernameStatus === 'taken';
+  const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.username || !formData.email || !!formErrors.username || !!formErrors.email || isCheckingUsername || isCheckingEmail;
   const isStep2Invalid = !formData.age || !formData.gender || !formData.country || !formData.city || !formData.district || formData.hobbies.length < 3;
   const isStep3Invalid = !formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf';
   const isStep4Invalid = !formData.bio;
-  const isStep5Invalid = false; // Step 5 is profile picture, can be skipped
+  const isStep5Invalid = false;
   const isStep6Invalid = verificationStatus !== 'verified';
 
   const isNextButtonDisabled = () => {
@@ -348,18 +370,19 @@ export default function SignupPage() {
       return 'border-primary/50';
   };
 
-  const UsernameStatusIndicator = () => {
-      if (usernameStatus === 'checking') {
-          return <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />;
-      }
-      if (usernameStatus === 'available') {
-          return <Check className="w-5 h-5 text-green-500" />;
-      }
-       if (usernameStatus === 'taken') {
-          return <CircleX className="w-5 h-5 text-destructive" />;
-      }
-      return null;
-  }
+  const StatusIndicator = ({ checking, error }: { checking: boolean; error?: string }) => {
+    if (checking) {
+      return <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />;
+    }
+    if (error) {
+      return <CircleX className="h-5 w-5 text-destructive" />;
+    }
+    // Only show checkmark if debounced value exists and there's no error
+    if (!checking && !error) {
+         return <Check className="h-5 w-5 text-green-500" />;
+    }
+    return null;
+  };
 
   return (
     <Card className="w-full max-w-md">
@@ -391,20 +414,22 @@ export default function SignupPage() {
             <div className="grid gap-2">
               <Label htmlFor="username">Kullanıcı Adı</Label>
               <div className="relative">
-                <Input id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required />
+                 <Input id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required className={cn(formErrors.username && "border-destructive")} />
                  <div className="absolute inset-y-0 right-3 flex items-center">
-                    <UsernameStatusIndicator />
+                    <StatusIndicator checking={isCheckingUsername} error={formErrors.username}/>
                  </div>
               </div>
-              {usernameStatus === 'taken' && (
-                <p className="text-xs text-destructive mt-1">
-                  {formData.username.length < 3 ? 'Kullanıcı adı en az 3 karakter olmalıdır.' : 'Bu kullanıcı adı zaten alınmış.'}
-                </p>
-              )}
+              {formErrors.username && <p className="text-xs text-destructive mt-1">{formErrors.username}</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">E-posta</Label>
-              <Input id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required />
+              <div className="relative">
+                <Input id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required  className={cn(formErrors.email && "border-destructive")} />
+                 <div className="absolute inset-y-0 right-3 flex items-center">
+                    <StatusIndicator checking={isCheckingEmail} error={formErrors.email}/>
+                 </div>
+              </div>
+              {formErrors.email && <p className="text-xs text-destructive mt-1">{formErrors.email}</p>}
             </div>
           </div>
         )}
@@ -584,7 +609,7 @@ export default function SignupPage() {
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Doğrulama Başarısız</AlertTitle>
                     <AlertDescription>
-                        Yüz doğrulanamadı. Lütfen tekrar deneyin.
+                        Kamera erişimi sağlanamadı. Lütfen tarayıcı ayarlarından izin verin.
                     </AlertDescription>
                     </Alert>
                 )}
