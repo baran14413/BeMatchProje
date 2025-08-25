@@ -78,29 +78,11 @@ export default function SignupPage() {
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('idle');
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const [errorField, setErrorField] = useState<'username' | 'email' | null>(null);
-  
-  const usernameInputRef = useRef<HTMLInputElement>(null);
-  const emailInputRef = useRef<HTMLInputElement>(null);
-  
   const bioMaxLength = 250;
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
   
-  // Focus on the error field when redirected to step 1
-  useEffect(() => {
-    if (step === 1 && errorField) {
-        if (errorField === 'username') {
-            usernameInputRef.current?.focus();
-        } else if (errorField === 'email') {
-            emailInputRef.current?.focus();
-        }
-        // Clear the error after focusing
-        setErrorField(null);
-    }
-  }, [step, errorField]);
-
 
   useEffect(() => {
     if (step === 6) {
@@ -180,9 +162,7 @@ export default function SignupPage() {
         const usernameQuery = query(collection(db, 'users'), where('username', '==', formData.username));
         const usernameSnapshot = await getDocs(usernameQuery);
         if (!usernameSnapshot.empty) {
-            toast({ variant: "destructive", title: "Kayıt Başarısız", description: "Bu kullanıcı adı zaten alınmış." });
-            setErrorField('username');
-            setStep(1);
+            toast({ variant: "destructive", title: "Kullanıcı Adı Alınmış", description: "Bu kullanıcı adı zaten alınmış. Lütfen geri giderek farklı bir kullanıcı adı seçin." });
             setIsFinishing(false);
             return;
         }
@@ -190,9 +170,7 @@ export default function SignupPage() {
         const emailQuery = query(collection(db, 'users'), where('email', '==', formData.email));
         const emailSnapshot = await getDocs(emailQuery);
         if (!emailSnapshot.empty) {
-            toast({ variant: "destructive", title: "Kayıt Başarısız", description: "Bu e-posta adresi zaten kullanımda." });
-            setErrorField('email');
-            setStep(1);
+             toast({ variant: "destructive", title: "E-posta Kullanımda", description: "Bu e-posta adresi zaten kullanılıyor. Lütfen geri giderek farklı bir e-posta adresi seçin." });
             setIsFinishing(false);
             return;
         }
@@ -236,8 +214,7 @@ export default function SignupPage() {
         console.error("Signup error: ", error);
         let description = "Bir hata oluştu, lütfen bilgilerinizi kontrol edip tekrar deneyin.";
         if (error.code === 'auth/email-already-in-use') {
-            description = "Bu e-posta adresi zaten kullanımda. Lütfen farklı bir e-posta deneyin veya giriş yapın.";
-            setStep(1);
+            description = "Bu e-posta adresi zaten kullanımda. Lütfen geri giderek farklı bir e-posta deneyin veya giriş yapın.";
         }
         toast({
             variant: "destructive",
@@ -370,13 +347,13 @@ export default function SignupPage() {
             <div className="grid gap-2">
               <Label htmlFor="username">Kullanıcı Adı</Label>
               <div className="relative">
-                 <Input ref={usernameInputRef} id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required />
+                 <Input id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required />
               </div>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">E-posta</Label>
               <div className="relative">
-                <Input ref={emailInputRef} id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required />
+                <Input id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required />
               </div>
             </div>
           </div>
