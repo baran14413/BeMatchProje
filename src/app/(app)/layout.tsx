@@ -47,10 +47,15 @@ function LayoutContent({ children }: { children: ReactNode }) {
       if (user) {
         setCurrentUser(user);
         setupPresence(user.uid);
-        const userDocRef = doc(db, "users", user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          setCurrentUserProfile(userDocSnap.data());
+        try {
+          const userDocRef = doc(db, "users", user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            setCurrentUserProfile(userDocSnap.data());
+          }
+        } catch (error) {
+            console.error("Error fetching user profile:", error);
+            setCurrentUserProfile(null); // Ensure no stale data
         }
         setAuthStatus('profile-loaded');
       } else {
@@ -183,12 +188,8 @@ function LayoutContent({ children }: { children: ReactNode }) {
                                 <span className="sr-only">Profil</span>
                             </Button>
                         </Link>
-                    ) : authStatus === 'unauthenticated' ? (
-                        null // Don't show anything if logged out
                     ) : (
-                         <Button variant="ghost" size="icon" className="relative rounded-full" disabled>
-                           <Loader2 className="h-5 w-5 animate-spin" />
-                         </Button>
+                       null // Don't show anything if logged out or profile is not yet loaded but auth is checked.
                     ) }
                 </div>
             </header>
@@ -212,14 +213,20 @@ function LayoutContent({ children }: { children: ReactNode }) {
                         <Shuffle className={cn('h-6 w-6')} />
                     </Link>
                     <Link href="/match" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname === '/match' ? 'text-primary' : '')}>
-                        <Home className={cn('h-6 w-6')} />
+                        <Heart className={cn('h-6 w-6')} />
                     </Link>
                     <Link href="/explore" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname === '/explore' ? 'text-primary' : '')}>
                         <Globe className={cn('h-6 w-6')} />
                     </Link>
-                    <Link href={`/profile/${currentUserProfile?.username || ''}`} className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname.startsWith('/profile') ? 'text-primary' : '')}>
+                    {authStatus === 'profile-loaded' && currentUserProfile?.username ? (
+                      <Link href={`/profile/${currentUserProfile.username}`} className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname.startsWith('/profile') ? 'text-primary' : '')}>
                         <User className={cn('h-6 w-6')} />
-                    </Link>
+                      </Link>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-muted-foreground/50">
+                        <User className={cn('h-6 w-6')} />
+                      </div>
+                    )}
                 </div>
             </nav>
         )}
