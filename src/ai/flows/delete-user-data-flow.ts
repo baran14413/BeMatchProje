@@ -10,8 +10,8 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getFirestore, collection, query, where, getDocs, doc } from 'firebase-admin/firestore';
-import { getStorage, ref, deleteObject } from 'firebase-admin/storage';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
 import { initializeApp, getApps, App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 
@@ -61,26 +61,26 @@ const deleteUserDataFlow = ai.defineFlow(
         const batch = db.batch();
 
         // 1. Delete user's posts and associated storage files
-        const postsQuery = query(collection(db, 'posts'), where('authorId', '==', userId));
-        const postsSnapshot = await getDocs(postsQuery);
+        const postsQuery = db.collection('posts').where('authorId', '==', userId);
+        const postsSnapshot = await postsQuery.get();
         for (const postDoc of postsSnapshot.docs) {
             const postData = postDoc.data();
             if (postData.type === 'photo' && postData.url) {
                 try {
-                    const storageRef = ref(storage, postData.url);
-                    await deleteObject(storageRef);
+                    const storageRef = storage.bucket().file(postData.url.split('/').pop()!);
+                    await storageRef.delete();
                 } catch (error: any) {
                     // It's okay if the file doesn't exist.
-                    if (error.code !== 'storage/object-not-found') {
+                    if (error.code !== 404) { // GCS not found code
                         console.warn(`Could not delete storage file ${postData.url}:`, error);
                     }
                 }
             }
              // Delete subcollections like comments and likes (if they exist)
-            const commentsRef = collection(db, 'posts', postDoc.id, 'comments');
-            const likesRef = collection(db, 'posts', postDoc.id, 'likes');
-            const commentsSnapshot = await getDocs(commentsRef);
-            const likesSnapshot = await getDocs(likesRef);
+            const commentsRef = db.collection('posts').doc(postDoc.id).collection('comments');
+            const likesRef = db.collection('posts').doc(postDoc.id).collection('likes');
+            const commentsSnapshot = await commentsRef.get();
+            const likesSnapshot = await likesRef.get();
             commentsSnapshot.forEach(doc => batch.delete(doc.ref));
             likesSnapshot.forEach(doc => batch.delete(doc.ref));
 
@@ -88,12 +88,12 @@ const deleteUserDataFlow = ai.defineFlow(
         }
 
         // 2. Delete user's conversations
-        const conversationsQuery = query(collection(db, 'conversations'), where('users', 'array-contains', userId));
-        const conversationsSnapshot = await getDocs(conversationsQuery);
+        const conversationsQuery = db.collection('conversations').where('users', 'array-contains', userId);
+        const conversationsSnapshot = await conversationsQuery.get();
         for (const convoDoc of conversationsSnapshot.docs) {
             // Delete all messages in the conversation's subcollection
-            const messagesRef = collection(db, 'conversations', convoDoc.id, 'messages');
-            const messagesSnapshot = await getDocs(messagesRef);
+            const messagesRef = db.collection('conversations').doc(convoDoc.id).collection('messages');
+            const messagesSnapshot = await messagesRef.get();
             messagesSnapshot.forEach(messageDoc => {
                 batch.delete(messageDoc.ref);
             });
@@ -106,24 +106,22 @@ const deleteUserDataFlow = ai.defineFlow(
         // or accept that "like" documents might become orphaned. For this scope, we skip deep like cleanup.
 
         // 4. Remove user from other users' follow lists
-        const followersQuery = query(collection(db, 'users'), where('following', 'array-contains', userId));
-        const followersSnapshot = await getDocs(followersQuery);
         // This is not efficient at scale. A better data model would be needed for a real app.
         // For now, we are skipping this. The user's own follow lists will be deleted with their document.
 
         // 5. Delete the user document from Firestore
-        const userDocRef = doc(db, 'users', userId);
+        const userDocRef = db.collection('users').doc(userId);
         batch.delete(userDocRef);
         
         // Delete user's own subcollections
-        const followersRef = collection(db, 'users', userId, 'followers');
-        const followingRef = collection(db, 'users', userId, 'following');
-        const galleryPermsRef = collection(db, 'users', userId, 'galleryPermissions');
+        const followersRef = db.collection('users').doc(userId).collection('followers');
+        const followingRef = db.collection('users').doc(userId).collection('following');
+        const galleryPermsRef = db.collection('users').doc(userId).collection('galleryPermissions');
         
         const [followersSnap, followingSnap, galleryPermsSnap] = await Promise.all([
-            getDocs(followersRef),
-            getDocs(followingRef),
-            getDocs(galleryPermsRef)
+            followersRef.get(),
+            followingRef.get(),
+            galleryPermsRef.get()
         ]);
 
         followersSnap.forEach(doc => batch.delete(doc.ref));
