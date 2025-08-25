@@ -14,7 +14,7 @@ import { deleteUserData } from '@/ai/flows/delete-user-data-flow';
 import { cn } from '@/lib/utils';
 import { User } from 'firebase/auth';
 
-type AppUser = {
+type AppUser = DocumentData & {
   uid: string;
   name: string;
   username: string;
@@ -41,10 +41,9 @@ export default function ManageUsersPage() {
             setLoading(true);
             try {
                 const usersSnapshot = await getDocs(collection(db, 'users'));
-                const usersList = usersSnapshot.docs.map(doc => ({
-                    uid: doc.id,
-                    ...doc.data()
-                } as AppUser));
+                const usersList = usersSnapshot.docs
+                    .map(doc => ({ uid: doc.id, ...doc.data() }) as AppUser)
+                    .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
                 setUsers(usersList);
             } catch (error) {
                 console.error("Error fetching users:", error);
@@ -58,6 +57,8 @@ export default function ManageUsersPage() {
     
     const handleDeleteUser = async (userIdToDelete: string) => {
         const originalUsers = [...users];
+        
+        // Optimistically remove user from UI
         setUsers(prev => prev.filter(u => u.uid !== userIdToDelete));
 
         try {
@@ -65,13 +66,13 @@ export default function ManageUsersPage() {
             if (result.success) {
                 toast({ title: "Kullanıcı başarıyla silindi." });
             } else {
-                 setUsers(originalUsers);
+                 setUsers(originalUsers); // Revert UI on failure
                  throw new Error(result.error || "Bilinmeyen bir hata oluştu.");
             }
         } catch (error: any) {
             console.error("Error deleting user:", error);
             toast({ variant: 'destructive', title: 'Kullanıcı silinemedi.', description: error.message });
-            setUsers(originalUsers);
+            setUsers(originalUsers); // Revert UI on failure
         }
     };
 
