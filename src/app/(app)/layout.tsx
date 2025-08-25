@@ -44,30 +44,33 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
-      setLoadingProfile(true);
+      setCurrentUser(user);
       if (user) {
-        setCurrentUser(user);
         setupPresence(user.uid);
-        try {
-          const userDocRef = doc(db, "users", user.uid);
-          const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists()) {
-            setCurrentUserProfile(userDocSnap.data());
-          } else {
-             setCurrentUserProfile(null);
+        if (!currentUserProfile?.username) { // Fetch only if profile is not already loaded
+          setLoadingProfile(true);
+          try {
+            const userDocRef = doc(db, "users", user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+              setCurrentUserProfile(userDocSnap.data());
+            } else {
+               setCurrentUserProfile(null);
+            }
+          } catch (error) {
+              console.error("Error fetching user profile:", error);
+              setCurrentUserProfile(null);
+          } finally {
+            setLoadingProfile(false);
           }
-        } catch (error) {
-            console.error("Error fetching user profile:", error);
-            setCurrentUserProfile(null);
         }
       } else {
-        setCurrentUser(null);
         setCurrentUserProfile(null);
+        setLoadingProfile(false);
       }
-      setLoadingProfile(false);
     });
     return () => unsubscribeAuth();
-  }, []);
+  }, [currentUserProfile]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -181,7 +184,11 @@ function LayoutContent({ children }: { children: ReactNode }) {
                          </Button>
                     ) : currentUserProfile?.username ? (
                         <NavButton href={`/profile/${currentUserProfile.username}`} icon={<User className="h-5 w-5" />} srText="Profil" />
-                    ) : null }
+                    ) : (
+                       // Render a link to the generic profile page if the username isn't loaded yet.
+                       // This page will handle the redirect.
+                       <NavButton href="/profile" icon={<User className="h-5 w-5" />} srText="Profil" />
+                    )}
                 </div>
             </header>
           </>
