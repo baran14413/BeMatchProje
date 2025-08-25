@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, ChangeEvent, useEffect } from 'react';
+import { useState, useRef, ChangeEvent, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,6 +42,10 @@ type PasswordStrength = 'yok' | 'zayıf' | 'orta' | 'güçlü';
 type ModerationStatus = 'idle' | 'checking' | 'safe' | 'unsafe';
 type VerificationStatus = 'idle' | 'checking' | 'verified' | 'failed';
 type FieldStatus = 'idle' | 'checking' | 'available' | 'taken';
+type FormErrors = {
+    username?: string;
+    email?: string;
+}
 
 export default function SignupPage() {
   const router = useRouter();
@@ -66,9 +70,9 @@ export default function SignupPage() {
     bio: '',
     profilePicture: null as string | null,
   });
-
-  const [usernameStatus, setUsernameStatus] = useState<FieldStatus>('idle');
-  const [emailStatus, setEmailStatus] = useState<FieldStatus>('idle');
+  
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [isChecking, setIsChecking] = useState({ username: false, email: false });
 
   const [debouncedUsername] = useDebounce(formData.username, 500);
   const [debouncedEmail] = useDebounce(formData.email, 500);
@@ -91,17 +95,24 @@ export default function SignupPage() {
   useEffect(() => {
     const checkUsername = async () => {
       if (debouncedUsername.length < 3) {
-        setUsernameStatus('idle');
+        setFormErrors(prev => ({...prev, username: undefined}));
+        setIsChecking(prev => ({...prev, username: false}));
         return;
       }
-      setUsernameStatus('checking');
+      setIsChecking(prev => ({...prev, username: true}));
       try {
         const q = query(collection(db, 'users'), where('username', '==', debouncedUsername));
         const querySnapshot = await getDocs(q);
-        setUsernameStatus(querySnapshot.empty ? 'available' : 'taken');
+        if(querySnapshot.empty) {
+            setFormErrors(prev => ({...prev, username: undefined}));
+        } else {
+            setFormErrors(prev => ({...prev, username: 'Bu kullanıcı adı zaten kullanımda.'}));
+        }
       } catch (error) {
         console.error("Error checking username:", error);
-        setUsernameStatus('idle'); // Reset on error
+        setFormErrors(prev => ({...prev, username: 'Doğrulama sırasında bir hata oluştu.'}));
+      } finally {
+        setIsChecking(prev => ({...prev, username: false}));
       }
     };
     checkUsername();
@@ -111,17 +122,24 @@ export default function SignupPage() {
   useEffect(() => {
     const checkEmail = async () => {
        if (!/^\S+@\S+\.\S+$/.test(debouncedEmail)) {
-           setEmailStatus('idle');
+           setFormErrors(prev => ({...prev, email: undefined}));
+           setIsChecking(prev => ({...prev, email: false}));
            return;
         }
-      setEmailStatus('checking');
+      setIsChecking(prev => ({...prev, email: true}));
       try {
         const q = query(collection(db, 'users'), where('email', '==', debouncedEmail));
         const querySnapshot = await getDocs(q);
-        setEmailStatus(querySnapshot.empty ? 'available' : 'taken');
+        if(querySnapshot.empty){
+             setFormErrors(prev => ({...prev, email: undefined}));
+        } else {
+             setFormErrors(prev => ({...prev, email: 'Bu e-posta adresi zaten kullanımda.'}));
+        }
       } catch (error) {
         console.error("Error checking email:", error);
-        setEmailStatus('idle');
+        setFormErrors(prev => ({...prev, email: 'Doğrulama sırasında bir hata oluştu.'}));
+      } finally {
+         setIsChecking(prev => ({...prev, email: false}));
       }
     };
     checkEmail();
@@ -198,10 +216,10 @@ export default function SignupPage() {
     }
     
     if (id === 'username') {
-      setUsernameStatus('idle');
+      setFormErrors(prev => ({...prev, username: undefined}));
     }
     if (id === 'email') {
-      setEmailStatus('idle');
+       setFormErrors(prev => ({...prev, email: undefined}));
     }
     
     setFormData((prev) => ({ ...prev, [id]: value }));
@@ -211,6 +229,14 @@ export default function SignupPage() {
   const handleFinishSignup = async () => {
       setIsFinishing(true);
       try {
+        // Final check just in case
+        if (formErrors.username || formErrors.email) {
+            toast({ variant: "destructive", title: "Lütfen hataları düzeltin."});
+            setStep(1);
+            setIsFinishing(false);
+            return;
+        }
+
         const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
         const user = userCredential.user;
 
@@ -250,7 +276,8 @@ export default function SignupPage() {
         let description = "Bir hata oluştu, lütfen bilgilerinizi kontrol edip tekrar deneyin.";
         if (error.code === 'auth/email-already-in-use') {
             description = "Bu e-posta adresi zaten kullanımda. Lütfen farklı bir e-posta deneyin veya giriş yapın.";
-            setStep(1); // Go back to step 1
+            setFormErrors(prev => ({...prev, email: description }));
+            setStep(1);
         }
         toast({
             variant: "destructive",
@@ -298,7 +325,7 @@ export default function SignupPage() {
     });
   };
 
-  const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.username || !formData.email || usernameStatus === 'taken' || emailStatus === 'taken' || usernameStatus === 'checking' || emailStatus === 'checking';
+  const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.username || !formData.email || !!formErrors.username || !!formErrors.email || isChecking.username || isChecking.email;
   const isStep2Invalid = !formData.age || !formData.gender || !formData.country || !formData.city || !formData.district || formData.hobbies.length < 3;
   const isStep3Invalid = !formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf';
   const isStep4Invalid = !formData.bio;
@@ -353,17 +380,18 @@ export default function SignupPage() {
       return 'border-primary/50';
   };
 
-  const StatusIndicator = ({ status }: { status: FieldStatus }) => {
-    switch (status) {
-      case 'checking':
-        return <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />;
-      case 'available':
-        return <Check className="h-5 w-5 text-green-500" />;
-      case 'taken':
-        return <CircleX className="h-5 w-5 text-destructive" />;
-      default:
-        return null;
+  const FieldStatusIndicator = ({ checking, error }: { checking: boolean; error?: string }) => {
+    if (checking) {
+      return <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />;
     }
+    if (error) {
+      return <CircleX className="h-5 w-5 text-destructive" />;
+    }
+    if (!error && !checking) {
+      // Show check only if the field is not empty
+      return <Check className="h-5 w-5 text-green-500" />;
+    }
+    return null;
   };
 
   return (
@@ -396,22 +424,22 @@ export default function SignupPage() {
             <div className="grid gap-2">
               <Label htmlFor="username">Kullanıcı Adı</Label>
               <div className="relative">
-                 <Input id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required className={cn(usernameStatus === 'taken' && "border-destructive")} />
+                 <Input id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required className={cn(formErrors.username && "border-destructive")} />
                  <div className="absolute inset-y-0 right-3 flex items-center">
-                    <StatusIndicator status={usernameStatus}/>
+                    {formData.username.length > 2 && <FieldStatusIndicator checking={isChecking.username} error={formErrors.username} />}
                  </div>
               </div>
-              {usernameStatus === 'taken' && <p className="text-xs text-destructive mt-1">Bu kullanıcı adı zaten kullanımda.</p>}
+              {formErrors.username && <p className="text-xs text-destructive mt-1">{formErrors.username}</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">E-posta</Label>
               <div className="relative">
-                <Input id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required  className={cn(emailStatus === 'taken' && "border-destructive")} />
+                <Input id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required className={cn(formErrors.email && "border-destructive")} />
                  <div className="absolute inset-y-0 right-3 flex items-center">
-                    <StatusIndicator status={emailStatus}/>
+                    {/^\S+@\S+\.\S+$/.test(formData.email) && <FieldStatusIndicator checking={isChecking.email} error={formErrors.email} />}
                  </div>
               </div>
-              {emailStatus === 'taken' && <p className="text-xs text-destructive mt-1">Bu e-posta adresi zaten kullanımda.</p>}
+              {formErrors.email && <p className="text-xs text-destructive mt-1">{formErrors.email}</p>}
             </div>
           </div>
         )}
