@@ -14,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { cn } from '@/lib/utils';
 
 type User = {
+  id: string; // Use document ID as the unique key
   uid: string;
   name: string;
   avatarUrl: string;
@@ -38,7 +39,7 @@ export default function ManageUsersPage() {
                 const usersCollection = collection(db, "users");
                 const userSnapshot = await getDocs(usersCollection);
                 const userList = userSnapshot.docs
-                    .map(doc => ({ ...doc.data() } as User))
+                    .map(doc => ({ id: doc.id, ...(doc.data() as Omit<User, 'id'>) }))
                     .filter(user => user.uid !== currentUser.uid); // Filter out the current user
                 setUsers(userList);
             } catch (error) {
@@ -88,7 +89,7 @@ export default function ManageUsersPage() {
                 ) : users.length > 0 ? (
                      <div className="space-y-4">
                         {users.map(user => (
-                            <div key={user.uid} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
+                            <div key={user.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
                                 <div className="flex items-center gap-3">
                                     <Avatar>
                                         <AvatarImage src={user.avatarUrl} data-ai-hint={user.aiHint} />

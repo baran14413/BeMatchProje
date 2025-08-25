@@ -4,6 +4,7 @@
   "/(app)/match/page": "app/(app)/match/page.js",
   "/(app)/profile/[username]/page": "app/(app)/profile/[username]/page.js",
   "/(app)/profile/edit/page": "app/(app)/profile/edit/page.js",
+  "/(app)/profile/edit/users/page": "app/(app)/profile/edit/users/page.js",
   "/(app)/profile/page": "app/(app)/profile/page.js",
   "/(app)/shuffle/page": "app/(app)/shuffle/page.js",
   "/(app)/tutorial/page": "app/(app)/tutorial/page.js",
