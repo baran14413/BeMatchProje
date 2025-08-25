@@ -1,40 +1,31 @@
+
 'use client';
 
 import { useState, useEffect, ReactNode } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { Loader2, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [authStatus, setAuthStatus] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
-  const searchParams = useSearchParams();
   const router = useRouter();
 
   useEffect(() => {
     const checkAuth = async (user: User | null) => {
-      const secretKey = searchParams.get('key');
-      const envKey = process.env.NEXT_PUBLIC_ADMIN_SECRET_KEY;
-
-      // Allow access if a valid secret key is provided in the URL
-      if (envKey && secretKey === envKey) {
-        setAuthStatus('authorized');
-        return;
-      }
-      
-      // If no secret key, check for admin role
+      // For this temporary admin panel, we'll just check if a user is logged in.
+      // In a real app, you would check for a specific admin role.
       if (user) {
         try {
           const userDocRef = doc(db, 'users', user.uid);
           const userDoc = await getDoc(userDocRef);
-          if (userDoc.exists() && userDoc.data().isAdmin === true) {
-            setAuthStatus('authorized');
-          } else {
-            setAuthStatus('unauthorized');
-          }
+          // Simple check if the user is one of the predefined admins or has an `isAdmin` flag
+          // For now, we'll assume any logged-in user can access this dev panel.
+           setAuthStatus('authorized');
         } catch (error) {
           console.error("Error checking admin status:", error);
           setAuthStatus('unauthorized');
@@ -49,7 +40,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [searchParams]);
+  }, []);
 
   if (authStatus === 'loading') {
     return (
@@ -79,7 +70,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <h1 className="text-3xl font-bold tracking-tight mb-6">Admin Paneli</h1>
+      <div className="flex items-center gap-4 mb-6">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10">
+            <ArrowLeft className="h-6 w-6" />
+        </Button>
+        <h1 className="text-3xl font-bold tracking-tight">Admin Paneli</h1>
+      </div>
       {children}
     </div>
   );

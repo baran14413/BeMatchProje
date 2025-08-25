@@ -26,6 +26,7 @@ import {
   Bookmark,
   Download,
   Users,
+  ShieldAlert,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -161,6 +162,10 @@ export default function EditProfilePage() {
         { icon: <HelpCircle className="h-6 w-6" />, title: 'Uygulama Kılavuzu', href: '/profile/edit/guide' },
     ];
     
+    const adminItems = [
+        { icon: <ShieldAlert className="h-6 w-6" />, title: 'Kullanıcıları Yönet (Admin)', href: '/admin/users' },
+    ];
+
     const otherItems = [
         { icon: <Trash2 className="h-6 w-6" />, title: 'Hesabı Sil', href: '/profile/edit/delete' },
         { icon: <LogOut className="h-6 w-6" />, title: 'Çıkış Yap', onClick: handleLogout },
@@ -278,6 +283,27 @@ export default function EditProfilePage() {
                                 isLast={index === applicationItems.length -1}
                             />
                              {index < applicationItems.length - 1 && <Separator className="bg-border/50" />}
+                        </React.Fragment>
+                    ))}
+                </CardContent>
+            </Card>
+        </div>
+        
+        <div>
+            <SectionTitle title="Yönetim" />
+            <Card>
+                <CardContent className="p-0">
+                    {adminItems.map((item, index) => (
+                         <React.Fragment key={item.title}>
+                            <SettingsItem
+                                icon={item.icon}
+                                title={item.title}
+                                href={item.href}
+                                onClick={item.onClick}
+                                isFirst={index === 0}
+                                isLast={index === adminItems.length -1}
+                            />
+                             {index < adminItems.length - 1 && <Separator className="bg-border/50" />}
                         </React.Fragment>
                     ))}
                 </CardContent>
