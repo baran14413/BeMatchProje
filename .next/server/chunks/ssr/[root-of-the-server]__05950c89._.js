@@ -342,37 +342,37 @@ const deleteUserDataFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2
     try {
         const batch = db.batch();
         // 1. Delete user's posts and associated storage files
-        const postsQuery = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["query"])((0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["collection"])(db, 'posts'), (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["where"])('authorId', '==', userId));
-        const postsSnapshot = await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["getDocs"])(postsQuery);
+        const postsQuery = db.collection('posts').where('authorId', '==', userId);
+        const postsSnapshot = await postsQuery.get();
         for (const postDoc of postsSnapshot.docs){
             const postData = postDoc.data();
             if (postData.type === 'photo' && postData.url) {
                 try {
-                    const storageRef = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$storage__$5b$external$5d$__$28$firebase$2d$admin$2f$storage$2c$__esm_import$29$__["ref"])(storage, postData.url);
-                    await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$storage__$5b$external$5d$__$28$firebase$2d$admin$2f$storage$2c$__esm_import$29$__["deleteObject"])(storageRef);
+                    const storageRef = storage.bucket().file(postData.url.split('/').pop());
+                    await storageRef.delete();
                 } catch (error) {
                     // It's okay if the file doesn't exist.
-                    if (error.code !== 'storage/object-not-found') {
+                    if (error.code !== 404) {
                         console.warn(`Could not delete storage file ${postData.url}:`, error);
                     }
                 }
             }
             // Delete subcollections like comments and likes (if they exist)
-            const commentsRef = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["collection"])(db, 'posts', postDoc.id, 'comments');
-            const likesRef = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["collection"])(db, 'posts', postDoc.id, 'likes');
-            const commentsSnapshot = await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["getDocs"])(commentsRef);
-            const likesSnapshot = await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["getDocs"])(likesRef);
+            const commentsRef = db.collection('posts').doc(postDoc.id).collection('comments');
+            const likesRef = db.collection('posts').doc(postDoc.id).collection('likes');
+            const commentsSnapshot = await commentsRef.get();
+            const likesSnapshot = await likesRef.get();
             commentsSnapshot.forEach((doc)=>batch.delete(doc.ref));
             likesSnapshot.forEach((doc)=>batch.delete(doc.ref));
             batch.delete(postDoc.ref);
         }
         // 2. Delete user's conversations
-        const conversationsQuery = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["query"])((0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["collection"])(db, 'conversations'), (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["where"])('users', 'array-contains', userId));
-        const conversationsSnapshot = await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["getDocs"])(conversationsQuery);
+        const conversationsQuery = db.collection('conversations').where('users', 'array-contains', userId);
+        const conversationsSnapshot = await conversationsQuery.get();
         for (const convoDoc of conversationsSnapshot.docs){
             // Delete all messages in the conversation's subcollection
-            const messagesRef = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["collection"])(db, 'conversations', convoDoc.id, 'messages');
-            const messagesSnapshot = await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["getDocs"])(messagesRef);
+            const messagesRef = db.collection('conversations').doc(convoDoc.id).collection('messages');
+            const messagesSnapshot = await messagesRef.get();
             messagesSnapshot.forEach((messageDoc)=>{
                 batch.delete(messageDoc.ref);
             });
@@ -383,21 +383,19 @@ const deleteUserDataFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2
         // This can be complex. A simpler approach is to handle this via cloud functions
         // or accept that "like" documents might become orphaned. For this scope, we skip deep like cleanup.
         // 4. Remove user from other users' follow lists
-        const followersQuery = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["query"])((0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["collection"])(db, 'users'), (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["where"])('following', 'array-contains', userId));
-        const followersSnapshot = await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["getDocs"])(followersQuery);
         // This is not efficient at scale. A better data model would be needed for a real app.
         // For now, we are skipping this. The user's own follow lists will be deleted with their document.
         // 5. Delete the user document from Firestore
-        const userDocRef = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["doc"])(db, 'users', userId);
+        const userDocRef = db.collection('users').doc(userId);
         batch.delete(userDocRef);
         // Delete user's own subcollections
-        const followersRef = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["collection"])(db, 'users', userId, 'followers');
-        const followingRef = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["collection"])(db, 'users', userId, 'following');
-        const galleryPermsRef = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["collection"])(db, 'users', userId, 'galleryPermissions');
+        const followersRef = db.collection('users').doc(userId).collection('followers');
+        const followingRef = db.collection('users').doc(userId).collection('following');
+        const galleryPermsRef = db.collection('users').doc(userId).collection('galleryPermissions');
         const [followersSnap, followingSnap, galleryPermsSnap] = await Promise.all([
-            (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["getDocs"])(followersRef),
-            (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["getDocs"])(followingRef),
-            (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["getDocs"])(galleryPermsRef)
+            followersRef.get(),
+            followingRef.get(),
+            galleryPermsRef.get()
         ]);
         followersSnap.forEach((doc)=>batch.delete(doc.ref));
         followingSnap.forEach((doc)=>batch.delete(doc.ref));
