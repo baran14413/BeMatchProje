@@ -189,7 +189,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                             </Button>
                         </Link>
                     ) : (
-                       null // Don't show anything if logged out or profile is not yet loaded but auth is checked.
+                       null
                     ) }
                 </div>
             </header>
@@ -213,7 +213,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                         <Shuffle className={cn('h-6 w-6')} />
                     </Link>
                     <Link href="/match" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname === '/match' ? 'text-primary' : '')}>
-                        <Heart className={cn('h-6 w-6')} />
+                        <Home className={cn('h-6 w-6')} />
                     </Link>
                     <Link href="/explore" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname === '/explore' ? 'text-primary' : '')}>
                         <Globe className={cn('h-6 w-6')} />
@@ -242,3 +242,5 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
+
+    
