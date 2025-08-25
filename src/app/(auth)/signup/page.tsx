@@ -159,6 +159,11 @@ export default function SignupPage() {
       setIsFinishing(true);
       try {
         // --- FINAL VALIDATION ---
+        if (!formData.email.trim() || !formData.password.trim()) {
+            toast({ variant: "destructive", title: "Eksik Bilgi", description: "E-posta ve şifre alanları boş bırakılamaz. Lütfen geri giderek bilgileri doldurun." });
+            setIsFinishing(false);
+            return;
+        }
         const usernameQuery = query(collection(db, 'users'), where('username', '==', formData.username));
         const usernameSnapshot = await getDocs(usernameQuery);
         if (!usernameSnapshot.empty) {
@@ -215,6 +220,9 @@ export default function SignupPage() {
         let description = "Bir hata oluştu, lütfen bilgilerinizi kontrol edip tekrar deneyin.";
         if (error.code === 'auth/email-already-in-use') {
             description = "Bu e-posta adresi zaten kullanımda. Lütfen geri giderek farklı bir e-posta deneyin veya giriş yapın.";
+        }
+        if (error.code === 'auth/invalid-email') {
+            description = "Geçersiz bir e-posta adresi girdiniz. Lütfen geri giderek düzeltin.";
         }
         toast({
             variant: "destructive",
