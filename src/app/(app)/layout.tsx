@@ -35,7 +35,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { isOnline, isPoorConnection } = useNetworkStatus();
   
-  const [authStatus, setAuthStatus] = useState<'loading' | 'unauthenticated' | 'authenticated'>('loading');
+  const [authStatus, setAuthStatus] = useState<'loading' | 'unauthenticated' | 'profile-loaded'>('loading');
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
   const [currentUserProfile, setCurrentUserProfile] = useState<{username?: string} | null>(null);
 
@@ -44,16 +44,17 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
-      setCurrentUser(user);
       if (user) {
+        setCurrentUser(user);
         setupPresence(user.uid);
         const userDocRef = doc(db, "users", user.uid);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
           setCurrentUserProfile(userDocSnap.data());
         }
-        setAuthStatus('authenticated');
+        setAuthStatus('profile-loaded');
       } else {
+        setCurrentUser(null);
         setCurrentUserProfile(null);
         setAuthStatus('unauthenticated');
       }
@@ -175,18 +176,20 @@ function LayoutContent({ children }: { children: ReactNode }) {
                          <Button variant="ghost" size="icon" className="relative rounded-full" disabled>
                            <Loader2 className="h-5 w-5 animate-spin" />
                          </Button>
-                    ) : authStatus === 'authenticated' && currentUserProfile?.username ? (
+                    ) : authStatus === 'profile-loaded' && currentUserProfile?.username ? (
                          <Link href={`/profile/${currentUserProfile.username}`}>
                             <Button variant="ghost" size="icon" className="relative rounded-full">
                                 <User className="h-5 w-5" />
                                 <span className="sr-only">Profil</span>
                             </Button>
                         </Link>
-                    ) : authStatus === 'authenticated' ? (
+                    ) : authStatus === 'unauthenticated' ? (
+                        null // Don't show anything if logged out
+                    ) : (
                          <Button variant="ghost" size="icon" className="relative rounded-full" disabled>
                            <Loader2 className="h-5 w-5 animate-spin" />
                          </Button>
-                    ) : null }
+                    ) }
                 </div>
             </header>
           </>
