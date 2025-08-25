@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { NetworkStatusBanner } from '@/components/ui/network-status-banner';
-import { auth, db } from '@/lib/firebase';
+import { auth, db, setupPresence } from '@/lib/firebase';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/firestore';
 
@@ -46,12 +46,13 @@ function LayoutContent({ children }: { children: ReactNode }) {
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
       setCurrentUser(user);
       if (user) {
-        setAuthStatus('authenticated');
+        setupPresence(user.uid);
         const userDocRef = doc(db, "users", user.uid);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
           setCurrentUserProfile(userDocSnap.data());
         }
+        setAuthStatus('authenticated');
       } else {
         setCurrentUserProfile(null);
         setAuthStatus('unauthenticated');
@@ -170,20 +171,22 @@ function LayoutContent({ children }: { children: ReactNode }) {
                     <NavButton href="/search" icon={<Search className="h-5 w-5" />} srText="Ara" />
                     <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
                     <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
-                    {authStatus === 'authenticated' ? (
-                        currentUserProfile?.username ? (
-                             <Link href={`/profile/${currentUserProfile.username}`}>
-                                <Button variant="ghost" size="icon" className="relative rounded-full">
-                                    <User className="h-5 w-5" />
-                                    <span className="sr-only">Profil</span>
-                                </Button>
-                            </Link>
-                        ) : (
-                             <Button variant="ghost" size="icon" className="relative rounded-full" disabled>
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                             </Button>
-                        )
-                    ) : null}
+                    {authStatus === 'loading' ? (
+                         <Button variant="ghost" size="icon" className="relative rounded-full" disabled>
+                           <Loader2 className="h-5 w-5 animate-spin" />
+                         </Button>
+                    ) : authStatus === 'authenticated' && currentUserProfile?.username ? (
+                         <Link href={`/profile/${currentUserProfile.username}`}>
+                            <Button variant="ghost" size="icon" className="relative rounded-full">
+                                <User className="h-5 w-5" />
+                                <span className="sr-only">Profil</span>
+                            </Button>
+                        </Link>
+                    ) : authStatus === 'authenticated' ? (
+                         <Button variant="ghost" size="icon" className="relative rounded-full" disabled>
+                           <Loader2 className="h-5 w-5 animate-spin" />
+                         </Button>
+                    ) : null }
                 </div>
             </header>
           </>
