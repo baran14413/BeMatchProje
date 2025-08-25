@@ -35,15 +35,16 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { isOnline, isPoorConnection } = useNetworkStatus();
   
-  const [authStatus, setAuthStatus] = useState<'loading' | 'unauthenticated' | 'profile-loaded'>('loading');
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
   const [currentUserProfile, setCurrentUserProfile] = useState<{username?: string} | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
 
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
+      setLoadingProfile(true);
       if (user) {
         setCurrentUser(user);
         setupPresence(user.uid);
@@ -52,18 +53,18 @@ function LayoutContent({ children }: { children: ReactNode }) {
           const userDocSnap = await getDoc(userDocRef);
           if (userDocSnap.exists()) {
             setCurrentUserProfile(userDocSnap.data());
+          } else {
+             setCurrentUserProfile(null);
           }
         } catch (error) {
             console.error("Error fetching user profile:", error);
-            setCurrentUserProfile(null); // Ensure no stale data
-        } finally {
-            setAuthStatus('profile-loaded');
+            setCurrentUserProfile(null);
         }
       } else {
         setCurrentUser(null);
         setCurrentUserProfile(null);
-        setAuthStatus('unauthenticated');
       }
+      setLoadingProfile(false);
     });
     return () => unsubscribeAuth();
   }, []);
@@ -97,11 +98,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
         let unreadFound = false;
         for (const doc of snapshot.docs) {
             const data = doc.data();
-            // A message is unread if it exists, it's not from the current user,
-            // and the current user's UID is not in the readBy array.
             if (data.lastMessage && data.lastMessage.senderId !== currentUser.uid && !data.lastMessage.readBy?.includes(currentUser.uid)) {
                 unreadFound = true;
-                break; // Found one, no need to check further
+                break; 
             }
         }
         setHasUnreadMessages(unreadFound);
@@ -118,12 +117,10 @@ function LayoutContent({ children }: { children: ReactNode }) {
   }, [currentUser]);
 
 
-  // A chat view is considered open if we are on the /chat page AND a specific userId/conversationId is in the query params.
   const isChatPage = currentPathname === '/chat';
   const isChatViewOpen = isChatPage && (searchParams.has('userId') || searchParams.has('conversationId'));
   const isCreatePage = currentPathname === '/create';
   
-  // Show navs unless it's the create page or a specific chat is open.
   const showNavs = !isCreatePage && (!isChatPage || (isChatPage && !isChatViewOpen));
   const isFullScreen = isChatPage && isChatViewOpen;
 
@@ -167,7 +164,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
             <header className={cn(
                 "fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-background/80 px-4 backdrop-blur-sm transition-transform duration-300 md:px-6",
                 "h-[var(--header-height)]",
-                !isOnline || isPoorConnection ? 'top-10' : 'top-0', // Adjust header position based on banner
+                !isOnline || isPoorConnection ? 'top-10' : 'top-0', 
                 isScrolling && "-translate-y-full"
             )}>
                 <Link href="/explore" className="flex items-center gap-2 text-lg font-semibold">
@@ -178,15 +175,13 @@ function LayoutContent({ children }: { children: ReactNode }) {
                     <NavButton href="/search" icon={<Search className="h-5 w-5" />} srText="Ara" />
                     <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
                     <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
-                    {authStatus === 'profile-loaded' && currentUserProfile?.username ? (
-                        <NavButton href={`/profile/${currentUserProfile.username}`} icon={<User className="h-5 w-5" />} srText="Profil" />
-                    ) : authStatus === 'loading' ? (
+                    {loadingProfile ? (
                          <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" disabled>
                            <Loader2 className="h-5 w-5 animate-spin" />
                          </Button>
-                    ) : (
-                       null
-                    ) }
+                    ) : currentUserProfile?.username ? (
+                        <NavButton href={`/profile/${currentUserProfile.username}`} icon={<User className="h-5 w-5" />} srText="Profil" />
+                    ) : null }
                 </div>
             </header>
           </>
