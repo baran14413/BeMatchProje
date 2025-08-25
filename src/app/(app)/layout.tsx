@@ -4,7 +4,7 @@
 import React, { type ReactNode, useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe } from 'lucide-react';
+import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useNetworkStatus } from '@/hooks/use-network-status';
@@ -34,6 +34,8 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { isOnline, isPoorConnection } = useNetworkStatus();
+  
+  const [authStatus, setAuthStatus] = useState<'loading' | 'unauthenticated' | 'authenticated'>('loading');
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
   const [currentUserProfile, setCurrentUserProfile] = useState<{username?: string} | null>(null);
 
@@ -44,6 +46,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
       setCurrentUser(user);
       if (user) {
+        setAuthStatus('authenticated');
         const userDocRef = doc(db, "users", user.uid);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
@@ -51,6 +54,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
         }
       } else {
         setCurrentUserProfile(null);
+        setAuthStatus('unauthenticated');
       }
     });
     return () => unsubscribeAuth();
@@ -166,14 +170,20 @@ function LayoutContent({ children }: { children: ReactNode }) {
                     <NavButton href="/search" icon={<Search className="h-5 w-5" />} srText="Ara" />
                     <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
                     <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
-                    {currentUser && currentUserProfile?.username && (
-                        <Link href={`/profile/${currentUserProfile.username}`}>
-                            <Button variant="ghost" size="icon" className="relative rounded-full">
-                                <User className="h-5 w-5" />
-                                <span className="sr-only">Profil</span>
-                            </Button>
-                        </Link>
-                    )}
+                    {authStatus === 'authenticated' ? (
+                        currentUserProfile?.username ? (
+                             <Link href={`/profile/${currentUserProfile.username}`}>
+                                <Button variant="ghost" size="icon" className="relative rounded-full">
+                                    <User className="h-5 w-5" />
+                                    <span className="sr-only">Profil</span>
+                                </Button>
+                            </Link>
+                        ) : (
+                             <Button variant="ghost" size="icon" className="relative rounded-full" disabled>
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                             </Button>
+                        )
+                    ) : null}
                 </div>
             </header>
           </>
@@ -216,4 +226,3 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
-
