@@ -41,7 +41,6 @@ const HOBBIES = [
 type PasswordStrength = 'yok' | 'zayıf' | 'orta' | 'güçlü';
 type ModerationStatus = 'idle' | 'checking' | 'safe' | 'unsafe';
 type VerificationStatus = 'idle' | 'checking' | 'verified' | 'failed';
-type FieldStatus = 'idle' | 'checking' | 'available' | 'taken';
 type FormErrors = {
     username?: string;
     email?: string;
@@ -115,7 +114,7 @@ export default function SignupPage() {
         setIsChecking(prev => ({...prev, username: false}));
       }
     };
-    checkUsername();
+    if (debouncedUsername) checkUsername();
   }, [debouncedUsername]);
 
   // Email validation effect
@@ -142,7 +141,7 @@ export default function SignupPage() {
          setIsChecking(prev => ({...prev, email: false}));
       }
     };
-    checkEmail();
+    if (debouncedEmail) checkEmail();
   }, [debouncedEmail]);
 
   const nextStep = () => setStep((prev) => prev + 1);
@@ -229,7 +228,6 @@ export default function SignupPage() {
   const handleFinishSignup = async () => {
       setIsFinishing(true);
       try {
-        // Final check just in case
         if (formErrors.username || formErrors.email) {
             toast({ variant: "destructive", title: "Lütfen hataları düzeltin."});
             setStep(1);
@@ -380,18 +378,15 @@ export default function SignupPage() {
       return 'border-primary/50';
   };
 
-  const FieldStatusIndicator = ({ checking, error }: { checking: boolean; error?: string }) => {
+  const FieldStatusIndicator = ({ checking, error, value }: { checking: boolean; error?: string, value: string }) => {
+    if (value.length < 3) return null;
     if (checking) {
       return <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />;
     }
     if (error) {
       return <CircleX className="h-5 w-5 text-destructive" />;
     }
-    if (!error && !checking) {
-      // Show check only if the field is not empty
-      return <Check className="h-5 w-5 text-green-500" />;
-    }
-    return null;
+    return <Check className="h-5 w-5 text-green-500" />;
   };
 
   return (
@@ -426,7 +421,7 @@ export default function SignupPage() {
               <div className="relative">
                  <Input id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required className={cn(formErrors.username && "border-destructive")} />
                  <div className="absolute inset-y-0 right-3 flex items-center">
-                    {formData.username.length > 2 && <FieldStatusIndicator checking={isChecking.username} error={formErrors.username} />}
+                    <FieldStatusIndicator checking={isChecking.username} error={formErrors.username} value={formData.username}/>
                  </div>
               </div>
               {formErrors.username && <p className="text-xs text-destructive mt-1">{formErrors.username}</p>}
@@ -436,7 +431,7 @@ export default function SignupPage() {
               <div className="relative">
                 <Input id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required className={cn(formErrors.email && "border-destructive")} />
                  <div className="absolute inset-y-0 right-3 flex items-center">
-                    {/^\S+@\S+\.\S+$/.test(formData.email) && <FieldStatusIndicator checking={isChecking.email} error={formErrors.email} />}
+                    <FieldStatusIndicator checking={isChecking.email} error={formErrors.email} value={formData.email}/>
                  </div>
               </div>
               {formErrors.email && <p className="text-xs text-destructive mt-1">{formErrors.email}</p>}
@@ -671,3 +666,5 @@ export default function SignupPage() {
     </Card>
   );
 }
+
+    
