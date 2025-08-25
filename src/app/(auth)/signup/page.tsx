@@ -145,10 +145,14 @@ export default function SignupPage() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target;
+    let { id, value } = e.target;
     
     if (id === 'bio' && value.length > bioMaxLength) {
         return;
+    }
+
+    if (id === 'username') {
+      value = value.toLowerCase().replace(/[^a-z0-9]/g, '');
     }
     
     setFormData((prev) => ({ ...prev, [id]: value }));
@@ -158,12 +162,12 @@ export default function SignupPage() {
   const handleFinishSignup = async () => {
       setIsFinishing(true);
       try {
-        // --- FINAL VALIDATION ---
         if (!formData.email.trim() || !formData.password.trim()) {
-            toast({ variant: "destructive", title: "Eksik Bilgi", description: "E-posta ve şifre alanları boş bırakılamaz. Lütfen geri giderek bilgileri doldurun." });
+            toast({ variant: "destructive", title: "Eksik Bilgi", description: "Lütfen geri giderek bilgileri doldurun." });
             setIsFinishing(false);
             return;
         }
+
         const usernameQuery = query(collection(db, 'users'), where('username', '==', formData.username));
         const usernameSnapshot = await getDocs(usernameQuery);
         if (!usernameSnapshot.empty) {
@@ -179,8 +183,7 @@ export default function SignupPage() {
             setIsFinishing(false);
             return;
         }
-        // --- END OF VALIDATION ---
-
+       
         const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
         const user = userCredential.user;
 
@@ -357,6 +360,7 @@ export default function SignupPage() {
               <div className="relative">
                  <Input id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required />
               </div>
+               <p className="text-xs text-muted-foreground pl-1">Sadece küçük harfler ve rakamlar kullanılabilir.</p>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">E-posta</Label>
