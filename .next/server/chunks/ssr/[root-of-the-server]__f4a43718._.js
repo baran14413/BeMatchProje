@@ -345,18 +345,13 @@ const deleteUserDataFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2
             const postData = postDoc.data();
             if (postData.type === 'photo' && postData.url) {
                 try {
-                    // Extract the file path from the URL
-                    const decodedUrl = decodeURIComponent(postData.url);
-                    const pathName = new URL(decodedUrl).pathname;
-                    const filePath = pathName.substring(pathName.indexOf('/o/') + 3).split('?')[0];
-                    if (filePath) {
-                        const storageRef = storage.bucket().file(filePath);
-                        await storageRef.delete();
-                    }
+                    // Robust way to get file path from download URL
+                    const fileRef = storage.bucket().file(ref(storage, postData.url)._location.path_);
+                    await fileRef.delete();
                 } catch (error) {
-                    // It's okay if the file doesn't exist.
+                    // It's okay if the file doesn't exist (e.g. already deleted, or bad URL)
                     if (error.code !== 404) {
-                        console.warn(`Could not delete storage file ${postData.url}:`, error);
+                        console.warn(`Could not delete storage file for post ${postDoc.id}:`, error);
                     }
                 }
             }

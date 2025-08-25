@@ -43,7 +43,7 @@ export default function ManageUsersPage() {
                 const usersSnapshot = await getDocs(collection(db, 'users'));
                 const usersList = usersSnapshot.docs
                     .map(doc => ({ uid: doc.id, ...doc.data() }) as AppUser)
-                    .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
+                    .sort((a, b) => (a.name || '').localeCompare(b.name || '')); // Sort alphabetically
                 setUsers(usersList);
             } catch (error) {
                 console.error("Error fetching users:", error);
