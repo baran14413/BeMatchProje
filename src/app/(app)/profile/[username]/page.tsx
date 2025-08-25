@@ -189,11 +189,12 @@ export default function UserProfilePage() {
 
  useEffect(() => {
     const fetchUserProfile = async () => {
-      const username = params.username as string;
+      let username = params.username as string;
       if (!username) {
         setLoading(false);
         return;
       }
+      username = username.toLowerCase();
       
       setLoading(true);
       
@@ -240,11 +241,10 @@ export default function UserProfilePage() {
         }
         
         // Fetch posts
-        const postsQuery = query(collection(db, 'posts'), where('authorId', '==', userData.uid));
+        const postsQuery = query(collection(db, 'posts'), where('authorId', '==', userData.uid), orderBy('createdAt', 'desc'));
         const postsSnapshot = await getDocs(postsQuery);
         const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
-        // Sort client-side to avoid needing a composite index
-        postsData.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+        
         setUserPosts(postsData);
 
       } catch (error) {
@@ -583,5 +583,3 @@ export default function UserProfilePage() {
     </div>
   );
 }
-
-    
