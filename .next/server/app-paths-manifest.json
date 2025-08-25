@@ -1,8 +1,10 @@
 {
+  "/(app)/admin/users/page": "app/(app)/admin/users/page.js",
   "/(app)/explore/page": "app/(app)/explore/page.js",
   "/(app)/logout/page": "app/(app)/logout/page.js",
   "/(app)/match/page": "app/(app)/match/page.js",
   "/(app)/profile/[username]/page": "app/(app)/profile/[username]/page.js",
+  "/(app)/profile/edit/delete/page": "app/(app)/profile/edit/delete/page.js",
   "/(app)/profile/edit/page": "app/(app)/profile/edit/page.js",
   "/(app)/profile/edit/users/page": "app/(app)/profile/edit/users/page.js",
   "/(app)/profile/page": "app/(app)/profile/page.js",

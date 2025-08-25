@@ -1,10 +1,10 @@
 {
   "node": {
-    "40bf163586b9749c4d42659156f8a2a9ed2e915b55": {
+    "4076365984dec01c64a5fd543a3b6e6674f10ecaec": {
       "workers": {
         "app/(app)/admin/users/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/admin/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/delete-user-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false
+          "moduleId": "[project]/.next-internal/server/app/(app)/admin/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/delete-user-data-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
         }
       },
       "layer": {
