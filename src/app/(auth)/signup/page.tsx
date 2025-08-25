@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { moderateImage, ModerateImageOutput } from '@/ai/flows/moderate-image-flow';
 import Image from 'next/image';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, getDoc, query, collection, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { auth, db, storage } from '@/lib/firebase';
 import { cities, districts } from '@/lib/turkey-locations';
@@ -329,8 +329,8 @@ export default function SignupPage() {
       }
   }
 
-  const handleSmartNextClick = () => {
-      if(highestCompletedStep > step) {
+  const handleNextClick = () => {
+      if(highestCompletedStep >= step) {
           setStep(highestCompletedStep + 1);
       } else {
           nextStep();
@@ -608,7 +608,7 @@ export default function SignupPage() {
             </div>
         )}
         {step < 5 ? (
-          <Button onClick={handleSmartNextClick} disabled={isNextButtonDisabled()}>İleri</Button>
+          <Button onClick={handleNextClick} disabled={isNextButtonDisabled()}>İleri</Button>
         ) : step === 5 ? (
            <div className="flex gap-2">
                 <Button variant="secondary" onClick={handlePhotoSkip}>Bu Adımı Atla</Button>
