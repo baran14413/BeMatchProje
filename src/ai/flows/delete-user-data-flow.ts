@@ -10,7 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getFirestore, collection, query, where, getDocs, writeBatch, doc } from 'firebase-admin/firestore';
+import { getFirestore, collection, query, where, getDocs, doc } from 'firebase-admin/firestore';
 import { getStorage, ref, deleteObject } from 'firebase-admin/storage';
 import { initializeApp, getApps, App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
@@ -58,7 +58,7 @@ const deleteUserDataFlow = ai.defineFlow(
     }
 
     try {
-        const batch = writeBatch(db);
+        const batch = db.batch();
 
         // 1. Delete user's posts and associated storage files
         const postsQuery = query(collection(db, 'posts'), where('authorId', '==', userId));
