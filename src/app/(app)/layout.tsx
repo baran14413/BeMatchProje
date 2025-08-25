@@ -17,7 +17,7 @@ import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/fire
 const NavButton = ({ href, icon, srText, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, hasNotification?: boolean }) => {
     return (
         <Link href={href}>
-            <Button variant="ghost" size="icon" className="relative rounded-full">
+            <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8">
                 {icon}
                 {hasNotification && (
                     <span className="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500 animate-pulse-heart" />
@@ -178,17 +178,12 @@ function LayoutContent({ children }: { children: ReactNode }) {
                     <NavButton href="/search" icon={<Search className="h-5 w-5" />} srText="Ara" />
                     <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
                     <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
-                     {authStatus === 'loading' ? (
+                    {authStatus === 'profile-loaded' && currentUserProfile?.username ? (
+                        <NavButton href={`/profile/${currentUserProfile.username}`} icon={<User className="h-5 w-5" />} srText="Profil" />
+                    ) : authStatus === 'loading' ? (
                          <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" disabled>
                            <Loader2 className="h-5 w-5 animate-spin" />
                          </Button>
-                    ) : authStatus === 'profile-loaded' && currentUserProfile?.username ? (
-                         <Link href={`/profile/${currentUserProfile.username}`}>
-                            <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8">
-                                <User className="h-5 w-5" />
-                                <span className="sr-only">Profil</span>
-                            </Button>
-                        </Link>
                     ) : (
                        null
                     ) }
