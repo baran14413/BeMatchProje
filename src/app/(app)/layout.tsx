@@ -168,6 +168,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
                     <span className="font-bold">BeMatch</span>
                 </Link>
                 <div className="flex items-center gap-2">
+                    <NavButton href="/search" icon={<Search className="h-5 w-5" />} srText="Ara" />
+                    <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
+                    <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
                      {authStatus === 'loading' ? (
                          <Button variant="ghost" size="icon" className="relative rounded-full" disabled>
                            <Loader2 className="h-5 w-5 animate-spin" />
@@ -184,9 +187,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
                            <Loader2 className="h-5 w-5 animate-spin" />
                          </Button>
                     ) : null }
-                    <NavButton href="/search" icon={<Search className="h-5 w-5" />} srText="Ara" />
-                    <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
-                    <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
                 </div>
             </header>
           </>
