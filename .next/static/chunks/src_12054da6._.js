@@ -1289,11 +1289,12 @@ function UserProfilePage() {
         "UserProfilePage.useEffect": ()=>{
             const fetchUserProfile = {
                 "UserProfilePage.useEffect.fetchUserProfile": async ()=>{
-                    const username = params.username;
+                    let username = params.username;
                     if (!username) {
                         setLoading(false);
                         return;
                     }
+                    username = username.toLowerCase();
                     setLoading(true);
                     try {
                         // Fetch user data by username
@@ -1335,7 +1336,7 @@ function UserProfilePage() {
                             setHasGalleryAccess(!userData.isGalleryPrivate);
                         }
                         // Fetch posts
-                        const postsQuery = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["query"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["collection"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'posts'), (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["where"])('authorId', '==', userData.uid));
+                        const postsQuery = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["query"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["collection"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'posts'), (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["where"])('authorId', '==', userData.uid), (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["orderBy"])('createdAt', 'desc'));
                         const postsSnapshot = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDocs"])(postsQuery);
                         const postsData = postsSnapshot.docs.map({
                             "UserProfilePage.useEffect.fetchUserProfile.postsData": (doc)=>({
@@ -1343,10 +1344,6 @@ function UserProfilePage() {
                                     ...doc.data()
                                 })
                         }["UserProfilePage.useEffect.fetchUserProfile.postsData"]);
-                        // Sort client-side to avoid needing a composite index
-                        postsData.sort({
-                            "UserProfilePage.useEffect.fetchUserProfile": (a, b)=>b.createdAt.seconds - a.createdAt.seconds
-                        }["UserProfilePage.useEffect.fetchUserProfile"]);
                         setUserPosts(postsData);
                     } catch (error) {
                         console.error("Error fetching user profile:", error);

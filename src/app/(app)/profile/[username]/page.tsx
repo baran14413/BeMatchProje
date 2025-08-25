@@ -241,9 +241,11 @@ export default function UserProfilePage() {
         }
         
         // Fetch posts
-        const postsQuery = query(collection(db, 'posts'), where('authorId', '==', userData.uid), orderBy('createdAt', 'desc'));
+        const postsQuery = query(collection(db, 'posts'), where('authorId', '==', userData.uid));
         const postsSnapshot = await getDocs(postsQuery);
         const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
+        
+        postsData.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
         
         setUserPosts(postsData);
 
@@ -583,3 +585,5 @@ export default function UserProfilePage() {
     </div>
   );
 }
+
+    
