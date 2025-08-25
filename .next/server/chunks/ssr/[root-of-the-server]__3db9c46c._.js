@@ -768,12 +768,18 @@ const setupPresence = (userId)=>{
     const connectedRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ref"])(rtdb, '.info/connected');
     const listener = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["onValue"])(connectedRef, (snap)=>{
         if (snap.val() === false) {
-            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["updateDoc"])(userFirestoreRef, isOfflineForFirestore);
+            // Use setDoc with merge to avoid error if document doesn't exist yet
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["setDoc"])(userFirestoreRef, isOfflineForFirestore, {
+                merge: true
+            });
             return;
         }
         (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["onDisconnect"])(userStatusDatabaseRef).set(isOfflineForDatabase).then(()=>{
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["set"])(userStatusDatabaseRef, isOnlineForDatabase);
-            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["updateDoc"])(userFirestoreRef, isOnlineForFirestore);
+            // Use setDoc with merge here as well
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["setDoc"])(userFirestoreRef, isOnlineForFirestore, {
+                merge: true
+            });
         });
     });
     const handleVisibilityChange = ()=>{
@@ -5517,7 +5523,7 @@ function SignupPage() {
                 name: `${formData.firstName} ${formData.lastName}`,
                 uid: user.uid,
                 avatarUrl: photoURL,
-                createdAt: serverTimestamp(),
+                createdAt: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["serverTimestamp"])(),
                 isPremium: false,
                 stats: {
                     followers: 0,
@@ -5643,8 +5649,8 @@ function SignupPage() {
             });
         }
     };
-    const handleSmartNextClick = ()=>{
-        if (highestCompletedStep > step) {
+    const handleNextClick = ()=>{
+        if (highestCompletedStep >= step) {
             setStep(highestCompletedStep + 1);
         } else {
             nextStep();
@@ -6777,7 +6783,7 @@ function SignupPage() {
                         columnNumber: 14
                     }, this),
                     step < 5 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
-                        onClick: handleSmartNextClick,
+                        onClick: handleNextClick,
                         disabled: isNextButtonDisabled(),
                         children: "İleri"
                     }, void 0, false, {

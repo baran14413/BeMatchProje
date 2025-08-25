@@ -45,7 +45,6 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [step, setStep] = useState(1);
-  const [highestCompletedStep, setHighestCompletedStep] = useState(0);
 
   const [isFinishing, setIsFinishing] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -86,13 +85,7 @@ export default function SignupPage() {
   
   const bioMaxLength = 250;
 
-  const nextStep = () => {
-    if (step > highestCompletedStep) {
-        setHighestCompletedStep(step);
-    }
-    setStep((prev) => prev + 1);
-  };
-  
+  const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
   
   // Focus on the error field when redirected to step 1
@@ -328,14 +321,6 @@ export default function SignupPage() {
         });
       }
   }
-
-  const handleNextClick = () => {
-      if(highestCompletedStep >= step) {
-          setStep(highestCompletedStep + 1);
-      } else {
-          nextStep();
-      }
-  };
 
   const progress = (step / 6) * 100;
 
@@ -608,7 +593,7 @@ export default function SignupPage() {
             </div>
         )}
         {step < 5 ? (
-          <Button onClick={handleNextClick} disabled={isNextButtonDisabled()}>İleri</Button>
+          <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>
         ) : step === 5 ? (
            <div className="flex gap-2">
                 <Button variant="secondary" onClick={handlePhotoSkip}>Bu Adımı Atla</Button>
