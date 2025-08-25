@@ -56,8 +56,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
         } catch (error) {
             console.error("Error fetching user profile:", error);
             setCurrentUserProfile(null); // Ensure no stale data
+        } finally {
+            setAuthStatus('profile-loaded');
         }
-        setAuthStatus('profile-loaded');
       } else {
         setCurrentUser(null);
         setCurrentUserProfile(null);
@@ -178,12 +179,12 @@ function LayoutContent({ children }: { children: ReactNode }) {
                     <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
                     <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
                      {authStatus === 'loading' ? (
-                         <Button variant="ghost" size="icon" className="relative rounded-full" disabled>
+                         <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" disabled>
                            <Loader2 className="h-5 w-5 animate-spin" />
                          </Button>
                     ) : authStatus === 'profile-loaded' && currentUserProfile?.username ? (
                          <Link href={`/profile/${currentUserProfile.username}`}>
-                            <Button variant="ghost" size="icon" className="relative rounded-full">
+                            <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8">
                                 <User className="h-5 w-5" />
                                 <span className="sr-only">Profil</span>
                             </Button>
@@ -208,7 +209,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 "h-[var(--bottom-nav-height)]",
                 isScrolling && "translate-y-full"
             )}>
-                <div className="grid h-full grid-cols-4">
+                <div className="grid h-full grid-cols-3">
                     <Link href="/shuffle" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname === '/shuffle' ? 'text-primary' : '')}>
                         <Shuffle className={cn('h-6 w-6')} />
                     </Link>
@@ -218,15 +219,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
                     <Link href="/explore" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname === '/explore' ? 'text-primary' : '')}>
                         <Globe className={cn('h-6 w-6')} />
                     </Link>
-                    {authStatus === 'profile-loaded' && currentUserProfile?.username ? (
-                      <Link href={`/profile/${currentUserProfile.username}`} className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname.startsWith('/profile') ? 'text-primary' : '')}>
-                        <User className={cn('h-6 w-6')} />
-                      </Link>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center text-muted-foreground/50">
-                        <User className={cn('h-6 w-6')} />
-                      </div>
-                    )}
                 </div>
             </nav>
         )}
@@ -242,5 +234,3 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
-
-    
