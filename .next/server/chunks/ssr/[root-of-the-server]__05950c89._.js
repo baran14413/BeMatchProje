@@ -324,15 +324,12 @@ const deleteUserDataFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2
     outputSchema: DeleteUserDataOutputSchema
 }, async ({ userId })=>{
     // Initialize Firebase Admin SDK if not already initialized
-    let adminApp;
     if (!(0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$29$__["getApps"])().length) {
-        adminApp = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$29$__["initializeApp"])();
-    } else {
-        adminApp = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$29$__["getApps"])()[0];
+        (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$29$__["initializeApp"])();
     }
-    const db = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["getFirestore"])(adminApp);
-    const storage = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$storage__$5b$external$5d$__$28$firebase$2d$admin$2f$storage$2c$__esm_import$29$__["getStorage"])(adminApp);
-    const auth = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$auth__$5b$external$5d$__$28$firebase$2d$admin$2f$auth$2c$__esm_import$29$__["getAuth"])(adminApp);
+    const db = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["getFirestore"])();
+    const storage = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$storage__$5b$external$5d$__$28$firebase$2d$admin$2f$storage$2c$__esm_import$29$__["getStorage"])();
+    const auth = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$auth__$5b$external$5d$__$28$firebase$2d$admin$2f$auth$2c$__esm_import$29$__["getAuth"])();
     if (!userId) {
         return {
             success: false,
@@ -348,8 +345,14 @@ const deleteUserDataFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2
             const postData = postDoc.data();
             if (postData.type === 'photo' && postData.url) {
                 try {
-                    const storageRef = storage.bucket().file(postData.url.split('/').pop());
-                    await storageRef.delete();
+                    // Extract the file path from the URL
+                    const decodedUrl = decodeURIComponent(postData.url);
+                    const pathName = new URL(decodedUrl).pathname;
+                    const filePath = pathName.substring(pathName.indexOf('/o/') + 3).split('?')[0];
+                    if (filePath) {
+                        const storageRef = storage.bucket().file(filePath);
+                        await storageRef.delete();
+                    }
                 } catch (error) {
                     // It's okay if the file doesn't exist.
                     if (error.code !== 404) {
@@ -379,19 +382,13 @@ const deleteUserDataFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2
             // Delete the conversation document itself
             batch.delete(convoDoc.ref);
         }
-        // 3. Delete user's likes and remove them from other's posts
-        // This can be complex. A simpler approach is to handle this via cloud functions
-        // or accept that "like" documents might become orphaned. For this scope, we skip deep like cleanup.
-        // 4. Remove user from other users' follow lists
-        // This is not efficient at scale. A better data model would be needed for a real app.
-        // For now, we are skipping this. The user's own follow lists will be deleted with their document.
-        // 5. Delete the user document from Firestore
+        // 3. Delete the user document from Firestore
         const userDocRef = db.collection('users').doc(userId);
         batch.delete(userDocRef);
         // Delete user's own subcollections
-        const followersRef = db.collection('users').doc(userId).collection('followers');
-        const followingRef = db.collection('users').doc(userId).collection('following');
-        const galleryPermsRef = db.collection('users').doc(userId).collection('galleryPermissions');
+        const followersRef = userDocRef.collection('followers');
+        const followingRef = userDocRef.collection('following');
+        const galleryPermsRef = userDocRef.collection('galleryPermissions');
         const [followersSnap, followingSnap, galleryPermsSnap] = await Promise.all([
             followersRef.get(),
             followingRef.get(),
@@ -402,7 +399,7 @@ const deleteUserDataFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2
         galleryPermsSnap.forEach((doc)=>batch.delete(doc.ref));
         // Commit all batched Firestore deletions
         await batch.commit();
-        // 6. Delete the user from Firebase Authentication
+        // 4. Delete the user from Firebase Authentication
         await auth.deleteUser(userId);
         return {
             success: true
