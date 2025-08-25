@@ -240,9 +240,11 @@ export default function UserProfilePage() {
         }
         
         // Fetch posts
-        const postsQuery = query(collection(db, 'posts'), where('authorId', '==', userData.uid), orderBy('createdAt', 'desc'));
+        const postsQuery = query(collection(db, 'posts'), where('authorId', '==', userData.uid));
         const postsSnapshot = await getDocs(postsQuery);
         const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
+        // Sort client-side to avoid needing a composite index
+        postsData.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
         setUserPosts(postsData);
 
       } catch (error) {
