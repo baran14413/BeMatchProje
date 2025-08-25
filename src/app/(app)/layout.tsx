@@ -168,10 +168,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                     <span className="font-bold">BeMatch</span>
                 </Link>
                 <div className="flex items-center gap-2">
-                    <NavButton href="/search" icon={<Search className="h-5 w-5" />} srText="Ara" />
-                    <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
-                    <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
-                    {authStatus === 'loading' ? (
+                     {authStatus === 'loading' ? (
                          <Button variant="ghost" size="icon" className="relative rounded-full" disabled>
                            <Loader2 className="h-5 w-5 animate-spin" />
                          </Button>
@@ -187,6 +184,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
                            <Loader2 className="h-5 w-5 animate-spin" />
                          </Button>
                     ) : null }
+                    <NavButton href="/search" icon={<Search className="h-5 w-5" />} srText="Ara" />
+                    <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
+                    <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
                 </div>
             </header>
           </>
@@ -204,7 +204,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 "h-[var(--bottom-nav-height)]",
                 isScrolling && "translate-y-full"
             )}>
-                <div className="grid h-full grid-cols-3">
+                <div className="grid h-full grid-cols-4">
                     <Link href="/shuffle" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname === '/shuffle' ? 'text-primary' : '')}>
                         <Shuffle className={cn('h-6 w-6')} />
                     </Link>
@@ -213,6 +213,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
                     </Link>
                     <Link href="/explore" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname === '/explore' ? 'text-primary' : '')}>
                         <Globe className={cn('h-6 w-6')} />
+                    </Link>
+                    <Link href={`/profile/${currentUserProfile?.username || ''}`} className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname.startsWith('/profile') ? 'text-primary' : '')}>
+                        <User className={cn('h-6 w-6')} />
                     </Link>
                 </div>
             </nav>
