@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Camera, AlertTriangle, Loader2, Eye, EyeOff, Sparkles, Ban, Upload, ShieldCheck, UserCheck, Check } from 'lucide-react';
+import { Camera, AlertTriangle, Loader2, Eye, EyeOff, Sparkles, Ban, Upload, ShieldCheck, UserCheck, Check, CircleX } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -31,6 +31,7 @@ import { auth, db, storage } from '@/lib/firebase';
 import { cities, districts } from '@/lib/turkey-locations';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { useDebounce } from 'use-debounce';
 
 const HOBBIES = [
   'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi',
@@ -40,7 +41,8 @@ const HOBBIES = [
 type PasswordStrength = 'yok' | 'zayıf' | 'orta' | 'güçlü';
 type ModerationStatus = 'idle' | 'checking' | 'safe' | 'unsafe';
 type VerificationStatus = 'idle' | 'checking' | 'verified' | 'failed';
-type FocusField = 'username' | 'email' | null;
+type ValidationStatus = 'idle' | 'checking' | 'available' | 'taken';
+
 
 export default function SignupPage() {
   const router = useRouter();
@@ -48,10 +50,6 @@ export default function SignupPage() {
   const [step, setStep] = useState(1);
   const [isFinishing, setIsFinishing] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [focusField, setFocusField] = useState<FocusField>(null);
-
-  const usernameInputRef = useRef<HTMLInputElement>(null);
-  const emailInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -70,6 +68,11 @@ export default function SignupPage() {
     profilePicture: null as string | null,
   });
 
+  // --- Start: Real-time Username Validation States ---
+  const [usernameStatus, setUsernameStatus] = useState<ValidationStatus>('idle');
+  const [debouncedUsername] = useDebounce(formData.username, 500); // Debounce for 500ms
+  // --- End: Real-time Username Validation States ---
+
   const [selectedCityPlate, setSelectedCityPlate] = useState<number | null>(null);
 
   const [showPassword, setShowPassword] = useState(false);
@@ -84,21 +87,39 @@ export default function SignupPage() {
   
   const bioMaxLength = 250;
 
+  // --- Start: Real-time Username Validation Logic ---
   useEffect(() => {
-    if (step === 1 && focusField) {
-      if (focusField === 'username' && usernameInputRef.current) {
-        usernameInputRef.current.focus();
-      } else if (focusField === 'email' && emailInputRef.current) {
-        emailInputRef.current.focus();
+    const checkUsername = async () => {
+      if (!debouncedUsername) {
+        setUsernameStatus('idle');
+        return;
       }
-      setFocusField(null); // Reset after focusing
-    }
-  }, [step, focusField]);
-  
+      // Basic client-side validation
+      if (debouncedUsername.length < 3) {
+        setUsernameStatus('taken'); // Re-using 'taken' status for invalid format
+        return;
+      }
+      setUsernameStatus('checking');
+      try {
+        const q = query(collection(db, 'users'), where('username', '==', debouncedUsername));
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) {
+          setUsernameStatus('available');
+        } else {
+          setUsernameStatus('taken');
+        }
+      } catch (error) {
+        console.error("Error checking username:", error);
+        setUsernameStatus('idle'); // Reset on error
+      }
+    };
+
+    checkUsername();
+  }, [debouncedUsername]);
+  // --- End: Real-time Username Validation Logic ---
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
-  
   
   useEffect(() => {
     if (step === 6) {
@@ -175,6 +196,10 @@ export default function SignupPage() {
         return;
     }
     
+    if (id === 'username') {
+        setUsernameStatus('idle'); // Reset status on new input
+    }
+    
     setFormData((prev) => ({ ...prev, [id]: value }));
     if (id === 'password') { checkPasswordStrength(value); }
   };
@@ -182,32 +207,6 @@ export default function SignupPage() {
   const handleFinishSignup = async () => {
       setIsFinishing(true);
       try {
-        // --- START: Final Validation ---
-        const usernameQuery = query(collection(db, 'users'), where('username', '==', formData.username));
-        const emailQuery = query(collection(db, 'users'), where('email', '==', formData.email));
-        
-        const [usernameSnapshot, emailSnapshot] = await Promise.all([
-          getDocs(usernameQuery),
-          getDocs(emailQuery)
-        ]);
-
-        if (!usernameSnapshot.empty) {
-          toast({ variant: "destructive", title: "Kayıt Başarısız", description: "Bu kullanıcı adı zaten alınmış. Lütfen farklı bir tane seçin." });
-          setStep(1);
-          setFocusField('username');
-          setIsFinishing(false);
-          return;
-        }
-
-        if (!emailSnapshot.empty) {
-          toast({ variant: "destructive", title: "Kayıt Başarısız", description: "Bu e-posta adresi zaten kullanımda. Lütfen giriş yapın veya farklı bir e-posta kullanın." });
-          setStep(1);
-          setFocusField('email');
-          setIsFinishing(false);
-          return;
-        }
-        // --- END: Final Validation ---
-
         const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
         const user = userCredential.user;
 
@@ -231,6 +230,8 @@ export default function SignupPage() {
             uid: user.uid,
             avatarUrl: photoURL,
             createdAt: new Date().toISOString(),
+            isPremium: false,
+            stats: { followers: 0, following: 0 }
         });
         
         toast({
@@ -243,7 +244,7 @@ export default function SignupPage() {
       } catch (error: any) {
         console.error("Signup error: ", error);
         let description = "Bir hata oluştu, lütfen bilgilerinizi kontrol edip tekrar deneyin.";
-        if (error.code === 'auth/email-already-in-use' || error.message?.includes('email-already-in-use')) {
+        if (error.code === 'auth/email-already-in-use') {
             description = "Bu e-posta adresi zaten kullanımda. Lütfen farklı bir e-posta deneyin veya giriş yapın.";
         }
         toast({
@@ -292,7 +293,7 @@ export default function SignupPage() {
     });
   };
 
-  const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.username || !formData.email;
+  const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.username || !formData.email || usernameStatus === 'checking' || usernameStatus === 'taken';
   const isStep2Invalid = !formData.age || !formData.gender || !formData.country || !formData.city || !formData.district || formData.hobbies.length < 3;
   const isStep3Invalid = !formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf';
   const isStep4Invalid = !formData.bio;
@@ -347,6 +348,19 @@ export default function SignupPage() {
       return 'border-primary/50';
   };
 
+  const UsernameStatusIndicator = () => {
+      if (usernameStatus === 'checking') {
+          return <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />;
+      }
+      if (usernameStatus === 'available') {
+          return <Check className="w-5 h-5 text-green-500" />;
+      }
+       if (usernameStatus === 'taken') {
+          return <CircleX className="w-5 h-5 text-destructive" />;
+      }
+      return null;
+  }
+
   return (
     <Card className="w-full max-w-md">
        <CardHeader>
@@ -376,11 +390,21 @@ export default function SignupPage() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="username">Kullanıcı Adı</Label>
-              <Input ref={usernameInputRef} id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required />
+              <div className="relative">
+                <Input id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required />
+                 <div className="absolute inset-y-0 right-3 flex items-center">
+                    <UsernameStatusIndicator />
+                 </div>
+              </div>
+              {usernameStatus === 'taken' && (
+                <p className="text-xs text-destructive mt-1">
+                  {formData.username.length < 3 ? 'Kullanıcı adı en az 3 karakter olmalıdır.' : 'Bu kullanıcı adı zaten alınmış.'}
+                </p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">E-posta</Label>
-              <Input ref={emailInputRef} id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required />
+              <Input id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required />
             </div>
           </div>
         )}
@@ -612,3 +636,5 @@ export default function SignupPage() {
     </Card>
   );
 }
+
+    
