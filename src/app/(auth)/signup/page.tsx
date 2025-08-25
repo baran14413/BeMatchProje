@@ -31,7 +31,6 @@ import { auth, db, storage } from '@/lib/firebase';
 import { cities, districts } from '@/lib/turkey-locations';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { useDebounce } from 'use-debounce';
 
 const HOBBIES = [
   'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi',
@@ -41,15 +40,13 @@ const HOBBIES = [
 type PasswordStrength = 'yok' | 'zayıf' | 'orta' | 'güçlü';
 type ModerationStatus = 'idle' | 'checking' | 'safe' | 'unsafe';
 type VerificationStatus = 'idle' | 'checking' | 'verified' | 'failed';
-type FormErrors = {
-    username?: string;
-    email?: string;
-}
 
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [step, setStep] = useState(1);
+  const [highestCompletedStep, setHighestCompletedStep] = useState(0);
+
   const [isFinishing, setIsFinishing] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -69,12 +66,6 @@ export default function SignupPage() {
     bio: '',
     profilePicture: null as string | null,
   });
-  
-  const [formErrors, setFormErrors] = useState<FormErrors>({});
-  const [isChecking, setIsChecking] = useState({ username: false, email: false });
-
-  const [debouncedUsername] = useDebounce(formData.username, 500);
-  const [debouncedEmail] = useDebounce(formData.email, 500);
 
   const [selectedCityPlate, setSelectedCityPlate] = useState<number | null>(null);
 
@@ -87,66 +78,37 @@ export default function SignupPage() {
 
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('idle');
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  const [errorField, setErrorField] = useState<'username' | 'email' | null>(null);
+  
+  const usernameInputRef = useRef<HTMLInputElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
   
   const bioMaxLength = 250;
 
-  // Username validation effect
-  useEffect(() => {
-    const checkUsername = async () => {
-      if (debouncedUsername.length < 3) {
-        setFormErrors(prev => ({...prev, username: undefined}));
-        setIsChecking(prev => ({...prev, username: false}));
-        return;
-      }
-      setIsChecking(prev => ({...prev, username: true}));
-      try {
-        const q = query(collection(db, 'users'), where('username', '==', debouncedUsername));
-        const querySnapshot = await getDocs(q);
-        if(querySnapshot.empty) {
-            setFormErrors(prev => ({...prev, username: undefined}));
-        } else {
-            setFormErrors(prev => ({...prev, username: 'Bu kullanıcı adı zaten kullanımda.'}));
-        }
-      } catch (error) {
-        console.error("Error checking username:", error);
-        setFormErrors(prev => ({...prev, username: 'Doğrulama sırasında bir hata oluştu.'}));
-      } finally {
-        setIsChecking(prev => ({...prev, username: false}));
-      }
-    };
-    if (debouncedUsername) checkUsername();
-  }, [debouncedUsername]);
-
-  // Email validation effect
-  useEffect(() => {
-    const checkEmail = async () => {
-       if (!/^\S+@\S+\.\S+$/.test(debouncedEmail)) {
-           setFormErrors(prev => ({...prev, email: undefined}));
-           setIsChecking(prev => ({...prev, email: false}));
-           return;
-        }
-      setIsChecking(prev => ({...prev, email: true}));
-      try {
-        const q = query(collection(db, 'users'), where('email', '==', debouncedEmail));
-        const querySnapshot = await getDocs(q);
-        if(querySnapshot.empty){
-             setFormErrors(prev => ({...prev, email: undefined}));
-        } else {
-             setFormErrors(prev => ({...prev, email: 'Bu e-posta adresi zaten kullanımda.'}));
-        }
-      } catch (error) {
-        console.error("Error checking email:", error);
-        setFormErrors(prev => ({...prev, email: 'Doğrulama sırasında bir hata oluştu.'}));
-      } finally {
-         setIsChecking(prev => ({...prev, email: false}));
-      }
-    };
-    if (debouncedEmail) checkEmail();
-  }, [debouncedEmail]);
-
-  const nextStep = () => setStep((prev) => prev + 1);
+  const nextStep = () => {
+    if (step > highestCompletedStep) {
+        setHighestCompletedStep(step);
+    }
+    setStep((prev) => prev + 1);
+  };
+  
   const prevStep = () => setStep((prev) => prev - 1);
   
+  // Focus on the error field when redirected to step 1
+  useEffect(() => {
+    if (step === 1 && errorField) {
+        if (errorField === 'username') {
+            usernameInputRef.current?.focus();
+        } else if (errorField === 'email') {
+            emailInputRef.current?.focus();
+        }
+        // Clear the error after focusing
+        setErrorField(null);
+    }
+  }, [step, errorField]);
+
+
   useEffect(() => {
     if (step === 6) {
       const getCameraPermission = async () => {
@@ -214,13 +176,6 @@ export default function SignupPage() {
         return;
     }
     
-    if (id === 'username') {
-      setFormErrors(prev => ({...prev, username: undefined}));
-    }
-    if (id === 'email') {
-       setFormErrors(prev => ({...prev, email: undefined}));
-    }
-    
     setFormData((prev) => ({ ...prev, [id]: value }));
     if (id === 'password') { checkPasswordStrength(value); }
   };
@@ -228,12 +183,27 @@ export default function SignupPage() {
   const handleFinishSignup = async () => {
       setIsFinishing(true);
       try {
-        if (formErrors.username || formErrors.email) {
-            toast({ variant: "destructive", title: "Lütfen hataları düzeltin."});
+        // --- FINAL VALIDATION ---
+        const usernameQuery = query(collection(db, 'users'), where('username', '==', formData.username));
+        const usernameSnapshot = await getDocs(usernameQuery);
+        if (!usernameSnapshot.empty) {
+            toast({ variant: "destructive", title: "Kayıt Başarısız", description: "Bu kullanıcı adı zaten alınmış." });
+            setErrorField('username');
             setStep(1);
             setIsFinishing(false);
             return;
         }
+
+        const emailQuery = query(collection(db, 'users'), where('email', '==', formData.email));
+        const emailSnapshot = await getDocs(emailQuery);
+        if (!emailSnapshot.empty) {
+            toast({ variant: "destructive", title: "Kayıt Başarısız", description: "Bu e-posta adresi zaten kullanımda." });
+            setErrorField('email');
+            setStep(1);
+            setIsFinishing(false);
+            return;
+        }
+        // --- END OF VALIDATION ---
 
         const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
         const user = userCredential.user;
@@ -274,7 +244,6 @@ export default function SignupPage() {
         let description = "Bir hata oluştu, lütfen bilgilerinizi kontrol edip tekrar deneyin.";
         if (error.code === 'auth/email-already-in-use') {
             description = "Bu e-posta adresi zaten kullanımda. Lütfen farklı bir e-posta deneyin veya giriş yapın.";
-            setFormErrors(prev => ({...prev, email: description }));
             setStep(1);
         }
         toast({
@@ -323,7 +292,7 @@ export default function SignupPage() {
     });
   };
 
-  const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.username || !formData.email || !!formErrors.username || !!formErrors.email || isChecking.username || isChecking.email;
+  const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.username || !formData.email;
   const isStep2Invalid = !formData.age || !formData.gender || !formData.country || !formData.city || !formData.district || formData.hobbies.length < 3;
   const isStep3Invalid = !formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf';
   const isStep4Invalid = !formData.bio;
@@ -360,6 +329,14 @@ export default function SignupPage() {
       }
   }
 
+  const handleSmartNextClick = () => {
+      if(highestCompletedStep > step) {
+          setStep(highestCompletedStep + 1);
+      } else {
+          nextStep();
+      }
+  };
+
   const progress = (step / 6) * 100;
 
   const getPasswordStrengthColor = () => {
@@ -376,17 +353,6 @@ export default function SignupPage() {
       if (verificationStatus === 'failed') return 'border-red-500';
       if (verificationStatus === 'checking') return 'border-yellow-500 animate-pulse';
       return 'border-primary/50';
-  };
-
-  const FieldStatusIndicator = ({ checking, error, value }: { checking: boolean; error?: string, value: string }) => {
-    if (value.length < 3) return null;
-    if (checking) {
-      return <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />;
-    }
-    if (error) {
-      return <CircleX className="h-5 w-5 text-destructive" />;
-    }
-    return <Check className="h-5 w-5 text-green-500" />;
   };
 
   return (
@@ -419,22 +385,14 @@ export default function SignupPage() {
             <div className="grid gap-2">
               <Label htmlFor="username">Kullanıcı Adı</Label>
               <div className="relative">
-                 <Input id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required className={cn(formErrors.username && "border-destructive")} />
-                 <div className="absolute inset-y-0 right-3 flex items-center">
-                    <FieldStatusIndicator checking={isChecking.username} error={formErrors.username} value={formData.username}/>
-                 </div>
+                 <Input ref={usernameInputRef} id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required />
               </div>
-              {formErrors.username && <p className="text-xs text-destructive mt-1">{formErrors.username}</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">E-posta</Label>
               <div className="relative">
-                <Input id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required className={cn(formErrors.email && "border-destructive")} />
-                 <div className="absolute inset-y-0 right-3 flex items-center">
-                    <FieldStatusIndicator checking={isChecking.email} error={formErrors.email} value={formData.email}/>
-                 </div>
+                <Input ref={emailInputRef} id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required />
               </div>
-              {formErrors.email && <p className="text-xs text-destructive mt-1">{formErrors.email}</p>}
             </div>
           </div>
         )}
@@ -650,7 +608,7 @@ export default function SignupPage() {
             </div>
         )}
         {step < 5 ? (
-          <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>
+          <Button onClick={handleSmartNextClick} disabled={isNextButtonDisabled()}>İleri</Button>
         ) : step === 5 ? (
            <div className="flex gap-2">
                 <Button variant="secondary" onClick={handlePhotoSkip}>Bu Adımı Atla</Button>
@@ -666,5 +624,3 @@ export default function SignupPage() {
     </Card>
   );
 }
-
-    
