@@ -10,23 +10,11 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getFirestore, collection, query, where, getDocs, writeBatch, doc } from 'firebase/firestore';
-import { getStorage, ref, deleteObject } from 'firebase/storage';
+import { getFirestore, collection, query, where, getDocs, writeBatch, doc } from 'firebase-admin/firestore';
+import { getStorage, ref, deleteObject } from 'firebase-admin/storage';
 import { initializeApp, getApps, App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 
-
-// Initialize Firebase Admin SDK if not already initialized
-let adminApp: App;
-if (!getApps().length) {
-    adminApp = initializeApp();
-} else {
-    adminApp = getApps()[0];
-}
-
-const db = getFirestore(adminApp);
-const storage = getStorage(adminApp);
-const auth = getAuth(adminApp);
 
 const DeleteUserDataInputSchema = z.object({
   userId: z.string().describe('The UID of the user to be deleted.'),
@@ -53,6 +41,18 @@ const deleteUserDataFlow = ai.defineFlow(
   },
   async ({ userId }) => {
     
+    // Initialize Firebase Admin SDK if not already initialized
+    let adminApp: App;
+    if (!getApps().length) {
+        adminApp = initializeApp();
+    } else {
+        adminApp = getApps()[0];
+    }
+    
+    const db = getFirestore(adminApp);
+    const storage = getStorage(adminApp);
+    const auth = getAuth(adminApp);
+
     if (!userId) {
         return { success: false, error: 'Kullanıcı ID\'si sağlanmadı.' };
     }
