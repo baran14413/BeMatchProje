@@ -403,7 +403,7 @@ function ManageUsersPage() {
                                     ...doc.data()
                                 })
                         }["ManageUsersPage.useEffect.fetchUsers.usersList"]).sort({
-                            "ManageUsersPage.useEffect.fetchUsers.usersList": (a, b)=>a.name.localeCompare(b.name)
+                            "ManageUsersPage.useEffect.fetchUsers.usersList": (a, b)=>(a.name || '').localeCompare(b.name || '')
                         }["ManageUsersPage.useEffect.fetchUsers.usersList"]); // Sort alphabetically
                         setUsers(usersList);
                     } catch (error) {

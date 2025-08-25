@@ -327,7 +327,7 @@ function ManageUsersPage() {
                 const usersList = usersSnapshot.docs.map((doc)=>({
                         uid: doc.id,
                         ...doc.data()
-                    })).sort((a, b)=>a.name.localeCompare(b.name)); // Sort alphabetically
+                    })).sort((a, b)=>(a.name || '').localeCompare(b.name || '')); // Sort alphabetically
                 setUsers(usersList);
             } catch (error) {
                 console.error("Error fetching users:", error);

@@ -64,8 +64,9 @@ const deleteUserDataFlow = ai.defineFlow(
             const postData = postDoc.data();
             if (postData.type === 'photo' && postData.url) {
                 try {
-                    // Robust way to get file path from download URL
-                    const fileRef = storage.bucket().file(ref(storage, postData.url)._location.path_);
+                    const fileUrl = new URL(postData.url);
+                    const filePath = decodeURIComponent(fileUrl.pathname.split('/o/')[1]);
+                    const fileRef = storage.bucket().file(filePath);
                     await fileRef.delete();
                 } catch (error: any) {
                     // It's okay if the file doesn't exist (e.g. already deleted, or bad URL)
@@ -99,9 +100,8 @@ const deleteUserDataFlow = ai.defineFlow(
             batch.delete(convoDoc.ref);
         }
         
-        // 3. Delete the user document from Firestore
+        // 3. Delete the user document from Firestore and its subcollections
         const userDocRef = db.collection('users').doc(userId);
-        batch.delete(userDocRef);
         
         // Delete user's own subcollections
         const followersRef = userDocRef.collection('followers');
@@ -117,6 +117,9 @@ const deleteUserDataFlow = ai.defineFlow(
         followersSnap.forEach(doc => batch.delete(doc.ref));
         followingSnap.forEach(doc => batch.delete(doc.ref));
         galleryPermsSnap.forEach(doc => batch.delete(doc.ref));
+        
+        // Finally, delete the user document itself
+        batch.delete(userDocRef);
 
         // Commit all batched Firestore deletions
         await batch.commit();

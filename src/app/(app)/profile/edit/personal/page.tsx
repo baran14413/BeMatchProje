@@ -22,6 +22,7 @@ export default function PersonalInfoPage() {
   const [formData, setFormData] = useState({
     name: '',
     username: '',
+    email: '',
     bio: '',
     city: '',
   });
@@ -42,6 +43,7 @@ export default function PersonalInfoPage() {
                 setFormData({
                     name: userData.name || '',
                     username: userData.username || '',
+                    email: userData.email || '',
                     bio: userData.bio || '',
                     city: userData.city || '',
                 });
@@ -102,6 +104,10 @@ export default function PersonalInfoPage() {
                     <Skeleton className="h-4 w-12" />
                     <Skeleton className="h-10 w-full" />
                   </div>
+                   <div className='space-y-2'>
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
                   <div className='space-y-2'>
                     <Skeleton className="h-4 w-20" />
                     <Skeleton className="h-10 w-full" />
@@ -136,6 +142,11 @@ export default function PersonalInfoPage() {
           <div className="space-y-2">
             <Label htmlFor="username">Kullanıcı Adı</Label>
             <Input id="username" value={formData.username} onChange={handleChange} disabled={saving}/>
+          </div>
+           <div className="space-y-2">
+            <Label htmlFor="email">E-posta</Label>
+            <Input id="email" value={formData.email} disabled />
+             <p className="text-xs text-muted-foreground">E-posta adresiniz değiştirilemez.</p>
           </div>
           <div className="space-y-2">
              <div className="flex justify-between items-baseline">

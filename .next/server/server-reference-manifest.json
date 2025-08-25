@@ -11,36 +11,15 @@
         "app/(app)/explore/page": "action-browser"
       }
     },
-    "4027a3c2514dea80f0671fd996b6b9be4c1afd6550": {
-      "workers": {
-        "app/(auth)/signup/page": {
-          "moduleId": "[project]/.next-internal/server/app/(auth)/signup/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/moderate-image-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false
-        }
-      },
-      "layer": {
-        "app/(auth)/signup/page": "action-browser"
-      }
-    },
     "4076365984dec01c64a5fd543a3b6e6674f10ecaec": {
       "workers": {
         "app/(app)/admin/users/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/admin/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/delete-user-data-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
-        },
-        "app/(app)/profile/edit/delete/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/profile/edit/delete/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/delete-user-data-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        },
-        "app/(app)/profile/edit/users/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/profile/edit/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/delete-user-data-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
         }
       },
       "layer": {
-        "app/(app)/admin/users/page": "action-browser",
-        "app/(app)/profile/edit/delete/page": "action-browser",
-        "app/(app)/profile/edit/users/page": "action-browser"
+        "app/(app)/admin/users/page": "action-browser"
       }
     }
   },
