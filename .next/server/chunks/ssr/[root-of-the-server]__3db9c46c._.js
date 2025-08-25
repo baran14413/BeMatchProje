@@ -5605,7 +5605,7 @@ function SignupPage() {
             };
         });
     };
-    const isStep1Invalid = !formData.firstName || !formData.lastName || formData.username.length < 3 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) || usernameStatus === 'taken' || emailStatus === 'taken' || usernameStatus === 'checking' || emailStatus === 'checking';
+    const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.username || !formData.email || usernameStatus === 'taken' || emailStatus === 'taken' || usernameStatus === 'checking' || emailStatus === 'checking';
     const isStep2Invalid = !formData.age || !formData.gender || !formData.country || !formData.city || !formData.district || formData.hobbies.length < 3;
     const isStep3Invalid = !formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf';
     const isStep4Invalid = !formData.bio;
