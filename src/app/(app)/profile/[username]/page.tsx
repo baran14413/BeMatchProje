@@ -190,10 +190,11 @@ export default function UserProfilePage() {
  useEffect(() => {
     const fetchUserProfile = async () => {
       const username = params.username as string;
-      if (!username || !currentUser) {
-        if (!currentUser) setLoading(false);
+      if (!username) {
+        setLoading(false);
         return;
       }
+      
       setLoading(true);
       
       try {
@@ -201,44 +202,49 @@ export default function UserProfilePage() {
         const usersQuery = query(collection(db, 'users'), where('username', '==', username), limit(1));
         const userSnapshot = await getDocs(usersQuery);
 
-        if (!userSnapshot.empty) {
-            const userDoc = userSnapshot.docs[0];
-            const userData = userDoc.data();
-            setUserProfile(userData);
-            const profileId = userDoc.id;
+        if (userSnapshot.empty) {
+          console.log("No user found with username:", username);
+          setUserProfile(null);
+          setLoading(false);
+          return;
+        }
+        
+        const userDoc = userSnapshot.docs[0];
+        const userData = { uid: userDoc.id, ...userDoc.data() };
+        setUserProfile(userData);
 
-            const profileIsMine = profileId === currentUser.uid;
+        if (currentUser) {
+            const profileIsMine = userData.uid === currentUser.uid;
             setIsMyProfile(profileIsMine);
 
-            // Check follow status
+            // Check follow status if it's not our own profile
             if (!profileIsMine) {
-                const followDocRef = doc(db, 'users', currentUser.uid, 'following', profileId);
+                const followDocRef = doc(db, 'users', currentUser.uid, 'following', userData.uid);
                 const followDocSnap = await getDoc(followDocRef);
                 setIsFollowing(followDocSnap.exists());
             }
 
             // Check gallery access
             if (userData.isGalleryPrivate && !profileIsMine) {
-                const permissionDocRef = doc(db, 'users', profileId, 'galleryPermissions', currentUser.uid);
+                const permissionDocRef = doc(db, 'users', userData.uid, 'galleryPermissions', currentUser.uid);
                 const permissionDocSnap = await getDoc(permissionDocRef);
                 setHasGalleryAccess(permissionDocSnap.exists());
             } else {
-                setHasGalleryAccess(true);
+                setHasGalleryAccess(true); // Public gallery or own profile
             }
-            
-            // Fetch posts
-            const postsQuery = query(collection(db, 'posts'), where('authorId', '==', profileId));
-            const postsSnapshot = await getDocs(postsQuery);
-            let postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
-            
-            // Sort posts by date client-side
-            postsData.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
-
-            setUserPosts(postsData);
         } else {
-          console.log("No such document!");
-          setUserProfile(null);
+            // Not logged in, can't follow or see private content
+            setIsMyProfile(false);
+            setIsFollowing(false);
+            setHasGalleryAccess(!userData.isGalleryPrivate);
         }
+        
+        // Fetch posts
+        const postsQuery = query(collection(db, 'posts'), where('authorId', '==', userData.uid), orderBy('createdAt', 'desc'));
+        const postsSnapshot = await getDocs(postsQuery);
+        const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
+        setUserPosts(postsData);
+
       } catch (error) {
         console.error("Error fetching user profile:", error);
         toast({ variant: 'destructive', title: 'Profil Yüklenemedi', description: 'Profil bilgileri alınırken bir hata oluştu.' });
@@ -248,9 +254,7 @@ export default function UserProfilePage() {
       }
     };
 
-    if (currentUser) {
-        fetchUserProfile();
-    }
+    fetchUserProfile();
   }, [params.username, currentUser, toast]);
 
 
