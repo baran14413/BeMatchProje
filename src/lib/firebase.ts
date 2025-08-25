@@ -1,7 +1,7 @@
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, updateDoc, serverTimestamp as firestoreServerTimestamp } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, serverTimestamp as firestoreServerTimestamp } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getDatabase, ref, onValue, set, onDisconnect, serverTimestamp as rtdbServerTimestamp, goOffline, goOnline } from 'firebase/database';
 
@@ -50,13 +50,15 @@ const setupPresence = (userId: string) => {
     
     const listener = onValue(connectedRef, (snap) => {
         if (snap.val() === false) {
-            updateDoc(userFirestoreRef, isOfflineForFirestore);
+            // Use setDoc with merge to avoid error if document doesn't exist yet
+            setDoc(userFirestoreRef, isOfflineForFirestore, { merge: true });
             return;
         }
 
         onDisconnect(userStatusDatabaseRef).set(isOfflineForDatabase).then(() => {
             set(userStatusDatabaseRef, isOnlineForDatabase);
-            updateDoc(userFirestoreRef, isOnlineForFirestore);
+            // Use setDoc with merge here as well
+            setDoc(userFirestoreRef, isOnlineForFirestore, { merge: true });
         });
     });
 
