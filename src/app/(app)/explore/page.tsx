@@ -780,7 +780,7 @@ export default function ExplorePage() {
                                 <div className="flex flex-col overflow-hidden">
                                     <div className="flex items-baseline gap-2">
                                         <Link href={`/profile/${post.user?.username}`} className="font-semibold text-sm truncate hover:underline">
-                                            {post.user?.name}
+                                            {post.user?.name.split(' ')[0]}
                                         </Link>
                                         {post.location && (
                                             <Link href={`/location/${encodeURIComponent(post.location)}`} className='text-xs text-muted-foreground truncate flex items-center gap-1 hover:underline'>
@@ -913,7 +913,7 @@ export default function ExplorePage() {
                              <span className="font-semibold cursor-pointer" onClick={() => handleOpenLikes(post.id)}>{post.likes.toLocaleString()} beğeni</span>
                             {post.type === 'photo' && post.caption && !post.isGalleryLocked && (
                                  <div className="whitespace-pre-wrap break-words">
-                                    <Link href={`/profile/${post.user?.username}`} className="font-semibold mr-1">{post.user?.name}</Link>
+                                    <Link href={`/profile/${post.user?.username}`} className="font-semibold mr-1">{post.user?.name.split(' ')[0]}</Link>
                                     <HashtagAndMentionRenderer text={post.caption} />
                                  </div>
                             )}

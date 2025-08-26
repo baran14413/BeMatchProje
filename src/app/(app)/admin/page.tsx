@@ -3,7 +3,7 @@
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Users, FileImage, UserPlus, Flag, MoreVertical, LineChart } from "lucide-react";
-import { collection, getCountFromServer, query, orderBy, limit, getDocs, where, DocumentData } from "firebase/firestore";
+import { collection, getCountFromServer, query, orderBy, limit, getDocs, where, DocumentData, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -223,7 +223,7 @@ export default function AdminDashboardPage() {
                                    <p className="font-semibold leading-tight truncate">{getPostPreviewTitle(post)}</p>
                                    <p className="text-sm text-muted-foreground mt-1 truncate">{getPostPreviewContent(post)}</p>
                                    <p className="text-xs text-muted-foreground mt-1">
-                                        {formatRelativeTime(post.createdAt?.toDate())} - {post.user?.name}
+                                        {formatRelativeTime(post.createdAt?.toDate())} - {post.user?.name?.split(' ')[0]}
                                    </p>
                                </div>
                                 <Link href="#" className={cn(buttonVariants({variant: "ghost", size:"icon"}), "h-8 w-8")}>

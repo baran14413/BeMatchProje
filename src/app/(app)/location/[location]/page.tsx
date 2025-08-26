@@ -148,7 +148,7 @@ export default function LocationPage() {
                                             <AvatarImage src={post.user?.avatarUrl} />
                                             <AvatarFallback>{post.user?.name?.charAt(0)}</AvatarFallback>
                                         </Avatar>
-                                        <span className="font-semibold text-sm">{post.user?.name}</span>
+                                        <span className="font-semibold text-sm">{post.user?.name?.split(' ')[0]}</span>
                                     </Link>
                                 </div>
                                 {post.type === 'photo' && post.url && (
@@ -179,7 +179,7 @@ export default function LocationPage() {
                                     <span className="font-semibold text-sm">{post.likes.toLocaleString()} beğeni</span>
                                     {post.caption && (
                                         <div className='text-sm mt-1 whitespace-pre-wrap break-words'>
-                                            <Link href={`/profile/${post.user?.username}`} className="font-semibold mr-1">{post.user?.name}</Link>
+                                            <Link href={`/profile/${post.user?.username}`} className="font-semibold mr-1">{post.user?.name?.split(' ')[0]}</Link>
                                             <HashtagAndMentionRenderer text={post.caption} />
                                         </div>
                                     )}
