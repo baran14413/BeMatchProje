@@ -237,7 +237,6 @@ function EditProfilePicturePage() {
             await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["updateDoc"])(userDocRef, {
                 avatarUrl: photoURL
             });
-            setIsSaving(false);
             setIsNewPhotoSelected(false);
             toast({
                 title: 'Başarılı!',
@@ -251,6 +250,7 @@ function EditProfilePicturePage() {
                 title: 'Kaydedilemedi',
                 description: 'Fotoğraf kaydedilirken bir hata oluştu.'
             });
+        } finally{
             setIsSaving(false);
         }
     };

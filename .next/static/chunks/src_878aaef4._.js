@@ -168,11 +168,11 @@ var _s = __turbopack_context__.k.signature(), _s1 = __turbopack_context__.k.sign
 ;
 ;
 const loadingMessages = [
-    "Sizin için her şeyi hazırlıyoruz...",
-    "Lütfen bekleyin...",
-    "Az kaldı...",
+    "Bağlantı kuruluyor...",
+    "Güvenlik kontrolü yapılıyor...",
+    "Oturum doğrulanıyor...",
     "Her şeyi profesyonel hale getiriyoruz...",
-    "Harika bir deneyim sizi bekliyor!"
+    "Neredeyse hazır!"
 ];
 const SplashScreen = ()=>{
     _s();
@@ -184,7 +184,7 @@ const SplashScreen = ()=>{
                 "SplashScreen.useEffect.progressInterval": ()=>{
                     setProgress({
                         "SplashScreen.useEffect.progressInterval": (prev)=>prev >= 100 ? 100 : prev + 5
-                    }["SplashScreen.useEffect.progressInterval"]); // Increased speed
+                    }["SplashScreen.useEffect.progressInterval"]);
                 }
             }["SplashScreen.useEffect.progressInterval"], 100);
             const messageInterval = setInterval({

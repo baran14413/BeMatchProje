@@ -9,11 +9,11 @@ import { Heart } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 const loadingMessages = [
-    "Sizin için her şeyi hazırlıyoruz...",
-    "Lütfen bekleyin...",
-    "Az kaldı...",
+    "Bağlantı kuruluyor...",
+    "Güvenlik kontrolü yapılıyor...",
+    "Oturum doğrulanıyor...",
     "Her şeyi profesyonel hale getiriyoruz...",
-    "Harika bir deneyim sizi bekliyor!",
+    "Neredeyse hazır!",
 ];
 
 const SplashScreen = () => {
@@ -22,7 +22,7 @@ const SplashScreen = () => {
 
     useEffect(() => {
         const progressInterval = setInterval(() => {
-            setProgress(prev => (prev >= 100 ? 100 : prev + 5)); // Increased speed
+            setProgress(prev => (prev >= 100 ? 100 : prev + 5));
         }, 100); 
 
         const messageInterval = setInterval(() => {

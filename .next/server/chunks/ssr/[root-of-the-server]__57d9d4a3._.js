@@ -308,18 +308,18 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$p
 ;
 ;
 const loadingMessages = [
-    "Sizin için her şeyi hazırlıyoruz...",
-    "Lütfen bekleyin...",
-    "Az kaldı...",
+    "Bağlantı kuruluyor...",
+    "Güvenlik kontrolü yapılıyor...",
+    "Oturum doğrulanıyor...",
     "Her şeyi profesyonel hale getiriyoruz...",
-    "Harika bir deneyim sizi bekliyor!"
+    "Neredeyse hazır!"
 ];
 const SplashScreen = ()=>{
     const [progress, setProgress] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(0);
     const [messageIndex, setMessageIndex] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(0);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         const progressInterval = setInterval(()=>{
-            setProgress((prev)=>prev >= 100 ? 100 : prev + 5); // Increased speed
+            setProgress((prev)=>prev >= 100 ? 100 : prev + 5);
         }, 100);
         const messageInterval = setInterval(()=>{
             setMessageIndex((prev)=>(prev + 1) % loadingMessages.length);
