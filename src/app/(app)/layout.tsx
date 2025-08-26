@@ -4,7 +4,7 @@
 import React, { type ReactNode, useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe, Loader2, LogOut } from 'lucide-react';
+import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe, Loader2, LogOut, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useNetworkStatus } from '@/hooks/use-network-status';
@@ -229,7 +229,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                            <DropdownMenuTrigger asChild>
                                <Button variant="ghost" size="icon" className="relative rounded-full h-9 w-9">
                                     <Avatar className='h-8 w-8'>
-                                        <AvatarImage src={currentUser?.photoURL || ''}/>
+                                        {currentUser?.photoURL && <AvatarImage src={currentUser.photoURL}/>}
                                         <AvatarFallback>{currentUserProfile?.name?.charAt(0) || 'U'}</AvatarFallback>
                                     </Avatar>
                                </Button>
@@ -244,6 +244,12 @@ function LayoutContent({ children }: { children: ReactNode }) {
                                    <DropdownMenuItem>
                                         <User className="mr-2 h-4 w-4" />
                                         <span>Profil</span>
+                                   </DropdownMenuItem>
+                                </Link>
+                                 <Link href="/profile/edit">
+                                   <DropdownMenuItem>
+                                        <Settings className="mr-2 h-4 w-4" />
+                                        <span>Ayarlar</span>
                                    </DropdownMenuItem>
                                 </Link>
                                <DropdownMenuSeparator />
