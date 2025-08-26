@@ -1,6 +1,7 @@
 {
   "/(app)/admin/page": "app/(app)/admin/page.js",
   "/(app)/explore/page": "app/(app)/explore/page.js",
+  "/(app)/location/[location]/page": "app/(app)/location/[location]/page.js",
   "/(app)/match/page": "app/(app)/match/page.js",
   "/(app)/profile/[username]/page": "app/(app)/profile/[username]/page.js",
   "/(app)/profile/edit/page": "app/(app)/profile/edit/page.js",

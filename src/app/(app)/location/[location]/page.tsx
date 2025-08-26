@@ -82,8 +82,7 @@ export default function LocationPage() {
             try {
                 const postsQuery = query(
                     collection(db, 'posts'), 
-                    where('location', '==', location),
-                    orderBy('createdAt', 'desc')
+                    where('location', '==', location)
                 );
                 const querySnapshot = await getDocs(postsQuery);
                 
