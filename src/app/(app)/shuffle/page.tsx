@@ -174,7 +174,7 @@ function ShuffleContent() {
 
     if (showFeedback) {
         return (
-            <Card className="w-full max-w-sm text-center">
+            <Card className="w-full max-w-sm text-center shadow-2xl">
                 <CardHeader>
                     <CardTitle>Deneyiminiz Nasıldı?</CardTitle>
                     <CardDescription>Son rastgele sohbetiniz hakkındaki geri bildiriminiz, gelecekteki eşleşmeleri iyileştirmemize yardımcı olur.</CardDescription>
@@ -203,32 +203,55 @@ function ShuffleContent() {
                     </p>
                     <Button 
                         size="lg" 
-                        className="h-16 px-10 text-xl rounded-full"
+                        className="h-16 px-10 text-xl rounded-full shadow-lg bg-gradient-to-r from-primary to-blue-500 text-primary-foreground transition-transform hover:scale-105"
                         onClick={handleSearchClick}
                         disabled={isLoadingProfile}
                     >
-                        {isLoadingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isLoadingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-3 h-5 w-5" />}
                         Eşleşme Bul
                     </Button>
                 </>
             )}
 
             {status === 'searching' && (
-                <>
-                    <Loader2 className="w-24 h-24 text-primary mb-6 animate-spin" />
+                <div className="w-full max-w-md">
+                    <div className="relative w-40 h-40 mx-auto mb-8">
+                        <div className="absolute inset-0 rounded-full bg-primary/20 animate-ripple-1"></div>
+                        <div className="absolute inset-0 rounded-full bg-primary/20 animate-ripple-2"></div>
+                        <div className="absolute inset-0 rounded-full bg-primary/20 animate-ripple-3"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <Loader2 className="w-16 h-16 text-primary animate-spin" />
+                        </div>
+                    </div>
                     <h1 className="text-3xl font-bold font-headline mb-2">Aranıyor...</h1>
-                    <p className="max-w-md mb-8 text-muted-foreground">
+                    <p className="max-w-md mb-8 text-muted-foreground mx-auto">
                         Sana en uygun kişiyle eşleştirilmek için bekleniyor. Lütfen bu ekrandan ayrılma.
                     </p>
+                    <Card className="bg-muted/50 border-dashed">
+                        <CardContent className="p-4 grid grid-cols-3 divide-x text-center">
+                             <div>
+                                <p className="font-bold text-lg text-primary">~15sn</p>
+                                <p className="text-xs text-muted-foreground">Tahmini Süre</p>
+                             </div>
+                             <div>
+                                <p className="font-bold text-lg text-primary">8 kişi</p>
+                                <p className="text-xs text-muted-foreground">Kuyrukta</p>
+                             </div>
+                             <div>
+                                <p className="font-bold text-lg text-primary">27ms</p>
+                                <p className="text-xs text-muted-foreground">Ping</p>
+                             </div>
+                        </CardContent>
+                    </Card>
                     <Button 
                         size="lg" 
-                        variant="destructive"
-                        className="h-14 px-8 text-lg rounded-full"
+                        variant="outline"
+                        className="h-14 px-8 text-lg rounded-full mt-8"
                         onClick={handleCancelSearch}
                     >
                        Aramayı İptal Et
                     </Button>
-                </>
+                </div>
             )}
 
             {status === 'matched' && (
