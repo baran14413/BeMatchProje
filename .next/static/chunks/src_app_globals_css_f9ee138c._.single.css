@@ -598,6 +598,11 @@ img {
   margin-bottom: .5rem;
 }
 
+.my-4 {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
 .-ml-4 {
   margin-left: -1rem;
 }
@@ -897,6 +902,10 @@ img {
 
 .max-h-screen {
   max-height: 100vh;
+}
+
+.max-h-\[85vh\] {
+  max-height: 85vh;
 }
 
 .min-h-0 {
@@ -2222,6 +2231,10 @@ img {
   padding-top: 1.5rem;
 }
 
+.pb-0 {
+  padding-bottom: 0;
+}
+
 .text-left {
   text-align: left;
 }
@@ -2526,6 +2539,14 @@ img {
 .text-yellow-300 {
   --tw-text-opacity: 1;
   color: rgb(253 224 71 / var(--tw-text-opacity, 1));
+}
+
+.text-primary\/20 {
+  color: hsl(var(--primary) / .2);
+}
+
+.text-primary\/50 {
+  color: hsl(var(--primary) / .5);
 }
 
 .underline {
@@ -3683,6 +3704,10 @@ img {
 
   .sm\:flex-col {
     flex-direction: column;
+  }
+
+  .sm\:justify-start {
+    justify-content: flex-start;
   }
 
   .sm\:justify-end {
