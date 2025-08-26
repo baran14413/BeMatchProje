@@ -1,82 +1,90 @@
 
 'use client';
 
-import { useState, useEffect, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
-import { auth, db } from '@/lib/firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { Loader2, ShieldAlert } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarTrigger,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarInset,
+  SidebarFooter,
+} from '@/components/ui/sidebar';
+import { Home, Users, Settings, LogOut, PanelLeft, Heart } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { auth } from '@/lib/firebase';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
-  const [authStatus, setAuthStatus] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
-  const router = useRouter();
 
-  useEffect(() => {
-    const checkAuth = async (user: User | null) => {
-      // For this temporary admin panel, we'll just check if a user is logged in.
-      // In a real app, you would check for a specific admin role.
-      if (user) {
-        try {
-          const userDocRef = doc(db, 'users', user.uid);
-          const userDoc = await getDoc(userDocRef);
-          // Simple check if the user is one of the predefined admins or has an `isAdmin` flag
-          // For now, we'll assume any logged-in user can access this dev panel.
-           setAuthStatus('authorized');
-        } catch (error) {
-          console.error("Error checking admin status:", error);
-          setAuthStatus('unauthorized');
-        }
-      } else {
-        setAuthStatus('unauthorized');
-      }
-    };
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      checkAuth(user);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  if (authStatus === 'loading') {
+const NavItem = ({ href, icon, label }: { href: string, icon: React.ReactNode, label: string }) => {
+    const pathname = usePathname();
+    const isActive = pathname === href;
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="ml-4 text-lg">Yetki kontrol ediliyor...</p>
-      </div>
+        <SidebarMenuItem>
+            <Link href={href}>
+                <SidebarMenuButton isActive={isActive} className="w-full justify-start gap-3">
+                    {icon}
+                    <span className="truncate">{label}</span>
+                </SidebarMenuButton>
+            </Link>
+        </SidebarMenuItem>
     );
-  }
+};
 
-  if (authStatus === 'unauthorized') {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+    const user = auth.currentUser;
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background p-4">
-        <div className="text-center">
-            <ShieldAlert className="mx-auto h-16 w-16 text-destructive mb-4" />
-            <h1 className="text-2xl font-bold text-destructive">Erişim Reddedildi</h1>
-            <p className="text-muted-foreground mt-2">
-                Bu sayfayı görüntüleme yetkiniz yok.
-            </p>
-            <Button asChild className="mt-6">
-                <Link href="/explore">Ana Sayfaya Dön</Link>
-            </Button>
-        </div>
-      </div>
-    );
-  }
+        <SidebarProvider>
+            <Sidebar>
+                <SidebarHeader className="p-4">
+                     <Link href="/explore" className="flex items-center gap-2 text-lg font-semibold">
+                        <Heart className="h-7 w-7 text-primary" />
+                        <span className="font-bold text-foreground">BeMatch</span>
+                    </Link>
+                </SidebarHeader>
+                <SidebarContent className="p-2">
+                    <SidebarMenu>
+                       <NavItem href="/admin" icon={<Home />} label="Genel Bakış" />
+                       <NavItem href="/admin/users" icon={<Users />} label="Kullanıcılar" />
+                    </SidebarMenu>
+                </SidebarContent>
+                <SidebarFooter className="p-4 border-t">
+                    <div className="flex items-center gap-3">
+                        <Avatar className="w-10 h-10">
+                            <AvatarImage src={user?.photoURL || ''} />
+                            <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 overflow-hidden">
+                             <p className="font-semibold truncate">{user?.displayName || 'Admin'}</p>
+                             <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                        </div>
+                         <Link href="/logout">
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <LogOut className="w-5 h-5"/>
+                            </Button>
+                        </Link>
+                    </div>
+                </SidebarFooter>
+            </Sidebar>
 
-  return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10">
-            <ArrowLeft className="h-6 w-6" />
-        </Button>
-        <h1 className="text-3xl font-bold tracking-tight">Admin Paneli</h1>
-      </div>
-      {children}
-    </div>
-  );
+            <SidebarInset>
+                 <header className="flex items-center justify-between p-4 border-b bg-background">
+                    <div className="flex items-center gap-2">
+                        <SidebarTrigger className="md:hidden" />
+                        <h1 className="text-2xl font-bold font-headline">Yönetim Paneli</h1>
+                    </div>
+                </header>
+                <main className="flex-1 p-4 md:p-6 lg:p-8 bg-muted/40">
+                    {children}
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
+    );
 }

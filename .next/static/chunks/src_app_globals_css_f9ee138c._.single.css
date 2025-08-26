@@ -1839,6 +1839,10 @@ img {
   background-color: rgb(234 179 8 / var(--tw-bg-opacity, 1));
 }
 
+.bg-muted\/40 {
+  background-color: hsl(var(--muted) / .4);
+}
+
 .bg-gradient-to-br {
   background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
 }
