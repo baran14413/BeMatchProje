@@ -16,7 +16,7 @@ import {
   SidebarInset,
   SidebarFooter,
 } from '@/components/ui/sidebar';
-import { Home, Users, Settings, LogOut, PanelLeft, LineChart, Search, ShieldCheck } from 'lucide-react';
+import { Home, Users, Settings, LogOut, PanelLeft, LineChart, Search, ShieldCheck, Ban } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
@@ -47,6 +47,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (pathname === '/admin') return 'Dashboard';
         if (pathname === '/admin/users') return 'Kullanıcılar';
         if (pathname === '/admin/activity-logs') return 'Aktivite Kayıtları';
+        if (pathname === '/admin/blocked-ips') return 'Engellenen IP\'ler';
         if (pathname === '/admin/settings') return 'Ayarlar';
         return 'Panel';
     }
@@ -65,6 +66,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                        <NavItem href="/admin" icon={<Home />} label="Dashboard" />
                        <NavItem href="/admin/users" icon={<Users />} label="Kullanıcılar" />
                        <NavItem href="/admin/activity-logs" icon={<ShieldCheck />} label="Aktivite Kayıtları" />
+                       <NavItem href="/admin/blocked-ips" icon={<Ban />} label="Engellenen IP'ler" />
                        <NavItem href="/admin/settings" icon={<Settings />} label="Ayarlar" />
                     </SidebarMenu>
                 </SidebarContent>

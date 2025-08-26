@@ -6,12 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Shield, Loader2, Laptop, Smartphone, Monitor, MoreVertical } from 'lucide-react';
+import { Shield, Loader2, Laptop, Smartphone, Monitor, MoreVertical, Ban } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy, DocumentData } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
+import { blockIp } from '@/ai/flows/ip-management-flow';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type ActivityLog = {
   id: string;
@@ -89,6 +96,19 @@ export default function ActivityLogsPage() {
         fetchLogs();
     }, [toast]);
 
+    const handleBlockIp = async (ip: string) => {
+        try {
+            const result = await blockIp({ ipAddress: ip, reason: 'Admin tarafından engellendi.' });
+            if (result.success) {
+                toast({ title: `${ip} başarıyla engellendi.` });
+            } else {
+                throw new Error(result.error || 'Bilinmeyen bir hata.');
+            }
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: "IP Engellenemedi", description: error.message });
+        }
+    };
+
     return (
         <Card>
             <CardHeader>
@@ -103,6 +123,7 @@ export default function ActivityLogsPage() {
                         <Loader2 className="w-8 h-8 animate-spin" />
                     </div>
                 ) : (
+                    <div className="overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -139,9 +160,19 @@ export default function ActivityLogsPage() {
                                         </TableCell>
                                         <TableCell>{format(log.timestamp, "dd MMMM yyyy, HH:mm", { locale: tr })}</TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon">
-                                                <MoreVertical className="h-4 w-4" />
-                                            </Button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                        <MoreVertical className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onSelect={() => handleBlockIp(log.ipAddress)}>
+                                                        <Ban className="mr-2 h-4 w-4 text-destructive" />
+                                                        <span className="text-destructive">IP Adresini Engelle</span>
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </TableCell>
                                     </TableRow>
                                 )
@@ -154,6 +185,7 @@ export default function ActivityLogsPage() {
                              )}
                         </TableBody>
                     </Table>
+                    </div>
                 )}
             </CardContent>
         </Card>
