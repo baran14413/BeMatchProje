@@ -57,21 +57,25 @@ function LayoutContent({ children }: { children: ReactNode }) {
       setCurrentUser(user);
       if (user) {
         setupPresence(user.uid);
-        // Fetch only if profile is not already loaded
-        setLoadingProfile(true);
-        try {
-          const userDocRef = doc(db, "users", user.uid);
-          const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists()) {
-            setCurrentUserProfile(userDocSnap.data());
-          } else {
-             setCurrentUserProfile(null);
-          }
-        } catch (error) {
-            console.error("Error fetching user profile:", error);
-            setCurrentUserProfile(null);
-        } finally {
-          setLoadingProfile(false);
+        // Fetch only if profile is not already loaded or user has changed
+        if (currentUser?.uid !== user.uid) {
+            setLoadingProfile(true);
+            try {
+              const userDocRef = doc(db, "users", user.uid);
+              const userDocSnap = await getDoc(userDocRef);
+              if (userDocSnap.exists()) {
+                setCurrentUserProfile(userDocSnap.data());
+              } else {
+                 setCurrentUserProfile(null);
+              }
+            } catch (error) {
+                console.error("Error fetching user profile:", error);
+                setCurrentUserProfile(null);
+            } finally {
+              setLoadingProfile(false);
+            }
+        } else {
+             setLoadingProfile(false);
         }
       } else {
         setCurrentUserProfile(null);
@@ -79,7 +83,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
       }
     });
     return () => unsubscribeAuth();
-  }, []);
+  }, [currentUser]);
 
   useEffect(() => {
     if (!currentUser) {
