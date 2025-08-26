@@ -136,17 +136,20 @@ export default function AdminDashboardPage() {
         if (post.type === 'photo') {
             return post.caption ? `${post.caption.substring(0, 50)}...` : 'Fotoğraf gönderisi';
         }
-        return `${post.textContent.substring(0, 50)}...`;
+        return post.textContent ? `${post.textContent.substring(0, 50)}...` : 'Metin gönderisi';
     }
     
     const getPostPreviewTitle = (post: DocumentData) => {
          if (post.type === 'photo' && post.caption) {
-            return post.caption.split(' ')[0] + ' ' + post.caption.split(' ')[1];
+            return post.caption.split(' ').slice(0, 3).join(' ');
         }
          if (post.type === 'photo' && !post.caption) {
              return "İsimsiz Gönderi";
          }
-        return post.textContent.split(' ').slice(0, 3).join(' ');
+        if (post.textContent) {
+            return post.textContent.split(' ').slice(0, 3).join(' ');
+        }
+        return "İsimsiz Gönderi";
     }
 
 
