@@ -1,12 +1,13 @@
+
 'use client';
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { BarChart, Users, FileText, MoreHorizontal, Trash2, Pencil, Crown } from "lucide-react";
-import { collection, getDocs, query, orderBy, limit, DocumentData, getCountFromServer, deleteDoc, doc } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, limit, DocumentData, getCountFromServer, deleteDoc, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useEffect, useState } from "react";
 import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
