@@ -4,7 +4,7 @@
 import React, { type ReactNode, useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe, Loader2 } from 'lucide-react';
+import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe, Loader2, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useNetworkStatus } from '@/hooks/use-network-status';
@@ -12,6 +12,18 @@ import { NetworkStatusBanner } from '@/components/ui/network-status-banner';
 import { auth, db, setupPresence } from '@/lib/firebase';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/firestore';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { signOut } from 'firebase/auth';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 
 const NavButton = ({ href, icon, srText, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, hasNotification?: boolean }) => {
@@ -31,13 +43,15 @@ const NavButton = ({ href, icon, srText, hasNotification = false }: { href: stri
 function LayoutContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [isScrolling, setIsScrolling] = useState(false);
   const [animationsDisabled, setAnimationsDisabled] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { isOnline, isPoorConnection } = useNetworkStatus();
+  const { toast } = useToast();
   
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
-  const [currentUserProfile, setCurrentUserProfile] = useState<{username?: string} | null>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<{username?: string, name?: string, email?:string} | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
@@ -58,7 +72,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
       if (user) {
         setupPresence(user.uid);
         // Fetch only if profile is not already loaded or user has changed
-        if (currentUser?.uid !== user.uid) {
+        if (!currentUserProfile || currentUser?.uid !== user.uid) {
             setLoadingProfile(true);
             try {
               const userDocRef = doc(db, "users", user.uid);
@@ -74,16 +88,15 @@ function LayoutContent({ children }: { children: ReactNode }) {
             } finally {
               setLoadingProfile(false);
             }
-        } else {
-             setLoadingProfile(false);
         }
       } else {
+        setCurrentUser(null);
         setCurrentUserProfile(null);
         setLoadingProfile(false);
       }
     });
     return () => unsubscribeAuth();
-  }, [currentUser]);
+  }, [currentUser, currentUserProfile]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -138,7 +151,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const isCreatePage = pathname === '/create';
   
   // Check if it's an admin page
-  const isAdminPage = pathname.startsWith('/admin');
+  const isAdminPage = isClientReady && pathname.startsWith('/admin');
 
   const showNavs = isClientReady && !isCreatePage && (!isChatPage || (isChatPage && !isChatViewOpen)) && !isAdminPage;
   const isFullScreen = isClientReady && ((isChatPage && isChatViewOpen) || isAdminPage);
@@ -172,6 +185,15 @@ function LayoutContent({ children }: { children: ReactNode }) {
     };
   }, [showNavs, animationsDisabled]);
 
+  const handleLogout = async () => {
+    await signOut(auth);
+    toast({
+        title: 'Çıkış Yapıldı',
+        description: 'Başarıyla çıkış yaptınız.',
+    });
+    router.push('/login');
+  };
+
 
   return (
         <div 
@@ -202,12 +224,35 @@ function LayoutContent({ children }: { children: ReactNode }) {
                          <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" disabled>
                            <Loader2 className="h-5 w-5 animate-spin" />
                          </Button>
-                    ) : currentUserProfile?.username ? (
-                        <NavButton href={`/profile/${currentUserProfile.username}`} icon={<User className="h-5 w-5" />} srText="Profil" />
                     ) : (
-                       // Render a link to the generic profile page if the username isn't loaded yet.
-                       // This page will handle the redirect.
-                       <NavButton href="/profile" icon={<User className="h-5 w-5" />} srText="Profil" />
+                       <DropdownMenu>
+                           <DropdownMenuTrigger asChild>
+                               <Button variant="ghost" size="icon" className="relative rounded-full h-9 w-9">
+                                    <Avatar className='h-8 w-8'>
+                                        <AvatarImage src={currentUser?.photoURL || ''}/>
+                                        <AvatarFallback>{currentUserProfile?.name?.charAt(0) || 'U'}</AvatarFallback>
+                                    </Avatar>
+                               </Button>
+                           </DropdownMenuTrigger>
+                           <DropdownMenuContent align="end" className="w-56">
+                               <DropdownMenuLabel>
+                                   <p className='font-bold truncate'>{currentUserProfile?.name}</p>
+                                   <p className='text-xs text-muted-foreground font-normal truncate'>{currentUserProfile?.email}</p>
+                               </DropdownMenuLabel>
+                               <DropdownMenuSeparator />
+                                <Link href={currentUserProfile?.username ? `/profile/${currentUserProfile.username}` : '/profile'}>
+                                   <DropdownMenuItem>
+                                        <User className="mr-2 h-4 w-4" />
+                                        <span>Profil</span>
+                                   </DropdownMenuItem>
+                                </Link>
+                               <DropdownMenuSeparator />
+                               <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                                   <LogOut className="mr-2 h-4 w-4" />
+                                   <span>Çıkış Yap</span>
+                               </DropdownMenuItem>
+                           </DropdownMenuContent>
+                       </DropdownMenu>
                     )}
                 </div>
             </header>

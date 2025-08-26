@@ -1039,6 +1039,10 @@ img {
   width: 100%;
 }
 
+.w-56 {
+  width: 14rem;
+}
+
 .min-w-0 {
   min-width: 0;
 }
