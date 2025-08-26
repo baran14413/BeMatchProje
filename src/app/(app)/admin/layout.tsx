@@ -16,11 +16,12 @@ import {
   SidebarInset,
   SidebarFooter,
 } from '@/components/ui/sidebar';
-import { Home, Users, Settings, LogOut, PanelLeft, Heart } from 'lucide-react';
+import { Home, Users, Settings, LogOut, PanelLeft, LineChart, Search, Bell } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
 
 
 const NavItem = ({ href, icon, label }: { href: string, icon: React.ReactNode, label: string }) => {
@@ -40,45 +41,60 @@ const NavItem = ({ href, icon, label }: { href: string, icon: React.ReactNode, l
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const user = auth.currentUser;
+    const pathname = usePathname();
+
+    const getPageTitle = () => {
+        if (pathname === '/admin') return 'Dashboard';
+        if (pathname === '/admin/users') return 'Kullanıcılar';
+        return 'Panel';
+    }
+
     return (
         <SidebarProvider>
             <Sidebar>
                 <SidebarHeader className="p-4">
-                     <Link href="/explore" className="flex items-center gap-2 text-lg font-semibold">
-                        <Heart className="h-7 w-7 text-primary" />
-                        <span className="font-bold text-foreground">BeMatch</span>
+                     <Link href="/admin" className="flex items-center gap-2 text-lg font-semibold">
+                        <LineChart className="h-7 w-7 text-primary" />
+                        <span className="font-bold text-foreground">Panel</span>
                     </Link>
                 </SidebarHeader>
                 <SidebarContent className="p-2">
                     <SidebarMenu>
-                       <NavItem href="/admin" icon={<Home />} label="Genel Bakış" />
+                       <NavItem href="/admin" icon={<Home />} label="Dashboard" />
                        <NavItem href="/admin/users" icon={<Users />} label="Kullanıcılar" />
+                       <NavItem href="/admin/settings" icon={<Settings />} label="Ayarlar" />
                     </SidebarMenu>
                 </SidebarContent>
                 <SidebarFooter className="p-4 border-t">
-                    <div className="flex items-center gap-3">
-                        <Avatar className="w-10 h-10">
-                            <AvatarImage src={user?.photoURL || ''} />
-                            <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 overflow-hidden">
-                             <p className="font-semibold truncate">{user?.displayName || 'Admin'}</p>
-                             <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                        </div>
-                         <Link href="/logout">
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <LogOut className="w-5 h-5"/>
-                            </Button>
-                        </Link>
-                    </div>
+                     <Link href="/logout">
+                        <Button variant="ghost" className="w-full justify-start gap-3">
+                            <LogOut className="w-5 h-5"/>
+                            <span>Çıkış Yap</span>
+                        </Button>
+                    </Link>
                 </SidebarFooter>
             </Sidebar>
 
             <SidebarInset>
-                 <header className="flex items-center justify-between p-4 border-b bg-background">
+                 <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b bg-background px-4 md:px-6">
                     <div className="flex items-center gap-2">
                         <SidebarTrigger className="md:hidden" />
-                        <h1 className="text-2xl font-bold font-headline">Yönetim Paneli</h1>
+                        <h1 className="text-xl font-bold font-headline">{getPageTitle()}</h1>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <div className="relative w-full max-w-sm">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                            type="search"
+                            placeholder="Ara..."
+                            className="w-full rounded-full bg-muted pl-8"
+                            />
+                        </div>
+                        <Avatar className="w-9 h-9">
+                            <AvatarImage src={user?.photoURL || ''} />
+                            <AvatarFallback>{user?.displayName?.charAt(0) ?? 'A'}</AvatarFallback>
+                        </Avatar>
                     </div>
                 </header>
                 <main className="flex-1 p-4 md:p-6 lg:p-8 bg-muted/40">
