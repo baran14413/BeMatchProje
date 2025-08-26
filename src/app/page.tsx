@@ -3,12 +3,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { Heart } from 'lucide-react';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
 import { Progress } from '@/components/ui/progress';
+import { doc, getDoc } from 'firebase/firestore';
 
-const loadingMessages = [
+const initialMessages = [
     "Bağlantı kuruluyor...",
     "Güvenlik kontrolü yapılıyor...",
     "Oturum doğrulanıyor...",
@@ -16,7 +16,7 @@ const loadingMessages = [
     "Neredeyse hazır!",
 ];
 
-const SplashScreen = () => {
+const SplashScreen = ({ messages }: { messages: string[] }) => {
     const [progress, setProgress] = useState(0);
     const [messageIndex, setMessageIndex] = useState(0);
 
@@ -26,14 +26,21 @@ const SplashScreen = () => {
         }, 100); 
 
         const messageInterval = setInterval(() => {
-            setMessageIndex(prev => (prev + 1) % loadingMessages.length);
+            setMessageIndex(prev => {
+                // If it's the last message, don't cycle back
+                if (prev === messages.length - 1) {
+                    clearInterval(messageInterval);
+                    return prev;
+                }
+                return (prev + 1) % messages.length;
+            });
         }, 1200);
 
         return () => {
             clearInterval(progressInterval);
             clearInterval(messageInterval);
         };
-    }, []);
+    }, [messages.length]);
 
     return (
         <div className="flex flex-col items-center justify-center gap-8 w-full max-w-sm text-center">
@@ -42,7 +49,7 @@ const SplashScreen = () => {
                 <span className="text-primary">Match</span>
             </h1>
             <div className='w-full space-y-2'>
-                <p className="text-sm text-muted-foreground transition-opacity duration-500">{loadingMessages[messageIndex]}</p>
+                <p className="text-sm text-muted-foreground transition-opacity duration-500">{messages[messageIndex]}</p>
                 <Progress value={progress} className="w-full h-1.5" indicatorClassName="bg-gradient-to-r from-blue-500 to-primary"/>
             </div>
         </div>
@@ -51,15 +58,36 @@ const SplashScreen = () => {
 
 export default function Home() {
     const router = useRouter();
+    const [loadingMessages, setLoadingMessages] = useState(initialMessages);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            // No more setTimeout. Redirect as soon as auth state is known.
-            // The destination page will handle its own loading state.
+        const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
             if (user) {
-                router.replace('/explore');
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        // Update the loading message with the user's name
+                        setLoadingMessages(prev => [...prev, `${userData.name}, hoş geldin!`]);
+                        
+                        // Wait a moment for the welcome message to be visible, then redirect
+                        setTimeout(() => {
+                            router.replace('/explore');
+                        }, 1500); // Show welcome message for 1.5 seconds
+
+                    } else {
+                        // User exists in Auth, but not in Firestore. Redirect to login to be safe.
+                         setTimeout(() => router.replace('/login'), 1000);
+                    }
+                } catch (error) {
+                    console.error("Error fetching user data, redirecting to login", error);
+                    setTimeout(() => router.replace('/login'), 1000);
+                }
             } else {
-                router.replace('/login');
+                // No user, redirect to login after a short delay to allow splash to show
+                setTimeout(() => {
+                    router.replace('/login');
+                }, 2000);
             }
         });
 
@@ -70,7 +98,7 @@ export default function Home() {
     return (
         <main className="flex min-h-screen flex-col items-center justify-center bg-background p-8 relative">
             <div className="flex-1 flex items-center justify-center">
-                <SplashScreen />
+                <SplashScreen messages={loadingMessages} />
             </div>
             <div className="absolute bottom-8 flex flex-col items-center gap-1">
                 <p className="text-xs font-light text-muted-foreground tracking-wider">Created By</p>
