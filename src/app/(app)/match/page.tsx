@@ -59,6 +59,17 @@ export default function MatchPage() {
     fetchUsers();
   }, [currentUser]);
 
+  const getGradientForUser = (userId: string) => {
+    const gradients = [
+      'from-pink-500 to-yellow-500',
+      'from-purple-500 to-indigo-500',
+      'from-green-400 to-blue-500',
+      'from-red-500 to-orange-500',
+    ];
+    const index = userId.charCodeAt(0) % gradients.length;
+    return gradients[index];
+  };
+
   return (
     <Sheet onOpenChange={(open) => !open && setPreviewUser(null)}>
         <div className="container mx-auto p-2 sm:p-4">
@@ -82,8 +93,8 @@ export default function MatchPage() {
                                             data-ai-hint={user.aiHint || 'portrait'}
                                         />
                                     ) : (
-                                        <div className="w-full h-full bg-secondary flex items-center justify-center">
-                                            <Heart className="w-1/2 h-1/2 text-primary/20"/>
+                                        <div className={cn("w-full h-full bg-gradient-to-br flex items-center justify-center", getGradientForUser(user.id))}>
+                                            <Heart className="w-1/2 h-1/2 text-white/50"/>
                                         </div>
                                     )}
 
@@ -128,8 +139,8 @@ export default function MatchPage() {
                             {previewUser.avatarUrl ? (
                                 <AvatarImage src={previewUser.avatarUrl} alt={previewUser.name} />
                             ) : (
-                                <AvatarFallback className="bg-secondary">
-                                    <Heart className="w-10 h-10 text-primary/50" />
+                                <AvatarFallback className={cn("bg-gradient-to-br", getGradientForUser(previewUser.id))}>
+                                    <Heart className="w-10 h-10 text-white/70" />
                                 </AvatarFallback>
                             )}
                          </Avatar>

@@ -190,7 +190,7 @@ export default function SignupPage() {
         const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
         const user = userCredential.user;
 
-        let photoURL = 'https://placehold.co/128x128.png';
+        let photoURL = '';
         if (formData.profilePicture) {
             const storageRef = ref(storage, `profile_pictures/${user.uid}`);
             await uploadString(storageRef, formData.profilePicture, 'data_url');
