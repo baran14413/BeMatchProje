@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { logActivity } from '@/ai/flows/log-activity-flow';
 
 
 const NavButton = ({ href, icon, srText, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, hasNotification?: boolean }) => {
@@ -56,6 +57,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+  const activityLoggedRef = useRef(false);
 
   // Hydration fix state
   const [isClientReady, setIsClientReady] = useState(false);
@@ -78,7 +80,23 @@ function LayoutContent({ children }: { children: ReactNode }) {
               const userDocRef = doc(db, "users", user.uid);
               const userDocSnap = await getDoc(userDocRef);
               if (userDocSnap.exists()) {
-                setCurrentUserProfile(userDocSnap.data());
+                const profileData = userDocSnap.data();
+                setCurrentUserProfile(profileData);
+                // Log activity only once per session
+                if (!activityLoggedRef.current) {
+                  fetch('https://api.ipify.org?format=json')
+                    .then(res => res.json())
+                    .then(data => {
+                      logActivity({
+                          userId: user.uid,
+                          userName: profileData.name,
+                          userAvatar: profileData.avatarUrl,
+                          ipAddress: data.ip,
+                          userAgent: navigator.userAgent
+                      });
+                      activityLoggedRef.current = true;
+                    }).catch(err => console.error("Could not fetch IP for logging:", err));
+                }
               } else {
                  setCurrentUserProfile(null);
               }
@@ -93,10 +111,12 @@ function LayoutContent({ children }: { children: ReactNode }) {
         setCurrentUser(null);
         setCurrentUserProfile(null);
         setLoadingProfile(false);
+        activityLoggedRef.current = false;
       }
     });
     return () => unsubscribeAuth();
-  }, [currentUser, currentUserProfile]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!currentUser) {
@@ -224,12 +244,12 @@ function LayoutContent({ children }: { children: ReactNode }) {
                          <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" disabled>
                            <Loader2 className="h-5 w-5 animate-spin" />
                          </Button>
-                    ) : (
+                    ) : currentUser && (
                        <DropdownMenu>
                            <DropdownMenuTrigger asChild>
                                <Button variant="ghost" size="icon" className="relative rounded-full h-9 w-9">
                                     <Avatar className='h-8 w-8'>
-                                        {currentUser?.photoURL && <AvatarImage src={currentUser.photoURL}/>}
+                                        {currentUser.photoURL && <AvatarImage src={currentUser.photoURL}/>}
                                         <AvatarFallback>{currentUserProfile?.name?.charAt(0) || 'U'}</AvatarFallback>
                                     </Avatar>
                                </Button>

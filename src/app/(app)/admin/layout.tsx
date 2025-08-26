@@ -16,7 +16,7 @@ import {
   SidebarInset,
   SidebarFooter,
 } from '@/components/ui/sidebar';
-import { Home, Users, Settings, LogOut, PanelLeft, LineChart, Search, Bell } from 'lucide-react';
+import { Home, Users, Settings, LogOut, PanelLeft, LineChart, Search, ShieldCheck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
@@ -46,6 +46,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const getPageTitle = () => {
         if (pathname === '/admin') return 'Dashboard';
         if (pathname === '/admin/users') return 'Kullanıcılar';
+        if (pathname === '/admin/activity-logs') return 'Aktivite Kayıtları';
+        if (pathname === '/admin/settings') return 'Ayarlar';
         return 'Panel';
     }
 
@@ -62,6 +64,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <SidebarMenu>
                        <NavItem href="/admin" icon={<Home />} label="Dashboard" />
                        <NavItem href="/admin/users" icon={<Users />} label="Kullanıcılar" />
+                       <NavItem href="/admin/activity-logs" icon={<ShieldCheck />} label="Aktivite Kayıtları" />
                        <NavItem href="/admin/settings" icon={<Settings />} label="Ayarlar" />
                     </SidebarMenu>
                 </SidebarContent>
@@ -91,10 +94,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             className="w-full rounded-full bg-muted pl-8"
                             />
                         </div>
-                        <Avatar className="w-9 h-9">
-                            <AvatarImage src={user?.photoURL || ''} />
-                            <AvatarFallback>{user?.displayName?.charAt(0) ?? 'A'}</AvatarFallback>
-                        </Avatar>
+                        {user?.photoURL && (
+                            <Avatar className="w-9 h-9">
+                                <AvatarImage src={user.photoURL} />
+                                <AvatarFallback>{user.displayName?.charAt(0) ?? 'A'}</AvatarFallback>
+                            </Avatar>
+                        )}
                     </div>
                 </header>
                 <main className="flex-1 p-4 md:p-6 lg:p-8 bg-muted/40">
