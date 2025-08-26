@@ -19,6 +19,7 @@ const getTitleForPath = (path: string): string => {
     if (path.endsWith('/sessions')) return 'Oturum Yönetimi';
     if (path.endsWith('/appearance')) return 'Görünüm';
     if (path.endsWith('/guide')) return 'Uygulama Kılavuzu';
+    if (path.endsWith('/tech-stack')) return 'Teknoloji Kümesi';
     if (path.endsWith('/delete')) return 'Hesabı Sil';
     if (path.endsWith('/picture')) return 'Profil Fotoğrafını Düzenle';
     if (path.endsWith('/wallet')) return 'Cüzdanım';
@@ -50,3 +51,5 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
+    

@@ -533,6 +533,14 @@ img {
   top: 50%;
 }
 
+.-left-\[30px\] {
+  left: -30px;
+}
+
+.top-1 {
+  top: .25rem;
+}
+
 .z-10 {
   z-index: 10;
 }
@@ -685,6 +693,10 @@ img {
 
 .mr-1\.5 {
   margin-right: .375rem;
+}
+
+.ml-3 {
+  margin-left: .75rem;
 }
 
 .block {
@@ -1625,6 +1637,10 @@ img {
   border-top-width: 1px;
 }
 
+.border-l-2 {
+  border-left-width: 2px;
+}
+
 .border-dashed {
   border-style: dashed;
 }
@@ -1716,6 +1732,10 @@ img {
 .border-yellow-500 {
   --tw-border-opacity: 1;
   border-color: rgb(234 179 8 / var(--tw-border-opacity, 1));
+}
+
+.border-primary\/20 {
+  border-color: hsl(var(--primary) / .2);
 }
 
 .border-l-transparent {

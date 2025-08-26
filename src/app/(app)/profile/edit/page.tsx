@@ -27,6 +27,7 @@ import {
   Download,
   Users,
   ShieldAlert,
+  Code,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -160,6 +161,7 @@ export default function EditProfilePage() {
         { icon: <Bell className="h-6 w-6" />, title: 'Bildirim Ayarları', href: '/profile/edit/notifications' },
         { icon: <Download className="h-6 w-6" />, title: 'Uygulamayı Yükle', onClick: handleInstallClick },
         { icon: <HelpCircle className="h-6 w-6" />, title: 'Uygulama Kılavuzu', href: '/profile/edit/guide' },
+        { icon: <Code className="h-6 w-6" />, title: 'Teknoloji Kümesi', href: '/profile/edit/tech-stack' },
     ];
 
     const otherItems = [
@@ -308,3 +310,5 @@ export default function EditProfilePage() {
     </div>
   );
 }
+
+    
