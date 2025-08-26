@@ -63,7 +63,7 @@ export default function MatchPage() {
                     <Card className="w-full rounded-xl overflow-hidden transition-all duration-200 ease-in-out hover:bg-muted/50 hover:shadow-md">
                         <div className="flex items-center p-4 gap-4">
                             <Avatar className="w-16 h-16 border-2 border-primary/50">
-                                <AvatarImage src={user.avatarUrl || ''} alt={user.name} data-ai-hint={user.aiHint || 'portrait'} />
+                                {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint={user.aiHint || 'portrait'} />}
                                 <AvatarFallback className="text-xl">
                                     {user.name ? user.name.charAt(0) : <User/>}
                                 </AvatarFallback>
@@ -93,5 +93,3 @@ export default function MatchPage() {
     </div>
   );
 }
-
-

@@ -185,16 +185,27 @@ function ShuffleContent() {
         const targetGender = userGender === 'male' ? 'female' : 'male';
         const queueRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["collection"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["db"], 'randomMatchQueue');
         try {
-            await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["runTransaction"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["db"], async (transaction)=>{
-                const q = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["query"])(queueRef, (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["where"])('gender', '==', targetGender), (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["limit"])(1));
-                const querySnapshot = await transaction.get(q);
-                if (!querySnapshot.empty) {
-                    // Match found
-                    const otherUserDoc = querySnapshot.docs[0];
-                    const otherUserData = otherUserDoc.data();
-                    // Remove the matched user from the queue atomically
-                    transaction.delete(otherUserDoc.ref);
-                    // Fetch full user details within the transaction if needed, or outside if they are large
+            const q = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["query"])(queueRef, (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["where"])('gender', '==', targetGender), (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["limit"])(1));
+            const querySnapshot = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getDocs"])(q);
+            if (!querySnapshot.empty) {
+                // Potential match found, start a transaction to claim it
+                const otherUserDoc = querySnapshot.docs[0];
+                const otherUserData = otherUserDoc.data();
+                await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["runTransaction"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["db"], async (transaction)=>{
+                    const potentialMatchRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["db"], 'randomMatchQueue', otherUserDoc.id);
+                    const potentialMatchSnap = await transaction.get(potentialMatchRef);
+                    if (!potentialMatchSnap.exists()) {
+                        // The user was matched by someone else, so add current user to queue instead.
+                        const userQueueRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["db"], 'randomMatchQueue', currentUser.uid);
+                        transaction.set(userQueueRef, {
+                            uid: currentUser.uid,
+                            gender: userGender,
+                            enteredAt: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["serverTimestamp"])()
+                        });
+                        return;
+                    }
+                    // Match is still available, proceed to create conversation
+                    transaction.delete(potentialMatchRef);
                     const currentUserDocSnap = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getDoc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["db"], 'users', currentUser.uid));
                     const otherUserInfoSnap = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getDoc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["db"], 'users', otherUserData.uid));
                     const currentUserData = currentUserDocSnap.data();
@@ -202,7 +213,6 @@ function ShuffleContent() {
                     if (!currentUserData || !otherUserInfo) {
                         throw new Error("Kullanıcı bilgileri alınamadı.");
                     }
-                    // Create a temporary conversation atomically
                     const newConvoRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["doc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["collection"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["db"], 'temporaryConversations'));
                     transaction.set(newConvoRef, {
                         user1: {
@@ -224,19 +234,18 @@ function ShuffleContent() {
                         createdAt: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["serverTimestamp"])(),
                         expiresAt: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes from now
                     });
-                // The onSnapshot listener will handle the redirect.
-                } else {
-                    // No match found, add user to the queue
-                    const userQueueRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["db"], 'randomMatchQueue', currentUser.uid);
-                    transaction.set(userQueueRef, {
-                        uid: currentUser.uid,
-                        gender: userGender,
-                        enteredAt: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["serverTimestamp"])()
-                    });
-                }
-            });
+                });
+            } else {
+                // No match found, add current user to the queue
+                const userQueueRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["db"], 'randomMatchQueue', currentUser.uid);
+                await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["setDoc"])(userQueueRef, {
+                    uid: currentUser.uid,
+                    gender: userGender,
+                    enteredAt: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["serverTimestamp"])()
+                });
+            }
         } catch (error) {
-            console.error("Error during matching transaction:", error);
+            console.error("Error during matching:", error);
             toast({
                 title: "Eşleşme sırasında bir hata oluştu.",
                 variant: 'destructive'
@@ -280,20 +289,20 @@ function ShuffleContent() {
                             children: "Deneyiminiz Nasıldı?"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 168,
+                            lineNumber: 179,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardDescription"], {
                             children: "Son rastgele sohbetiniz hakkındaki geri bildiriminiz, gelecekteki eşleşmeleri iyileştirmemize yardımcı olur."
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 169,
+                            lineNumber: 180,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                    lineNumber: 167,
+                    lineNumber: 178,
                     columnNumber: 17
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardFooter"], {
@@ -308,14 +317,14 @@ function ShuffleContent() {
                                     className: "mr-2 h-5 w-5"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                                    lineNumber: 173,
+                                    lineNumber: 184,
                                     columnNumber: 25
                                 }, this),
                                 " Kötüydü"
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 172,
+                            lineNumber: 183,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -327,26 +336,26 @@ function ShuffleContent() {
                                     className: "mr-2 h-5 w-5"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                                    lineNumber: 176,
+                                    lineNumber: 187,
                                     columnNumber: 25
                                 }, this),
                                 " İyiydi"
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 175,
+                            lineNumber: 186,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                    lineNumber: 171,
+                    lineNumber: 182,
                     columnNumber: 17
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-            lineNumber: 166,
+            lineNumber: 177,
             columnNumber: 13
         }, this);
     }
@@ -358,7 +367,7 @@ function ShuffleContent() {
                         className: "w-24 h-24 text-primary mb-6"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                        lineNumber: 187,
+                        lineNumber: 198,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -366,7 +375,7 @@ function ShuffleContent() {
                         children: "Rastgele Eşleşme"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                        lineNumber: 188,
+                        lineNumber: 199,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -374,7 +383,7 @@ function ShuffleContent() {
                         children: "Butona tıkla ve o an eşleşme arayan başka biriyle anında sohbete başla. Sohbeti kalıcı hale getirmek için 5 dakikanız var!"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                        lineNumber: 189,
+                        lineNumber: 200,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -387,14 +396,14 @@ function ShuffleContent() {
                                 className: "mr-2 h-4 w-4 animate-spin"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                                lineNumber: 199,
+                                lineNumber: 210,
                                 columnNumber: 46
                             }, this),
                             "Eşleşme Bul"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                        lineNumber: 193,
+                        lineNumber: 204,
                         columnNumber: 21
                     }, this)
                 ]
@@ -405,7 +414,7 @@ function ShuffleContent() {
                         className: "w-24 h-24 text-primary mb-6 animate-spin"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                        lineNumber: 207,
+                        lineNumber: 218,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -413,7 +422,7 @@ function ShuffleContent() {
                         children: "Aranıyor..."
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                        lineNumber: 208,
+                        lineNumber: 219,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -421,7 +430,7 @@ function ShuffleContent() {
                         children: "Sana en uygun kişiyle eşleştirilmek için bekleniyor. Lütfen bu ekrandan ayrılma."
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                        lineNumber: 209,
+                        lineNumber: 220,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -432,7 +441,7 @@ function ShuffleContent() {
                         children: "Aramayı İptal Et"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                        lineNumber: 212,
+                        lineNumber: 223,
                         columnNumber: 21
                     }, this)
                 ]
@@ -443,7 +452,7 @@ function ShuffleContent() {
                         className: "w-24 h-24 text-green-500 mb-6 animate-pulse"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                        lineNumber: 225,
+                        lineNumber: 236,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -451,7 +460,7 @@ function ShuffleContent() {
                         children: "Eşleşme Bulundu!"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                        lineNumber: 226,
+                        lineNumber: 237,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -459,7 +468,7 @@ function ShuffleContent() {
                         children: "Sohbete yönlendiriliyorsun..."
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                        lineNumber: 227,
+                        lineNumber: 238,
                         columnNumber: 21
                     }, this)
                 ]
@@ -475,22 +484,22 @@ function ShufflePage() {
                 className: "w-24 h-24 text-primary mb-6 animate-spin"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                lineNumber: 240,
+                lineNumber: 251,
                 columnNumber: 33
             }, void 0),
             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(ShuffleContent, {}, void 0, false, {
                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                lineNumber: 241,
+                lineNumber: 252,
                 columnNumber: 17
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-            lineNumber: 240,
+            lineNumber: 251,
             columnNumber: 13
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-        lineNumber: 239,
+        lineNumber: 250,
         columnNumber: 9
     }, this);
 }
