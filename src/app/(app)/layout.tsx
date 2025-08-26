@@ -52,7 +52,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
-  const [currentUserProfile, setCurrentUserProfile] = useState<{username?: string, name?: string, email?:string} | null>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<{username?: string, name?: string, email?:string, avatarUrl?: string} | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
@@ -82,8 +82,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
               if (userDocSnap.exists()) {
                 const profileData = userDocSnap.data();
                 setCurrentUserProfile(profileData);
-                // Log activity only once per session
-                if (!activityLoggedRef.current) {
+                
+                // Log activity only once per session, and only when we have the data
+                if (!activityLoggedRef.current && profileData.name && profileData.avatarUrl) {
                   fetch('https://api.ipify.org?format=json')
                     .then(res => res.json())
                     .then(data => {
@@ -249,7 +250,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                            <DropdownMenuTrigger asChild>
                                <Button variant="ghost" size="icon" className="relative rounded-full h-9 w-9">
                                     <Avatar className='h-8 w-8'>
-                                        {currentUser.photoURL && <AvatarImage src={currentUser.photoURL}/>}
+                                        {currentUserProfile?.avatarUrl && <AvatarImage src={currentUserProfile.avatarUrl}/>}
                                         <AvatarFallback>{currentUserProfile?.name?.charAt(0) || 'U'}</AvatarFallback>
                                     </Avatar>
                                </Button>
