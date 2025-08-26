@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   User,
   Shield,
@@ -77,9 +77,9 @@ const SectionTitle = ({ title }: { title: string }) => (
 export default function EditProfilePage() {
     const { toast } = useToast();
     const router = useRouter();
-    const [installPrompt, setInstallPrompt] = useState<any>(null);
+    const [installPrompt, setInstallPrompt] = React.useState<any>(null);
 
-    useEffect(() => {
+    React.useEffect(() => {
         const handleBeforeInstallPrompt = (e: Event) => {
             e.preventDefault();
             setInstallPrompt(e);
@@ -160,10 +160,6 @@ export default function EditProfilePage() {
         { icon: <Bell className="h-6 w-6" />, title: 'Bildirim Ayarları', href: '/profile/edit/notifications' },
         { icon: <Download className="h-6 w-6" />, title: 'Uygulamayı Yükle', onClick: handleInstallClick },
         { icon: <HelpCircle className="h-6 w-6" />, title: 'Uygulama Kılavuzu', href: '/profile/edit/guide' },
-    ];
-    
-    const adminItems = [
-        { icon: <ShieldAlert className="h-6 w-6" />, title: 'Kullanıcıları Yönet (Admin)', href: '/admin/users' },
     ];
 
     const otherItems = [
@@ -283,27 +279,6 @@ export default function EditProfilePage() {
                                 isLast={index === applicationItems.length -1}
                             />
                              {index < applicationItems.length - 1 && <Separator className="bg-border/50" />}
-                        </React.Fragment>
-                    ))}
-                </CardContent>
-            </Card>
-        </div>
-        
-        <div>
-            <SectionTitle title="Yönetim" />
-            <Card>
-                <CardContent className="p-0">
-                    {adminItems.map((item, index) => (
-                         <React.Fragment key={item.title}>
-                            <SettingsItem
-                                icon={item.icon}
-                                title={item.title}
-                                href={item.href}
-                                onClick={item.onClick}
-                                isFirst={index === 0}
-                                isLast={index === adminItems.length -1}
-                            />
-                             {index < adminItems.length - 1 && <Separator className="bg-border/50" />}
                         </React.Fragment>
                     ))}
                 </CardContent>
