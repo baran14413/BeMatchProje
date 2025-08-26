@@ -2,8 +2,8 @@
 'use client';
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Users, FileImage, UserPlus, Flag, MoreVertical } from "lucide-react";
-import { collection, getCountFromServer, query, orderBy, limit, getDocs, doc, DocumentData } from "firebase/firestore";
+import { Users, FileImage, UserPlus, Flag, MoreVertical, LineChart } from "lucide-react";
+import { collection, getCountFromServer, query, orderBy, limit, getDocs, where, DocumentData } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,9 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import Image from "next/image";
 import { buttonVariants } from "@/components/ui/button";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { ChartConfig, ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
+
 
 const formatRelativeTime = (date: Date | null) => {
     if (!date) return '';
@@ -27,6 +30,29 @@ const formatRelativeTime = (date: Date | null) => {
         return 'az önce';
     }
 };
+
+const chartData = [
+  { month: "Ocak", desktop: 186 },
+  { month: "Şubat", desktop: 305 },
+  { month: "Mart", desktop: 237 },
+  { month: "Nisan", desktop: 73 },
+  { month: "Mayıs", desktop: 209 },
+  { month: "Haziran", desktop: 214 },
+  { month: "Temmuz", desktop: 280 },
+  { month: "Ağustos", desktop: 190 },
+  { month: "Eylül", desktop: 320 },
+  { month: "Ekim", desktop: 250 },
+  { month: "Kasım", desktop: 380 },
+  { month: "Aralık", desktop: 290 },
+];
+
+const chartConfig = {
+  desktop: {
+    label: "Kullanıcı",
+    color: "hsl(var(--primary))",
+  },
+} satisfies ChartConfig;
+
 
 const StatCard = ({ title, value, icon, iconBgColor }: { title: string, value: string, icon: React.ReactNode, iconBgColor: string }) => (
     <Card>
@@ -106,6 +132,24 @@ export default function AdminDashboardPage() {
         fetchData();
     }, [toast]);
 
+    const getPostPreviewContent = (post: DocumentData) => {
+        if (post.type === 'photo') {
+            return post.caption ? `${post.caption.substring(0, 50)}...` : 'Fotoğraf gönderisi';
+        }
+        return `${post.textContent.substring(0, 50)}...`;
+    }
+    
+    const getPostPreviewTitle = (post: DocumentData) => {
+         if (post.type === 'photo' && post.caption) {
+            return post.caption.split(' ')[0] + ' ' + post.caption.split(' ')[1];
+        }
+         if (post.type === 'photo' && !post.caption) {
+             return "İsimsiz Gönderi";
+         }
+        return post.textContent.split(' ').slice(0, 3).join(' ');
+    }
+
+
     return (
         <div className="space-y-6">
              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -164,18 +208,18 @@ export default function AdminDashboardPage() {
                         <CardTitle>Son Gönderiler</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                         {loading ? ( <p>Yükleniyor...</p> ) : recentPosts.map(post => (
+                         {loading ? ( <p>Yükleniyor...</p> ) : recentPosts.map((post, index) => (
                             <div key={post.id} className="flex items-start gap-4">
-                               {post.type === 'photo' ? (
-                                    <Image src={post.url} width={48} height={48} alt="Post image" className="w-12 h-12 rounded-md object-cover" />
-                               ) : (
-                                    <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center">
-                                        <FileImage className="w-6 h-6 text-muted-foreground" />
-                                    </div>
-                               )}
-                               <div className="flex-1">
-                                   <p className="font-semibold leading-tight truncate">{post.caption || post.textContent}</p>
-                                   <p className="text-sm text-muted-foreground mt-1">
+                               <div className={cn(
+                                   "w-12 h-12 rounded-md flex items-center justify-center text-white font-bold shrink-0",
+                                   post.type === 'photo' ? 'bg-destructive' : 'bg-green-600'
+                                )}>
+                                   {post.type === 'photo' ? `R${index+1}` : `M${index+1}`}
+                               </div>
+                               <div className="flex-1 overflow-hidden">
+                                   <p className="font-semibold leading-tight truncate">{getPostPreviewTitle(post)}</p>
+                                   <p className="text-sm text-muted-foreground mt-1 truncate">{getPostPreviewContent(post)}</p>
+                                   <p className="text-xs text-muted-foreground mt-1">
                                         {formatRelativeTime(post.createdAt?.toDate())} - {post.user?.name}
                                    </p>
                                </div>
@@ -187,6 +231,28 @@ export default function AdminDashboardPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Kullanıcı Etkinliği (Son 30 Gün)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <ChartContainer config={chartConfig} className="w-full h-[250px]">
+                      <BarChart accessibilityLayer data={chartData}>
+                        <XAxis
+                          dataKey="month"
+                          tickLine={false}
+                          tickMargin={10}
+                          axisLine={false}
+                          tickFormatter={(value) => value.slice(0, 3)}
+                        />
+                        <YAxis tickLine={false} axisLine={false} />
+                        <Tooltip cursor={false} content={<ChartTooltipContent />} />
+                        <Bar dataKey="desktop" fill="var(--color-desktop)" radius={8} />
+                      </BarChart>
+                    </ChartContainer>
+                </CardContent>
+            </Card>
         </div>
     );
 }
