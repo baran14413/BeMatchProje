@@ -59,8 +59,14 @@ export default function AdminDashboardPage() {
                 const postsSnapshot = await getDocs(postsQuery);
                 const postsWithUsers = await Promise.all(postsSnapshot.docs.map(async (postDoc) => {
                     const postData = postDoc.data();
-                    const userSnap = await getDoc(doc(db, "users", postData.authorId));
-                    return { id: postDoc.id, ...postData, user: userSnap.data() };
+                    let user = null;
+                    if (postData.authorId) {
+                        const userSnap = await getDoc(doc(db, "users", postData.authorId));
+                        if(userSnap.exists()) {
+                            user = userSnap.data();
+                        }
+                    }
+                    return { id: postDoc.id, ...postData, user };
                 }))
                 setRecentPosts(postsWithUsers);
 
