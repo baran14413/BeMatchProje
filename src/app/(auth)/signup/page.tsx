@@ -86,13 +86,16 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (step === 6) {
+      let stream: MediaStream | null = null;
       const getCameraPermission = async () => {
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
             videoRef.current.onloadedmetadata = () => {
               setVerificationStatus('verified');
+              // Stop the tracks once verification is confirmed
+              stream?.getTracks().forEach(track => track.stop());
             };
           }
         } catch (error) {
@@ -103,9 +106,9 @@ export default function SignupPage() {
       getCameraPermission();
 
       return () => {
-        if (videoRef.current && videoRef.current.srcObject) {
-          const stream = videoRef.current.srcObject as MediaStream;
-          stream.getTracks().forEach(track => track.stop());
+        stream?.getTracks().forEach(track => track.stop());
+        if (videoRef.current) {
+          videoRef.current.srcObject = null;
         }
       };
     }
@@ -537,8 +540,14 @@ export default function SignupPage() {
                     "relative w-64 h-64 rounded-full bg-muted flex items-center justify-center overflow-hidden border-4 transition-colors",
                     getVerificationBorderColor()
                 )}>
-                    <video ref={videoRef} className="w-full h-full object-cover scale-x-[-1]" autoPlay muted playsInline />
-                    {verificationStatus === 'checking' && (
+                    {verificationStatus !== 'verified' ? (
+                        <video ref={videoRef} className="w-full h-full object-cover scale-x-[-1]" autoPlay muted playsInline />
+                    ) : (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted p-4">
+                             <UserCheck className="w-20 h-20 text-green-500"/>
+                        </div>
+                    )}
+                     {verificationStatus === 'checking' && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4">
                             <Loader2 className="w-12 h-12 mb-2 animate-spin"/>
                             <p>Doğrulanıyor...</p>
