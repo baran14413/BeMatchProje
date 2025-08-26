@@ -1,16 +1,4 @@
 {
-  "node": {
-    "4027a3c2514dea80f0671fd996b6b9be4c1afd6550": {
-      "workers": {
-        "app/(app)/profile/edit/picture/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/profile/edit/picture/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/moderate-image-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false
-        }
-      },
-      "layer": {
-        "app/(app)/profile/edit/picture/page": "action-browser"
-      }
-    }
-  },
+  "node": {},
   "edge": {}
 }

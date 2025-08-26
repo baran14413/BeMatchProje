@@ -76,7 +76,7 @@ const PostCard = ({ post, user }: { post: Post, user: DocumentData }) => (
                 </Link>
                 <div className='flex flex-col'>
                     <div className='flex items-center gap-2'>
-                        <Link href={`/profile/${user.username}`} className="font-semibold text-sm">{user.name}</Link>
+                        <Link href={`/profile/${user.username}`} className="font-semibold text-sm">{user.name?.split(' ')[0]}</Link>
                         {user.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
                     </div>
                      {post.isAiEdited && (
@@ -124,13 +124,13 @@ const PostCard = ({ post, user }: { post: Post, user: DocumentData }) => (
                 <p className="font-semibold">{post.likes.toLocaleString()} beğeni</p>
                 {(post.caption || (post.type === 'photo' && !post.textContent)) && (
                      <p>
-                        <Link href={`/profile/${user.username}`} className="font-semibold">{user.name}</Link>{' '}
+                        <Link href={`/profile/${user.username}`} className="font-semibold">{user.name?.split(' ')[0]}</Link>{' '}
                         {post.caption}
                     </p>
                 )}
                  {post.type === 'text' && post.textContent && (
                     <p>
-                        <Link href={`/profile/${user.username}`} className="font-semibold">{user.name}</Link>{' '}
+                        <Link href={`/profile/${user.username}`} className="font-semibold">{user.name?.split(' ')[0]}</Link>{' '}
                         {post.textContent}
                     </p>
                 )}
@@ -443,7 +443,7 @@ export default function UserProfilePage() {
         {/* Bio Section */}
         <div className="flex flex-col">
             <div className="flex items-center gap-2">
-                 <h1 className="text-lg font-bold">{userProfile.name}</h1>
+                 <h1 className="text-lg font-bold">{userProfile.name?.split(' ')[0]}</h1>
                  {userProfile.isPremium && <Crown className="w-5 h-5 text-yellow-500" />}
             </div>
              <p className="text-muted-foreground text-sm">@{userProfile.username}</p>

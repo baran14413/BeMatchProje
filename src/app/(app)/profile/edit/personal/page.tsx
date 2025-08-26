@@ -136,7 +136,7 @@ export default function PersonalInfoPage() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name">Ad</Label>
+            <Label htmlFor="name">Ad Soyad</Label>
             <Input id="name" value={formData.name} onChange={handleChange} disabled={saving} />
           </div>
           <div className="space-y-2">
