@@ -29,7 +29,7 @@ const NavButton = ({ href, icon, srText, hasNotification = false }: { href: stri
 };
 
 function LayoutContent({ children }: { children: ReactNode }) {
-  const currentPathname = usePathname();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -120,12 +120,15 @@ function LayoutContent({ children }: { children: ReactNode }) {
   }, [currentUser]);
 
 
-  const isChatPage = currentPathname === '/chat';
+  const isChatPage = pathname === '/chat';
   const isChatViewOpen = isChatPage && (searchParams.has('userId') || searchParams.has('conversationId'));
-  const isCreatePage = currentPathname === '/create';
+  const isCreatePage = pathname === '/create';
   
-  const showNavs = !isCreatePage && (!isChatPage || (isChatPage && !isChatViewOpen));
-  const isFullScreen = isChatPage && isChatViewOpen;
+  // Check if it's an admin page
+  const isAdminPage = pathname.startsWith('/admin');
+
+  const showNavs = !isCreatePage && (!isChatPage || (isChatPage && !isChatViewOpen)) && !isAdminPage;
+  const isFullScreen = (isChatPage && isChatViewOpen) || isAdminPage;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -194,10 +197,8 @@ function LayoutContent({ children }: { children: ReactNode }) {
           </>
         )}
         
-        <main className={cn("flex-1 w-full", isFullScreen ? "h-screen" : "h-full")}>
-            <Suspense fallback={<div>BeMatch Yükleniyor...</div>}>
-                {children}
-            </Suspense>
+        <main className={cn("flex-1 w-full", isFullScreen ? "" : "h-full")}>
+             {children}
         </main>
 
         {showNavs && !isFullScreen && (
@@ -207,13 +208,13 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 isScrolling && "translate-y-full"
             )}>
                 <div className="grid h-full grid-cols-3">
-                    <Link href="/shuffle" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname === '/shuffle' ? 'text-primary' : '')}>
+                    <Link href="/shuffle" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/shuffle' ? 'text-primary' : '')}>
                         <Shuffle className={cn('h-6 w-6')} />
                     </Link>
-                    <Link href="/match" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname === '/match' ? 'text-primary' : '')}>
+                    <Link href="/match" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/match' ? 'text-primary' : '')}>
                         <Home className={cn('h-6 w-6')} />
                     </Link>
-                    <Link href="/explore" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', currentPathname === '/explore' ? 'text-primary' : '')}>
+                    <Link href="/explore" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/explore' ? 'text-primary' : '')}>
                         <Globe className={cn('h-6 w-6')} />
                     </Link>
                 </div>
