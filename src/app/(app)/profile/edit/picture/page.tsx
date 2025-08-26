@@ -73,7 +73,6 @@ export default function EditProfilePicturePage() {
         const userDocRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userDocRef, { avatarUrl: photoURL });
 
-        setIsSaving(false);
         setIsNewPhotoSelected(false);
         toast({
             title: 'Başarılı!',
@@ -83,7 +82,8 @@ export default function EditProfilePicturePage() {
     } catch(error) {
          console.error("Error saving profile picture:", error);
          toast({ variant: 'destructive', title: 'Kaydedilemedi', description: 'Fotoğraf kaydedilirken bir hata oluştu.' });
-         setIsSaving(false);
+    } finally {
+        setIsSaving(false);
     }
   };
 
