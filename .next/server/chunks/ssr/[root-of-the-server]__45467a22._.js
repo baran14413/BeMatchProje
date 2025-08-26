@@ -293,16 +293,8 @@ const moderateImageFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f
     inputSchema: ModerateImageInputSchema,
     outputSchema: ModerateImageOutputSchema
 }, async (input)=>{
-    try {
-        const { output } = await prompt(input);
-        return output;
-    } catch (e) {
-        console.error("Image moderation flow failed", e);
-        return {
-            isSafe: false,
-            reason: 'Denetleme modeli şu anda yoğun. Lütfen daha sonra tekrar deneyin.'
-        };
-    }
+    const { output } = await prompt(input);
+    return output;
 });
 ;
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ensureServerEntryExports"])([
