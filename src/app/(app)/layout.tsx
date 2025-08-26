@@ -32,6 +32,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isScrolling, setIsScrolling] = useState(false);
+  const [animationsDisabled, setAnimationsDisabled] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { isOnline, isPoorConnection } = useNetworkStatus();
   
@@ -47,6 +48,8 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setIsClientReady(true);
+    const storedPreference = localStorage.getItem('disableAnimations');
+    setAnimationsDisabled(storedPreference === 'true');
   }, []);
 
   useEffect(() => {
@@ -54,22 +57,21 @@ function LayoutContent({ children }: { children: ReactNode }) {
       setCurrentUser(user);
       if (user) {
         setupPresence(user.uid);
-        if (!currentUserProfile?.username) { // Fetch only if profile is not already loaded
-          setLoadingProfile(true);
-          try {
-            const userDocRef = doc(db, "users", user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists()) {
-              setCurrentUserProfile(userDocSnap.data());
-            } else {
-               setCurrentUserProfile(null);
-            }
-          } catch (error) {
-              console.error("Error fetching user profile:", error);
-              setCurrentUserProfile(null);
-          } finally {
-            setLoadingProfile(false);
+        // Fetch only if profile is not already loaded
+        setLoadingProfile(true);
+        try {
+          const userDocRef = doc(db, "users", user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            setCurrentUserProfile(userDocSnap.data());
+          } else {
+             setCurrentUserProfile(null);
           }
+        } catch (error) {
+            console.error("Error fetching user profile:", error);
+            setCurrentUserProfile(null);
+        } finally {
+          setLoadingProfile(false);
         }
       } else {
         setCurrentUserProfile(null);
@@ -77,7 +79,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
       }
     });
     return () => unsubscribeAuth();
-  }, [currentUserProfile]);
+  }, []);
 
   useEffect(() => {
     if (!currentUser) {
@@ -139,6 +141,10 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const handleScroll = () => {
+      if (animationsDisabled) {
+        setIsScrolling(false);
+        return;
+      }
       setIsScrolling(true);
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
@@ -160,7 +166,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
         clearTimeout(scrollTimeoutRef.current);
       }
     };
-  }, [showNavs]);
+  }, [showNavs, animationsDisabled]);
 
 
   return (
