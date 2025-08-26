@@ -183,10 +183,10 @@ const SplashScreen = ()=>{
             const progressInterval = setInterval({
                 "SplashScreen.useEffect.progressInterval": ()=>{
                     setProgress({
-                        "SplashScreen.useEffect.progressInterval": (prev)=>prev >= 100 ? 100 : prev + 2
-                    }["SplashScreen.useEffect.progressInterval"]);
+                        "SplashScreen.useEffect.progressInterval": (prev)=>prev >= 100 ? 100 : prev + 5
+                    }["SplashScreen.useEffect.progressInterval"]); // Increased speed
                 }
-            }["SplashScreen.useEffect.progressInterval"], 50);
+            }["SplashScreen.useEffect.progressInterval"], 100);
             const messageInterval = setInterval({
                 "SplashScreen.useEffect.messageInterval": ()=>{
                     setMessageIndex({
@@ -272,20 +272,16 @@ function Home() {
         "Home.useEffect": ()=>{
             const unsubscribe = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__z__as__onAuthStateChanged$3e$__["onAuthStateChanged"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["auth"], {
                 "Home.useEffect.unsubscribe": (user)=>{
-                    const redirectTimeout = setTimeout({
-                        "Home.useEffect.unsubscribe.redirectTimeout": ()=>{
-                            if (user) {
-                                router.replace('/explore');
-                            } else {
-                                router.replace('/login');
-                            }
-                        }
-                    }["Home.useEffect.unsubscribe.redirectTimeout"], 3000);
-                    return ({
-                        "Home.useEffect.unsubscribe": ()=>clearTimeout(redirectTimeout)
-                    })["Home.useEffect.unsubscribe"];
+                    // No more setTimeout. Redirect as soon as auth state is known.
+                    // The destination page will handle its own loading state.
+                    if (user) {
+                        router.replace('/explore');
+                    } else {
+                        router.replace('/login');
+                    }
                 }
             }["Home.useEffect.unsubscribe"]);
+            // Cleanup the subscription when the component unmounts
             return ({
                 "Home.useEffect": ()=>unsubscribe()
             })["Home.useEffect"];
@@ -300,12 +296,12 @@ function Home() {
                 className: "flex-1 flex items-center justify-center",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(SplashScreen, {}, void 0, false, {
                     fileName: "[project]/src/app/page.tsx",
-                    lineNumber: 74,
+                    lineNumber: 73,
                     columnNumber: 17
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 73,
+                lineNumber: 72,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -316,7 +312,7 @@ function Home() {
                         children: "Created By"
                     }, void 0, false, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 77,
+                        lineNumber: 76,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -327,26 +323,26 @@ function Home() {
                                 children: "B"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 79,
+                                lineNumber: 78,
                                 columnNumber: 21
                             }, this),
                             "E"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 78,
+                        lineNumber: 77,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 76,
+                lineNumber: 75,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/page.tsx",
-        lineNumber: 72,
+        lineNumber: 71,
         columnNumber: 9
     }, this);
 }

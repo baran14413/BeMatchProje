@@ -22,8 +22,8 @@ const SplashScreen = () => {
 
     useEffect(() => {
         const progressInterval = setInterval(() => {
-            setProgress(prev => (prev >= 100 ? 100 : prev + 2));
-        }, 50);
+            setProgress(prev => (prev >= 100 ? 100 : prev + 5)); // Increased speed
+        }, 100); 
 
         const messageInterval = setInterval(() => {
             setMessageIndex(prev => (prev + 1) % loadingMessages.length);
@@ -54,17 +54,16 @@ export default function Home() {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
-            const redirectTimeout = setTimeout(() => {
-                if (user) {
-                    router.replace('/explore');
-                } else {
-                    router.replace('/login');
-                }
-            }, 3000); 
-
-            return () => clearTimeout(redirectTimeout);
+            // No more setTimeout. Redirect as soon as auth state is known.
+            // The destination page will handle its own loading state.
+            if (user) {
+                router.replace('/explore');
+            } else {
+                router.replace('/login');
+            }
         });
 
+        // Cleanup the subscription when the component unmounts
         return () => unsubscribe();
     }, [router]);
 
