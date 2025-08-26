@@ -58,15 +58,7 @@ const moderateImageFlow = ai.defineFlow(
     outputSchema: ModerateImageOutputSchema,
   },
   async input => {
-    try {
-      const {output} = await prompt(input);
-      return output!;
-    } catch (e: any) {
-        console.error("Image moderation flow failed", e);
-        return { 
-            isSafe: false, 
-            reason: 'Denetleme modeli şu anda yoğun. Lütfen daha sonra tekrar deneyin.'
-        };
-    }
+    const {output} = await prompt(input);
+    return output!;
   }
 );
