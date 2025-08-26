@@ -208,77 +208,88 @@ function ShuffleContent() {
         status,
         router
     ]);
-    const handleSearchClick = async ()=>{
-        if (!currentUser || !userGender) {
-            toast({
-                title: 'Eşleşme aramak için giriş yapmış olmalısınız ve profil bilgileriniz eksiksiz olmalı.',
-                variant: 'destructive'
-            });
-            return;
-        }
-        setStatus('searching');
-        toast({
-            title: 'Sana uygun biri aranıyor...'
-        });
-        const targetGender = userGender === 'male' ? 'female' : 'male';
-        const queueRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["collection"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'randomMatchQueue');
-        try {
-            // Check if there's a compatible user in the queue
-            const q = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["query"])(queueRef, (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["where"])('gender', '==', targetGender), (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["limit"])(1));
-            const querySnapshot = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDocs"])(q);
-            if (!querySnapshot.empty) {
-                // Match found
-                const otherUserDoc = querySnapshot.docs[0];
-                const otherUserData = otherUserDoc.data();
-                // Remove the matched user from the queue
-                await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["deleteDoc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'randomMatchQueue', otherUserDoc.id));
-                // Create a temporary conversation
-                const currentUserDoc = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDoc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'users', currentUser.uid));
-                const otherUserInfoDoc = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDoc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'users', otherUserData.uid));
-                const currentUserData = currentUserDoc.data();
-                const otherUserInfo = otherUserInfoDoc.data();
-                if (!currentUserData || !otherUserInfo) throw new Error("Kullanıcı bilgileri alınamadı.");
-                const usersArray = [
-                    currentUser.uid,
-                    otherUserData.uid
-                ];
-                const newConvoRef = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["addDoc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["collection"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'temporaryConversations'), {
-                    user1: {
-                        uid: currentUser.uid,
-                        name: currentUserData.name,
-                        avatarUrl: currentUserData.avatarUrl,
-                        heartClicked: false
-                    },
-                    user2: {
-                        uid: otherUserData.uid,
-                        name: otherUserInfo.name,
-                        avatarUrl: otherUserInfo.avatarUrl,
-                        heartClicked: false
-                    },
-                    users: usersArray,
-                    createdAt: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["serverTimestamp"])(),
-                    expiresAt: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes from now
+    const handleSearchClick = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "ShuffleContent.useCallback[handleSearchClick]": async ()=>{
+            if (!currentUser || !userGender) {
+                toast({
+                    title: 'Eşleşme aramak için giriş yapmış olmalısınız ve profil bilgileriniz eksiksiz olmalı.',
+                    variant: 'destructive'
                 });
-                // The useEffect listener will handle the redirect
-                setStatus('matched');
-            } else {
-                // No match found, add user to the queue
-                const userQueueRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'randomMatchQueue', currentUser.uid);
-                await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["setDoc"])(userQueueRef, {
-                    uid: currentUser.uid,
-                    gender: userGender,
-                    enteredAt: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["serverTimestamp"])()
-                });
+                return;
             }
-        } catch (error) {
-            console.error("Error during matching:", error);
+            setStatus('searching');
             toast({
-                title: "Eşleşme sırasında bir hata oluştu.",
-                variant: 'destructive'
+                title: 'Sana uygun biri aranıyor...'
             });
-            setStatus('idle');
+            const targetGender = userGender === 'male' ? 'female' : 'male';
+            const queueRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["collection"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'randomMatchQueue');
+            try {
+                await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["runTransaction"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], {
+                    "ShuffleContent.useCallback[handleSearchClick]": async (transaction)=>{
+                        const q = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["query"])(queueRef, (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["where"])('gender', '==', targetGender), (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["limit"])(1));
+                        const querySnapshot = await transaction.get(q);
+                        if (!querySnapshot.empty) {
+                            // Match found
+                            const otherUserDoc = querySnapshot.docs[0];
+                            const otherUserData = otherUserDoc.data();
+                            // Remove the matched user from the queue atomically
+                            transaction.delete(otherUserDoc.ref);
+                            // Fetch full user details within the transaction if needed, or outside if they are large
+                            const currentUserDocSnap = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDoc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'users', currentUser.uid));
+                            const otherUserInfoSnap = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDoc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'users', otherUserData.uid));
+                            const currentUserData = currentUserDocSnap.data();
+                            const otherUserInfo = otherUserInfoSnap.data();
+                            if (!currentUserData || !otherUserInfo) {
+                                throw new Error("Kullanıcı bilgileri alınamadı.");
+                            }
+                            // Create a temporary conversation atomically
+                            const newConvoRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["collection"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'temporaryConversations'));
+                            transaction.set(newConvoRef, {
+                                user1: {
+                                    uid: currentUser.uid,
+                                    name: currentUserData.name,
+                                    avatarUrl: currentUserData.avatarUrl,
+                                    heartClicked: false
+                                },
+                                user2: {
+                                    uid: otherUserData.uid,
+                                    name: otherUserInfo.name,
+                                    avatarUrl: otherUserInfo.avatarUrl,
+                                    heartClicked: false
+                                },
+                                users: [
+                                    currentUser.uid,
+                                    otherUserData.uid
+                                ].sort(),
+                                createdAt: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["serverTimestamp"])(),
+                                expiresAt: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes from now
+                            });
+                        // The onSnapshot listener will handle the redirect.
+                        } else {
+                            // No match found, add user to the queue
+                            const userQueueRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'randomMatchQueue', currentUser.uid);
+                            transaction.set(userQueueRef, {
+                                uid: currentUser.uid,
+                                gender: userGender,
+                                enteredAt: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["serverTimestamp"])()
+                            });
+                        }
+                    }
+                }["ShuffleContent.useCallback[handleSearchClick]"]);
+            } catch (error) {
+                console.error("Error during matching transaction:", error);
+                toast({
+                    title: "Eşleşme sırasında bir hata oluştu.",
+                    variant: 'destructive'
+                });
+                setStatus('idle');
+            }
         }
-    };
+    }["ShuffleContent.useCallback[handleSearchClick]"], [
+        currentUser,
+        userGender,
+        toast
+    ]);
     const handleCancelSearch = async ()=>{
         if (!currentUser) return;
         setStatus('idle');
@@ -498,7 +509,7 @@ function ShuffleContent() {
         ]
     }, void 0, true);
 }
-_s(ShuffleContent, "/MN527l/CN4n2v5UP0Mmsi/5S+g=", false, function() {
+_s(ShuffleContent, "WWZ448xhfIbboTf9tMw3rVE4+jI=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"],
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useSearchParams"],

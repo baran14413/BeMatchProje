@@ -68,78 +68,89 @@ function ShuffleContent() {
     }, [currentUser, status, router]);
 
     const handleSearchClick = useCallback(async () => {
-        if (!currentUser || !userGender) {
-            toast({ title: 'Eşleşme aramak için giriş yapmış olmalısınız ve profil bilgileriniz eksiksiz olmalı.', variant: 'destructive' });
-            return;
-        }
+    if (!currentUser || !userGender) {
+        toast({ title: 'Eşleşme aramak için giriş yapmış olmalısınız ve profil bilgileriniz eksiksiz olmalı.', variant: 'destructive' });
+        return;
+    }
 
-        setStatus('searching');
-        toast({ title: 'Sana uygun biri aranıyor...' });
+    setStatus('searching');
+    toast({ title: 'Sana uygun biri aranıyor...' });
 
-        const targetGender = userGender === 'male' ? 'female' : 'male';
-        const queueRef = collection(db, 'randomMatchQueue');
+    const targetGender = userGender === 'male' ? 'female' : 'male';
+    const queueRef = collection(db, 'randomMatchQueue');
 
-        try {
+    try {
+        const q = query(queueRef, where('gender', '==', targetGender), limit(1));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            // Potential match found, start a transaction to claim it
+            const otherUserDoc = querySnapshot.docs[0];
+            const otherUserData = otherUserDoc.data();
+            
             await runTransaction(db, async (transaction) => {
-                const q = query(queueRef, where('gender', '==', targetGender), limit(1));
-                const querySnapshot = await transaction.get(q);
+                const potentialMatchRef = doc(db, 'randomMatchQueue', otherUserDoc.id);
+                const potentialMatchSnap = await transaction.get(potentialMatchRef);
 
-                if (!querySnapshot.empty) {
-                    // Match found
-                    const otherUserDoc = querySnapshot.docs[0];
-                    const otherUserData = otherUserDoc.data();
-
-                    // Remove the matched user from the queue atomically
-                    transaction.delete(otherUserDoc.ref);
-                    
-                    // Fetch full user details within the transaction if needed, or outside if they are large
-                    const currentUserDocSnap = await getDoc(doc(db, 'users', currentUser.uid));
-                    const otherUserInfoSnap = await getDoc(doc(db, 'users', otherUserData.uid));
-                    
-                    const currentUserData = currentUserDocSnap.data();
-                    const otherUserInfo = otherUserInfoSnap.data();
-
-                    if (!currentUserData || !otherUserInfo) {
-                        throw new Error("Kullanıcı bilgileri alınamadı.");
-                    }
-                    
-                    // Create a temporary conversation atomically
-                    const newConvoRef = doc(collection(db, 'temporaryConversations'));
-                    transaction.set(newConvoRef, {
-                         user1: { 
-                            uid: currentUser.uid, 
-                            name: currentUserData.name, 
-                            avatarUrl: currentUserData.avatarUrl,
-                            heartClicked: false 
-                        },
-                        user2: { 
-                            uid: otherUserData.uid,
-                            name: otherUserInfo.name,
-                            avatarUrl: otherUserInfo.avatarUrl,
-                            heartClicked: false
-                        },
-                        users: [currentUser.uid, otherUserData.uid].sort(),
-                        createdAt: serverTimestamp(),
-                        expiresAt: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes from now
-                    });
-
-                    // The onSnapshot listener will handle the redirect.
-                } else {
-                    // No match found, add user to the queue
+                if (!potentialMatchSnap.exists()) {
+                    // The user was matched by someone else, so add current user to queue instead.
                     const userQueueRef = doc(db, 'randomMatchQueue', currentUser.uid);
-                    transaction.set(userQueueRef, {
+                     transaction.set(userQueueRef, {
                         uid: currentUser.uid,
                         gender: userGender,
                         enteredAt: serverTimestamp()
                     });
+                    return;
                 }
+
+                // Match is still available, proceed to create conversation
+                transaction.delete(potentialMatchRef);
+                
+                const currentUserDocSnap = await getDoc(doc(db, 'users', currentUser.uid));
+                const otherUserInfoSnap = await getDoc(doc(db, 'users', otherUserData.uid));
+
+                const currentUserData = currentUserDocSnap.data();
+                const otherUserInfo = otherUserInfoSnap.data();
+
+                if (!currentUserData || !otherUserInfo) {
+                    throw new Error("Kullanıcı bilgileri alınamadı.");
+                }
+
+                const newConvoRef = doc(collection(db, 'temporaryConversations'));
+                transaction.set(newConvoRef, {
+                    user1: { 
+                        uid: currentUser.uid, 
+                        name: currentUserData.name, 
+                        avatarUrl: currentUserData.avatarUrl,
+                        heartClicked: false 
+                    },
+                    user2: { 
+                        uid: otherUserData.uid,
+                        name: otherUserInfo.name,
+                        avatarUrl: otherUserInfo.avatarUrl,
+                        heartClicked: false
+                    },
+                    users: [currentUser.uid, otherUserData.uid].sort(),
+                    createdAt: serverTimestamp(),
+                    expiresAt: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes from now
+                });
             });
-        } catch (error) {
-            console.error("Error during matching transaction:", error);
-            toast({ title: "Eşleşme sırasında bir hata oluştu.", variant: 'destructive' });
-            setStatus('idle');
+
+        } else {
+            // No match found, add current user to the queue
+            const userQueueRef = doc(db, 'randomMatchQueue', currentUser.uid);
+            await setDoc(userQueueRef, {
+                uid: currentUser.uid,
+                gender: userGender,
+                enteredAt: serverTimestamp()
+            });
         }
-    }, [currentUser, userGender, toast]);
+    } catch (error) {
+        console.error("Error during matching:", error);
+        toast({ title: "Eşleşme sırasında bir hata oluştu.", variant: 'destructive' });
+        setStatus('idle');
+    }
+}, [currentUser, userGender, toast]);
     
     const handleCancelSearch = async () => {
         if (!currentUser) return;

@@ -275,13 +275,14 @@ const prompt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$ai$2f$genk
     system: `You are an expert image moderator for a dating application.
 You need to determine if the provided image is appropriate for a user's profile picture.
 
-The image should be flagged as NOT SAFE if it contains any of the following:
+The image should be flagged as NOT SAFE only if it contains any of the following:
 - Nudity or sexually suggestive content.
-- Violence, gore, or weapons.
+- Violence, gore, or blood.
 - Hateful symbols or gestures.
 - Illegal activities or substances.
-- Is not a real photo (e.g., a cartoon, illustration, or meme).
-- Does not contain a person.
+- Profanity or offensive text (argo).
+
+Photos that are logos, contain only text, illustrations, or do not contain a person ARE considered SAFE as long as they do not violate the rules above.
 
 If the image is safe, set isSafe to true.
 If the image is not safe, set isSafe to false and provide a brief, user-friendly reason in Turkish.`,
@@ -292,16 +293,8 @@ const moderateImageFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f
     inputSchema: ModerateImageInputSchema,
     outputSchema: ModerateImageOutputSchema
 }, async (input)=>{
-    try {
-        const { output } = await prompt(input);
-        return output;
-    } catch (e) {
-        console.error("Image moderation flow failed", e);
-        return {
-            isSafe: false,
-            reason: 'Denetleme modeli şu anda yoğun. Lütfen daha sonra tekrar deneyin.'
-        };
-    }
+    const { output } = await prompt(input);
+    return output;
 });
 ;
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ensureServerEntryExports"])([
