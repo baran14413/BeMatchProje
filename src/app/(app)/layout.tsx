@@ -42,6 +42,13 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
 
+  // Hydration fix state
+  const [isClientReady, setIsClientReady] = useState(false);
+
+  useEffect(() => {
+    setIsClientReady(true);
+  }, []);
+
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
       setCurrentUser(user);
@@ -127,8 +134,8 @@ function LayoutContent({ children }: { children: ReactNode }) {
   // Check if it's an admin page
   const isAdminPage = pathname.startsWith('/admin');
 
-  const showNavs = !isCreatePage && (!isChatPage || (isChatPage && !isChatViewOpen)) && !isAdminPage;
-  const isFullScreen = (isChatPage && isChatViewOpen) || isAdminPage;
+  const showNavs = isClientReady && !isCreatePage && (!isChatPage || (isChatPage && !isChatViewOpen)) && !isAdminPage;
+  const isFullScreen = isClientReady && ((isChatPage && isChatViewOpen) || isAdminPage);
 
   useEffect(() => {
     const handleScroll = () => {
