@@ -6,8 +6,6 @@ import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import Lottie from 'lottie-react';
-import animationData from '../../../public/images/loaderemir.json';
 
 const initialMessages = [
     "Bağlantı kuruluyor...",
@@ -43,7 +41,16 @@ const SplashScreen = ({ messages }: { messages: string[] }) => {
                 <span className="text-primary">Match</span>
             </h1>
             <div className='w-full space-y-2'>
-                 <Lottie animationData={animationData} loop={true} style={{ width: 150, height: 150, margin: 'auto' }} />
+                <video 
+                    src="/videos/Loading 40 _ Paperplane.mp4" 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline 
+                    width="150" 
+                    height="150"
+                    className="mx-auto"
+                />
                 <p className="text-sm text-muted-foreground transition-opacity duration-500 h-5">{messages[messageIndex]}</p>
             </div>
         </div>
