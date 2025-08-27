@@ -9,9 +9,9 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getFirestore, doc, runTransaction, serverTimestamp, collection, addDoc } from 'firebase-admin/firestore';
+import { getFirestore, serverTimestamp, collection, addDoc } from 'firebase-admin/firestore';
 import { initializeApp, getApps } from 'firebase-admin/app';
-import { XP_REASONS } from '@/config/xp-config';
+import { XP_REASONS, getXpForAction } from '@/config/xp-config';
 
 const AwardXpInputSchema = z.object({
   userId: z.string().describe('The UID of the user to award XP to.'),
@@ -33,18 +33,18 @@ const awardXpFlow = ai.defineFlow(
         initializeApp();
     }
     const db = getFirestore();
-    const userRef = doc(db, 'users', userId);
+    const userRef = db.collection('users').doc(userId);
 
     try {
       let leveledUp = false;
-      await runTransaction(db, async (transaction) => {
+      await db.runTransaction(async (transaction) => {
         const userDoc = await transaction.get(userRef);
-        if (!userDoc.exists()) {
+        if (!userDoc.exists) {
           console.error(`User ${userId} not found.`);
           return;
         }
 
-        const userData = userDoc.data();
+        const userData = userDoc.data()!;
         let currentLevel = userData.level || 1;
         let currentXp = userData.xp || 0;
         
@@ -58,7 +58,7 @@ const awardXpFlow = ai.defineFlow(
           xpForNextLevel = calculateXpForNextLevel(currentLevel);
           
            // Create a notification for level up
-           const levelUpNotifRef = doc(collection(db, 'notifications'));
+           const levelUpNotifRef = db.collection('notifications').doc();
            transaction.set(levelUpNotifRef, {
                recipientId: userId,
                type: 'level_up',
@@ -76,7 +76,7 @@ const awardXpFlow = ai.defineFlow(
         // Create a notification for XP gain, if there's a reason
         if (reason) {
             const xpReasonText = XP_REASONS[reason as keyof typeof XP_REASONS] || reason;
-            const xpGainNotifRef = doc(collection(db, 'notifications'));
+            const xpGainNotifRef = db.collection('notifications').doc();
             transaction.set(xpGainNotifRef, {
                 recipientId: userId,
                 type: 'xp_gain',
@@ -108,5 +108,6 @@ const awardXpFlow = ai.defineFlow(
 export async function awardXp(
   input: AwardXpInput
 ): Promise<{ success: boolean; leveledUp: boolean }> {
-  return awardXpFlow(input);
+  const xpToAward = input.reason ? getXpForAction(input.reason as any) : input.xpAmount;
+  return awardXpFlow({ ...input, xpAmount: xpToAward });
 }

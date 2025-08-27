@@ -287,10 +287,10 @@ export default function ExplorePage() {
                             createdAt: serverTimestamp()
                         });
                         // Award XP to post author for receiving a like
-                        awardXp({ userId: post.authorId, xpAmount: getXpForAction('LIKE_RECEIVED'), reason: 'like_received' });
+                        awardXp({ userId: post.authorId, xpAmount: 0, reason: 'like_received' });
                     }
                      // Award XP to self for liking a post
-                    awardXp({ userId: currentUser.uid, xpAmount: getXpForAction('LIKE_SENT'), reason: 'like_sent' });
+                    awardXp({ userId: currentUser.uid, xpAmount: 0, reason: 'like_sent' });
 
                  } else { // Unliking
                      transaction.delete(likeRef);
@@ -371,9 +371,9 @@ export default function ExplorePage() {
             
              // Award XP
             if (activePostForComments.authorId !== currentUser.uid) {
-                awardXp({ userId: activePostForComments.authorId, xpAmount: getXpForAction('COMMENT_RECEIVED'), reason: 'comment_received' });
+                awardXp({ userId: activePostForComments.authorId, xpAmount: 0, reason: 'comment_received' });
             }
-            awardXp({ userId: currentUser.uid, xpAmount: getXpForAction('COMMENT_SENT'), reason: 'comment_sent' });
+            awardXp({ userId: currentUser.uid, xpAmount: 0, reason: 'comment_sent' });
             
              // Create notification
              if (activePostForComments.authorId !== currentUser.uid) {
@@ -576,7 +576,7 @@ export default function ExplorePage() {
             const newPostFromDb = { id: docSnap.id, ...docSnap.data() };
             
             // Award XP for new post
-            await awardXp({ userId: currentUser.uid, xpAmount: getXpForAction('NEW_POST'), reason: 'new_post' });
+            await awardXp({ userId: currentUser.uid, xpAmount: 0, reason: 'new_post' });
 
             const currentUserDoc = await getDoc(doc(db, 'users', currentUser.uid));
             const currentUserData = currentUserDoc.data() as User;
