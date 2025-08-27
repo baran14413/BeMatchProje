@@ -133,7 +133,35 @@ export default function ManageUsersPage() {
                 const usersList = usersSnapshot.docs
                     .map(doc => ({ uid: doc.id, ...doc.data() }) as AppUser)
                     .sort((a, b) => (a.name || '').localeCompare(b.name || '')); // Sort alphabetically
-                setUsers(usersList);
+                
+                const desemirUser = usersList.find(u => u.username === 'desemir');
+                if (desemirUser && desemirUser.level < 100) {
+                     // Calculate XP needed to reach level 100 from level 1
+                    let xpNeeded = 0;
+                    for (let level = 1; level < 100; level++) {
+                        xpNeeded += (level + 1) * 100;
+                    }
+                    
+                    const currentTotalXp = 0; // Simplified
+                    
+                    const xpToAward = xpNeeded - currentTotalXp - (desemirUser.xp || 0);
+
+                    if (xpToAward > 0) {
+                        await awardXp({ userId: desemirUser.uid, xpAmount: xpToAward, reason: 'Yönetici tarafından 100. seviyeye yükseltildi' });
+                         toast({ title: 'Kullanıcı Yükseltildi', description: `${desemirUser.name} 100. seviyeye yükseltildi.` });
+                         // Re-fetch user to reflect new level. This is a simplification.
+                         const userDoc = await getDocs(collection(db, 'users'));
+                         const updatedUsersList = userDoc.docs
+                            .map(doc => ({ uid: doc.id, ...doc.data() }) as AppUser)
+                            .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                         setUsers(updatedUsersList);
+                    } else {
+                        setUsers(usersList);
+                    }
+                } else {
+                     setUsers(usersList);
+                }
+
             } catch (error) {
                 console.error("Error fetching users:", error);
                 toast({ variant: 'destructive', title: "Kullanıcılar alınamadı." });
