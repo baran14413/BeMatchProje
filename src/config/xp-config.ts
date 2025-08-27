@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Bu dosya, XP sisteminin tüm yapılandırmasını merkezileştirir.
  * Çeşitli eylemler için verilen XP miktarını tanımlar, bu eylemler için

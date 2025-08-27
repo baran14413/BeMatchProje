@@ -9,7 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getFirestore, serverTimestamp, collection, addDoc } from 'firebase-admin/firestore';
+import { getFirestore, serverTimestamp } from 'firebase-admin/firestore';
 import { initializeApp, getApps } from 'firebase-admin/app';
 import { XP_REASONS, getXpForAction } from '@/config/xp-config';
 
@@ -108,6 +108,7 @@ const awardXpFlow = ai.defineFlow(
 export async function awardXp(
   input: AwardXpInput
 ): Promise<{ success: boolean; leveledUp: boolean }> {
+  // If a reason is provided, get the XP from the config. Otherwise, use the amount directly.
   const xpToAward = input.reason ? getXpForAction(input.reason as any) : input.xpAmount;
   return awardXpFlow({ ...input, xpAmount: xpToAward });
 }
