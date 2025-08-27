@@ -7,6 +7,7 @@
   "/(app)/profile/edit/cache/page": "app/(app)/profile/edit/cache/page.js",
   "/(app)/profile/edit/page": "app/(app)/profile/edit/page.js",
   "/(app)/profile/edit/tech-stack/page": "app/(app)/profile/edit/tech-stack/page.js",
+  "/(app)/profile/edit/xp/page": "app/(app)/profile/edit/xp/page.js",
   "/(app)/shuffle/page": "app/(app)/shuffle/page.js",
   "/(app)/table/page": "app/(app)/table/page.js",
   "/(auth)/login/page": "app/(auth)/login/page.js",

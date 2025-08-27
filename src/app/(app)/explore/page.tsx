@@ -36,6 +36,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Label } from '@/components/ui/label';
 import { awardXp } from '@/ai/flows/award-xp-flow';
 import { LevelBadge } from '@/components/ui/level-badge';
+import { getXpForAction } from '@/lib/xp-config';
+
 
 const formatRelativeTime = (date: Date) => {
     try {
@@ -285,10 +287,10 @@ export default function ExplorePage() {
                             createdAt: serverTimestamp()
                         });
                         // Award XP to post author for receiving a like
-                        awardXp({ userId: post.authorId, xpAmount: 5, reason: 'post_like_received' });
+                        awardXp({ userId: post.authorId, xpAmount: getXpForAction('LIKE_RECEIVED'), reason: 'like_received' });
                     }
                      // Award XP to self for liking a post
-                    awardXp({ userId: currentUser.uid, xpAmount: 1, reason: 'post_like_sent' });
+                    awardXp({ userId: currentUser.uid, xpAmount: getXpForAction('LIKE_SENT'), reason: 'like_sent' });
 
                  } else { // Unliking
                      transaction.delete(likeRef);
@@ -369,9 +371,9 @@ export default function ExplorePage() {
             
              // Award XP
             if (activePostForComments.authorId !== currentUser.uid) {
-                awardXp({ userId: activePostForComments.authorId, xpAmount: 10, reason: 'comment_received' });
+                awardXp({ userId: activePostForComments.authorId, xpAmount: getXpForAction('COMMENT_RECEIVED'), reason: 'comment_received' });
             }
-            awardXp({ userId: currentUser.uid, xpAmount: 2, reason: 'comment_sent' });
+            awardXp({ userId: currentUser.uid, xpAmount: getXpForAction('COMMENT_SENT'), reason: 'comment_sent' });
             
              // Create notification
              if (activePostForComments.authorId !== currentUser.uid) {
@@ -574,7 +576,7 @@ export default function ExplorePage() {
             const newPostFromDb = { id: docSnap.id, ...docSnap.data() };
             
             // Award XP for new post
-            await awardXp({ userId: currentUser.uid, xpAmount: 25, reason: 'new_post' });
+            await awardXp({ userId: currentUser.uid, xpAmount: getXpForAction('NEW_POST'), reason: 'new_post' });
 
             const currentUserDoc = await getDoc(doc(db, 'users', currentUser.uid));
             const currentUserData = currentUserDoc.data() as User;
@@ -588,7 +590,7 @@ export default function ExplorePage() {
             
             setPosts(prev => [newPostForUI, ...prev]);
             
-            toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı. (+25 XP)', className: 'bg-green-500 text-white' });
+            toast({ title: 'Paylaşıldı!', description: `Gönderiniz başarıyla paylaşıldı. (+${getXpForAction('NEW_POST')} XP)`, className: 'bg-green-500 text-white' });
 
         } catch (error) {
             console.error("Error sharing post: ", error);

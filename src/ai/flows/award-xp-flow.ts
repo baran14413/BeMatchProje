@@ -11,6 +11,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getFirestore, doc, runTransaction, serverTimestamp, collection, addDoc } from 'firebase-admin/firestore';
 import { initializeApp, getApps } from 'firebase-admin/app';
+import { XP_REASONS, getXpForAction } from '@/lib/xp-config';
 
 const AwardXpInputSchema = z.object({
   userId: z.string().describe('The UID of the user to award XP to.'),
@@ -27,7 +28,7 @@ const awardXpFlow = ai.defineFlow(
     inputSchema: AwardXpInputSchema,
     outputSchema: z.object({ success: z.boolean(), leveledUp: z.boolean() }),
   },
-  async ({ userId, xpAmount }) => {
+  async ({ userId, xpAmount, reason }) => {
     if (!getApps().length) {
         initializeApp();
     }
@@ -57,11 +58,11 @@ const awardXpFlow = ai.defineFlow(
           xpForNextLevel = calculateXpForNextLevel(currentLevel);
           
            // Create a notification for level up
-           const notificationRef = doc(collection(db, 'notifications'));
-           transaction.set(notificationRef, {
+           const levelUpNotifRef = doc(collection(db, 'notifications'));
+           transaction.set(levelUpNotifRef, {
                recipientId: userId,
                type: 'level_up',
-               content: `Tebrikler! Seviye ${currentLevel}'e ulaştın!`,
+               content: `Seviye ${currentLevel}`,
                read: false,
                createdAt: serverTimestamp(),
                fromUser: {
@@ -72,6 +73,24 @@ const awardXpFlow = ai.defineFlow(
            });
         }
         
+        // Create a notification for XP gain, if there's a reason
+        if (reason) {
+            const xpReasonText = XP_REASONS[reason as keyof typeof XP_REASONS] || reason;
+            const xpGainNotifRef = doc(collection(db, 'notifications'));
+            transaction.set(xpGainNotifRef, {
+                recipientId: userId,
+                type: 'xp_gain',
+                content: `${xpReasonText} için **+${xpAmount} XP** kazandın!`,
+                read: false,
+                createdAt: serverTimestamp(),
+                fromUser: {
+                   uid: 'system',
+                   name: 'BeMatch',
+                   avatar: '/icons/app-logo.svg'
+               }
+            });
+        }
+
         transaction.update(userRef, {
           xp: newXp,
           level: currentLevel,

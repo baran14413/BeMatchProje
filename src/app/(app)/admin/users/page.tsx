@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { UserX, Loader2, Trash2 } from 'lucide-react';
+import { UserX, Loader2, Trash2, Award } from 'lucide-react';
 import { db, auth } from '@/lib/firebase';
 import { collection, getDocs, DocumentData } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +13,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { deleteUserData } from '@/ai/flows/delete-user-data-flow';
 import { cn } from '@/lib/utils';
 import { User } from 'firebase/auth';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { awardXp } from '@/ai/flows/award-xp-flow';
+import { XP_REASONS } from '@/lib/xp-config';
+
 
 type AppUser = DocumentData & {
   uid: string;
@@ -22,6 +28,89 @@ type AppUser = DocumentData & {
   avatarUrl: string;
   aiHint?: string;
 };
+
+function AwardXpModal({ user, onAward }: { user: AppUser, onAward: (amount: number) => void }) {
+    const [amount, setAmount] = useState(0);
+    const [reason, setReason] = useState('');
+    const [isAwarding, setIsAwarding] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+    const { toast } = useToast();
+
+    const handleAwardXp = async () => {
+        if (amount <= 0) {
+            toast({ variant: 'destructive', title: "Geçersiz Miktar" });
+            return;
+        }
+        setIsAwarding(true);
+        try {
+            const result = await awardXp({
+                userId: user.uid,
+                xpAmount: amount,
+                reason: reason || 'Admin tarafından verildi'
+            });
+            if (result.success) {
+                toast({ title: `${user.name} kullanıcısına ${amount} XP verildi.` });
+                onAward(amount);
+                setIsOpen(false);
+            } else {
+                throw new Error("XP verme işlemi başarısız oldu.");
+            }
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: "Hata", description: error.message });
+        } finally {
+            setIsAwarding(false);
+        }
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                    <Award className="mr-2 h-4 w-4" />
+                    XP Ver
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{user.name} için XP Ver</DialogTitle>
+                    <DialogDescription>
+                        Kullanıcıya manuel olarak deneyim puanı ekleyin.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="xp-amount">XP Miktarı</Label>
+                        <Input
+                            id="xp-amount"
+                            type="number"
+                            value={amount}
+                            onChange={(e) => setAmount(parseInt(e.target.value, 10))}
+                            placeholder="Örn: 100"
+                        />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="xp-reason">Neden (Opsiyonel)</Label>
+                        <Input
+                            id="xp-reason"
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                            placeholder="Örn: Etkinlik ödülü"
+                        />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button variant="outline">İptal</Button>
+                    </DialogClose>
+                    <Button onClick={handleAwardXp} disabled={isAwarding}>
+                        {isAwarding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Onayla
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
 
 export default function ManageUsersPage() {
     const [users, setUsers] = useState<AppUser[]>([]);
@@ -75,6 +164,16 @@ export default function ManageUsersPage() {
             setUsers(originalUsers); // Revert UI on failure
         }
     };
+    
+    const handleXpAwarded = (userId: string, amount: number) => {
+        setUsers(prevUsers => prevUsers.map(u => {
+            if (u.uid === userId) {
+                // We don't have the full level logic here, just incrementing XP for display if needed
+                // But for now, we don't display XP directly, so just refresh is enough.
+            }
+            return u;
+        }));
+    };
 
     return (
         <Card>
@@ -103,30 +202,33 @@ export default function ManageUsersPage() {
                                         <p className="text-sm text-muted-foreground">{user.email}</p>
                                     </div>
                                 </div>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="destructive" size="sm" disabled={user.uid === currentUser?.uid}>
-                                            <Trash2 className="mr-2 h-4 w-4"/>
-                                            Sil
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Kullanıcıyı Sil</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                <b>{user.name}</b> adlı kullanıcıyı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem, kullanıcının tüm gönderilerini, sohbetlerini ve diğer verilerini silecektir. Bu işlem geri alınamaz.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>İptal</AlertDialogCancel>
-                                            <AlertDialogAction 
-                                                onClick={() => handleDeleteUser(user.uid)} 
-                                                className={cn(buttonVariants({ variant: "destructive" }))}>
-                                                Evet, Sil
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
+                                <div className="flex items-center gap-2">
+                                     <AwardXpModal user={user} onAward={(amount) => handleXpAwarded(user.uid, amount)} />
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="destructive" size="sm" disabled={user.uid === currentUser?.uid}>
+                                                <Trash2 className="mr-2 h-4 w-4"/>
+                                                Sil
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Kullanıcıyı Sil</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    <b>{user.name}</b> adlı kullanıcıyı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem, kullanıcının tüm gönderilerini, sohbetlerini ve diğer verilerini silecektir. Bu işlem geri alınamaz.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>İptal</AlertDialogCancel>
+                                                <AlertDialogAction 
+                                                    onClick={() => handleDeleteUser(user.uid)} 
+                                                    className={cn(buttonVariants({ variant: "destructive" }))}>
+                                                    Evet, Sil
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
                             </div>
                         ))}
                     </div>
