@@ -625,9 +625,17 @@ const awardXpFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$ai$2f
 });
 async function awardXp(input) {
     // If a reason is provided, get the XP from the config. Otherwise, use the amount directly.
-    const xpToAward = input.reason ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$config$2f$xp$2d$config$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getXpForAction"])(input.reason) : input.xpAmount;
+    const xpToAward = input.reason ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$config$2f$xp$2d$config$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getXpForAction"])(input.reason) : input.xpAmount || 0;
+    // Safety check: Do not call the flow if the XP amount is not positive.
+    if (xpToAward <= 0) {
+        return {
+            success: true,
+            leveledUp: false
+        }; // Silently succeed without doing anything.
+    }
     return awardXpFlow({
-        ...input,
+        userId: input.userId,
+        reason: input.reason,
         xpAmount: xpToAward
     });
 }
