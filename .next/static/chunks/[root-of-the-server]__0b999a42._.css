@@ -876,6 +876,14 @@ img {
   height: 100svh;
 }
 
+.h-\[35\%\] {
+  height: 35%;
+}
+
+.h-\[50vh\] {
+  height: 50vh;
+}
+
 .max-h-60 {
   max-height: 15rem;
 }
@@ -1074,6 +1082,14 @@ img {
 
 .w-full {
   width: 100%;
+}
+
+.w-\[65\%\] {
+  width: 65%;
+}
+
+.w-\[70vw\] {
+  width: 70vw;
 }
 
 .min-w-0 {
@@ -1554,6 +1570,10 @@ img {
   border-radius: .75rem;
 }
 
+.rounded-\[50\%\] {
+  border-radius: 50%;
+}
+
 .rounded-b-lg {
   border-bottom-right-radius: var(--radius);
   border-bottom-left-radius: var(--radius);
@@ -1716,6 +1736,11 @@ img {
 .border-yellow-500 {
   --tw-border-opacity: 1;
   border-color: rgb(234 179 8 / var(--tw-border-opacity, 1));
+}
+
+.border-yellow-950 {
+  --tw-border-opacity: 1;
+  border-color: rgb(66 32 6 / var(--tw-border-opacity, 1));
 }
 
 .border-l-transparent {
@@ -1911,6 +1936,20 @@ img {
   background-color: #eab30833;
 }
 
+.bg-green-900\/40 {
+  background-color: #14532d66;
+}
+
+.bg-yellow-800 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(133 77 14 / var(--tw-bg-opacity, 1));
+}
+
+.bg-yellow-900 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(113 63 18 / var(--tw-bg-opacity, 1));
+}
+
 .bg-gradient-to-br {
   background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
 }
@@ -1921,6 +1960,10 @@ img {
 
 .bg-gradient-to-t {
   background-image: linear-gradient(to top, var(--tw-gradient-stops));
+}
+
+.bg-\[url\(\'https\:\/\/www\.transparenttextures\.com\/patterns\/wood-pattern\.png\'\)\] {
+  background-image: url("https://www.transparenttextures.com/patterns/wood-pattern.png");
 }
 
 .from-black\/80 {
@@ -2010,6 +2053,10 @@ img {
 
 .bg-clip-text {
   background-clip: text;
+}
+
+.bg-repeat {
+  background-repeat: repeat;
 }
 
 .fill-current {
@@ -2573,6 +2620,10 @@ img {
   opacity: .9;
 }
 
+.opacity-30 {
+  opacity: .3;
+}
+
 .shadow-2xl {
   --tw-shadow: 0 25px 50px -12px #00000040;
   --tw-shadow-colored: 0 25px 50px -12px var(--tw-shadow-color);
@@ -2612,6 +2663,12 @@ img {
 .shadow-xl {
   --tw-shadow: 0 20px 25px -5px #0000001a, 0 8px 10px -6px #0000001a;
   --tw-shadow-colored: 0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.shadow-\[inset_0_10px_20px_rgba\(0\,0\,0\,0\.4\)\] {
+  --tw-shadow: inset 0 10px 20px #0006;
+  --tw-shadow-colored: inset 0 10px 20px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
@@ -3122,7 +3179,16 @@ img {
   opacity: .5;
 }
 
-.group\/menu-item:focus-within .group-focus-within\/menu-item\:opacity-100, .group\/menu-item:hover .group-hover\/menu-item\:opacity-100, .group:hover .group-hover\:opacity-100 {
+.group\/menu-item:focus-within .group-focus-within\/menu-item\:opacity-100 {
+  opacity: 1;
+}
+
+.group:hover .group-hover\:bg-yellow-700 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(161 98 7 / var(--tw-bg-opacity, 1));
+}
+
+.group\/menu-item:hover .group-hover\/menu-item\:opacity-100, .group:hover .group-hover\:opacity-100 {
   opacity: 1;
 }
 
