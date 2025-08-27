@@ -5,8 +5,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { Progress } from '@/components/ui/progress';
 import { doc, getDoc } from 'firebase/firestore';
+import Lottie from 'lottie-react';
+import animationData from '../../../public/images/loaderemir.json';
 
 const initialMessages = [
     "Bağlantı kuruluyor...",
@@ -17,17 +18,11 @@ const initialMessages = [
 ];
 
 const SplashScreen = ({ messages }: { messages: string[] }) => {
-    const [progress, setProgress] = useState(0);
     const [messageIndex, setMessageIndex] = useState(0);
 
     useEffect(() => {
-        const progressInterval = setInterval(() => {
-            setProgress(prev => (prev >= 100 ? 100 : prev + 5));
-        }, 100); 
-
         const messageInterval = setInterval(() => {
             setMessageIndex(prev => {
-                // If it's the last message, don't cycle back
                 if (prev === messages.length - 1) {
                     clearInterval(messageInterval);
                     return prev;
@@ -37,10 +32,9 @@ const SplashScreen = ({ messages }: { messages: string[] }) => {
         }, 1200);
 
         return () => {
-            clearInterval(progressInterval);
             clearInterval(messageInterval);
         };
-    }, [messages.length]);
+    }, [messages]);
 
     return (
         <div className="flex flex-col items-center justify-center gap-8 w-full max-w-sm text-center">
@@ -49,8 +43,8 @@ const SplashScreen = ({ messages }: { messages: string[] }) => {
                 <span className="text-primary">Match</span>
             </h1>
             <div className='w-full space-y-2'>
-                <p className="text-sm text-muted-foreground transition-opacity duration-500">{messages[messageIndex]}</p>
-                <Progress value={progress} className="w-full h-1.5" indicatorClassName="bg-gradient-to-r from-blue-500 to-primary"/>
+                 <Lottie animationData={animationData} loop={true} style={{ width: 150, height: 150, margin: 'auto' }} />
+                <p className="text-sm text-muted-foreground transition-opacity duration-500 h-5">{messages[messageIndex]}</p>
             </div>
         </div>
     );
@@ -62,21 +56,21 @@ export default function Home() {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
+            // Give splash screen a minimum time to display
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
             if (user) {
                 try {
                     const userDoc = await getDoc(doc(db, 'users', user.uid));
                     if (userDoc.exists()) {
                         const userData = userDoc.data();
-                        // Update the loading message with the user's name
-                        setLoadingMessages(prev => [...prev, `${userData.name}, hoş geldin!`]);
+                        setLoadingMessages(prev => [...prev.slice(0, prev.length -1), `${userData.name}, hoş geldin!`]);
                         
-                        // Wait a moment for the welcome message to be visible, then redirect
                         setTimeout(() => {
                             router.replace('/explore');
-                        }, 1500); // Show welcome message for 1.5 seconds
+                        }, 1500); 
 
                     } else {
-                        // User exists in Auth, but not in Firestore. Redirect to login to be safe.
                          setTimeout(() => router.replace('/login'), 1000);
                     }
                 } catch (error) {
@@ -84,14 +78,12 @@ export default function Home() {
                     setTimeout(() => router.replace('/login'), 1000);
                 }
             } else {
-                // No user, redirect to login after a short delay to allow splash to show
                 setTimeout(() => {
                     router.replace('/login');
                 }, 2000);
             }
         });
 
-        // Cleanup the subscription when the component unmounts
         return () => unsubscribe();
     }, [router]);
 
