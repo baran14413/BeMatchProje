@@ -11,7 +11,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getFirestore, doc, runTransaction, serverTimestamp, collection, addDoc } from 'firebase-admin/firestore';
 import { initializeApp, getApps } from 'firebase-admin/app';
-import { XP_REASONS, getXpForAction } from '@/lib/xp-config';
+import { XP_REASONS } from '@/config/xp-config';
 
 const AwardXpInputSchema = z.object({
   userId: z.string().describe('The UID of the user to award XP to.'),

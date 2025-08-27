@@ -4,7 +4,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { getBadgeSvgForLevel } from '@/lib/xp-config';
+import { getBadgeSvgForLevel } from '@/config/xp-config';
 
 interface LevelBadgeProps {
   level: number;

@@ -1,4 +1,3 @@
-
 /**
  * @fileOverview Bu dosya, XP sisteminin tüm yapılandırmasını merkezileştirir.
  * Çeşitli eylemler için verilen XP miktarını tanımlar, bu eylemler için
@@ -44,7 +43,7 @@ export const XP_REASONS = {
 // Bu bölümde, her seviye grubu için SVG tanımları bulunur.
 // LevelBadge bileşeni, doğru rozeti oluşturmak için bu verileri kullanır.
 
-// -- Seviye 1-9 Rozeti (Bronz Bar) --
+// Seviye 1-9 Rozeti (Bronz Bar)
 const bronzeBar = `
 <svg viewBox="0 0 100 35" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -56,7 +55,7 @@ const bronzeBar = `
   <rect x="0" y="0" width="100" height="35" rx="17.5" fill="url(#grad-bronze)" />
 </svg>`;
 
-// -- Seviye 10-19 Rozeti (Gümüş Bar) --
+// Seviye 10-19 Rozeti (Gümüş Bar)
 const silverBar = `
 <svg viewBox="0 0 110 35" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -69,7 +68,7 @@ const silverBar = `
   <path d="M88 17.5 L84 21 L80 17.5 L84 14 Z" fill="#FFF" opacity="0.7"/>
 </svg>`;
 
-// -- Seviye 20-49 Rozeti (Altın Bar) --
+// Seviye 20-49 Rozeti (Altın Bar)
 const goldBar = `
 <svg viewBox="0 0 120 35" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -82,7 +81,7 @@ const goldBar = `
   <path d="M98 17.5 L94 21 L90 17.5 L94 14 Z" fill="#FFF5B2" opacity="0.8"/>
 </svg>`;
 
-// -- Seviye 50-89 Rozeti (Yakut Bar) --
+// Seviye 50-89 Rozeti (Yakut Bar)
 const rubyBar = `
 <svg viewBox="0 0 130 35" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -95,7 +94,7 @@ const rubyBar = `
   <path d="M100 17.5 L105 22 L110 17.5 L105 13 Z" fill="#FFFFFF" />
 </svg>`;
 
-// -- Seviye 90-99 Rozeti (Elmas Bar) --
+// Seviye 90-99 Rozeti (Elmas Bar)
 const diamondBar = `
 <svg viewBox="0 0 140 35" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -108,7 +107,7 @@ const diamondBar = `
   <path d="M105 17.5 L112 24 L119 17.5 L112 11 Z" fill="#FFFFFF" stroke="#005A9C" stroke-width="0.5"/>
 </svg>`;
 
-// -- Seviye 100 Rozeti (Efsanevi) --
+// Seviye 100 Rozeti (Efsanevi)
 const legendaryBadge = `
 <svg viewBox="0 0 150 55" xmlns="http://www.w3.org/2000/svg">
     <defs>

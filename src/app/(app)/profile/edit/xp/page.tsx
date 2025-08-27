@@ -11,7 +11,7 @@ import { db, auth } from '@/lib/firebase';
 import { doc, onSnapshot, collection, query, orderBy, limit, getDocs, DocumentData } from 'firebase/firestore';
 import { LevelBadge } from '@/components/ui/level-badge';
 import Link from 'next/link';
-import { XP_VALUES, XP_REASONS } from '@/lib/xp-config';
+import { XP_VALUES, XP_REASONS } from '@/config/xp-config';
 
 const calculateXpForNextLevel = (level: number) => (level + 1) * 100;
 

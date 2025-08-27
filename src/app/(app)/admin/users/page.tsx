@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { awardXp } from '@/ai/flows/award-xp-flow';
-import { XP_REASONS } from '@/lib/xp-config';
+import { XP_REASONS } from '@/config/xp-config';
 
 
 type AppUser = DocumentData & {

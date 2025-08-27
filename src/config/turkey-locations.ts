@@ -1,3 +1,10 @@
+/**
+ * @fileOverview Bu dosya, Türkiye'deki şehirler ve bu şehirlere ait ilçelerin listesini içerir.
+ * Özellikle kullanıcı kayıt formundaki konum seçimi gibi alanlarda kullanılır.
+ * 
+ * - cities: Türkiye'deki 81 ilin plaka kodları ve isimlerini içeren bir dizi.
+ * - districts: Her bir ilin (plaka kodu ile eşleştirilmiş) ilçe listesini içeren bir nesne.
+ */
 
 export const cities = [
     { id: 1, name: 'Adana' },
@@ -1219,5 +1226,3 @@ export const districts: { [key: number]: { id: number, name: string }[] } = {
         { id: 972, name: 'Yığılca' }
     ]
 };
-
-    

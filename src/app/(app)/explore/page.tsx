@@ -36,7 +36,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Label } from '@/components/ui/label';
 import { awardXp } from '@/ai/flows/award-xp-flow';
 import { LevelBadge } from '@/components/ui/level-badge';
-import { getXpForAction } from '@/lib/xp-config';
+import { getXpForAction } from '@/config/xp-config';
 
 
 const formatRelativeTime = (date: Date) => {
