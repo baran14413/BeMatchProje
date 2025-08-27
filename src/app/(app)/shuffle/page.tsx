@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense, useCallback, useRef } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -334,3 +335,5 @@ export default function ShufflePage() {
         </div>
     );
 }
+
+    
