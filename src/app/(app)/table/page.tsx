@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { auth } from '@/lib/firebase';
-import { User as UserIcon } from 'lucide-react';
+import { User as UserIcon, Sofa } from 'lucide-react';
 
 const SEAT_COUNT = 7;
 
@@ -37,13 +37,11 @@ export default function TablePage() {
     const isOccupied = seats[index] !== null;
     const isCurrentUser = isOccupied && seats[index] === currentUser?.uid;
 
-    // Positioning logic for chairs around an elliptic table
-    const angle = (index / SEAT_COUNT) * 2 * Math.PI;
-    const tableWidth = 65; // %
-    const tableHeight = 35; // %
-    const top = 50 - Math.sin(angle) * (tableHeight + 10);
-    const left = 50 + Math.cos(angle) * (tableWidth / 2 + 10);
-    const rotation = -angle * (180 / Math.PI) + 90;
+    const angle = (index / SEAT_COUNT) * 2 * Math.PI + Math.PI / 2; // Offset to start from top
+    const circleRadius = 38; // Percentage of parent width/height
+    const top = 50 - Math.sin(angle) * circleRadius;
+    const left = 50 - Math.cos(angle) * circleRadius;
+    const rotation = angle * (180 / Math.PI) + 180;
 
     return (
       <div
@@ -52,22 +50,24 @@ export default function TablePage() {
         style={{
           top: `${top}%`,
           left: `${left}%`,
-          transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+          transform: `translate(-50%, -50%)`,
         }}
         onClick={() => handleSeatClick(index)}
       >
-        <div className="relative w-16 h-20">
-          {/* Chair Back */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-14 h-16 bg-yellow-800 rounded-t-lg shadow-md group-hover:bg-yellow-700 transition-colors"></div>
-          {/* Chair Seat */}
-          <div className="absolute bottom-0 left-0 w-16 h-8 bg-yellow-900 rounded-md shadow-lg"></div>
+        <div className="relative w-16 h-16 sm:w-20 sm:h-20" style={{ transform: `rotate(${rotation}deg)`}}>
+            {/* Chair using Sofa icon for better look */}
+            <Sofa className={cn(
+                "w-full h-full text-yellow-800 drop-shadow-lg transition-transform group-hover:scale-110",
+                isCurrentUser && "text-purple-600"
+            )} strokeWidth={1.5}/>
+           
            {/* Avatar on Seat */}
           {isOccupied && (
-            <div className="absolute inset-0 flex items-center justify-center">
-                 <Avatar className="w-10 h-10 border-2 bg-background" style={{ transform: `rotate(${-rotation}deg)`}}>
-                    <AvatarImage src={isCurrentUser ? currentUser.photoURL || '' : ''} />
+            <div className="absolute inset-0 flex items-center justify-center pb-2">
+                 <Avatar className="w-8 h-8 sm:w-10 sm:h-10 border-2 bg-background" style={{ transform: `rotate(${-rotation}deg)`}}>
+                    <AvatarImage src={isCurrentUser ? currentUser?.photoURL || '' : ''} />
                     <AvatarFallback>
-                        <UserIcon className="w-5 h-5"/>
+                        <UserIcon className="w-4 h-4 sm:w-5 sm:h-5"/>
                     </AvatarFallback>
                 </Avatar>
             </div>
@@ -78,16 +78,21 @@ export default function TablePage() {
   };
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-green-900/40 relative overflow-hidden p-4">
+    <div className="w-full h-full flex items-center justify-center bg-gray-800 relative overflow-hidden p-4">
         {/* Wooden floor effect */}
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')] opacity-30"></div>
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/wood-plank.png')] bg-repeat opacity-20"></div>
       
-      <div className="relative w-[70vw] h-[50vh] max-w-4xl max-h-96">
-        {/* Table */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[65%] h-[35%] 
-                        bg-yellow-900 rounded-[50%] shadow-2xl border-4 border-yellow-950
-                        bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')] bg-repeat">
-            <div className="absolute inset-0 rounded-[50%] shadow-[inset_0_10px_20px_rgba(0,0,0,0.4)]"></div>
+      {/* The Room */}
+      <div className="relative w-[95vw] h-[95vh] sm:w-[80vw] sm:h-[80vh] max-w-5xl max-h-[800px]">
+
+        {/* Circular Rug */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] 
+                        bg-red-900/70 rounded-full shadow-2xl border-4 border-yellow-700
+                        flex items-center justify-center
+                        bg-[url('https://www.transparenttextures.com/patterns/az-subtle.png')] bg-repeat">
+             <div className="absolute inset-0 rounded-full shadow-[inset_0_0_80px_rgba(0,0,0,0.6)]"></div>
+             {/* Rug center detail */}
+             <div className="w-1/4 h-1/4 rounded-full border-2 border-yellow-600/50"></div>
         </div>
 
         {/* Seats */}
@@ -96,4 +101,3 @@ export default function TablePage() {
     </div>
   );
 }
-
