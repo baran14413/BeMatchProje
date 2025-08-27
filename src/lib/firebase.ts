@@ -1,7 +1,7 @@
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, setDoc, serverTimestamp as firestoreServerTimestamp, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, serverTimestamp as firestoreServerTimestamp, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED, clearIndexedDbPersistence } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getDatabase, ref, onValue, set, onDisconnect, serverTimestamp as rtdbServerTimestamp, goOffline, goOnline } from 'firebase/database';
 import 'firebase/compat/firestore';
@@ -52,6 +52,15 @@ if (typeof window !== 'undefined') {
         console.error("Error enabling Firestore persistence:", error);
     }
 }
+
+const clearCache = async () => {
+    try {
+        await clearIndexedDbPersistence(db);
+    } catch (error) {
+        console.error("Error clearing Firestore persistence:", error);
+        throw error;
+    }
+};
 
 
 // Presence management
@@ -111,4 +120,6 @@ const setupPresence = (userId: string) => {
 };
 
 
-export { app, auth, db, storage, setupPresence };
+export { app, auth, db, storage, setupPresence, clearCache };
+
+    

@@ -24,6 +24,7 @@ const getTitleForPath = (path: string): string => {
     if (path.endsWith('/picture')) return 'Profil Fotoğrafını Düzenle';
     if (path.endsWith('/wallet')) return 'Cüzdanım';
     if (path.endsWith('/users')) return 'Kullanıcıları Yönet';
+    if (path.endsWith('/cache')) return 'Önbellek Yönetimi';
     return 'Ayarlar';
 };
 

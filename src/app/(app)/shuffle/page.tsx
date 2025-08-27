@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { db, auth } from '@/lib/firebase';
 import { collection, query, where, getDocs, limit, doc, setDoc, serverTimestamp, deleteDoc, onSnapshot, getDoc, runTransaction, DocumentData, orderBy, updateDoc, increment } from 'firebase/firestore';
 import { Loader2, Sparkles, Zap, ThumbsUp, ThumbsDown, Info, Crown } from 'lucide-react';
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -256,29 +256,33 @@ function ShuffleContent() {
     const IdleUI = () => (
         <>
             <div className="relative mb-6">
-                <Zap className="w-24 h-24 text-primary" />
+                <Zap className="w-24 h-24 text-transparent bg-clip-text bg-gradient-to-br from-yellow-400 via-primary to-blue-500" />
                 <Sparkles className="absolute -top-2 -right-2 w-8 h-8 text-yellow-400" />
             </div>
-            <h1 className="text-3xl font-bold font-headline mb-2">Rastgele Eşleşme</h1>
-            <p className="max-w-md mb-8 text-muted-foreground">
-                Butona tıkla ve o an eşleşme arayan başka biriyle 5 dakikalık sürpriz bir sohbete başla.
-            </p>
-             <div className="flex flex-col items-center gap-4">
-                <Button 
-                    size="lg" 
-                    className="h-16 px-10 text-xl rounded-full shadow-lg bg-gradient-to-r from-primary to-blue-500 text-primary-foreground transition-transform hover:scale-105"
-                    onClick={handleSearchClick}
-                    disabled={isLoadingProfile || (remainingMatches !== null && remainingMatches <= 0)}
-                >
-                    {isLoadingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-3 h-5 w-5" />}
-                    Eşleşme Bul
-                </Button>
-                 {remainingMatches !== null && isFinite(remainingMatches) && (
-                    <Badge variant={remainingMatches > 0 ? "secondary" : "destructive"}>
-                        Kalan Hak: {remainingMatches}
-                    </Badge>
-                )}
-            </div>
+            <Card className="bg-background/80 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-2xl w-full max-w-sm">
+                <CardHeader>
+                    <CardTitle className="text-3xl font-bold font-headline">Rastgele Eşleşme</CardTitle>
+                    <CardDescription className="text-muted-foreground mt-2">
+                         Butona tıkla ve o an eşleşme arayan başka biriyle 5 dakikalık sürpriz bir sohbete başla.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col items-center gap-4">
+                     <Button 
+                        size="lg" 
+                        className="h-16 w-full text-xl rounded-full shadow-lg bg-gradient-to-r from-primary to-blue-500 text-primary-foreground transition-transform hover:scale-105"
+                        onClick={handleSearchClick}
+                        disabled={isLoadingProfile || (remainingMatches !== null && remainingMatches <= 0)}
+                    >
+                        {isLoadingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-3 h-5 w-5" />}
+                        Eşleşme Bul
+                    </Button>
+                     {remainingMatches !== null && isFinite(remainingMatches) && (
+                        <Badge variant={remainingMatches > 0 ? "secondary" : "destructive"}>
+                            Kalan Hak: {remainingMatches}
+                        </Badge>
+                    )}
+                </CardContent>
+            </Card>
             <div className="absolute bottom-6 flex items-center text-xs text-muted-foreground gap-1">
                 <Info className="w-3 h-3" />
                 <span>Premium üyeler sınırsız ve öncelikli eşleşir.</span>

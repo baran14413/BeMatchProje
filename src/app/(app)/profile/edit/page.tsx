@@ -28,6 +28,7 @@ import {
   Users,
   ShieldAlert,
   Code,
+  Database,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -159,6 +160,7 @@ export default function EditProfilePage() {
     
     const applicationItems = [
         { icon: <Bell className="h-6 w-6" />, title: 'Bildirim Ayarları', href: '/profile/edit/notifications' },
+        { icon: <Database className="h-6 w-6" />, title: 'Önbellek Yönetimi', href: '/profile/edit/cache' },
         { icon: <Download className="h-6 w-6" />, title: 'Uygulamayı Yükle', onClick: handleInstallClick },
         { icon: <HelpCircle className="h-6 w-6" />, title: 'Uygulama Kılavuzu', href: '/profile/edit/guide' },
         { icon: <Code className="h-6 w-6" />, title: 'Teknoloji Kümesi', href: '/profile/edit/tech-stack' },
@@ -248,7 +250,7 @@ export default function EditProfilePage() {
             </Card>
         </div>
         <div>
-            <SectionTitle title="Görünüm" />
+            <SectionTitle title="Uygulama Ayarları" />
             <Card>
                 <CardContent className="p-0">
                     {appearanceItems.map((item, index) => (
@@ -263,21 +265,15 @@ export default function EditProfilePage() {
                             {index < appearanceItems.length - 1 && <Separator className="bg-border/50" />}
                         </React.Fragment>
                     ))}
-                </CardContent>
-            </Card>
-        </div>
-        <div>
-            <SectionTitle title="Uygulama" />
-            <Card>
-                <CardContent className="p-0">
-                    {applicationItems.map((item, index) => (
+                     <Separator className="bg-border/50" />
+                     {applicationItems.map((item, index) => (
                          <React.Fragment key={item.title}>
                             <SettingsItem
                                 icon={item.icon}
                                 title={item.title}
                                 href={item.href}
                                 onClick={item.onClick}
-                                isFirst={index === 0}
+                                isFirst={index === 0 && appearanceItems.length === 0}
                                 isLast={index === applicationItems.length -1}
                             />
                              {index < applicationItems.length - 1 && <Separator className="bg-border/50" />}
