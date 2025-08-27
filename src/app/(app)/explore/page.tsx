@@ -34,6 +34,8 @@ import { useRouter } from 'next/navigation';
 import { MentionTextarea } from '@/components/ui/mention-textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
+import { awardXp } from '@/ai/flows/award-xp-flow';
+import { LevelBadge } from '@/components/ui/level-badge';
 
 const formatRelativeTime = (date: Date) => {
     try {
@@ -80,6 +82,7 @@ type User = {
   aiHint?: string;
   isGalleryPrivate?: boolean;
   isPremium?: boolean;
+  level?: number;
 };
 
 type Comment = {
@@ -281,7 +284,11 @@ export default function ExplorePage() {
                             read: false,
                             createdAt: serverTimestamp()
                         });
+                        // Award XP to post author for receiving a like
+                        awardXp({ userId: post.authorId, xpAmount: 5, reason: 'post_like_received' });
                     }
+                     // Award XP to self for liking a post
+                    awardXp({ userId: currentUser.uid, xpAmount: 1, reason: 'post_like_sent' });
 
                  } else { // Unliking
                      transaction.delete(likeRef);
@@ -359,6 +366,12 @@ export default function ExplorePage() {
             
             const newCommentRef = await addDoc(commentsRef, newCommentData);
             await updateDoc(postRef, { commentsCount: increment(1) });
+            
+             // Award XP
+            if (activePostForComments.authorId !== currentUser.uid) {
+                awardXp({ userId: activePostForComments.authorId, xpAmount: 10, reason: 'comment_received' });
+            }
+            awardXp({ userId: currentUser.uid, xpAmount: 2, reason: 'comment_sent' });
             
              // Create notification
              if (activePostForComments.authorId !== currentUser.uid) {
@@ -559,17 +572,23 @@ export default function ExplorePage() {
             const docSnap = await getDoc(postRef);
             if (!docSnap.exists()) throw new Error("Post creation failed in DB");
             const newPostFromDb = { id: docSnap.id, ...docSnap.data() };
+            
+            // Award XP for new post
+            await awardXp({ userId: currentUser.uid, xpAmount: 25, reason: 'new_post' });
+
+            const currentUserDoc = await getDoc(doc(db, 'users', currentUser.uid));
+            const currentUserData = currentUserDoc.data() as User;
 
             const newPostForUI: Post = {
                 ...newPostFromDb,
-                user: { uid: currentUser.uid, name: currentUser.displayName!, username: currentUser.email?.split('@')[0] || 'user', avatarUrl: currentUser.photoURL! },
+                user: currentUserData,
                 comments: [],
                 liked: false,
             } as Post;
             
             setPosts(prev => [newPostForUI, ...prev]);
             
-            toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı.', className: 'bg-green-500 text-white' });
+            toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı. (+25 XP)', className: 'bg-green-500 text-white' });
 
         } catch (error) {
             console.error("Error sharing post: ", error);
@@ -602,15 +621,11 @@ export default function ExplorePage() {
                                     </Avatar>
                                 </Link>
                                 <div className="flex flex-col overflow-hidden">
-                                    <div className="flex items-baseline gap-2">
+                                    <div className="flex items-center gap-2">
                                         <Link href={`/profile/${post.user?.username}`} className="font-semibold text-sm truncate hover:underline">
                                             {post.user?.name.split(' ')[0]}
                                         </Link>
-                                        {post.location && (
-                                            <Link href={`/location/${encodeURIComponent(post.location)}`} className='text-xs text-muted-foreground truncate flex items-center gap-1 hover:underline'>
-                                                <MapPin className='w-3 h-3'/> {post.location}
-                                            </Link>
-                                        )}
+                                        <LevelBadge level={post.user?.level || 1} size="sm" />
                                     </div>
                                     <span className="text-xs text-muted-foreground truncate">@{post.user?.username}</span>
                                 </div>

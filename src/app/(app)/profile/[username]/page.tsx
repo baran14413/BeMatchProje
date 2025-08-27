@@ -42,6 +42,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { LevelBadge } from '@/components/ui/level-badge';
 
 type Post = {
     id: string;
@@ -78,6 +79,7 @@ const PostCard = ({ post, user }: { post: Post, user: DocumentData }) => (
                     <div className='flex items-center gap-2'>
                         <Link href={`/profile/${user.username}`} className="font-semibold text-sm">{user.name?.split(' ')[0]}</Link>
                         {user.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
+                        <LevelBadge level={user.level || 1} size="sm" />
                     </div>
                      {post.isAiEdited && (
                         <Badge variant="outline" className="text-xs w-fit text-purple-500 border-purple-300 mt-1">
@@ -429,10 +431,11 @@ export default function UserProfilePage() {
 
         {/* Profile Header */}
         <header className="flex gap-4 items-center">
-          <Avatar className="w-24 h-24 border-2 border-primary">
-            <AvatarImage src={userProfile.avatarUrl} data-ai-hint={userProfile.aiHint} />
-            <AvatarFallback className="text-3xl">{userProfile.name?.charAt(0)}</AvatarFallback>
-          </Avatar>
+            <LevelBadge level={userProfile.level || 1} size="lg" className="absolute -left-2 -top-2 z-10" />
+            <Avatar className="w-24 h-24 border-2 border-primary">
+                <AvatarImage src={userProfile.avatarUrl} data-ai-hint={userProfile.aiHint} />
+                <AvatarFallback className="text-3xl">{userProfile.name?.charAt(0)}</AvatarFallback>
+            </Avatar>
           <div className="flex-1 grid grid-cols-3 gap-4 text-center">
             <StatItem value={userPosts.length} label="Gönderi" />
             <StatItem value={userProfile.stats?.followers} label="Takipçi" onClick={() => fetchFollowList('followers')} />

@@ -540,6 +540,10 @@ img {
   top: 50%;
 }
 
+.-left-2 {
+  left: -.5rem;
+}
+
 .z-10 {
   z-index: 10;
 }
@@ -2058,6 +2062,10 @@ img {
 
 .to-yellow-500 {
   --tw-gradient-to: #eab308 var(--tw-gradient-to-position);
+}
+
+.to-amber-500 {
+  --tw-gradient-to: #f59e0b var(--tw-gradient-to-position);
 }
 
 .bg-clip-text {
