@@ -551,6 +551,8 @@ function AwardXpModal({ user, onAward }) {
                 });
                 onAward(amount);
                 setIsOpen(false);
+                setAmount(0);
+                setReason('');
             } else {
                 throw new Error("XP verme işlemi başarısız oldu.");
             }
@@ -578,19 +580,19 @@ function AwardXpModal({ user, onAward }) {
                             className: "mr-2 h-4 w-4"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                            lineNumber: 69,
+                            lineNumber: 71,
                             columnNumber: 21
                         }, this),
                         "XP Ver"
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                    lineNumber: 68,
+                    lineNumber: 70,
                     columnNumber: 17
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                lineNumber: 67,
+                lineNumber: 69,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogContent"], {
@@ -604,20 +606,20 @@ function AwardXpModal({ user, onAward }) {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                lineNumber: 75,
+                                lineNumber: 77,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogDescription"], {
                                 children: "Kullanıcıya manuel olarak deneyim puanı ekleyin."
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                lineNumber: 76,
+                                lineNumber: 78,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                        lineNumber: 74,
+                        lineNumber: 76,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -631,24 +633,27 @@ function AwardXpModal({ user, onAward }) {
                                         children: "XP Miktarı"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                        lineNumber: 82,
+                                        lineNumber: 84,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
                                         id: "xp-amount",
                                         type: "number",
                                         value: amount,
-                                        onChange: (e)=>setAmount(parseInt(e.target.value, 10)),
+                                        onChange: (e)=>{
+                                            const value = parseInt(e.target.value, 10);
+                                            setAmount(isNaN(value) ? 0 : value);
+                                        },
                                         placeholder: "Örn: 100"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                        lineNumber: 83,
+                                        lineNumber: 85,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                lineNumber: 81,
+                                lineNumber: 83,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -659,7 +664,7 @@ function AwardXpModal({ user, onAward }) {
                                         children: "Neden (Opsiyonel)"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                        lineNumber: 92,
+                                        lineNumber: 97,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -669,19 +674,19 @@ function AwardXpModal({ user, onAward }) {
                                         placeholder: "Örn: Etkinlik ödülü"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                        lineNumber: 93,
+                                        lineNumber: 98,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                lineNumber: 91,
+                                lineNumber: 96,
                                 columnNumber: 22
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                        lineNumber: 80,
+                        lineNumber: 82,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogFooter"], {
@@ -693,12 +698,12 @@ function AwardXpModal({ user, onAward }) {
                                     children: "İptal"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                    lineNumber: 103,
+                                    lineNumber: 108,
                                     columnNumber: 25
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                lineNumber: 102,
+                                lineNumber: 107,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -709,32 +714,32 @@ function AwardXpModal({ user, onAward }) {
                                         className: "mr-2 h-4 w-4 animate-spin"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                        lineNumber: 106,
+                                        lineNumber: 111,
                                         columnNumber: 40
                                     }, this),
                                     "Onayla"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                lineNumber: 105,
+                                lineNumber: 110,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                        lineNumber: 101,
+                        lineNumber: 106,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                lineNumber: 73,
+                lineNumber: 75,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-        lineNumber: 66,
+        lineNumber: 68,
         columnNumber: 9
     }, this);
 }
@@ -839,20 +844,20 @@ function ManageUsersPage() {
                         children: "Kullanıcıları Yönet"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                        lineNumber: 182,
+                        lineNumber: 187,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
                         children: "Sistemdeki tüm kullanıcıları görüntüleyin ve yönetin. Bu işlem geri alınamaz."
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                        lineNumber: 183,
+                        lineNumber: 188,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                lineNumber: 181,
+                lineNumber: 186,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -862,12 +867,12 @@ function ManageUsersPage() {
                         className: "w-8 h-8 animate-spin"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                        lineNumber: 190,
+                        lineNumber: 195,
                         columnNumber: 25
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                    lineNumber: 189,
+                    lineNumber: 194,
                     columnNumber: 21
                 }, this) : users.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "space-y-4",
@@ -884,20 +889,20 @@ function ManageUsersPage() {
                                                     "data-ai-hint": user.aiHint
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                                    lineNumber: 198,
+                                                    lineNumber: 203,
                                                     columnNumber: 41
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AvatarFallback"], {
                                                     children: user.name?.charAt(0)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                                    lineNumber: 199,
+                                                    lineNumber: 204,
                                                     columnNumber: 41
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                            lineNumber: 197,
+                                            lineNumber: 202,
                                             columnNumber: 37
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -907,7 +912,7 @@ function ManageUsersPage() {
                                                     children: user.name
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                                    lineNumber: 202,
+                                                    lineNumber: 207,
                                                     columnNumber: 41
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -915,19 +920,19 @@ function ManageUsersPage() {
                                                     children: user.email
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                                    lineNumber: 203,
+                                                    lineNumber: 208,
                                                     columnNumber: 41
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                            lineNumber: 201,
+                                            lineNumber: 206,
                                             columnNumber: 37
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                    lineNumber: 196,
+                                    lineNumber: 201,
                                     columnNumber: 33
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -938,7 +943,7 @@ function ManageUsersPage() {
                                             onAward: (amount)=>handleXpAwarded(user.uid, amount)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                            lineNumber: 207,
+                                            lineNumber: 212,
                                             columnNumber: 38
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AlertDialog"], {
@@ -954,19 +959,19 @@ function ManageUsersPage() {
                                                                 className: "mr-2 h-4 w-4"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                                                lineNumber: 211,
+                                                                lineNumber: 216,
                                                                 columnNumber: 49
                                                             }, this),
                                                             "Sil"
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                                        lineNumber: 210,
+                                                        lineNumber: 215,
                                                         columnNumber: 45
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                                    lineNumber: 209,
+                                                    lineNumber: 214,
                                                     columnNumber: 41
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AlertDialogContent"], {
@@ -977,7 +982,7 @@ function ManageUsersPage() {
                                                                     children: "Kullanıcıyı Sil"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                                                    lineNumber: 217,
+                                                                    lineNumber: 222,
                                                                     columnNumber: 49
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AlertDialogDescription"], {
@@ -986,20 +991,20 @@ function ManageUsersPage() {
                                                                             children: user.name
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                                                            lineNumber: 219,
+                                                                            lineNumber: 224,
                                                                             columnNumber: 53
                                                                         }, this),
                                                                         " adlı kullanıcıyı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem, kullanıcının tüm gönderilerini, sohbetlerini ve diğer verilerini silecektir. Bu işlem geri alınamaz."
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                                                    lineNumber: 218,
+                                                                    lineNumber: 223,
                                                                     columnNumber: 49
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                                            lineNumber: 216,
+                                                            lineNumber: 221,
                                                             columnNumber: 45
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AlertDialogFooter"], {
@@ -1008,7 +1013,7 @@ function ManageUsersPage() {
                                                                     children: "İptal"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                                                    lineNumber: 223,
+                                                                    lineNumber: 228,
                                                                     columnNumber: 49
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AlertDialogAction"], {
@@ -1019,42 +1024,42 @@ function ManageUsersPage() {
                                                                     children: "Evet, Sil"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                                                    lineNumber: 224,
+                                                                    lineNumber: 229,
                                                                     columnNumber: 49
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                                            lineNumber: 222,
+                                                            lineNumber: 227,
                                                             columnNumber: 45
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                                    lineNumber: 215,
+                                                    lineNumber: 220,
                                                     columnNumber: 41
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                            lineNumber: 208,
+                                            lineNumber: 213,
                                             columnNumber: 37
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                                    lineNumber: 206,
+                                    lineNumber: 211,
                                     columnNumber: 33
                                 }, this)
                             ]
                         }, user.uid, true, {
                             fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                            lineNumber: 195,
+                            lineNumber: 200,
                             columnNumber: 29
                         }, this))
                 }, void 0, false, {
                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                    lineNumber: 193,
+                    lineNumber: 198,
                     columnNumber: 22
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "flex flex-col items-center justify-center text-center text-muted-foreground p-10 border-2 border-dashed rounded-lg",
@@ -1063,7 +1068,7 @@ function ManageUsersPage() {
                             className: "w-12 h-12 mb-4"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                            lineNumber: 238,
+                            lineNumber: 243,
                             columnNumber: 25
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -1071,24 +1076,24 @@ function ManageUsersPage() {
                             children: "Sistemde Kullanıcı Yok"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                            lineNumber: 239,
+                            lineNumber: 244,
                             columnNumber: 25
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                    lineNumber: 237,
+                    lineNumber: 242,
                     columnNumber: 21
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-                lineNumber: 187,
+                lineNumber: 192,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(app)/admin/users/page.tsx",
-        lineNumber: 180,
+        lineNumber: 185,
         columnNumber: 9
     }, this);
 }

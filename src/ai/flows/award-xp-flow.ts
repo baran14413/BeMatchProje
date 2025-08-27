@@ -41,7 +41,9 @@ const awardXpFlow = ai.defineFlow(
         const userDoc = await transaction.get(userRef);
         if (!userDoc.exists) {
           console.error(`User ${userId} not found.`);
-          return;
+          // Stop the transaction by not returning anything or returning a specific value.
+          // Since the user doesn't exist, we can't proceed.
+          return; 
         }
 
         const userData = userDoc.data()!;
@@ -118,3 +120,4 @@ export async function awardXp(
   
   return awardXpFlow({ userId: input.userId, reason: input.reason, xpAmount: xpToAward });
 }
+
