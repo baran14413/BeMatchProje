@@ -430,76 +430,77 @@ export default function UserProfilePage() {
       <div className="flex flex-col gap-6">
 
         {/* Profile Header */}
-        <header className="flex gap-4 items-center">
-            <LevelBadge level={userProfile.level || 1} size="lg" className="absolute -left-2 -top-2 z-10" />
-            <Avatar className="w-24 h-24 border-2 border-primary">
-                <AvatarImage src={userProfile.avatarUrl} data-ai-hint={userProfile.aiHint} />
-                <AvatarFallback className="text-3xl">{userProfile.name?.charAt(0)}</AvatarFallback>
-            </Avatar>
-          <div className="flex-1 grid grid-cols-3 gap-4 text-center">
-            <StatItem value={userPosts.length} label="Gönderi" />
-            <StatItem value={userProfile.stats?.followers} label="Takipçi" onClick={() => fetchFollowList('followers')} />
-            <StatItem value={userProfile.stats?.following} label="Takip" onClick={() => fetchFollowList('following')} />
-          </div>
-        </header>
-
-        {/* Bio Section */}
-        <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-                 <h1 className="text-lg font-bold">{userProfile.name?.split(' ')[0]}</h1>
-                 {userProfile.isPremium && <Crown className="w-5 h-5 text-yellow-500" />}
+        <header className="flex flex-col gap-4">
+            <div className="flex gap-4 items-center">
+                <div className="relative shrink-0">
+                    <Avatar className="w-24 h-24 border-2 border-primary">
+                        <AvatarImage src={userProfile.avatarUrl} data-ai-hint={userProfile.aiHint} />
+                        <AvatarFallback className="text-3xl">{userProfile.name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                     <LevelBadge level={userProfile.level || 1} size="lg" className="absolute -left-2 -top-2 z-10" />
+                </div>
+                <div className="flex-1 grid grid-cols-3 gap-2 text-center">
+                    <StatItem value={userPosts.length} label="Gönderi" />
+                    <StatItem value={userProfile.stats?.followers} label="Takipçi" onClick={() => fetchFollowList('followers')} />
+                    <StatItem value={userProfile.stats?.following} label="Takip" onClick={() => fetchFollowList('following')} />
+                </div>
             </div>
-             <p className="text-muted-foreground text-sm">@{userProfile.username}</p>
-            <div className="flex items-center gap-1.5 mt-1">
-                <ShieldCheck className="w-4 h-4 text-green-500" />
-                <p className="text-xs font-medium text-green-600">Doğrulanmış Profil</p>
+            {/* Bio Section */}
+            <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                    <h1 className="text-lg font-bold">{userProfile.name}</h1>
+                    {userProfile.isPremium && <Crown className="w-5 h-5 text-yellow-500" />}
+                </div>
+                <p className="text-muted-foreground text-sm">@{userProfile.username}</p>
+                <div className="flex items-center gap-1.5 mt-1">
+                    <ShieldCheck className="w-4 h-4 text-green-500" />
+                    <p className="text-xs font-medium text-green-600">Doğrulanmış Profil</p>
+                </div>
+                <p className="text-muted-foreground text-sm mt-2">{userProfile.bio}</p>
             </div>
-             <p className="text-muted-foreground text-sm mt-2">{userProfile.bio}</p>
-        </div>
-
-
-        {/* Action Buttons */}
-        <div className="flex gap-2 w-full">
-            {isMyProfile ? (
-                 <Link href="/profile/edit" className="w-full">
-                    <Button variant="outline" className="w-full">
-                        <Settings className="mr-2 h-4 w-4" /> Profili Düzenle
-                    </Button>
-                </Link>
-            ) : (
-                <>
-                    <Button className="flex-1" onClick={handleFollowToggle} disabled={isFollowProcessing}>
-                        {isFollowProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 
-                           isFollowing ? <UserCheckIcon className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />
-                        }
-                        {isFollowing ? 'Takibi Bırak' : 'Takip Et'}
-                    </Button>
-                    <Link href={`/chat?userId=${userProfile.uid}`} className="flex-1">
-                        <Button variant="secondary" className="w-full">
-                            <MessageSquare className="mr-2 h-4 w-4" /> Mesaj Gönder
+             {/* Action Buttons */}
+            <div className="flex gap-2 w-full">
+                {isMyProfile ? (
+                    <Link href="/profile/edit" className="w-full">
+                        <Button variant="outline" className="w-full">
+                            <Settings className="mr-2 h-4 w-4" /> Profili Düzenle
                         </Button>
                     </Link>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="icon">
-                            <MoreVertical className="h-4 w-4" />
-                            <span className="sr-only">Daha Fazla</span>
+                ) : (
+                    <>
+                        <Button className="flex-1" onClick={handleFollowToggle} disabled={isFollowProcessing}>
+                            {isFollowProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 
+                            isFollowing ? <UserCheckIcon className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />
+                            }
+                            {isFollowing ? 'Takibi Bırak' : 'Takip Et'}
                         </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                            <Flag className="mr-2 h-4 w-4" />
-                            <span>Şikayet Et</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive focus:text-destructive">
-                            <Ban className="mr-2 h-4 w-4" />
-                            <span>Engelle</span>
-                        </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </>
-            )}
-        </div>
+                        <Link href={`/chat?userId=${userProfile.uid}`} className="flex-1">
+                            <Button variant="secondary" className="w-full">
+                                <MessageSquare className="mr-2 h-4 w-4" /> Mesaj Gönder
+                            </Button>
+                        </Link>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                                <span className="sr-only">Daha Fazla</span>
+                            </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                                <Flag className="mr-2 h-4 w-4" />
+                                <span>Şikayet Et</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                <Ban className="mr-2 h-4 w-4" />
+                                <span>Engelle</span>
+                            </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </>
+                )}
+            </div>
+        </header>
 
         {/* Interests */}
         <div className="flex flex-wrap gap-2">
