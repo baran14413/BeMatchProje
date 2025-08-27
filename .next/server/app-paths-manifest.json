@@ -1,10 +1,1 @@
-{
-  "/(app)/admin/blocked-ips/page": "app/(app)/admin/blocked-ips/page.js",
-  "/(app)/admin/page": "app/(app)/admin/page.js",
-  "/(app)/explore/page": "app/(app)/explore/page.js",
-  "/(app)/match/page": "app/(app)/match/page.js",
-  "/(app)/notifications/page": "app/(app)/notifications/page.js",
-  "/(app)/profile/[username]/page": "app/(app)/profile/[username]/page.js",
-  "/(app)/profile/page": "app/(app)/profile/page.js",
-  "/page": "app/page.js"
-}
+{}
