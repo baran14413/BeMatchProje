@@ -106,9 +106,15 @@ const awardXpFlow = ai.defineFlow(
 
 
 export async function awardXp(
-  input: AwardXpInput
+  input: Omit<AwardXpInput, 'xpAmount'> & { xpAmount?: number; reason?: keyof typeof XP_REASONS | string }
 ): Promise<{ success: boolean; leveledUp: boolean }> {
   // If a reason is provided, get the XP from the config. Otherwise, use the amount directly.
-  const xpToAward = input.reason ? getXpForAction(input.reason as any) : input.xpAmount;
-  return awardXpFlow({ ...input, xpAmount: xpToAward });
+  const xpToAward = input.reason ? getXpForAction(input.reason as any) : (input.xpAmount || 0);
+
+  // Safety check: Do not call the flow if the XP amount is not positive.
+  if (xpToAward <= 0) {
+    return { success: true, leveledUp: false }; // Silently succeed without doing anything.
+  }
+  
+  return awardXpFlow({ userId: input.userId, reason: input.reason, xpAmount: xpToAward });
 }

@@ -287,10 +287,10 @@ export default function ExplorePage() {
                             createdAt: serverTimestamp()
                         });
                         // Award XP to post author for receiving a like
-                        awardXp({ userId: post.authorId, reason: 'like_received' });
+                        awardXp({ userId: post.authorId, reason: 'LIKE_RECEIVED' });
                     }
                      // Award XP to self for liking a post
-                    awardXp({ userId: currentUser.uid, reason: 'like_sent' });
+                    awardXp({ userId: currentUser.uid, reason: 'LIKE_SENT' });
 
                  } else { // Unliking
                      transaction.delete(likeRef);
@@ -371,9 +371,9 @@ export default function ExplorePage() {
             
              // Award XP
             if (activePostForComments.authorId !== currentUser.uid) {
-                awardXp({ userId: activePostForComments.authorId, reason: 'comment_received' });
+                awardXp({ userId: activePostForComments.authorId, reason: 'COMMENT_RECEIVED' });
             }
-            awardXp({ userId: currentUser.uid, reason: 'comment_sent' });
+            awardXp({ userId: currentUser.uid, reason: 'COMMENT_SENT' });
             
              // Create notification
              if (activePostForComments.authorId !== currentUser.uid) {
@@ -576,7 +576,7 @@ export default function ExplorePage() {
             const newPostFromDb = { id: docSnap.id, ...docSnap.data() };
             
             // Award XP for new post
-            await awardXp({ userId: currentUser.uid, reason: 'new_post' });
+            await awardXp({ userId: currentUser.uid, reason: 'NEW_POST' });
 
             const currentUserDoc = await getDoc(doc(db, 'users', currentUser.uid));
             const currentUserData = currentUserDoc.data() as User;
@@ -590,7 +590,7 @@ export default function ExplorePage() {
             
             setPosts(prev => [newPostForUI, ...prev]);
             
-            toast({ title: 'Paylaşıldı!', description: `Gönderiniz başarıyla paylaşıldı. (+${getXpForAction('new_post')} XP)`, className: 'bg-green-500 text-white' });
+            toast({ title: 'Paylaşıldı!', description: `Gönderiniz başarıyla paylaşıldı. (+${getXpForAction('NEW_POST')} XP)`, className: 'bg-green-500 text-white' });
 
         } catch (error) {
             console.error("Error sharing post: ", error);
