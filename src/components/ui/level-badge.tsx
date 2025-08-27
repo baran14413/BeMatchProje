@@ -14,41 +14,34 @@ interface LevelBadgeProps {
 }
 
 const sizeClasses = {
-  sm: 'w-6 h-6',
-  md: 'w-8 h-8',
-  lg: 'w-12 h-12',
-  xl: 'w-24 h-24',
-};
-
-// Colors for text fill, not used in SVG directly anymore but kept for reference
-const getColorsForLevel = (level: number): string => {
-  if (level >= 100) return '#000000'; // Black for legendary
-  if (level >= 90) return '#003366'; // Dark blue for diamond
-  if (level >= 50) return '#FFFFFF'; // White for ruby
-  return '#000000'; // Black for others
+  sm: 'w-10 h-7',
+  md: 'w-12 h-8',
+  lg: 'w-16 h-10',
+  xl: 'w-24 h-14',
 };
 
 export const LevelBadge: React.FC<LevelBadgeProps> = ({ level, size = 'md', className, showTooltip = true }) => {
-  const textColor = getColorsForLevel(level);
   
-  // Get the base SVG structure from the config file
-  const baseSvg = getBadgeSvgForLevel(level);
+  const { svg: baseSvg, textY, textFontSize, textColor } = getBadgeSvgForLevel(level);
   
-  // Inject the level number and text color into the SVG string
+  const textContent = level >= 100 ? 'Seviye 100' : `${level}`;
+
+  // Inject the level number into the SVG string
   const finalSvg = baseSvg.replace(
       '</svg>', 
       `<text
-          x="50"
-          y="${level >= 100 ? '62' : '65'}"
-          font-family="Arial, sans-serif"
-          font-size="${level >= 100 ? '40' : '45'}"
+          x="50%"
+          y="${textY}"
+          dominant-baseline="middle"
+          text-anchor="middle"
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+          font-size="${textFontSize}"
           font-weight="bold"
           fill="${textColor}"
-          text-anchor="middle"
-          stroke="${level >= 100 ? 'black' : 'none'}"
-          stroke-width="${level >= 100 ? '0.5' : '0'}"
+          stroke="${level >= 90 && level < 100 ? 'black' : 'none'}"
+          stroke-width="0.2"
       >
-          ${level}
+          ${textContent}
       </text>
       </svg>`
   );
