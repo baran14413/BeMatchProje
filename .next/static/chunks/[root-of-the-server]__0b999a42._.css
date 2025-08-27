@@ -271,7 +271,7 @@ img, video {
   --chart-3: 197 37% 24%;
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
-  --header-height: 4rem;
+  --header-height: 3rem;
   --bottom-nav-height: 3rem;
 }
 
@@ -408,8 +408,16 @@ img {
   right: -3rem;
 }
 
+.-right-2 {
+  right: -.5rem;
+}
+
 .-top-12 {
   top: -3rem;
+}
+
+.-top-2 {
+  top: -.5rem;
 }
 
 .bottom-0 {
@@ -418,6 +426,10 @@ img {
 
 .bottom-20 {
   bottom: 5rem;
+}
+
+.bottom-6 {
+  bottom: 1.5rem;
 }
 
 .bottom-8 {
@@ -548,10 +560,6 @@ img {
   z-index: 100;
 }
 
-.m-auto {
-  margin: auto;
-}
-
 .-mx-1 {
   margin-left: -.25rem;
   margin-right: -.25rem;
@@ -606,8 +614,8 @@ img {
   margin-left: -1rem;
 }
 
-.-ml-8 {
-  margin-left: -2rem;
+.-ml-6 {
+  margin-left: -1.5rem;
 }
 
 .-mt-2 {
@@ -618,8 +626,8 @@ img {
   margin-top: -1rem;
 }
 
-.-mt-8 {
-  margin-top: -2rem;
+.-mt-6 {
+  margin-top: -1.5rem;
 }
 
 .mb-1 {
@@ -664,6 +672,10 @@ img {
 
 .mr-1 {
   margin-right: .25rem;
+}
+
+.mr-1\.5 {
+  margin-right: .375rem;
 }
 
 .mr-2 {
@@ -793,10 +805,6 @@ img {
 
 .h-4 {
   height: 1rem;
-}
-
-.h-40 {
-  height: 10rem;
 }
 
 .h-48 {
@@ -1023,10 +1031,6 @@ img {
   width: 1rem;
 }
 
-.w-40 {
-  width: 10rem;
-}
-
 .w-48 {
   width: 12rem;
 }
@@ -1251,6 +1255,17 @@ img {
 
 .animate-beat {
   animation: 1.5s ease-out infinite beat;
+}
+
+@keyframes ping {
+  75%, 100% {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
+.animate-ping {
+  animation: 1s cubic-bezier(0, 0, .2, 1) infinite ping;
 }
 
 @keyframes pulse {
@@ -1722,6 +1737,11 @@ img {
   border-color: rgb(253 224 71 / var(--tw-border-opacity, 1));
 }
 
+.border-yellow-400 {
+  --tw-border-opacity: 1;
+  border-color: rgb(250 204 21 / var(--tw-border-opacity, 1));
+}
+
 .border-yellow-500 {
   --tw-border-opacity: 1;
   border-color: rgb(234 179 8 / var(--tw-border-opacity, 1));
@@ -1904,6 +1924,10 @@ img {
 .bg-yellow-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(254 249 195 / var(--tw-bg-opacity, 1));
+}
+
+.bg-yellow-400\/10 {
+  background-color: #facc151a;
 }
 
 .bg-yellow-50 {
@@ -2585,6 +2609,10 @@ img {
 
 .opacity-90 {
   opacity: .9;
+}
+
+.opacity-\[0\.03\] {
+  opacity: .03;
 }
 
 .shadow-2xl {
@@ -3602,6 +3630,10 @@ img {
 .dark\:text-green-400:is(.dark *) {
   --tw-text-opacity: 1;
   color: rgb(74 222 128 / var(--tw-text-opacity, 1));
+}
+
+.dark\:opacity-\[0\.05\]:is(.dark *) {
+  opacity: .05;
 }
 
 @media (width >= 640px) {
