@@ -618,7 +618,7 @@ function ShuffleContent() {
                     className: "relative mb-6",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$zap$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Zap$3e$__["Zap"], {
-                            className: "w-24 h-24 text-primary"
+                            className: "w-24 h-24 text-transparent bg-clip-text bg-gradient-to-br from-yellow-400 via-primary to-blue-500"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
                             lineNumber: 259,
@@ -637,67 +637,84 @@ function ShuffleContent() {
                     lineNumber: 258,
                     columnNumber: 13
                 }, this),
-                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
-                    className: "text-3xl font-bold font-headline mb-2",
-                    children: "Rastgele Eşleşme"
-                }, void 0, false, {
-                    fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                    lineNumber: 262,
-                    columnNumber: 13
-                }, this),
-                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                    className: "max-w-md mb-8 text-muted-foreground",
-                    children: "Butona tıkla ve o an eşleşme arayan başka biriyle 5 dakikalık sürpriz bir sohbete başla."
-                }, void 0, false, {
-                    fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                    lineNumber: 263,
-                    columnNumber: 13
-                }, this),
-                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "flex flex-col items-center gap-4",
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
+                    className: "bg-background/80 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-2xl w-full max-w-sm",
                     children: [
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
-                            size: "lg",
-                            className: "h-16 px-10 text-xl rounded-full shadow-lg bg-gradient-to-r from-primary to-blue-500 text-primary-foreground transition-transform hover:scale-105",
-                            onClick: handleSearchClick,
-                            disabled: isLoadingProfile || remainingMatches !== null && remainingMatches <= 0,
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardHeader"], {
                             children: [
-                                isLoadingProfile ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__["Loader2"], {
-                                    className: "mr-2 h-4 w-4 animate-spin"
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardTitle"], {
+                                    className: "text-3xl font-bold font-headline",
+                                    children: "Rastgele Eşleşme"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                                    lineNumber: 273,
-                                    columnNumber: 41
-                                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$sparkles$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Sparkles$3e$__["Sparkles"], {
-                                    className: "mr-3 h-5 w-5"
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                                    lineNumber: 273,
-                                    columnNumber: 93
+                                    lineNumber: 264,
+                                    columnNumber: 21
                                 }, this),
-                                "Eşleşme Bul"
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
+                                    className: "text-muted-foreground mt-2",
+                                    children: "Butona tıkla ve o an eşleşme arayan başka biriyle 5 dakikalık sürpriz bir sohbete başla."
+                                }, void 0, false, {
+                                    fileName: "[project]/src/app/(app)/shuffle/page.tsx",
+                                    lineNumber: 265,
+                                    columnNumber: 21
+                                }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 267,
+                            lineNumber: 263,
                             columnNumber: 17
                         }, this),
-                        remainingMatches !== null && isFinite(remainingMatches) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$badge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Badge"], {
-                            variant: remainingMatches > 0 ? "secondary" : "destructive",
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
+                            className: "flex flex-col items-center gap-4",
                             children: [
-                                "Kalan Hak: ",
-                                remainingMatches
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                    size: "lg",
+                                    className: "h-16 w-full text-xl rounded-full shadow-lg bg-gradient-to-r from-primary to-blue-500 text-primary-foreground transition-transform hover:scale-105",
+                                    onClick: handleSearchClick,
+                                    disabled: isLoadingProfile || remainingMatches !== null && remainingMatches <= 0,
+                                    children: [
+                                        isLoadingProfile ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__["Loader2"], {
+                                            className: "mr-2 h-4 w-4 animate-spin"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/app/(app)/shuffle/page.tsx",
+                                            lineNumber: 276,
+                                            columnNumber: 45
+                                        }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$sparkles$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Sparkles$3e$__["Sparkles"], {
+                                            className: "mr-3 h-5 w-5"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/app/(app)/shuffle/page.tsx",
+                                            lineNumber: 276,
+                                            columnNumber: 97
+                                        }, this),
+                                        "Eşleşme Bul"
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/src/app/(app)/shuffle/page.tsx",
+                                    lineNumber: 270,
+                                    columnNumber: 22
+                                }, this),
+                                remainingMatches !== null && isFinite(remainingMatches) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$badge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Badge"], {
+                                    variant: remainingMatches > 0 ? "secondary" : "destructive",
+                                    children: [
+                                        "Kalan Hak: ",
+                                        remainingMatches
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/src/app/(app)/shuffle/page.tsx",
+                                    lineNumber: 280,
+                                    columnNumber: 25
+                                }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 277,
-                            columnNumber: 21
+                            lineNumber: 269,
+                            columnNumber: 17
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                    lineNumber: 266,
-                    columnNumber: 14
+                    lineNumber: 262,
+                    columnNumber: 13
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "absolute bottom-6 flex items-center text-xs text-muted-foreground gap-1",
@@ -706,14 +723,14 @@ function ShuffleContent() {
                             className: "w-3 h-3"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 283,
+                            lineNumber: 287,
                             columnNumber: 17
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                             children: "Premium üyeler sınırsız ve öncelikli eşleşir."
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 284,
+                            lineNumber: 288,
                             columnNumber: 17
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -722,13 +739,13 @@ function ShuffleContent() {
                             children: "Yükselt"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 285,
+                            lineNumber: 289,
                             columnNumber: 17
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                    lineNumber: 282,
+                    lineNumber: 286,
                     columnNumber: 13
                 }, this)
             ]
@@ -738,7 +755,7 @@ function ShuffleContent() {
             className: "w-12 h-12 text-primary animate-spin"
         }, void 0, false, {
             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-            lineNumber: 291,
+            lineNumber: 295,
             columnNumber: 16
         }, this);
     }
@@ -752,20 +769,20 @@ function ShuffleContent() {
                             children: "Deneyiminiz Nasıldı?"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 298,
+                            lineNumber: 302,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
                             children: "Son rastgele sohbetiniz hakkındaki geri bildiriminiz, gelecekteki eşleşmeleri iyileştirmemize yardımcı olur."
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 299,
+                            lineNumber: 303,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                    lineNumber: 297,
+                    lineNumber: 301,
                     columnNumber: 17
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardFooter"], {
@@ -780,14 +797,14 @@ function ShuffleContent() {
                                     className: "mr-2 h-5 w-5"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                                    lineNumber: 303,
+                                    lineNumber: 307,
                                     columnNumber: 25
                                 }, this),
                                 " Kötüydü"
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 302,
+                            lineNumber: 306,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -799,26 +816,26 @@ function ShuffleContent() {
                                     className: "mr-2 h-5 w-5"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                                    lineNumber: 306,
+                                    lineNumber: 310,
                                     columnNumber: 25
                                 }, this),
                                 " İyiydi"
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 305,
+                            lineNumber: 309,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                    lineNumber: 301,
+                    lineNumber: 305,
                     columnNumber: 17
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-            lineNumber: 296,
+            lineNumber: 300,
             columnNumber: 13
         }, this);
     }
@@ -826,12 +843,12 @@ function ShuffleContent() {
         children: [
             status === 'idle' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(IdleUI, {}, void 0, false, {
                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                lineNumber: 315,
+                lineNumber: 319,
                 columnNumber: 35
             }, this),
             status === 'searching' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(SearchingUI, {}, void 0, false, {
                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                lineNumber: 316,
+                lineNumber: 320,
                 columnNumber: 40
             }, this),
             status === 'matched' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -840,7 +857,7 @@ function ShuffleContent() {
                         className: "w-24 h-24 text-green-500 mb-6 animate-pulse"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                        lineNumber: 319,
+                        lineNumber: 323,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -848,7 +865,7 @@ function ShuffleContent() {
                         children: "Eşleşme Bulundu!"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                        lineNumber: 320,
+                        lineNumber: 324,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -856,7 +873,7 @@ function ShuffleContent() {
                         children: "Sohbete yönlendiriliyorsun..."
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                        lineNumber: 321,
+                        lineNumber: 325,
                         columnNumber: 21
                     }, this)
                 ]
@@ -880,7 +897,7 @@ function ShufflePage() {
                 className: "absolute inset-0 bg-grid-pattern opacity-[0.03] dark:opacity-[0.05]"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                lineNumber: 331,
+                lineNumber: 335,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Suspense"], {
@@ -888,23 +905,23 @@ function ShufflePage() {
                     className: "w-12 h-12 text-primary animate-spin"
                 }, void 0, false, {
                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                    lineNumber: 332,
+                    lineNumber: 336,
                     columnNumber: 33
                 }, void 0),
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ShuffleContent, {}, void 0, false, {
                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                    lineNumber: 333,
+                    lineNumber: 337,
                     columnNumber: 17
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                lineNumber: 332,
+                lineNumber: 336,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-        lineNumber: 330,
+        lineNumber: 334,
         columnNumber: 9
     }, this);
 }

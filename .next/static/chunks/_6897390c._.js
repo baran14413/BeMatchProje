@@ -31,10 +31,12 @@ const getTitleForPath = (path)=>{
     if (path.endsWith('/sessions')) return 'Oturum Yönetimi';
     if (path.endsWith('/appearance')) return 'Görünüm';
     if (path.endsWith('/guide')) return 'Uygulama Kılavuzu';
+    if (path.endsWith('/tech-stack')) return 'Teknoloji Kümesi';
     if (path.endsWith('/delete')) return 'Hesabı Sil';
     if (path.endsWith('/picture')) return 'Profil Fotoğrafını Düzenle';
     if (path.endsWith('/wallet')) return 'Cüzdanım';
     if (path.endsWith('/users')) return 'Kullanıcıları Yönet';
+    if (path.endsWith('/cache')) return 'Önbellek Yönetimi';
     return 'Ayarlar';
 };
 function SettingsLayout({ children }) {
@@ -60,12 +62,12 @@ function SettingsLayout({ children }) {
                                 className: "h-5 w-5"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/profile/edit/layout.tsx",
-                                lineNumber: 42,
+                                lineNumber: 44,
                                 columnNumber: 21
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/profile/edit/layout.tsx",
-                            lineNumber: 41,
+                            lineNumber: 43,
                             columnNumber: 17
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -73,18 +75,18 @@ function SettingsLayout({ children }) {
                             children: title
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/profile/edit/layout.tsx",
-                            lineNumber: 45,
+                            lineNumber: 47,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/profile/edit/layout.tsx",
-                    lineNumber: 39,
+                    lineNumber: 41,
                     columnNumber: 10
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/layout.tsx",
-                lineNumber: 38,
+                lineNumber: 40,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -92,13 +94,13 @@ function SettingsLayout({ children }) {
                 children: children
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/layout.tsx",
-                lineNumber: 49,
+                lineNumber: 51,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(app)/profile/edit/layout.tsx",
-        lineNumber: 37,
+        lineNumber: 39,
         columnNumber: 5
     }, this);
 }

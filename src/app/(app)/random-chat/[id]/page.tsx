@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -9,10 +9,11 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SendHorizonal, Heart, Hourglass, Loader2, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { doc, onSnapshot, getDoc, setDoc, serverTimestamp, collection, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, setDoc, serverTimestamp, collection, addDoc, updateDoc, deleteDoc, runTransaction, increment } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import Link from 'next/link';
 
 
 type Message = {
@@ -44,6 +45,37 @@ export default function RandomChatPage() {
     const [showMatchModal, setShowMatchModal] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    
+    const handleNoMatchFound = useCallback(async () => {
+        if (!currentUser) return;
+        toast({
+            title: "Süre Doldu!",
+            description: "Görünüşe göre şu an herkesin eli dolu! Daha sonra tekrar dene, şansını kaybetmedin.",
+            duration: 5000,
+        });
+
+        // Refund match credit
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        try {
+            await runTransaction(db, async (transaction) => {
+                const userDoc = await transaction.get(userDocRef);
+                if (!userDoc.exists()) return;
+                const userData = userDoc.data();
+                const today = new Date().toISOString().split('T')[0];
+                if (!userData.isPremium && userData.dailyMatch?.date === today && userData.dailyMatch.count > 0) {
+                     transaction.update(userDocRef, { 'dailyMatch.count': increment(-1) });
+                }
+            });
+             toast({
+                title: "Hakkınız iade edildi!",
+                description: "Bir eşleşme hakkın hesabına geri yüklendi.",
+            });
+        } catch (error) {
+            console.error("Failed to refund match credit:", error);
+        }
+    }, [currentUser, toast]);
+
 
     // Fetch and listen to the temporary conversation
     useEffect(() => {
@@ -54,8 +86,8 @@ export default function RandomChatPage() {
         const unsubscribe = onSnapshot(convoRef, async (docSnap) => {
             if (!docSnap.exists()) {
                 if (!isMatchPermanent) {
-                    toast({ title: 'Sohbetin süresi doldu veya sohbet sonlandırıldı.', variant: 'destructive' });
-                    router.push('/shuffle?feedback=true');
+                   handleNoMatchFound();
+                   router.push('/shuffle');
                 }
                 return;
             }
@@ -92,8 +124,9 @@ export default function RandomChatPage() {
             }
 
             // Countdown timer
-            if (data.expiresAt) {
-                const interval = setInterval(() => {
+            if (data.expiresAt && !isMatchPermanent) {
+                 if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+                 timerIntervalRef.current = setInterval(() => {
                     const now = new Date();
                     const expiry = data.expiresAt.toDate();
                     const secondsLeft = Math.round((expiry.getTime() - now.getTime()) / 1000);
@@ -101,16 +134,10 @@ export default function RandomChatPage() {
                         setTimeLeft(secondsLeft);
                     } else {
                         setTimeLeft(0);
-                        clearInterval(interval);
-                        // Don't auto-redirect if match became permanent
-                        if (!isMatchPermanent) {
-                             deleteDoc(docSnap.ref); // Delete conversation on timeout
-                             // onSnapshot listener will catch deletion and redirect
-                        }
+                        if(timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+                        deleteDoc(docSnap.ref); 
                     }
                 }, 1000);
-
-                return () => clearInterval(interval);
             }
 
         }, (error) => {
@@ -129,11 +156,12 @@ export default function RandomChatPage() {
 
 
         return () => {
+            if(timerIntervalRef.current) clearInterval(timerIntervalRef.current);
             unsubscribe();
             messagesQuery();
         };
 
-    }, [currentUser, conversationId, router, toast, isMatchPermanent, otherUser]);
+    }, [currentUser, conversationId, router, isMatchPermanent, otherUser, handleNoMatchFound]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -169,7 +197,7 @@ export default function RandomChatPage() {
         deleteDoc(convoRef).catch(err => {
             console.error("Could not delete convo on exit: ", err);
         }).finally(() => {
-             // The onSnapshot listener will handle the redirect to the feedback page
+             // The onSnapshot listener will handle the redirect
         });
     };
 

@@ -46,14 +46,21 @@ function ShuffleContent() {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 setUserProfile(data);
+                const today = new Date().toISOString().split('T')[0];
+
                 if (data.isPremium) {
                     setRemainingMatches(Infinity);
                 } else {
-                    const today = new Date().toISOString().split('T')[0];
                     if (data.dailyMatch?.date === today) {
                         setRemainingMatches(Math.max(0, DAILY_MATCH_LIMIT - data.dailyMatch.count));
                     } else {
+                        // Reset daily match count if date is old
+                        setDoc(userDocRef, { dailyMatch: { date: today, count: 0 } }, { merge: true });
                         setRemainingMatches(DAILY_MATCH_LIMIT);
+                         toast({
+                            title: "Eşleşme Hakkı Yenilendi",
+                            description: `Bugün için ${DAILY_MATCH_LIMIT} yeni rastgele eşleşme hakkınız var!`,
+                        });
                     }
                 }
             } else {
@@ -243,7 +250,7 @@ function ShuffleContent() {
             </div>
             <h1 className="text-3xl font-bold font-headline mb-2 text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-500">Aranıyor...</h1>
             <p className="max-w-md mb-4 text-muted-foreground mx-auto">
-                Sıradaki {queueSize} kişi var. Tahmini bekleme süresi: <span className="font-bold text-foreground">{Math.floor(estimatedWaitTime / 60)} dk {estimatedWaitTime % 60} sn</span>.
+                Sırada {queueSize} kişi var. Tahmini bekleme süresi: <span className="font-bold text-foreground">{Math.floor(estimatedWaitTime / 60)} dk {estimatedWaitTime % 60} sn</span>.
             </p>
             {userProfile?.isPremium && <Badge variant="secondary" className="border-yellow-400 text-yellow-400 bg-yellow-400/10 mb-8"><Crown className="w-3 h-3 mr-1.5"/>Premium Öncelik Aktif</Badge>}
 
@@ -256,8 +263,8 @@ function ShuffleContent() {
     const IdleUI = () => (
         <>
             <div className="relative mb-6">
-                <Zap className="w-24 h-24 text-transparent bg-clip-text bg-gradient-to-br from-yellow-400 via-primary to-blue-500" />
-                <Sparkles className="absolute -top-2 -right-2 w-8 h-8 text-yellow-400" />
+                 <Zap className="w-24 h-24 text-transparent bg-clip-text bg-gradient-to-br from-yellow-400 via-primary to-blue-500" />
+                 <Sparkles className="absolute -top-2 -right-2 w-8 h-8 text-yellow-400" />
             </div>
             <Card className="bg-background/80 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-2xl w-full max-w-sm">
                 <CardHeader>
@@ -332,12 +339,10 @@ function ShuffleContent() {
 export default function ShufflePage() {
     return (
         <div className="flex flex-col items-center justify-center h-full p-4 text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] dark:opacity-[0.05]"></div>
+             <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] dark:opacity-[0.05]"></div>
             <Suspense fallback={<Loader2 className="w-12 h-12 text-primary animate-spin" />}>
                 <ShuffleContent />
             </Suspense>
         </div>
     );
 }
-
-    

@@ -321,6 +321,7 @@ var { g: global, __dirname } = __turbopack_context__;
 __turbopack_context__.s({
     "app": (()=>app),
     "auth": (()=>auth),
+    "clearCache": (()=>clearCache),
     "db": (()=>db),
     "setupPresence": (()=>setupPresence),
     "storage": (()=>storage)
@@ -368,6 +369,14 @@ const rtdb = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f
 if ("TURBOPACK compile-time falsy", 0) {
     "TURBOPACK unreachable";
 }
+const clearCache = async ()=>{
+    try {
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["clearIndexedDbPersistence"])(db);
+    } catch (error) {
+        console.error("Error clearing Firestore persistence:", error);
+        throw error;
+    }
+};
 // Presence management
 const setupPresence = (userId)=>{
     const userStatusDatabaseRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ref"])(rtdb, '/status/' + userId);
