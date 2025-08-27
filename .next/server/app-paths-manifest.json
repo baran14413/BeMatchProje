@@ -1,5 +1,9 @@
 {
   "/(app)/explore/page": "app/(app)/explore/page.js",
+  "/(app)/notifications/page": "app/(app)/notifications/page.js",
+  "/(app)/profile/[username]/page": "app/(app)/profile/[username]/page.js",
+  "/(app)/shuffle/page": "app/(app)/shuffle/page.js",
   "/(app)/table/page": "app/(app)/table/page.js",
+  "/(auth)/login/page": "app/(auth)/login/page.js",
   "/page": "app/page.js"
 }

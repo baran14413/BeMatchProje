@@ -695,6 +695,10 @@ img {
   margin-top: auto;
 }
 
+.ml-1\.5 {
+  margin-left: .375rem;
+}
+
 .block {
   display: block;
 }
@@ -1994,6 +1998,11 @@ img {
 
 .bg-red-900\/70 {
   background-color: #7f1d1db3;
+}
+
+.bg-red-50 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(254 242 242 / var(--tw-bg-opacity, 1));
 }
 
 .bg-gradient-to-br {
