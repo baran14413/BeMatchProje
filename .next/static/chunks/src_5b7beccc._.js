@@ -1007,7 +1007,7 @@ function AdminDashboardPage() {
                                                         children: [
                                                             formatRelativeTime(post.createdAt?.toDate()),
                                                             " - ",
-                                                            post.user?.name
+                                                            post.user?.name?.split(' ')[0]
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/(app)/admin/page.tsx",

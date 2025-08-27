@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin, ArrowLeft } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, X as XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin, ArrowLeft, Smile, Mic, ListCollapse, Music, Hash, Globe } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -142,7 +142,9 @@ export default function ExplorePage() {
     const router = useRouter();
     const currentUser = auth.currentUser;
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
+    const createFileInputRef = useRef<HTMLInputElement>(null);
+    
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     
     const [isCommentSheetOpen, setCommentSheetOpen] = useState(false);
     const [activePostForComments, setActivePostForComments] = useState<Post | null>(null);
@@ -153,22 +155,14 @@ export default function ExplorePage() {
     const [likers, setLikers] = useState<User[]>([]);
     const [isLikersLoading, setIsLikersLoading] = useState(false);
 
-    // Create/Edit Photo Post States
-    const [isCreatePhotoModalOpen, setIsCreatePhotoModalOpen] = useState(false);
+    // Create/Edit Post States
     const [editingPost, setEditingPost] = useState<Post | null>(null);
-    const [imgSrc, setImgSrc] = useState('');
-    const [originalImgSrc, setOriginalImgSrc] = useState('');
-    const [stylePrompt, setStylePrompt] = useState('');
-    const [caption, setCaption] = useState('');
-    const [location, setLocation] = useState('');
-    const [isFetchingLocation, setIsFetchingLocation] = useState(false);
-    const [isStylized, setIsStylized] = useState(false);
+    const [postContent, setPostContent] = useState('');
+    const [postImage, setPostImage] = useState<string | null>(null);
+    const [postLocation, setPostLocation] = useState('');
     const [isPostProcessing, setIsPostProcessing] = useState(false);
-    const [isPremium, setIsPremium] = useState(false);
+    const postContentMaxLength = 1000;
 
-    // Create/Edit Text Post States
-    const [isCreateTextModalOpen, setIsCreateTextModalOpen] = useState(false);
-    const [textContent, setTextContent] = useState('');
 
     useEffect(() => {
         const fetchPostsAndAuthors = async () => {
@@ -241,19 +235,6 @@ export default function ExplorePage() {
 
         fetchPostsAndAuthors();
     }, [toast, currentUser]);
-
-    useEffect(() => {
-        const checkPremiumStatus = async () => {
-            if (currentUser) {
-                const userDocRef = doc(db, 'users', currentUser.uid);
-                const userDocSnap = await getDoc(userDocRef);
-                if (userDocSnap.exists() && userDocSnap.data().isPremium) {
-                    setIsPremium(true);
-                }
-            }
-        };
-        checkPremiumStatus();
-    }, [currentUser]);
 
     const handleLikeClick = async (postId: string) => {
         if (!currentUser) return;
@@ -485,76 +466,6 @@ export default function ExplorePage() {
     
     const handleReply = (username: string) => { 
         setCommentInput(prev => `@${username} ${prev}`); 
-        // A way to focus the input would be nice, but it's complex with the current structure.
-    };
-
-    const handleTranslatePost = async (postId: string) => {
-        // ... (existing implementation)
-    };
-    const handleTranslateComment = async (postId: string, commentId: string) => {
-        // ... (existing implementation)
-    };
-    const hidePost = (postId: string) => {
-        // ... (existing implementation)
-    };
-    const hideAllFromUser = (authorId: string) => {
-        // ... (existing implementation)
-    };
-    const blockUser = async (authorId: string) => {
-        // ... (existing implementation)
-    };
-    
-    // --- Create / Edit Post Logic ---
-
-    const resetCreateState = () => {
-        setImgSrc('');
-        setOriginalImgSrc('');
-        setStylePrompt('');
-        setCaption('');
-        setTextContent('');
-        setLocation('');
-        setIsStylized(false);
-        setIsPostProcessing(false);
-        setEditingPost(null);
-        setIsCreatePhotoModalOpen(false);
-        setIsCreateTextModalOpen(false);
-    };
-
-    const onSelectPhoto = (e: ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files.length > 0) {
-            const reader = new FileReader();
-            reader.addEventListener('load', () => {
-                if (reader.result) {
-                    const dataUri = reader.result.toString();
-                    setImgSrc(dataUri);
-                    setOriginalImgSrc(dataUri);
-                    setIsCreatePhotoModalOpen(true);
-                }
-            });
-            reader.readAsDataURL(e.target.files[0]);
-        }
-        setIsCreateSheetOpen(false);
-    };
-
-    const handleCreateTextPost = () => {
-        setIsCreateSheetOpen(false);
-        setIsCreateTextModalOpen(true);
-    };
-    
-     const handleEditPost = (post: Post) => {
-        setEditingPost(post);
-        if (post.type === 'photo') {
-            setImgSrc(post.url || '');
-            setOriginalImgSrc(post.url || '');
-            setCaption(post.caption || '');
-            setLocation(post.location || '');
-            setIsStylized(post.isAiEdited || false);
-            setIsCreatePhotoModalOpen(true);
-        } else {
-            setTextContent(post.textContent || '');
-            setLocation(post.location || '');
-            setIsCreateTextModalOpen(true);
-        }
     };
     
     const handleDeletePost = async (post: Post) => {
@@ -568,16 +479,13 @@ export default function ExplorePage() {
             if (post.type === 'photo' && post.url) {
                 const imageRef = ref(storage, post.url);
                 await deleteObject(imageRef).catch((error) => {
-                    // It's okay if file doesn't exist, maybe it was already deleted
                     if (error.code !== 'storage/object-not-found') {
                         throw error;
                     }
                 });
             }
             
-            // Remove post from UI
             setPosts(prev => prev.filter(p => p.id !== post.id));
-
             toast({ title: "Gönderi silindi." });
         } catch (error) {
             console.error("Error deleting post:", error);
@@ -585,167 +493,83 @@ export default function ExplorePage() {
         }
     };
 
-    const handleApplyStyle = async () => {
-        if (!stylePrompt) {
-            toast({ variant: 'destructive', title: 'Stil Metni Gerekli', description: 'Lütfen bir stil metni girin.' });
-            return;
-        }
-        setIsPostProcessing(true);
-        try {
-            const result = await stylizeImage({ photoDataUri: originalImgSrc, prompt: stylePrompt });
-            if (result.error || !result.stylizedImageDataUri) {
-                throw new Error(result.error || 'Stil uygulanamadı.');
-            }
-            setImgSrc(result.stylizedImageDataUri);
-            setIsStylized(true);
-            toast({ title: 'Stil Uygulandı!', description: 'Yapay zeka harikalar yarattı.', className: 'bg-green-500 text-white' });
-        } catch (e: any) {
-            console.error(e);
-            toast({ variant: 'destructive', title: 'Stil Hatası', description: e.message });
-        } finally {
-            setIsPostProcessing(false);
-        }
+    // --- Create / Edit Post Logic ---
+
+    const resetCreateState = () => {
+        setPostContent('');
+        setPostImage(null);
+        setPostLocation('');
+        setIsPostProcessing(false);
+        setEditingPost(null);
+        setIsCreateModalOpen(false);
     };
 
-    const handleFetchLocation = () => {
-        if (!navigator.geolocation) {
-            toast({ variant: 'destructive', title: 'Konum Desteklenmiyor' });
-            return;
+    const handleCreatePost = () => {
+        resetCreateState();
+        setIsCreateModalOpen(true);
+    };
+
+    const onSelectPhotoForPost = (e: ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const reader = new FileReader();
+            reader.addEventListener('load', () => {
+                setPostImage(reader.result as string);
+            });
+            reader.readAsDataURL(e.target.files[0]);
         }
-        setIsFetchingLocation(true);
-        navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                const { latitude, longitude } = position.coords;
-                // IMPORTANT: Ensure this key is available in your .env.local file
-                const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-                if (!GOOGLE_MAPS_API_KEY) {
-                    console.error("Google Maps API key is not configured on the client.");
-                    toast({ variant: 'destructive', title: 'API Anahtarı Eksik', description: 'Konum servisi için istemci anahtarı yapılandırılmamış.' });
-                    setLocation(''); // Clear location to prevent using a stale one
-                    setIsFetchingLocation(false);
-                    return;
-                }
-
-                try {
-                    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}&language=tr&result_type=administrative_area_level_2|administrative_area_level_1`;
-                    const response = await fetch(url);
-                    const data = await response.json();
-                     
-                    if (data.status !== 'OK' || !data.results || data.results.length === 0) {
-                        throw new Error(`Adres bulunamadı: ${data.status} - ${data.error_message || ''}`);
-                    }
-                    
-                    const cityComponent = data.results[0].address_components.find(
-                        (c: any) => c.types.includes('administrative_area_level_1')
-                    );
-                    const districtComponent = data.results[0].address_components.find(
-                        (c: any) => c.types.includes('administrative_area_level_2') || c.types.includes('locality')
-                    );
-
-                    const city = cityComponent ? cityComponent.long_name : null;
-                    const district = districtComponent ? districtComponent.long_name : null;
-
-                    if (district && city && city !== district) {
-                        setLocation(`${district}, ${city}`);
-                    } else if (city) {
-                        setLocation(city);
-                    } else if (district) {
-                         setLocation(district);
-                    } else {
-                        setLocation('Bilinmeyen Konum');
-                    }
-                } catch (e: any) {
-                    console.error("Error fetching location:", e);
-                    toast({ variant: 'destructive', title: 'Konum Hatası', description: 'Adres bilgisi alınamadı.' });
-                    setLocation('');
-                } finally {
-                    setIsFetchingLocation(false);
-                }
-            },
-            (error) => {
-                toast({ variant: 'destructive', title: 'Konum İzni Reddedildi', description: 'Konum eklemek için tarayıcı ayarlarından izin vermeniz gerekiyor.' });
-                setIsFetchingLocation(false);
-            }
-        );
     };
 
     const handleSharePost = async () => {
         if (!currentUser) return;
-        const isEditing = !!editingPost;
-        const postType = isCreatePhotoModalOpen ? 'photo' : 'text';
 
-        if (postType === 'photo' && !imgSrc) return;
-        if (postType === 'text' && !textContent.trim()) return;
+        if (!postContent.trim() && !postImage) {
+            toast({ variant: "destructive", title: "Boş Gönderi", description: "Lütfen bir şeyler yazın veya bir fotoğraf ekleyin." });
+            return;
+        }
 
         setIsPostProcessing(true);
         
         try {
-            const textForTags = postType === 'photo' ? caption : textContent;
-            const hashtags = textForTags.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
-            const mentions = textForTags.match(/@\w+/g)?.map(m => m.substring(1)) || [];
+            const hashtags = postContent.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
+            const mentions = postContent.match(/@\w+/g)?.map(m => m.substring(1)) || [];
             
             let postData: any = {
+                authorId: currentUser.uid,
+                createdAt: serverTimestamp(),
+                likes: 0,
+                commentsCount: 0,
                 hashtags: hashtags,
                 mentions: mentions,
-                location: location || '',
+                location: postLocation || '',
+                type: postImage ? 'photo' : 'text',
+                isAiEdited: false,
             };
 
-            if (isEditing) {
-                // UPDATE POST
-                const postRef = doc(db, 'posts', editingPost.id);
-                if (postType === 'photo') {
-                    postData.caption = caption || '';
-                    postData.isAiEdited = isStylized;
-                } else {
-                    postData.textContent = textContent;
-                }
-                
-                await updateDoc(postRef, postData);
-                
-                // Update UI
-                setPosts(prev => prev.map(p => p.id === editingPost.id ? {...p, ...postData} : p));
-                toast({ title: 'Güncellendi!', description: 'Gönderiniz başarıyla güncellendi.' });
-
+            if (postImage) {
+                const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}`);
+                const uploadTask = await uploadString(storageRef, postImage, 'data_url');
+                postData.url = await getDownloadURL(uploadTask.ref);
+                postData.caption = postContent.trim();
+                postData.textContent = postContent.trim();
             } else {
-                // CREATE NEW POST
-                postData.authorId = currentUser.uid;
-                postData.createdAt = serverTimestamp();
-                postData.likes = 0;
-                postData.commentsCount = 0;
-                postData.type = postType;
-
-                if (postType === 'photo') {
-                    const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}`);
-                    const uploadTask = await uploadString(storageRef, imgSrc, 'data_url');
-                    const downloadURL = await getDownloadURL(uploadTask.ref);
-
-                    postData.url = downloadURL;
-                    postData.caption = caption || '';
-                    postData.isAiEdited = isStylized;
-                } else {
-                    postData.textContent = textContent;
-                    postData.isAiEdited = false;
-                }
-
-                const postRef = await addDoc(collection(db, 'posts'), postData);
-                const docSnap = await getDoc(postRef);
-                if (!docSnap.exists()) throw new Error("Post creation failed in DB");
-                const newPostFromDb = { id: docSnap.id, ...docSnap.data() };
-
-
-                // UI update with the real data from DB
-                const newPostForUI: Post = {
-                    ...newPostFromDb,
-                    user: { uid: currentUser.uid, name: currentUser.displayName!, username: currentUser.email?.split('@')[0] || 'user', avatarUrl: currentUser.photoURL! },
-                    comments: [],
-                    liked: false,
-                } as Post;
-                
-                setPosts(prev => [newPostForUI, ...prev]);
-                
-                toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı.', className: 'bg-green-500 text-white' });
+                postData.textContent = postContent.trim();
             }
+            
+            const postRef = await addDoc(collection(db, 'posts'), postData);
+            const docSnap = await getDoc(postRef);
+            if (!docSnap.exists()) throw new Error("Post creation failed in DB");
+            const newPostFromDb = { id: docSnap.id, ...docSnap.data() };
+
+            const newPostForUI: Post = {
+                ...newPostFromDb,
+                user: { uid: currentUser.uid, name: currentUser.displayName!, username: currentUser.email?.split('@')[0] || 'user', avatarUrl: currentUser.photoURL! },
+                comments: [],
+                liked: false,
+            } as Post;
+            
+            setPosts(prev => [newPostForUI, ...prev]);
+            
+            toast({ title: 'Paylaşıldı!', description: 'Gönderiniz başarıyla paylaşıldı.', className: 'bg-green-500 text-white' });
 
         } catch (error) {
             console.error("Error sharing post: ", error);
@@ -801,7 +625,7 @@ export default function ExplorePage() {
                                     <DropdownMenuContent align="end">
                                         {post.authorId === currentUser?.uid ? (
                                             <>
-                                                <DropdownMenuItem onClick={() => handleEditPost(post)}>
+                                                <DropdownMenuItem>
                                                     <Pencil className="mr-2 h-4 w-4"/>
                                                     <span>Düzenle</span>
                                                 </DropdownMenuItem>
@@ -830,15 +654,15 @@ export default function ExplorePage() {
                                             </>
                                         ) : (
                                             <>
-                                                <DropdownMenuItem onClick={() => hidePost(post.id)}>
+                                                <DropdownMenuItem>
                                                     <EyeOff className="mr-2 h-4 w-4"/>
                                                     <span>Gönderiyi Gizle</span>
                                                 </DropdownMenuItem>
-                                                 <DropdownMenuItem onClick={() => hideAllFromUser(post.authorId)}>
+                                                 <DropdownMenuItem>
                                                     <EyeOff className="mr-2 h-4 w-4"/>
                                                     <span>Bu Kullanıcıdan Gizle</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => blockUser(post.authorId)}>
+                                                <DropdownMenuItem className="text-destructive focus:text-destructive">
                                                     <UserX className="mr-2 h-4 w-4"/>
                                                     <span>Kullanıcıyı Engelle</span>
                                                 </DropdownMenuItem>
@@ -887,7 +711,7 @@ export default function ExplorePage() {
                                 )}
 
                                 {((post.lang && post.lang !== 'tr') || post.isTranslated) && (
-                                    <button onClick={() => handleTranslatePost(post.id)} className="text-xs text-muted-foreground hover:underline mt-2 flex items-center gap-1">
+                                    <button className="text-xs text-muted-foreground hover:underline mt-2 flex items-center gap-1">
                                         <Languages className="w-3 h-3"/>
                                         {post.isTranslated ? 'Aslına bak' : 'Çevirisine bak'}
                                     </button>
@@ -934,137 +758,64 @@ export default function ExplorePage() {
         )}
       </div>
       
-       <Sheet open={isCreateSheetOpen} onOpenChange={setIsCreateSheetOpen}>
-        <SheetTrigger asChild>
-            <Button className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg" size="icon">
-                    <Plus className="h-8 w-8" />
-                    <span className="sr-only">Yeni Gönderi Ekle</span>
-            </Button>
-        </SheetTrigger>
-        <SheetContent side="bottom" className="rounded-t-xl h-auto flex flex-col p-4 gap-4">
-             <SheetHeader className="text-center">
-                <SheetTitle>Yeni Gönderi Oluştur</SheetTitle>
-             </SheetHeader>
-             <input type="file" ref={fileInputRef} onChange={onSelectPhoto} accept="image/*" className="hidden" />
-             <Button variant="outline" className="w-full justify-start p-6" onClick={() => fileInputRef.current?.click()}>
-                 <ImageIcon className="w-6 h-6 mr-4" />
-                 <span className='text-lg'>Fotoğraf Paylaş</span>
-             </Button>
-             <Button variant="outline" className="w-full justify-start p-6" onClick={handleCreateTextPost}>
-                 <Type className="w-6 h-6 mr-4" />
-                 <span className='text-lg'>Yazı Yaz</span>
-             </Button>
-        </SheetContent>
-       </Sheet>
+       <Button className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg" size="icon" onClick={handleCreatePost}>
+            <Plus className="h-8 w-8" />
+            <span className="sr-only">Yeni Gönderi Ekle</span>
+       </Button>
 
-        {/* Create or Edit Photo Modal */}
-       <Dialog open={isCreatePhotoModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
-            <DialogContent className="max-w-4xl w-full h-full sm:h-auto sm:max-h-[90vh] p-0 flex flex-col sm:flex-row sm:rounded-2xl data-[state=open]:h-screen sm:data-[state=open]:h-auto">
-                <DialogHeader className="p-2 flex-row items-center justify-between border-b sm:hidden">
-                    <Button variant="ghost" size="icon" onClick={resetCreateState}><ArrowLeft/></Button>
-                    <DialogTitle className="text-base font-semibold">{editingPost ? "Gönderiyi Düzenle" : "Yeni Gönderi"}</DialogTitle>
-                    <Button variant="link" onClick={handleSharePost} disabled={isPostProcessing} className="p-0 h-auto">
-                        {isPostProcessing ? <Loader2 className="h-5 w-5 animate-spin"/> : "Paylaş" }
+       <Dialog open={isCreateModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
+            <DialogContent className="max-w-lg w-full h-full sm:h-auto sm:max-h-[95vh] p-0 flex flex-col data-[state=open]:h-screen sm:data-[state=open]:h-auto sm:rounded-lg">
+                 <div className="flex items-center justify-between p-4 border-b shrink-0">
+                    <Button variant="ghost" size="icon" onClick={resetCreateState}><XIcon/></Button>
+                    <Button onClick={handleSharePost} disabled={isPostProcessing || (!postContent.trim() && !postImage)}>
+                        {isPostProcessing ? <Loader2 className="h-4 w-4 animate-spin"/> : "Gönder" }
                     </Button>
-                </DialogHeader>
-
-                <div className='flex-1 bg-black flex items-center justify-center sm:rounded-l-2xl overflow-hidden'>
-                     {imgSrc ? (
-                        <Image alt="Preview" src={imgSrc} width={800} height={800} className="w-full h-auto object-contain max-h-full" />
-                     ) : (
-                         <div className='text-white/80'>Resim Yükleniyor...</div>
-                     )}
                 </div>
                 
-                <div className='flex flex-col sm:w-80 md:w-96'>
-                    <div className="hidden sm:flex items-center justify-between p-4 border-b">
-                         <DialogTitle className="text-lg font-semibold">{editingPost ? "Gönderiyi Düzenle" : "Yeni Gönderi"}</DialogTitle>
-                         <Button onClick={handleSharePost} disabled={isPostProcessing} size="sm">
-                            {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Check className="mr-2 h-4 w-4" /> )}
-                            {editingPost ? "Kaydet" : "Paylaş"}
-                        </Button>
-                    </div>
-
-                    <div className='flex flex-col p-4 space-y-4 overflow-y-auto'>
-                        <div className="flex items-center gap-3">
-                            <Avatar>
-                                <AvatarImage src={currentUser?.photoURL || ''} />
-                                <AvatarFallback>{currentUser?.displayName?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <span className="font-semibold">{currentUser?.displayName}</span>
-                        </div>
-
-                        <MentionTextarea 
-                            placeholder="Bir şeyler yaz..." 
-                            value={caption} 
-                            setValue={setCaption} 
-                            className="min-h-[120px] flex-1 border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0" 
-                        />
-                         
-                        <Button variant="outline" size="sm" onClick={handleFetchLocation} disabled={isFetchingLocation} className='justify-start gap-2 text-muted-foreground'>
-                            <MapPin className={cn("w-4 h-4", isFetchingLocation && "animate-pulse", location && "text-primary")}/>
-                            <span className={cn(location && "text-foreground")}>{isFetchingLocation ? "Konum alınıyor..." : location ? location : "Konum Ekle"}</span>
-                        </Button>
-                        
-                        <div className="mt-auto pt-4">
-                            {isPremium ? (
-                                <div className="space-y-2">
-                                    <Label className="text-xs text-muted-foreground">Yapay Zeka Stil</Label>
-                                    <MentionTextarea placeholder="Örn: bir Van Gogh tablosu gibi yap..." value={stylePrompt} setValue={setStylePrompt} disabled={isPostProcessing || !!editingPost} className="min-h-[60px]" />
-                                    <Button onClick={handleApplyStyle} disabled={isPostProcessing || !stylePrompt || !!editingPost} className="w-full" variant="outline">
-                                        {isPostProcessing && imgSrc !== originalImgSrc ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Wand2 className="mr-2 h-4 w-4" /> )}
-                                        Stil Uygula
+                <div className='flex-1 p-4 overflow-y-auto'>
+                    <div className='flex items-start gap-3'>
+                        <Avatar>
+                            <AvatarImage src={currentUser?.photoURL || ''} />
+                            <AvatarFallback>{currentUser?.displayName?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className='w-full'>
+                            <p className="font-semibold">{currentUser?.displayName}</p>
+                            <MentionTextarea 
+                                placeholder="Ne düşünüyorsun?"
+                                value={postContent}
+                                setValue={setPostContent}
+                                className="min-h-[120px] w-full border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-lg"
+                            />
+                             {postImage && (
+                                <div className="mt-4 relative">
+                                    <Image src={postImage} alt="Gönderi önizlemesi" width={500} height={500} className="rounded-xl w-full h-auto object-contain" />
+                                    <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-8 w-8 rounded-full" onClick={() => setPostImage(null)}>
+                                        <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </div>
-                            ) : (
-                                <Link href="/premium" className="w-full block">
-                                    <Button className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:opacity-90" variant="default" disabled={!!editingPost}>
-                                        <Gem className="mr-2 h-4 w-4" />
-                                        AI Düzenleme için Premium'a Yükselt
-                                    </Button>
-                                </Link>
-                            )}
+                             )}
                         </div>
                     </div>
                 </div>
-            </DialogContent>
-        </Dialog>
-        
-        {/* Create or Edit Text Modal */}
-        <Dialog open={isCreateTextModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
-            <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>{editingPost ? "Metni Düzenle" : "Metin Paylaş"}</DialogTitle>
-                </DialogHeader>
-                <div className="py-4 space-y-4">
-                     <div className='w-full flex items-center gap-2'>
-                        <Button variant="outline" size="sm" onClick={handleFetchLocation} disabled={isFetchingLocation}>
-                            <MapPin className={cn("w-4 h-4 mr-2", isFetchingLocation && "animate-pulse")}/>
-                            {isFetchingLocation ? "Alınıyor..." : location ? location : "Konum Ekle"}
-                        </Button>
-                        {isFetchingLocation && <Loader2 className="w-4 h-4 animate-spin"/>}
-                         {location && !isFetchingLocation && 
-                            <Button variant="ghost" size="icon" className='h-6 w-6' onClick={() => setLocation('')}>
-                                <XIcon className='w-4 h-4'/>
-                            </Button>
-                        }
-                    </div>
 
-                     <MentionTextarea 
-                        placeholder="Bugün harika bir gün... #mutluluk @kullanici" 
-                        value={textContent} 
-                        setValue={setTextContent} 
-                        className="min-h-[150px]"
-                        disabled={isPostProcessing}
-                    />
+                <div className='mt-auto p-2 border-t shrink-0'>
+                    <div className="flex justify-between items-center w-full">
+                        <div className="flex items-center">
+                            <Button variant="ghost" size="icon" className="text-muted-foreground"><Smile className="w-6 h-6"/></Button>
+                            <Button variant="ghost" size="icon" className="text-muted-foreground"><Mic className="w-6 h-6"/></Button>
+                            <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => createFileInputRef.current?.click()}><ImageIcon className="w-6 h-6"/></Button>
+                            <input type="file" ref={createFileInputRef} onChange={onSelectPhotoForPost} accept="image/*" className="hidden" />
+                            <Button variant="ghost" size="icon" className="text-muted-foreground"><ListCollapse className="w-6 h-6"/></Button>
+                            <Button variant="ghost" size="icon" className="text-muted-foreground"><Music className="w-6 h-6"/></Button>
+                            <Button variant="ghost" size="icon" className="text-muted-foreground"><Hash className="w-6 h-6"/></Button>
+                        </div>
+                        <span className="text-sm text-muted-foreground">{postContent.length}/{postContentMaxLength}</span>
+                    </div>
+                     <div className="flex items-center justify-between w-full mt-1">
+                        <Button variant="ghost" size="sm" className="text-muted-foreground h-auto p-1 px-2"><MapPin className="w-4 h-4 mr-2"/> Konum Ekle</Button>
+                        <Button variant="ghost" size="sm" className="text-muted-foreground h-auto p-1 px-2">Herkese açık <ChevronRight className="w-4 h-4 ml-1"/></Button>
+                     </div>
                 </div>
-                 <DialogFooter>
-                    <Button variant="outline" onClick={resetCreateState}>İptal</Button>
-                    <Button onClick={handleSharePost} disabled={isPostProcessing || !textContent.trim()}>
-                        {isPostProcessing ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Check className="mr-2 h-4 w-4" /> )}
-                        {editingPost ? "Kaydet" : "Paylaş"}
-                    </Button>
-                </DialogFooter>
             </DialogContent>
         </Dialog>
 
@@ -1176,3 +927,5 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    

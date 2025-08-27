@@ -1,15 +1,10 @@
 {
+  "/(app)/admin/blocked-ips/page": "app/(app)/admin/blocked-ips/page.js",
+  "/(app)/admin/page": "app/(app)/admin/page.js",
   "/(app)/explore/page": "app/(app)/explore/page.js",
   "/(app)/match/page": "app/(app)/match/page.js",
+  "/(app)/notifications/page": "app/(app)/notifications/page.js",
   "/(app)/profile/[username]/page": "app/(app)/profile/[username]/page.js",
-  "/(app)/profile/edit/appearance/page": "app/(app)/profile/edit/appearance/page.js",
-  "/(app)/profile/edit/page": "app/(app)/profile/edit/page.js",
-  "/(app)/profile/edit/personal/page": "app/(app)/profile/edit/personal/page.js",
-  "/(app)/profile/edit/picture/page": "app/(app)/profile/edit/picture/page.js",
   "/(app)/profile/page": "app/(app)/profile/page.js",
-  "/(app)/shuffle/page": "app/(app)/shuffle/page.js",
-  "/(app)/tutorial/page": "app/(app)/tutorial/page.js",
-  "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/(auth)/signup/page": "app/(auth)/signup/page.js",
   "/page": "app/page.js"
 }
