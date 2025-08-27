@@ -84,4 +84,3 @@ export const useUserSuggestions = (rawQuery: string | null) => {
 
   return { suggestions, loading };
 };
-

@@ -16,7 +16,7 @@ import {
   SidebarInset,
   SidebarFooter,
 } from '@/components/ui/sidebar';
-import { Home, Users, Settings, LogOut, PanelLeft, LineChart, Search, ShieldCheck, Ban } from 'lucide-react';
+import { Home, Users, Settings, LogOut, PanelLeft, LineChart, Search, ShieldCheck, Ban, ShieldAlert, FileWarning } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
@@ -44,11 +44,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const pathname = usePathname();
 
     const getPageTitle = () => {
-        if (pathname === '/admin') return 'Dashboard';
+        if (pathname === '/admin') return 'Yönetim Paneli';
         if (pathname === '/admin/users') return 'Kullanıcılar';
         if (pathname === '/admin/activity-logs') return 'Aktivite Kayıtları';
         if (pathname === '/admin/blocked-ips') return 'Engellenen IP\'ler';
-        if (pathname === '/admin/settings') return 'Ayarlar';
+        if (pathname === '/admin/reported-content') return 'Rapor Edilen İçerikler';
+        if (pathname === '/admin/system-status') return 'Sistem Durumu';
         return 'Panel';
     }
 
@@ -57,24 +58,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Sidebar>
                 <SidebarHeader className="p-4">
                      <Link href="/admin" className="flex items-center gap-2 text-lg font-semibold">
-                        <LineChart className="h-7 w-7 text-primary" />
-                        <span className="font-bold text-foreground">Panel</span>
+                        <ShieldAlert className="h-7 w-7 text-primary" />
+                        <span className="font-bold text-foreground">Admin Paneli</span>
                     </Link>
                 </SidebarHeader>
                 <SidebarContent className="p-2">
                     <SidebarMenu>
-                       <NavItem href="/admin" icon={<Home />} label="Dashboard" />
-                       <NavItem href="/admin/users" icon={<Users />} label="Kullanıcılar" />
+                       <NavItem href="/admin" icon={<Home />} label="Ana Sayfa" />
+                       <NavItem href="/admin/users" icon={<Users />} label="Kullanıcı Yönetimi" />
                        <NavItem href="/admin/activity-logs" icon={<ShieldCheck />} label="Aktivite Kayıtları" />
                        <NavItem href="/admin/blocked-ips" icon={<Ban />} label="Engellenen IP'ler" />
-                       <NavItem href="/admin/settings" icon={<Settings />} label="Ayarlar" />
+                       <NavItem href="/admin/reported-content" icon={<FileWarning />} label="Rapor Edilenler" />
+                       <NavItem href="/admin/system-status" icon={<LineChart />} label="Sistem Durumu" />
                     </SidebarMenu>
                 </SidebarContent>
                 <SidebarFooter className="p-4 border-t">
-                     <Link href="/logout">
+                     <Link href="/explore">
                         <Button variant="ghost" className="w-full justify-start gap-3">
                             <LogOut className="w-5 h-5"/>
-                            <span>Çıkış Yap</span>
+                            <span>Paneleden Çık</span>
                         </Button>
                     </Link>
                 </SidebarFooter>

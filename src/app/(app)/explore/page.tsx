@@ -194,7 +194,7 @@ export default function ExplorePage() {
                     const authorsQuery = query(collection(db, 'users'), where('uid', 'in', authorIds));
                     const authorsSnapshot = await getDocs(authorsQuery);
                     authorsSnapshot.forEach(doc => {
-                        authorsData[doc.id] = { ...doc.data(), uid: doc.id } as User;
+                        authorsData[doc.data().uid] = { ...doc.data(), uid: doc.id } as User;
                     });
                 }
                 
@@ -325,7 +325,7 @@ export default function ExplorePage() {
                     const usersQuery = query(collection(db, 'users'), where('uid', 'in', Array.from(commentAuthors)));
                     const usersSnapshot = await getDocs(usersQuery);
                     usersSnapshot.forEach(doc => {
-                         authorDetails[doc.id] = { ...doc.data(), uid: doc.id } as User;
+                         authorDetails[doc.data().uid] = { ...doc.data(), uid: doc.id } as User;
                     });
                 }
                 
@@ -438,7 +438,7 @@ export default function ExplorePage() {
                 return;
             }
             
-            const usersQuery = query(collection(db, 'users'), where(documentId(), 'in', likerIds));
+            const usersQuery = query(collection(db, 'users'), where('uid', 'in', likerIds));
             const usersSnapshot = await getDocs(usersQuery);
             const usersData = usersSnapshot.docs.map(d => ({ uid: d.id, ...d.data() } as User));
             setLikers(usersData);
@@ -590,7 +590,7 @@ export default function ExplorePage() {
             
             setPosts(prev => [newPostForUI, ...prev]);
             
-            toast({ title: 'Paylaşıldı!', description: `Gönderiniz başarıyla paylaşıldı. (+${getXpForAction('NEW_POST')} XP)`, className: 'bg-green-500 text-white' });
+            toast({ title: 'Paylaşıldı!', description: `Gönderiniz başarıyla paylaşıldı. (+${getXpForAction('new_post')} XP)`, className: 'bg-green-500 text-white' });
 
         } catch (error) {
             console.error("Error sharing post: ", error);
@@ -944,7 +944,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-    
-
-    

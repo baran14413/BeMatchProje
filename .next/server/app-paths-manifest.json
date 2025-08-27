@@ -1,4 +1,6 @@
 {
+  "/(app)/admin/page": "app/(app)/admin/page.js",
+  "/(app)/admin/users/page": "app/(app)/admin/users/page.js",
   "/(app)/explore/page": "app/(app)/explore/page.js",
   "/(app)/match/page": "app/(app)/match/page.js",
   "/(app)/notifications/page": "app/(app)/notifications/page.js",
@@ -11,5 +13,6 @@
   "/(app)/shuffle/page": "app/(app)/shuffle/page.js",
   "/(app)/table/page": "app/(app)/table/page.js",
   "/(auth)/login/page": "app/(auth)/login/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js"
 }
