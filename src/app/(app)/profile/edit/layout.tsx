@@ -25,7 +25,6 @@ const getTitleForPath = (path: string): string => {
     if (path.endsWith('/wallet')) return 'Cüzdanım';
     if (path.endsWith('/users')) return 'Kullanıcıları Yönet';
     if (path.endsWith('/cache')) return 'Önbellek Yönetimi';
-    if (path.endsWith('/xp')) return 'Seviye ve XP';
     return 'Ayarlar';
 };
 
@@ -53,5 +52,3 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
-    

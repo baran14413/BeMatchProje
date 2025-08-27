@@ -42,7 +42,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { LevelBadge } from '@/components/ui/level-badge';
 
 type Post = {
     id: string;
@@ -77,9 +76,8 @@ const PostCard = ({ post, user }: { post: Post, user: DocumentData }) => (
                 </Link>
                 <div className='flex flex-col'>
                     <div className='flex items-center gap-2'>
-                        <Link href={`/profile/${user.username}`} className="font-semibold text-sm">{user.name?.split(' ')[0]}</Link>
+                        <Link href={`/profile/${user.username}`} className="font-semibold text-sm">{user.name}</Link>
                         {user.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
-                        <LevelBadge level={user.level || 1} size="sm" />
                     </div>
                      {post.isAiEdited && (
                         <Badge variant="outline" className="text-xs w-fit text-purple-500 border-purple-300 mt-1">
@@ -126,13 +124,13 @@ const PostCard = ({ post, user }: { post: Post, user: DocumentData }) => (
                 <p className="font-semibold">{post.likes.toLocaleString()} beğeni</p>
                 {(post.caption || (post.type === 'photo' && !post.textContent)) && (
                      <p>
-                        <Link href={`/profile/${user.username}`} className="font-semibold">{user.name?.split(' ')[0]}</Link>{' '}
+                        <Link href={`/profile/${user.username}`} className="font-semibold">{user.name}</Link>{' '}
                         {post.caption}
                     </p>
                 )}
                  {post.type === 'text' && post.textContent && (
                     <p>
-                        <Link href={`/profile/${user.username}`} className="font-semibold">{user.name?.split(' ')[0]}</Link>{' '}
+                        <Link href={`/profile/${user.username}`} className="font-semibold">{user.name}</Link>{' '}
                         {post.textContent}
                     </p>
                 )}
@@ -437,7 +435,6 @@ export default function UserProfilePage() {
                         <AvatarImage src={userProfile.avatarUrl} data-ai-hint={userProfile.aiHint} />
                         <AvatarFallback className="text-3xl">{userProfile.name?.charAt(0)}</AvatarFallback>
                     </Avatar>
-                     <LevelBadge level={userProfile.level || 1} size="lg" className="absolute -left-2 -top-2 z-10" />
                 </div>
                 <div className="flex-1 grid grid-cols-3 gap-2 text-center">
                     <StatItem value={userPosts.length} label="Gönderi" />
@@ -589,5 +586,3 @@ export default function UserProfilePage() {
     </div>
   );
 }
-
-    

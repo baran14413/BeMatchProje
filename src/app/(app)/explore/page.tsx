@@ -34,9 +34,6 @@ import { useRouter } from 'next/navigation';
 import { MentionTextarea } from '@/components/ui/mention-textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
-import { awardXp } from '@/ai/flows/award-xp-flow';
-import { LevelBadge } from '@/components/ui/level-badge';
-import { getXpForAction } from '@/config/xp-config';
 
 
 const formatRelativeTime = (date: Date) => {
@@ -199,8 +196,6 @@ export default function ExplorePage() {
                 }
                 
                 const postIds = postsData.map(p => p.id);
-                // A better approach would be a user-centric likes collection, but for this scope, we fetch likes for each post individually or skip it on initial load.
-                // For performance, we'll fetch likes individually on click.
 
                 const populatedPosts = await Promise.all(
                     postsData.map(async (post) => {
@@ -251,7 +246,6 @@ export default function ExplorePage() {
         const newLikedState = !post.liked;
         const newLikesCount = newLikedState ? post.likes + 1 : post.likes - 1;
 
-        // Optimistic UI update
         setPosts((prevPosts) => {
             const newPosts = [...prevPosts];
             newPosts[postIndex] = { ...post, liked: newLikedState, likes: newLikesCount };
@@ -269,41 +263,32 @@ export default function ExplorePage() {
                 }
 
                 if (newLikedState) {
-                    // Liking
                     transaction.set(likeRef, { likedAt: serverTimestamp() });
                     transaction.update(postRef, { likes: increment(1) });
                 } else {
-                    // Unliking
                     transaction.delete(likeRef);
                     transaction.update(postRef, { likes: increment(-1) });
                 }
             });
 
-            // --- Award XP after successful transaction ---
-            if (newLikedState) {
-                if (post.authorId !== currentUser.uid) {
-                    await awardXp({ userId: post.authorId, reason: 'LIKE_RECEIVED' });
-                    // Create notification
-                    const notificationRef = doc(collection(db, 'notifications'));
-                     await setDoc(notificationRef, {
-                        recipientId: post.authorId,
-                        fromUser: {
-                            uid: currentUser.uid,
-                            name: currentUser.displayName,
-                            avatar: currentUser.photoURL,
-                        },
-                        type: 'like',
-                        postType: post.type,
-                        postId: postId,
-                        read: false,
-                        createdAt: serverTimestamp(),
-                    });
-                }
-                await awardXp({ userId: currentUser.uid, reason: 'LIKE_SENT' });
+            if (newLikedState && post.authorId !== currentUser.uid) {
+                const notificationRef = doc(collection(db, 'notifications'));
+                 await setDoc(notificationRef, {
+                    recipientId: post.authorId,
+                    fromUser: {
+                        uid: currentUser.uid,
+                        name: currentUser.displayName,
+                        avatar: currentUser.photoURL,
+                    },
+                    type: 'like',
+                    postType: post.type,
+                    postId: postId,
+                    read: false,
+                    createdAt: serverTimestamp(),
+                });
             }
         } catch (error) {
             console.error('Error updating like:', error);
-            // Revert UI change on failure
             setPosts((prevPosts) => {
                 const newPosts = [...prevPosts];
                 newPosts[postIndex] = post;
@@ -369,15 +354,11 @@ export default function ExplorePage() {
         try {
             const postRef = doc(db, 'posts', activePostForComments.id);
             const commentsRef = collection(postRef, 'comments');
-
-            // DB Operations
+            
             const newCommentRef = await addDoc(commentsRef, newCommentData);
             await updateDoc(postRef, { commentsCount: increment(1) });
             
-            // --- Award XP and send notification AFTER successful DB write ---
             if (activePostForComments.authorId !== currentUser.uid) {
-                await awardXp({ userId: activePostForComments.authorId, reason: 'COMMENT_RECEIVED' });
-                // Create notification
                 const notificationRef = doc(collection(db, 'notifications'));
                 await setDoc(notificationRef, {
                     recipientId: activePostForComments.authorId,
@@ -394,9 +375,7 @@ export default function ExplorePage() {
                     createdAt: serverTimestamp(),
                 });
             }
-            await awardXp({ userId: currentUser.uid, reason: 'COMMENT_SENT' });
 
-            // UI update
             const newCommentForUI = {
                 ...newCommentData,
                 id: newCommentRef.id,
@@ -457,8 +436,6 @@ export default function ExplorePage() {
 
 
     const handleCommentLikeClick = (postId: string, commentId: string) => {
-        // This is a UI-only optimistic update. 
-        // For a real app, this should be backed by a Firestore transaction.
         const updatedPosts = posts.map(post => {
             if (post.id === postId) {
                 return {
@@ -492,10 +469,8 @@ export default function ExplorePage() {
         if (!currentUser || post.authorId !== currentUser.uid) return;
         
         try {
-            // Delete from Firestore
             await deleteDoc(doc(db, "posts", post.id));
 
-            // If it's a photo, delete from Storage
             if (post.type === 'photo' && post.url) {
                 const imageRef = ref(storage, post.url);
                 await deleteObject(imageRef).catch((error) => {
@@ -512,8 +487,6 @@ export default function ExplorePage() {
             toast({ variant: 'destructive', title: "Gönderi silinirken hata oluştu." });
         }
     };
-
-    // --- Create / Edit Post Logic ---
 
     const resetCreateState = () => {
         setPostContent('');
@@ -580,9 +553,6 @@ export default function ExplorePage() {
             if (!docSnap.exists()) throw new Error("Post creation failed in DB");
             const newPostFromDb = { id: docSnap.id, ...docSnap.data() };
             
-            // Award XP for new post
-            await awardXp({ userId: currentUser.uid, reason: 'NEW_POST' });
-
             const currentUserDoc = await getDoc(doc(db, 'users', currentUser.uid));
             const currentUserData = currentUserDoc.data() as User;
 
@@ -595,7 +565,7 @@ export default function ExplorePage() {
             
             setPosts(prev => [newPostForUI, ...prev]);
             
-            toast({ title: 'Paylaşıldı!', description: `Gönderiniz başarıyla paylaşıldı. (+${getXpForAction('NEW_POST')} XP)`, className: 'bg-green-500 text-white' });
+            toast({ title: 'Paylaşıldı!', description: `Gönderiniz başarıyla paylaşıldı.`, className: 'bg-green-500 text-white' });
 
         } catch (error) {
             console.error("Error sharing post: ", error);
@@ -630,9 +600,8 @@ export default function ExplorePage() {
                                 <div className="flex flex-col overflow-hidden">
                                     <div className="flex items-center gap-2">
                                         <Link href={`/profile/${post.user?.username}`} className="font-semibold text-sm truncate hover:underline">
-                                            {post.user?.name.split(' ')[0]}
+                                            {post.user?.name}
                                         </Link>
-                                        <LevelBadge level={post.user?.level || 1} size="sm" />
                                     </div>
                                     <span className="text-xs text-muted-foreground truncate">@{post.user?.username}</span>
                                 </div>
@@ -759,7 +728,7 @@ export default function ExplorePage() {
                              <span className="font-semibold cursor-pointer" onClick={() => handleOpenLikes(post.id)}>{post.likes.toLocaleString()} beğeni</span>
                             {post.type === 'photo' && post.caption && !post.isGalleryLocked && (
                                  <div className="whitespace-pre-wrap break-words">
-                                    <Link href={`/profile/${post.user?.username}`} className="font-semibold mr-1">{post.user?.name.split(' ')[0]}</Link>
+                                    <Link href={`/profile/${post.user?.username}`} className="font-semibold mr-1">{post.user?.name}</Link>
                                     <HashtagAndMentionRenderer text={post.caption} />
                                  </div>
                             )}

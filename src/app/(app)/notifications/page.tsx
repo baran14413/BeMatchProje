@@ -14,7 +14,7 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import Link from 'next/link';
 
-type NotificationType = 'follow' | 'like' | 'comment' | 'gallery_request' | 'login_alert' | 'level_up' | 'xp_gain';
+type NotificationType = 'follow' | 'like' | 'comment' | 'gallery_request' | 'login_alert';
 
 type Notification = {
   id: string;
@@ -58,13 +58,6 @@ const NotificationIcon = ({ notification }: { notification: Notification }) => {
                     </div>
                 </div>
             )
-        case 'xp_gain':
-        case 'level_up':
-            return (
-                <div className="w-12 h-12 flex items-center justify-center rounded-full bg-yellow-400/20 border-2 border-yellow-500">
-                    <Star className="w-7 h-7 text-yellow-500 fill-current" />
-                </div>
-            )
         case 'follow':
         case 'gallery_request':
         default:
@@ -100,12 +93,6 @@ const NotificationText = ({ notification }: { notification: Notification }) => {
         case 'gallery_request':
              text = `**${fromUser.name}** gizli galerini görmek için istek gönderdi.`;
              break;
-        case 'level_up':
-            text = `Tebrikler! **${content}** seviyesine ulaştın!`;
-            break;
-        case 'xp_gain':
-            text = `${content}`; // e.g. "Yeni gönderi için **+25 XP** kazandın"
-            break;
         default:
             text = 'Yeni bir bildiriminiz var.';
     }
@@ -160,9 +147,6 @@ export default function NotificationsPage() {
             case 'follow':
             case 'gallery_request':
                 return `/profile/${notification.fromUser.name}`; // Assuming username is same as name for now
-            case 'level_up':
-            case 'xp_gain':
-                return '/profile/edit/xp';
             default:
                 return '#';
         }
@@ -188,8 +172,7 @@ export default function NotificationsPage() {
                      <div>
                         {notifications.map((item) => (
                            <Link href={getNotificationLink(item)} key={item.id} className={cn(
-                               "flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors",
-                               item.type === 'xp_gain' || item.type === 'level_up' ? 'bg-yellow-400/10' : ''
+                               "flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors"
                             )}>
                                 <div className="shrink-0">
                                     <NotificationIcon notification={item} />
