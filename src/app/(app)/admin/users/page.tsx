@@ -52,6 +52,8 @@ function AwardXpModal({ user, onAward }: { user: AppUser, onAward: (amount: numb
                 toast({ title: `${user.name} kullanıcısına ${amount} XP verildi.` });
                 onAward(amount);
                 setIsOpen(false);
+                setAmount(0);
+                setReason('');
             } else {
                 throw new Error("XP verme işlemi başarısız oldu.");
             }
@@ -84,7 +86,10 @@ function AwardXpModal({ user, onAward }: { user: AppUser, onAward: (amount: numb
                             id="xp-amount"
                             type="number"
                             value={amount}
-                            onChange={(e) => setAmount(parseInt(e.target.value, 10))}
+                            onChange={(e) => {
+                                const value = parseInt(e.target.value, 10);
+                                setAmount(isNaN(value) ? 0 : value);
+                            }}
                             placeholder="Örn: 100"
                         />
                     </div>
