@@ -562,6 +562,8 @@ const awardXpFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$ai$2f
             const userDoc = await transaction.get(userRef);
             if (!userDoc.exists) {
                 console.error(`User ${userId} not found.`);
+                // Stop the transaction by not returning anything or returning a specific value.
+                // Since the user doesn't exist, we can't proceed.
                 return;
             }
             const userData = userDoc.data();

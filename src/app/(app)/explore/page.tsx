@@ -191,10 +191,10 @@ export default function ExplorePage() {
                 const authorsData: Record<string, User> = {};
                 
                 if(authorIds.length > 0) {
-                    const authorsQuery = query(collection(db, 'users'), where('uid', 'in', authorIds));
+                     const authorsQuery = query(collection(db, 'users'), where(documentId(), 'in', authorIds));
                     const authorsSnapshot = await getDocs(authorsQuery);
                     authorsSnapshot.forEach(doc => {
-                        authorsData[doc.data().uid] = { ...doc.data(), uid: doc.id } as User;
+                        authorsData[doc.id] = { ...doc.data(), uid: doc.id } as User;
                     });
                 }
                 
@@ -243,15 +243,16 @@ export default function ExplorePage() {
 
     const handleLikeClick = async (postId: string) => {
         if (!currentUser) return;
-        
-        const postIndex = posts.findIndex(p => p.id === postId);
+
+        const postIndex = posts.findIndex((p) => p.id === postId);
         if (postIndex === -1) return;
-    
+
         const post = posts[postIndex];
         const newLikedState = !post.liked;
         const newLikesCount = newLikedState ? post.likes + 1 : post.likes - 1;
-    
-        setPosts(prevPosts => {
+
+        // Optimistic UI update
+        setPosts((prevPosts) => {
             const newPosts = [...prevPosts];
             newPosts[postIndex] = { ...post, liked: newLikedState, likes: newLikesCount };
             return newPosts;
@@ -259,50 +260,53 @@ export default function ExplorePage() {
 
         try {
             await runTransaction(db, async (transaction) => {
-                 const postRef = doc(db, "posts", postId);
-                 const likeRef = doc(postRef, "likes", currentUser.uid);
-                 
-                 const postSnap = await transaction.get(postRef);
-                 if (!postSnap.exists()) {
-                     throw "Post does not exist!";
-                 }
-                 
-                 if (newLikedState) { // Liking
+                const postRef = doc(db, 'posts', postId);
+                const likeRef = doc(postRef, 'likes', currentUser.uid);
+
+                const postSnap = await transaction.get(postRef);
+                if (!postSnap.exists()) {
+                    throw new Error('Post does not exist!');
+                }
+
+                if (newLikedState) {
+                    // Liking
                     transaction.set(likeRef, { likedAt: serverTimestamp() });
                     transaction.update(postRef, { likes: increment(1) });
-                    
-                    if (post.authorId !== currentUser.uid) {
-                        const notificationRef = doc(collection(db, 'notifications'));
-                        transaction.set(notificationRef, {
-                            recipientId: post.authorId,
-                            fromUser: {
-                                uid: currentUser.uid,
-                                name: currentUser.displayName,
-                                avatar: currentUser.photoURL,
-                            },
-                            type: 'like',
-                            postType: post.type,
-                            postId: postId,
-                            read: false,
-                            createdAt: serverTimestamp()
-                        });
-                        // Award XP to post author for receiving a like
-                        awardXp({ userId: post.authorId, reason: 'LIKE_RECEIVED' });
-                    }
-                     // Award XP to self for liking a post
-                    awardXp({ userId: currentUser.uid, reason: 'LIKE_SENT' });
-
-                 } else { // Unliking
-                     transaction.delete(likeRef);
-                     transaction.update(postRef, { likes: increment(-1) });
-                 }
+                } else {
+                    // Unliking
+                    transaction.delete(likeRef);
+                    transaction.update(postRef, { likes: increment(-1) });
+                }
             });
 
+            // --- Award XP after successful transaction ---
+            if (newLikedState) {
+                if (post.authorId !== currentUser.uid) {
+                    await awardXp({ userId: post.authorId, reason: 'LIKE_RECEIVED' });
+                    // Create notification
+                    const notificationRef = doc(collection(db, 'notifications'));
+                     await setDoc(notificationRef, {
+                        recipientId: post.authorId,
+                        fromUser: {
+                            uid: currentUser.uid,
+                            name: currentUser.displayName,
+                            avatar: currentUser.photoURL,
+                        },
+                        type: 'like',
+                        postType: post.type,
+                        postId: postId,
+                        read: false,
+                        createdAt: serverTimestamp(),
+                    });
+                }
+                await awardXp({ userId: currentUser.uid, reason: 'LIKE_SENT' });
+            }
         } catch (error) {
-            console.error("Error updating like:", error);
-            setPosts(prevPosts => {
+            console.error('Error updating like:', error);
+            // Revert UI change on failure
+            setPosts((prevPosts) => {
                 const newPosts = [...prevPosts];
-                newPosts[postIndex] = post; // Revert UI change
+                newPosts[postIndex] = post;
                 return newPosts;
             });
             toast({ variant: 'destructive', title: 'Beğenme işlemi başarısız oldu.' });
@@ -352,31 +356,28 @@ export default function ExplorePage() {
 
     const handlePostComment = async () => {
         if (!currentUser || !activePostForComments || !commentInput.trim()) return;
-        
+
         setIsPostingComment(true);
 
         const newCommentData = {
             authorId: currentUser.uid,
             text: commentInput.trim(),
             likes: 0,
-            createdAt: serverTimestamp()
+            createdAt: serverTimestamp(),
         };
 
         try {
-            const postRef = doc(db, "posts", activePostForComments.id);
+            const postRef = doc(db, 'posts', activePostForComments.id);
             const commentsRef = collection(postRef, 'comments');
-            
+
+            // DB Operations
             const newCommentRef = await addDoc(commentsRef, newCommentData);
             await updateDoc(postRef, { commentsCount: increment(1) });
             
-             // Award XP
+            // --- Award XP and send notification AFTER successful DB write ---
             if (activePostForComments.authorId !== currentUser.uid) {
-                awardXp({ userId: activePostForComments.authorId, reason: 'COMMENT_RECEIVED' });
-            }
-            awardXp({ userId: currentUser.uid, reason: 'COMMENT_SENT' });
-            
-             // Create notification
-             if (activePostForComments.authorId !== currentUser.uid) {
+                await awardXp({ userId: activePostForComments.authorId, reason: 'COMMENT_RECEIVED' });
+                // Create notification
                 const notificationRef = doc(collection(db, 'notifications'));
                 await setDoc(notificationRef, {
                     recipientId: activePostForComments.authorId,
@@ -390,9 +391,10 @@ export default function ExplorePage() {
                     postId: activePostForComments.id,
                     content: newCommentData.text.substring(0, 50),
                     read: false,
-                    createdAt: serverTimestamp()
+                    createdAt: serverTimestamp(),
                 });
             }
+            await awardXp({ userId: currentUser.uid, reason: 'COMMENT_SENT' });
 
             // UI update
             const newCommentForUI = {
@@ -402,23 +404,26 @@ export default function ExplorePage() {
                 createdAt: new Date(),
                 liked: false,
             };
-            
-             setPosts(prevPosts => prevPosts.map(p => p.id === activePostForComments.id ? { 
-                ...p, 
-                comments: [newCommentForUI, ...p.comments],
-                commentsCount: p.commentsCount + 1,
-            } : p));
-            setActivePostForComments(prev => prev ? { 
-                ...prev, 
-                comments: [newCommentForUI, ...prev.comments],
-                commentsCount: prev.commentsCount + 1
-             } : null);
+
+            setPosts((prevPosts) =>
+                prevPosts.map((p) =>
+                    p.id === activePostForComments.id
+                        ? {
+                              ...p,
+                              comments: [newCommentForUI, ...p.comments],
+                              commentsCount: p.commentsCount + 1,
+                          }
+                        : p
+                )
+            );
+            setActivePostForComments((prev) =>
+                prev ? { ...prev, comments: [newCommentForUI, ...prev.comments], commentsCount: prev.commentsCount + 1 } : null
+            );
 
             setCommentInput('');
-            
-        } catch(error) {
-            console.error("Error posting comment:", error);
-            toast({ variant: 'destructive', title: "Yorum gönderilemedi." });
+        } catch (error) {
+            console.error('Error posting comment:', error);
+            toast({ variant: 'destructive', title: 'Yorum gönderilemedi.' });
         } finally {
             setIsPostingComment(false);
         }
