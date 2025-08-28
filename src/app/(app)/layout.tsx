@@ -41,11 +41,9 @@ const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { 
                     <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500" />
                 )}
             </motion.div>
-            {isActive && (
-                 <span className="text-xs font-bold text-primary">
-                    {srText}
-                </span>
-            )}
+            <span className={cn("text-xs font-bold", isActive ? 'text-primary' : 'text-transparent')}>
+                {srText}
+            </span>
         </Link>
     );
 };
@@ -69,7 +67,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const [showNotification, setShowNotification] = useState(false);
   const activityLoggedRef = useRef(false);
   
-  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const [isClientReady, setIsClientReady] = useState(false);
 
   useEffect(() => {
@@ -105,9 +102,11 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 const profileData = userDocSnap.data();
                 setCurrentUserProfile(profileData);
                 if (!sessionStorage.getItem('welcomePopupShown')) {
-                    setShowWelcomePopup(true);
+                    const welcomeText = `Hoş geldin, ${profileData.name?.split(' ')[0]}! ❤️`;
+                    setLastNotification({ id: 'welcome-message', text: welcomeText });
+                    setShowNotification(true);
+                    setTimeout(() => setShowNotification(false), 6000);
                     sessionStorage.setItem('welcomePopupShown', 'true');
-                    setTimeout(() => setShowWelcomePopup(false), 7000);
                 }
                 if (!activityLoggedRef.current && profileData.name && profileData.avatarUrl) {
                   fetch('https://api.ipify.org?format=json')
@@ -382,24 +381,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
             </nav>
         )}
         </div>
-        <AlertDialog open={showWelcomePopup} onOpenChange={setShowWelcomePopup}>
-            <AlertDialogContent>
-                <AlertDialogHeader className="items-center text-center">
-                    <Sparkles className="w-12 h-12 text-yellow-400 mb-4" />
-                    <AlertDialogTitle className="text-2xl">
-                       Hoş geldin, {currentUserProfile?.name?.split(' ')[0]}! ❤️
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                        BeMatch'i keşfetmeye hazır mısın?
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter className="sm:justify-center">
-                    <AlertDialogAction onClick={() => setShowWelcomePopup(false)}>
-                        Hadi Başlayalım!
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
     </>
   );
 }
@@ -412,3 +393,5 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
+
+    
