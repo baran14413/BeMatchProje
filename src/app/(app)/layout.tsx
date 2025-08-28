@@ -11,7 +11,7 @@ import { useNetworkStatus } from '@/hooks/use-network-status';
 import { NetworkStatusBanner } from '@/components/ui/network-status-banner';
 import { auth, db, setupPresence } from '@/lib/firebase';
 import type { User as FirebaseUser } from 'firebase/auth';
-import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, getDoc, orderBy, limit } from 'firebase/firestore';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,18 +26,33 @@ import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { logActivity } from '@/ai/flows/log-activity-flow';
+import { motion, AnimatePresence } from 'framer-motion';
 
 
-const NavButton = ({ href, icon, srText, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, hasNotification?: boolean }) => {
+const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, isActive: boolean, hasNotification?: boolean }) => {
     return (
-        <Link href={href}>
-            <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8">
-                {icon}
+        <Link href={href} className="flex flex-col items-center justify-center gap-1 w-full h-full">
+            <motion.div whileTap={{ scale: 0.9 }} className="relative">
+                 {React.cloneElement(icon as React.ReactElement, {
+                    className: cn('h-6 w-6 transition-all', isActive ? 'text-primary' : 'text-muted-foreground'),
+                    strokeWidth: isActive ? 2.5 : 2
+                })}
                 {hasNotification && (
-                    <span className="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500 animate-pulse-heart" />
+                    <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500" />
                 )}
-                <span className="sr-only">{srText}</span>
-            </Button>
+            </motion.div>
+            <AnimatePresence>
+            {isActive && (
+                 <motion.span 
+                    className="text-xs font-bold text-primary"
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                >
+                    {srText}
+                </motion.span>
+            )}
+            </AnimatePresence>
         </Link>
     );
 };
@@ -57,12 +72,11 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
-  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+  const [lastNotification, setLastNotification] = useState<{ id: string, text: string } | null>(null);
+  const [showNotification, setShowNotification] = useState(false);
   const activityLoggedRef = useRef(false);
   
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
-
-  // Hydration fix state
   const [isClientReady, setIsClientReady] = useState(false);
 
   useEffect(() => {
@@ -71,12 +85,24 @@ function LayoutContent({ children }: { children: ReactNode }) {
     setAnimationsDisabled(storedPreference === 'true');
   }, []);
 
+  const getPageTitle = useCallback(() => {
+    if (!isClientReady) return "BeMatch";
+    if (pathname === '/match') return 'Eşleşme';
+    if (pathname === '/shuffle') return 'Rastgele Eşleşme';
+    if (pathname === '/explore') return 'Keşfet';
+    if (pathname.startsWith('/profile/')) return 'Profil';
+    if (pathname === '/notifications') return 'Bildirimler';
+    if (pathname === '/chat') return 'Sohbetler';
+    if (pathname === '/search') return 'Ara';
+    return "BeMatch";
+  }, [pathname, isClientReady]);
+  
+
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
       setCurrentUser(user);
       if (user) {
         setupPresence(user.uid);
-        // Fetch only if profile is not already loaded or user has changed
         if (!currentUserProfile || currentUser?.uid !== user.uid) {
             setLoadingProfile(true);
             try {
@@ -85,14 +111,10 @@ function LayoutContent({ children }: { children: ReactNode }) {
               if (userDocSnap.exists()) {
                 const profileData = userDocSnap.data();
                 setCurrentUserProfile(profileData);
-
-                // Show welcome popup once per session
                 if (!sessionStorage.getItem('welcomePopupShown')) {
                     setShowWelcomePopup(true);
                     sessionStorage.setItem('welcomePopupShown', 'true');
                 }
-                
-                // Log activity only once per session, and only when we have the data
                 if (!activityLoggedRef.current && profileData.name && profileData.avatarUrl) {
                   fetch('https://api.ipify.org?format=json')
                     .then(res => res.json())
@@ -131,24 +153,40 @@ function LayoutContent({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!currentUser) {
         setHasUnreadMessages(false);
-        setHasUnreadNotifications(false);
+        setLastNotification(null);
         return;
     };
 
-    // Listener for unread notifications
     const notificationsQuery = query(
       collection(db, 'notifications'),
       where('recipientId', '==', currentUser.uid),
-      where('read', '==', false)
+      orderBy('createdAt', 'desc'),
+      limit(1)
     );
     const unsubscribeNotifications = onSnapshot(notificationsQuery, (snapshot) => {
-      setHasUnreadNotifications(!snapshot.empty);
+      if (!snapshot.empty) {
+        const newNotif = snapshot.docs[0].data();
+        const newNotifId = snapshot.docs[0].id;
+
+        // Only show notification if it's new
+        if (newNotifId !== lastNotification?.id && !newNotif.read) {
+          const text = newNotif.type === 'like' 
+            ? `**${newNotif.fromUser.name}** bir gönderini beğendi.`
+            : newNotif.type === 'follow' 
+            ? `**${newNotif.fromUser.name}** seni takip etmeye başladı.`
+            : `**${newNotif.fromUser.name}** gönderine yorum yaptı.`;
+          
+          setLastNotification({ id: newNotifId, text });
+          setShowNotification(true);
+          setTimeout(() => {
+            setShowNotification(false);
+          }, 4000); // Hide after 4 seconds
+        }
+      }
     }, (error) => {
         console.error("Error fetching notification status:", error);
-        setHasUnreadNotifications(false);
     });
     
-    // Listener for unread messages
     const conversationsQuery = query(
         collection(db, 'conversations'),
         where('users', 'array-contains', currentUser.uid)
@@ -173,16 +211,13 @@ function LayoutContent({ children }: { children: ReactNode }) {
         unsubscribeNotifications();
         unsubscribeConversations();
     };
-  }, [currentUser]);
+  }, [currentUser, lastNotification?.id]);
 
 
   const isChatPage = pathname === '/chat';
   const isChatViewOpen = isChatPage && (searchParams.has('userId') || searchParams.has('conversationId'));
   const isCreatePage = pathname === '/create';
-  
-  // Check if it's an admin page
   const isAdminPage = isClientReady && pathname.startsWith('/admin');
-
   const showNavs = isClientReady && !isCreatePage && (!isChatPage || (isChatPage && !isChatViewOpen)) && !isAdminPage;
   const isFullScreen = isClientReady && ((isChatPage && isChatViewOpen) || isAdminPage);
 
@@ -224,6 +259,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
+  const pageTitle = getPageTitle();
 
   return (
     <>
@@ -243,14 +279,51 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 !isOnline || isPoorConnection ? 'top-10' : 'top-0', 
                 isScrolling && "-translate-y-full"
             )}>
-                <Link href="/explore" className="flex items-center gap-2 text-lg font-semibold">
-                    <Heart className="h-7 w-7 text-primary" />
-                    <span className="font-bold">BeMatch</span>
-                </Link>
+              <div className="flex items-center gap-2 text-lg font-semibold overflow-hidden">
+                  <AnimatePresence initial={false}>
+                      {showNotification && lastNotification ? (
+                          <motion.div
+                              key="notification"
+                              initial={{ x: "-100%", opacity: 0 }}
+                              animate={{ x: 0, opacity: 1 }}
+                              exit={{ x: "-100%", opacity: 0 }}
+                              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                              className="flex items-center gap-2"
+                          >
+                            <Bell className="h-5 w-5 text-primary" />
+                            <span className="text-sm font-medium whitespace-nowrap" dangerouslySetInnerHTML={{ __html: lastNotification.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                          </motion.div>
+                      ) : (
+                           <motion.div
+                              key="title"
+                              initial={{ x: "-100%", opacity: 0 }}
+                              animate={{ x: 0, opacity: 1 }}
+                              exit={{ x: "-100%", opacity: 0 }}
+                              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                              className="flex items-center gap-2"
+                          >
+                            <Heart className="h-7 w-7 text-primary" />
+                            <span className="font-bold">{pageTitle}</span>
+                          </motion.div>
+                      )}
+                  </AnimatePresence>
+              </div>
+
                 <div className="flex items-center gap-2">
-                    <NavButton href="/search" icon={<Search className="h-5 w-5" />} srText="Ara" />
-                    <NavButton href="/notifications" icon={<Bell className="h-5 w-5" />} srText="Bildirimler" hasNotification={hasUnreadNotifications} />
-                    <NavButton href="/chat" icon={<MessageCircle className="h-5 w-5" />} srText="Mesajlar" hasNotification={hasUnreadMessages} />
+                    <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" asChild>
+                        <Link href="/search"><Search className="h-5 w-5" /></Link>
+                    </Button>
+                    <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" asChild>
+                        <Link href="/notifications"><Bell className="h-5 w-5" /></Link>
+                    </Button>
+                    <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" asChild>
+                       <Link href="/chat">
+                         <MessageCircle className="h-5 w-5" />
+                         {hasUnreadMessages && (
+                            <span className="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500 animate-pulse-heart" />
+                        )}
+                       </Link>
+                    </Button>
                     {loadingProfile ? (
                          <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" disabled>
                            <Loader2 className="h-5 w-5 animate-spin" />
@@ -307,18 +380,10 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 isScrolling && "translate-y-full"
             )}>
                 <div className="grid h-full grid-cols-4">
-                    <Link href="/shuffle" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/shuffle' ? 'text-primary' : '')}>
-                        <Shuffle className={cn('h-6 w-6')} />
-                    </Link>
-                     <Link href="/match" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/match' ? 'text-primary' : '')}>
-                        <Home className={cn('h-6 w-6')} />
-                    </Link>
-                    <Link href="/explore" className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === '/explore' ? 'text-primary' : '')}>
-                        <Globe className={cn('h-6 w-6')} />
-                    </Link>
-                     <Link href={`/profile/${currentUserProfile?.username}`} className={cn('flex flex-col items-center justify-center text-muted-foreground transition-colors hover:text-primary', pathname === `/profile/${currentUserProfile?.username}` ? 'text-primary' : '')}>
-                        <User className={cn('h-6 w-6')} />
-                    </Link>
+                    <NavButton href="/shuffle" icon={<Shuffle />} srText="Karıştır" isActive={pathname === '/shuffle'} />
+                    <NavButton href="/match" icon={<Home />} srText="Ana Sayfa" isActive={pathname === '/match'} />
+                    <NavButton href="/explore" icon={<Globe />} srText="Keşfet" isActive={pathname === '/explore'} />
+                    <NavButton href={`/profile/${currentUserProfile?.username}`} icon={<User />} srText="Profil" isActive={pathname.startsWith('/profile')} />
                 </div>
             </nav>
         )}
