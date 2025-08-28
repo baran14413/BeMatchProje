@@ -41,18 +41,11 @@ const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { 
                     <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500" />
                 )}
             </motion.div>
-            <AnimatePresence>
             {isActive && (
-                 <motion.span 
-                    className="text-xs font-bold text-primary"
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                >
+                 <span className="text-xs font-bold text-primary">
                     {srText}
-                </motion.span>
+                </span>
             )}
-            </AnimatePresence>
         </Link>
     );
 };
@@ -114,6 +107,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 if (!sessionStorage.getItem('welcomePopupShown')) {
                     setShowWelcomePopup(true);
                     sessionStorage.setItem('welcomePopupShown', 'true');
+                    setTimeout(() => setShowWelcomePopup(false), 7000);
                 }
                 if (!activityLoggedRef.current && profileData.name && profileData.avatarUrl) {
                   fetch('https://api.ipify.org?format=json')
@@ -168,7 +162,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
         const newNotif = snapshot.docs[0].data();
         const newNotifId = snapshot.docs[0].id;
 
-        // Only show notification if it's new
+        // Only show notification if it's new and has not been shown before
         if (newNotifId !== lastNotification?.id && !newNotif.read) {
           const text = newNotif.type === 'like' 
             ? `**${newNotif.fromUser.name}** bir gönderini beğendi.`
@@ -383,7 +377,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                     <NavButton href="/shuffle" icon={<Shuffle />} srText="Karıştır" isActive={pathname === '/shuffle'} />
                     <NavButton href="/match" icon={<Home />} srText="Ana Sayfa" isActive={pathname === '/match'} />
                     <NavButton href="/explore" icon={<Globe />} srText="Keşfet" isActive={pathname === '/explore'} />
-                    <NavButton href={`/profile/${currentUserProfile?.username}`} icon={<User />} srText="Profil" isActive={pathname.startsWith('/profile')} />
+                    <NavButton href={`/profile/${currentUserProfile?.username ?? ''}`} icon={<User />} srText="Profil" isActive={pathname.startsWith('/profile')} />
                 </div>
             </nav>
         )}
@@ -393,7 +387,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 <AlertDialogHeader className="items-center text-center">
                     <Sparkles className="w-12 h-12 text-yellow-400 mb-4" />
                     <AlertDialogTitle className="text-2xl">
-                        Hoş geldin, {currentUserProfile?.name?.split(' ')[0]}!
+                       Hoş geldin, {currentUserProfile?.name?.split(' ')[0]}! ❤️
                     </AlertDialogTitle>
                     <AlertDialogDescription>
                         BeMatch'i keşfetmeye hazır mısın?
