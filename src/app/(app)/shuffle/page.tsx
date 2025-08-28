@@ -207,6 +207,8 @@ function ShuffleContent() {
     const handleCancelSearch = async () => {
         if (!currentUser) return;
         setStatus('idle');
+        setQueueSize(0);
+        setQueueUsers([]);
          try {
             await deleteDoc(doc(db, 'randomMatchQueue', currentUser.uid));
             toast({ title: "Arama iptal edildi." });
