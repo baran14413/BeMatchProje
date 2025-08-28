@@ -6,14 +6,8 @@
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#1E40AF",
+    "theme_color": "#1976d2",
     "icons": [
-        {
-            "src": "/icons/app-logo.svg",
-            "sizes": "any",
-            "type": "image/svg+xml",
-            "purpose": "any"
-        },
         {
             "src": "/icons/icon-192x192.png",
             "sizes": "192x192",
@@ -23,6 +17,35 @@
             "src": "/icons/icon-512x512.png",
             "sizes": "512x512",
             "type": "image/png"
+        },
+        {
+            "src": "/icons/maskable_icon.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Sohbetler",
+            "short_name": "Sohbet",
+            "description": "Mesajlarını görüntüle",
+            "url": "/chat",
+            "icons": [{ "src": "/icons/shortcut-messages.png", "sizes": "96x96" }]
+        },
+        {
+            "name": "Keşfet",
+            "short_name": "Keşfet",
+            "description": "Topluluk gönderilerini görüntüle",
+            "url": "/explore",
+            "icons": [{ "src": "/icons/shortcut-explore.png", "sizes": "96x96" }]
+        },
+        {
+            "name": "Yeni Eşleşme Bul",
+            "short_name": "Eşleş",
+            "description": "Yeni bir rastgele eşleşme ara",
+            "url": "/shuffle",
+            "icons": [{ "src": "/icons/shortcut-shuffle.png", "sizes": "96x96" }]
         }
     ]
 }

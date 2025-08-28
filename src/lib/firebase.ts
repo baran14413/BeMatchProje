@@ -53,11 +53,25 @@ if (typeof window !== 'undefined') {
     }
 }
 
-const clearCache = async () => {
+export const clearCache = async () => {
     try {
+        // Clear Firestore offline persistence
         await clearIndexedDbPersistence(db);
+        
+        // Unregister all service workers
+        if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations) {
+                await registration.unregister();
+            }
+        }
+        
+        // Clear Cache Storage
+        const keys = await caches.keys();
+        await Promise.all(keys.map(key => caches.delete(key)));
+
     } catch (error) {
-        console.error("Error clearing Firestore persistence:", error);
+        console.error("Error clearing all caches:", error);
         throw error;
     }
 };
@@ -120,6 +134,4 @@ const setupPresence = (userId: string) => {
 };
 
 
-export { app, auth, db, storage, setupPresence, clearCache };
-
-    
+export { app, auth, db, storage, setupPresence };

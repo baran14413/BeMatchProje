@@ -1,27 +1,5 @@
 {
-  "node": {
-    "4089b26089702b1e5adfebade7e2643cec0eef947b": {
-      "workers": {
-        "app/(app)/explore/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/explore/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        },
-        "app/(app)/match/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/match/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        },
-        "app/(app)/shuffle/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/shuffle/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        }
-      },
-      "layer": {
-        "app/(app)/explore/page": "action-browser",
-        "app/(app)/match/page": "action-browser",
-        "app/(app)/shuffle/page": "action-browser"
-      }
-    }
-  },
+  "node": {},
   "edge": {},
   "encryptionKey": "RR9qWedF7LKg52rPaWB/UVfEmrz1et13H2Cfbow2Pes="
 }

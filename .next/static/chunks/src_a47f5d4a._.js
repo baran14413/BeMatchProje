@@ -75,9 +75,20 @@ if ("TURBOPACK compile-time truthy", 1) {
 }
 const clearCache = async ()=>{
     try {
+        // Clear Firestore offline persistence
         await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["clearIndexedDbPersistence"])(db);
+        // Unregister all service workers
+        if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations){
+                await registration.unregister();
+            }
+        }
+        // Clear Cache Storage
+        const keys = await caches.keys();
+        await Promise.all(keys.map((key)=>caches.delete(key)));
     } catch (error) {
-        console.error("Error clearing Firestore persistence:", error);
+        console.error("Error clearing all caches:", error);
         throw error;
     }
 };
