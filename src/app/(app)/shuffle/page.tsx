@@ -182,29 +182,38 @@ function ShuffleContent() {
         const queueRef = collection(db, 'randomMatchQueue');
 
         try {
-            await runTransaction(db, async (transaction) => {
-                 // Check for a premium user first
-                let q = query(queueRef, where('gender', '==', targetGender), where('isPremium', '==', true), limit(1));
-                let querySnapshot = await transaction.get(q);
+            // Find a potential match outside the transaction
+            const premiumQuery = query(queueRef, where('gender', '==', targetGender), where('isPremium', '==', true), limit(1));
+            let snapshot = await getDocs(premiumQuery);
 
-                // If no premium user, check for any user
-                if (querySnapshot.empty) {
-                    q = query(queueRef, where('gender', '==', targetGender), limit(1));
-                    querySnapshot = await transaction.get(q);
-                }
+            if (snapshot.empty) {
+                const standardQuery = query(queueRef, where('gender', '==', targetGender), limit(1));
+                snapshot = await getDocs(standardQuery);
+            }
 
-                if (!querySnapshot.empty) {
-                    const otherUserDoc = querySnapshot.docs[0];
-                    const otherUserRef = otherUserDoc.ref;
-                    const otherUserDataDoc = await transaction.get(doc(db, 'users', otherUserDoc.id));
+            const matchDoc = snapshot.docs.length > 0 ? snapshot.docs[0] : null;
 
-                    if(!otherUserDataDoc.exists()) {
+            if (matchDoc) {
+                // Match found, now run transaction to atomically claim it
+                const otherUserRef = matchDoc.ref;
+                const otherUserId = matchDoc.id;
+
+                await runTransaction(db, async (transaction) => {
+                    const otherUserQueueDoc = await transaction.get(otherUserRef);
+                    if (!otherUserQueueDoc.exists()) {
+                        // The user was matched by someone else in the meantime
+                        throw new Error("Eşleşme başkası tarafından kapıldı.");
+                    }
+
+                    const otherUserDataDoc = await transaction.get(doc(db, 'users', otherUserId));
+                    if (!otherUserDataDoc.exists()) {
                         transaction.delete(otherUserRef); // Clean up stale queue entry
                         throw new Error("Eşleşecek kullanıcının bilgileri bulunamadı.");
                     }
                     const otherUserData = otherUserDataDoc.data();
-
+                    
                     transaction.delete(otherUserRef);
+                    
                     const newConvoRef = doc(collection(db, 'temporaryConversations'));
                     
                     if (!userProfile || !otherUserData) throw new Error("Kullanıcı bilgileri eksik.");
@@ -217,8 +226,11 @@ function ShuffleContent() {
                         createdAt: serverTimestamp(),
                         expiresAt: new Date(Date.now() + 5 * 60 * 1000)
                     });
-                } else {
-                    // No match found, add user to queue
+                });
+
+            } else {
+                 // No match found, add user to queue and start bot timer
+                 await runTransaction(db, async (transaction) => {
                     const userQueueRef = doc(db, 'randomMatchQueue', currentUser.uid);
                     transaction.set(userQueueRef, {
                         uid: currentUser.uid,
@@ -226,29 +238,28 @@ function ShuffleContent() {
                         isPremium: userProfile.isPremium || false,
                         enteredAt: serverTimestamp()
                     });
-                    
-                    // Start timer for bot match *only* after being added to the queue
-                    botMatchTimerRef.current = setTimeout(createBotMatch, BOT_MATCH_TIMEOUT);
-                }
+                });
+                botMatchTimerRef.current = setTimeout(createBotMatch, BOT_MATCH_TIMEOUT);
+            }
 
-                // Decrement match count for non-premium user inside the transaction
-                if (!userProfile.isPremium) {
-                    const userDocRef = doc(db, 'users', currentUser.uid);
-                    const userDoc = await transaction.get(userDocRef);
-                    if (!userDoc.exists()) throw "Current user not found!";
-                    
-                    const today = new Date().toISOString().split('T')[0];
-                    if (userDoc.data().dailyMatch?.date === today) {
-                        transaction.update(userDocRef, { 'dailyMatch.count': increment(1) });
-                    } else {
-                        transaction.update(userDocRef, { dailyMatch: { date: today, count: 1 } });
-                    }
+            // Decrement match count for non-premium user
+            if (!userProfile.isPremium) {
+                const userDocRef = doc(db, 'users', currentUser.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                const today = new Date().toISOString().split('T')[0];
+                if (userDocSnap.exists() && userDocSnap.data().dailyMatch?.date === today) {
+                    await updateDoc(userDocRef, { 'dailyMatch.count': increment(1) });
+                } else {
+                    await updateDoc(userDocRef, { dailyMatch: { date: today, count: 1 } });
                 }
-            });
+            }
         } catch (error) {
-            console.error("Matching transaction failed: ", error);
+            console.error("Matching process failed: ", error);
             toast({ title: 'Eşleştirme sırasında bir sorun oluştu, lütfen tekrar deneyin.', variant: 'destructive' });
             setStatus('idle');
+             // If we failed after adding to queue, remove from queue
+            const userQueueRef = doc(db, 'randomMatchQueue', currentUser.uid);
+            await deleteDoc(userQueueRef).catch(() => {});
         }
     }, [currentUser, userProfile, toast, remainingMatches, router, createBotMatch]);
     

@@ -388,9 +388,12 @@ function RandomChatPage() {
             const unsubscribe = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["onSnapshot"])(convoRef, {
                 "RandomChatPage.useEffect.unsubscribe": async (docSnap)=>{
                     if (!docSnap.exists()) {
+                        // If convo is deleted and it hasn't become a permanent match, handle exit.
                         if (!isMatchPermanent) {
-                            handleNoMatchFound();
-                            router.push('/shuffle');
+                            // Avoid showing this if the user initiated the exit.
+                            // The handleExit function will navigate them away.
+                            // This primarily handles the case where the other user leaves or time runs out.
+                            router.push('/shuffle?feedback=true');
                         }
                         return;
                     }
@@ -481,7 +484,6 @@ function RandomChatPage() {
         conversationId,
         router,
         isMatchPermanent,
-        handleNoMatchFound,
         otherUser?.uid
     ]);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
@@ -527,15 +529,12 @@ function RandomChatPage() {
         });
     };
     const handleExit = ()=>{
-        const convoRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'temporaryConversations', conversationId);
-        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["deleteDoc"])(convoRef).catch((err)=>{
-            console.error("Could not delete convo on exit: ", err);
-        }).finally(()=>{
-            router.push('/shuffle');
-        });
+        // Just navigate away. The onSnapshot listener or timer will handle cleanup.
+        router.push('/shuffle');
     };
     const formatTimeLeft = (seconds)=>{
         if (seconds === null) return '...';
+        if (seconds < 0) return '0:00';
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
         return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
