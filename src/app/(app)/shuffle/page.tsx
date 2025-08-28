@@ -182,30 +182,30 @@ function ShuffleContent() {
         const queueRef = collection(db, 'randomMatchQueue');
 
         try {
-            // Check for a premium user first
-            let q = query(queueRef, where('gender', '==', targetGender), where('isPremium', '==', true), limit(1));
-            let querySnapshot = await getDocs(q);
+            await runTransaction(db, async (transaction) => {
+                 // Check for a premium user first
+                let q = query(queueRef, where('gender', '==', targetGender), where('isPremium', '==', true), limit(1));
+                let querySnapshot = await transaction.get(q);
 
-            // If no premium user, check for any user
-            if (querySnapshot.empty) {
-                q = query(queueRef, where('gender', '==', targetGender), limit(1));
-                querySnapshot = await getDocs(q);
-            }
+                // If no premium user, check for any user
+                if (querySnapshot.empty) {
+                    q = query(queueRef, where('gender', '==', targetGender), limit(1));
+                    querySnapshot = await transaction.get(q);
+                }
 
-            if (!querySnapshot.empty) {
-                const otherUserDoc = querySnapshot.docs[0];
-                await runTransaction(db, async (transaction) => {
-                    const potentialMatchRef = doc(db, 'randomMatchQueue', otherUserDoc.id);
-                    const potentialMatchSnap = await transaction.get(potentialMatchRef);
+                if (!querySnapshot.empty) {
+                    const otherUserDoc = querySnapshot.docs[0];
+                    const otherUserRef = otherUserDoc.ref;
+                    const otherUserDataDoc = await transaction.get(doc(db, 'users', otherUserDoc.id));
 
-                    if (!potentialMatchSnap.exists()) {
-                        throw new Error("Match already taken"); 
+                    if(!otherUserDataDoc.exists()) {
+                        transaction.delete(otherUserRef); // Clean up stale queue entry
+                        throw new Error("Eşleşecek kullanıcının bilgileri bulunamadı.");
                     }
+                    const otherUserData = otherUserDataDoc.data();
 
-                    transaction.delete(potentialMatchRef);
+                    transaction.delete(otherUserRef);
                     const newConvoRef = doc(collection(db, 'temporaryConversations'));
-                    
-                    const otherUserData = (await transaction.get(doc(db, 'users', otherUserDoc.id))).data();
                     
                     if (!userProfile || !otherUserData) throw new Error("Kullanıcı bilgileri eksik.");
 
@@ -217,42 +217,38 @@ function ShuffleContent() {
                         createdAt: serverTimestamp(),
                         expiresAt: new Date(Date.now() + 5 * 60 * 1000)
                     });
-                });
+                } else {
+                    // No match found, add user to queue
+                    const userQueueRef = doc(db, 'randomMatchQueue', currentUser.uid);
+                    transaction.set(userQueueRef, {
+                        uid: currentUser.uid,
+                        gender: userProfile.gender,
+                        isPremium: userProfile.isPremium || false,
+                        enteredAt: serverTimestamp()
+                    });
+                    
+                    // Start timer for bot match *only* after being added to the queue
+                    botMatchTimerRef.current = setTimeout(createBotMatch, BOT_MATCH_TIMEOUT);
+                }
 
-            } else {
-                const userQueueRef = doc(db, 'randomMatchQueue', currentUser.uid);
-                await setDoc(userQueueRef, {
-                    uid: currentUser.uid,
-                    gender: userProfile.gender,
-                    isPremium: userProfile.isPremium || false,
-                    enteredAt: serverTimestamp()
-                });
-                // Start timer for bot match
-                botMatchTimerRef.current = setTimeout(createBotMatch, BOT_MATCH_TIMEOUT);
-            }
-
-            // Decrement match count for non-premium user
-            if (!userProfile.isPremium) {
-                const userDocRef = doc(db, 'users', currentUser.uid);
-                 const today = new Date().toISOString().split('T')[0];
-                 if (userProfile.dailyMatch?.date === today) {
-                    await updateDoc(userDocRef, { 'dailyMatch.count': increment(1) });
-                 } else {
-                     await updateDoc(userDocRef, { dailyMatch: { date: today, count: 1 } });
-                 }
-            }
-
-        } catch (error) {
-            console.error("Matching error, adding to queue as fallback:", error);
-            const userQueueRef = doc(db, 'randomMatchQueue', currentUser.uid);
-            await setDoc(userQueueRef, {
-                uid: currentUser.uid,
-                gender: userProfile.gender,
-                isPremium: userProfile.isPremium || false,
-                enteredAt: serverTimestamp()
+                // Decrement match count for non-premium user inside the transaction
+                if (!userProfile.isPremium) {
+                    const userDocRef = doc(db, 'users', currentUser.uid);
+                    const userDoc = await transaction.get(userDocRef);
+                    if (!userDoc.exists()) throw "Current user not found!";
+                    
+                    const today = new Date().toISOString().split('T')[0];
+                    if (userDoc.data().dailyMatch?.date === today) {
+                        transaction.update(userDocRef, { 'dailyMatch.count': increment(1) });
+                    } else {
+                        transaction.update(userDocRef, { dailyMatch: { date: today, count: 1 } });
+                    }
+                }
             });
-             // Start timer for bot match
-            botMatchTimerRef.current = setTimeout(createBotMatch, BOT_MATCH_TIMEOUT);
+        } catch (error) {
+            console.error("Matching transaction failed: ", error);
+            toast({ title: 'Eşleştirme sırasında bir sorun oluştu, lütfen tekrar deneyin.', variant: 'destructive' });
+            setStatus('idle');
         }
     }, [currentUser, userProfile, toast, remainingMatches, router, createBotMatch]);
     
