@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SendHorizonal, Heart, Hourglass, Loader2, X, Bot } from 'lucide-react';
+import { SendHorizonal, Heart, Hourglass, Loader2, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { doc, onSnapshot, getDoc, setDoc, serverTimestamp, collection, addDoc, updateDoc, deleteDoc, runTransaction, increment, query, orderBy } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -138,7 +138,7 @@ export default function RandomChatPage() {
                         setTimeLeft(0);
                         if(timerIntervalRef.current) clearInterval(timerIntervalRef.current);
                         // Only delete if it's not a bot match and not permanent
-                        if (!data.isBotMatch) {
+                        if (!data.isBotMatch && !isMatchPermanent) {
                            deleteDoc(docSnap.ref); 
                         }
                     }
@@ -186,7 +186,7 @@ export default function RandomChatPage() {
         if (conversation.isBotMatch) {
             // Add a small delay to make it feel more natural
             setTimeout(() => {
-                botChatFlow({ conversationId });
+                botChatFlow({ conversationId, currentUserId: currentUser.uid });
             }, 1000 + Math.random() * 1500);
         }
     };

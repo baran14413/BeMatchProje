@@ -10,14 +10,12 @@
 
 import { z } from 'zod';
 import { getFirestore, serverTimestamp, addDoc, collection, doc, getDoc } from 'firebase-admin/firestore';
-import { initializeApp, getApps, App } from 'firebase-admin/app';
+import { initializeApp, getApps } from 'firebase-admin/app';
 import { botReplies } from '@/config/bot-config';
-import { auth as clientAuth, db as clientDb } from '@/lib/firebase'; // Assuming you have client instances exported
-
-// This is not a Genkit flow anymore, just a standard server action.
 
 const BotChatInputSchema = z.object({
   conversationId: z.string().describe('The ID of the temporary conversation.'),
+  currentUserId: z.string().describe('The ID of the human user in the conversation.')
 });
 export type BotChatInput = z.infer<typeof BotChatInputSchema>;
 
@@ -34,12 +32,7 @@ export async function botChatFlow(input: BotChatInput): Promise<BotChatOutput> {
         return { success: false, error: 'Invalid input.' };
     }
     
-    const { conversationId } = parsedInput.data;
-    const currentUserId = clientAuth.currentUser?.uid;
-
-    if (!currentUserId) {
-         return { success: false, error: 'User not authenticated.' };
-    }
+    const { conversationId, currentUserId } = parsedInput.data;
 
     if (!getApps().length) {
         initializeApp();
@@ -55,19 +48,14 @@ export async function botChatFlow(input: BotChatInput): Promise<BotChatOutput> {
         }
 
         const conversation = convoSnap.data();
+        const users = conversation.users as string[];
+        
+        // Find the bot's ID by finding the user that is NOT the current user
+        const botId = users.find(uid => uid !== currentUserId && uid.startsWith('bot_'));
 
-        // Dynamically find the bot's ID
-        const botUser = conversation.user1.uid.startsWith('bot_') 
-            ? conversation.user1 
-            : conversation.user2.uid.startsWith('bot_') 
-            ? conversation.user2 
-            : null;
-
-        if (!botUser) {
-            return { success: false, error: 'This is not a bot conversation.' };
+        if (!botId) {
+            return { success: false, error: 'This is not a bot conversation or bot could not be identified.' };
         }
-
-        const botId = botUser.uid;
 
         // Simple logic to select a random reply from the config
         const reply = botReplies[Math.floor(Math.random() * botReplies.length)];

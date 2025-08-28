@@ -95,6 +95,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
     if (pathname.startsWith('/profile/')) return 'Profil';
     if (pathname === '/notifications') return 'Bildirimler';
     if (pathname === '/chat') return 'Sohbetler';
+    if (pathname.startsWith('/random-chat')) return 'Rastgele Sohbet';
     if (pathname === '/search') return 'Ara';
     return "BeMatch";
   }, [pathname, isClientReady]);
@@ -221,10 +222,11 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
   const isChatPage = pathname === '/chat';
   const isChatViewOpen = isChatPage && (searchParams.has('userId') || searchParams.has('conversationId'));
+  const isRandomChatPage = pathname.startsWith('/random-chat');
   const isCreatePage = pathname === '/create';
   const isAdminPage = isClientReady && pathname.startsWith('/admin');
-  const showNavs = isClientReady && !isCreatePage && (!isChatPage || (isChatPage && !isChatViewOpen)) && !isAdminPage;
-  const isFullScreen = isClientReady && ((isChatPage && isChatViewOpen) || isAdminPage);
+  const showNavs = isClientReady && !isCreatePage && (!isChatPage || (isChatPage && !isChatViewOpen)) && !isAdminPage && !isRandomChatPage;
+  const isFullScreen = isClientReady && ((isChatPage && isChatViewOpen) || isAdminPage || isRandomChatPage);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -385,7 +387,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
           </>
         )}
         
-        <main className={cn("flex-1 w-full", isFullScreen ? "" : "h-full")}>
+        <main className={cn("flex-1 w-full", isFullScreen ? "h-screen" : "h-full")}>
              {children}
         </main>
 
