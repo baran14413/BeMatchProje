@@ -15,6 +15,7 @@ const getTitleForPath = (path: string): string => {
     if (path.endsWith('/notifications')) return 'Uygulama Ayarları';
     if (path.endsWith('/security')) return 'E-posta & Şifre';
     if (path.endsWith('/privacy')) return 'Hesap Gizliliği';
+    if (path.endsWith('/app-lock')) return 'Uygulama Şifresi';
     if (path.endsWith('/blocked')) return 'Engellenen Hesaplar';
     if (path.endsWith('/sessions')) return 'Oturum Yönetimi';
     if (path.endsWith('/appearance')) return 'Görünüm';
@@ -25,6 +26,7 @@ const getTitleForPath = (path: string): string => {
     if (path.endsWith('/wallet')) return 'Cüzdanım';
     if (path.endsWith('/users')) return 'Kullanıcıları Yönet';
     if (path.endsWith('/cache')) return 'Önbellek Yönetimi';
+    if (path.endsWith('/feedback')) return 'Deneyimlerinizi Paylaşın';
     return 'Ayarlar';
 };
 

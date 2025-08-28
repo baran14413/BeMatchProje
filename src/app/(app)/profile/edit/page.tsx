@@ -30,7 +30,8 @@ import {
   Code,
   Database,
   Star,
-  MessageSquareQuote
+  MessageSquareQuote,
+  Fingerprint
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -150,6 +151,7 @@ export default function EditProfilePage() {
     ];
 
     const privacyAndSecurityItems = [
+        { icon: <Fingerprint className="h-6 w-6" />, title: 'Uygulama Şifresi', href: '/profile/edit/app-lock'},
         { icon: <Lock className="h-6 w-6" />, title: 'Hesap Gizliliği', href: '/profile/edit/privacy' },
         { icon: <KeyRound className="h-6 w-6" />, title: 'E-posta & Şifre', href: '/profile/edit/security' },
         { icon: <History className="h-6 w-6" />, title: 'Oturum Yönetimi', href: '/profile/edit/sessions' },

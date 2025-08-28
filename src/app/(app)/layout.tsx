@@ -20,13 +20,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { logActivity } from '@/ai/flows/log-activity-flow';
 import { motion, AnimatePresence } from 'framer-motion';
+import AppLockScreen from '@/components/ui/app-lock-screen';
 
 
 const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, isActive: boolean, hasNotification?: boolean }) => {
@@ -34,14 +34,14 @@ const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { 
         <Link href={href} className="flex flex-col items-center justify-center gap-1 w-full h-full">
             <motion.div whileTap={{ scale: 0.9 }} className="relative">
                  {React.cloneElement(icon as React.ReactElement, {
-                    className: cn('h-6 w-6 transition-all', isActive ? 'text-primary' : 'text-muted-foreground'),
+                    className: cn('h-7 w-7 transition-all', isActive ? 'text-primary' : 'text-muted-foreground'),
                     strokeWidth: isActive ? 2.5 : 2
                 })}
                 {hasNotification && (
                     <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500" />
                 )}
             </motion.div>
-            <span className={cn("text-xs font-bold", isActive ? 'text-primary' : 'text-transparent')}>
+            <span className={cn("text-xs font-bold", isActive ? 'text-primary' : 'text-foreground')}>
                 {srText}
             </span>
         </Link>
@@ -68,6 +68,18 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const activityLoggedRef = useRef(false);
   
   const [isClientReady, setIsClientReady] = useState(false);
+
+  const [isLocked, setIsLocked] = useState<boolean | null>(null);
+
+   useEffect(() => {
+    const lockConfig = localStorage.getItem('app-lock-config');
+    if (lockConfig) {
+      const { isEnabled } = JSON.parse(lockConfig);
+      setIsLocked(isEnabled);
+    } else {
+      setIsLocked(false);
+    }
+  }, []);
 
   useEffect(() => {
     setIsClientReady(true);
@@ -101,12 +113,12 @@ function LayoutContent({ children }: { children: ReactNode }) {
               if (userDocSnap.exists()) {
                 const profileData = userDocSnap.data();
                 setCurrentUserProfile(profileData);
-                if (!sessionStorage.getItem('welcomePopupShown')) {
+                if (!sessionStorage.getItem('welcomeMessageShown')) {
                     const welcomeText = `Hoş geldin, ${profileData.name?.split(' ')[0]}! ❤️`;
                     setLastNotification({ id: 'welcome-message', text: welcomeText });
                     setShowNotification(true);
                     setTimeout(() => setShowNotification(false), 6000);
-                    sessionStorage.setItem('welcomePopupShown', 'true');
+                    sessionStorage.setItem('welcomeMessageShown', 'true');
                 }
                 if (!activityLoggedRef.current && profileData.name && profileData.avatarUrl) {
                   fetch('https://api.ipify.org?format=json')
@@ -254,6 +266,17 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
   const pageTitle = getPageTitle();
 
+  if (isLocked === null) {
+      return (
+          <div className="flex h-screen w-full items-center justify-center">
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          </div>
+      );
+  }
+  if (isLocked) {
+      return <AppLockScreen onUnlock={() => setIsLocked(false)} />;
+  }
+
   return (
     <>
         <div 
@@ -393,5 +416,3 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
-
-    

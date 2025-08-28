@@ -1923,6 +1923,10 @@ img {
   background-color: #eab30833;
 }
 
+.bg-background\/50 {
+  background-color: hsl(var(--background) / .5);
+}
+
 .bg-gradient-to-br {
   background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
 }
@@ -2373,6 +2377,10 @@ img {
 
 .tracking-widest {
   letter-spacing: .1em;
+}
+
+.tracking-\[1\.5rem\] {
+  letter-spacing: 1.5rem;
 }
 
 .text-accent-foreground {
@@ -3648,6 +3656,10 @@ img {
 
   .sm\:justify-center {
     justify-content: center;
+  }
+
+  .sm\:justify-between {
+    justify-content: space-between;
   }
 
   .sm\:gap-4 {
