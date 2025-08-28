@@ -286,7 +286,7 @@ function NotificationsPage() {
                 }, this) : notifications.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     children: notifications.map((item)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                             href: getNotificationLink(item),
-                            className: "flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors",
+                            className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors"),
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "shrink-0",
@@ -294,12 +294,12 @@ function NotificationsPage() {
                                         notification: item
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/notifications/page.tsx",
-                                        lineNumber: 176,
+                                        lineNumber: 178,
                                         columnNumber: 37
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/notifications/page.tsx",
-                                    lineNumber: 175,
+                                    lineNumber: 177,
                                     columnNumber: 33
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -308,12 +308,12 @@ function NotificationsPage() {
                                         notification: item
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/notifications/page.tsx",
-                                        lineNumber: 179,
+                                        lineNumber: 181,
                                         columnNumber: 37
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/notifications/page.tsx",
-                                    lineNumber: 178,
+                                    lineNumber: 180,
                                     columnNumber: 33
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -324,7 +324,7 @@ function NotificationsPage() {
                                             children: "Takip Et"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/notifications/page.tsx",
-                                            lineNumber: 182,
+                                            lineNumber: 184,
                                             columnNumber: 64
                                         }, this),
                                         item.type === 'gallery_request' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -332,13 +332,13 @@ function NotificationsPage() {
                                             children: "İsteği Gör"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/notifications/page.tsx",
-                                            lineNumber: 183,
+                                            lineNumber: 185,
                                             columnNumber: 73
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(app)/notifications/page.tsx",
-                                    lineNumber: 181,
+                                    lineNumber: 183,
                                     columnNumber: 34
                                 }, this)
                             ]
@@ -358,7 +358,7 @@ function NotificationsPage() {
                             className: "w-16 h-16 mb-4 text-muted-foreground/50"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/notifications/page.tsx",
-                            lineNumber: 190,
+                            lineNumber: 192,
                             columnNumber: 25
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -366,7 +366,7 @@ function NotificationsPage() {
                             children: "Henüz bildiriminiz yok."
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/notifications/page.tsx",
-                            lineNumber: 191,
+                            lineNumber: 193,
                             columnNumber: 25
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -374,13 +374,13 @@ function NotificationsPage() {
                             children: "Yeni bir etkileşim olduğunda burada görünecek."
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/notifications/page.tsx",
-                            lineNumber: 192,
+                            lineNumber: 194,
                             columnNumber: 25
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/notifications/page.tsx",
-                    lineNumber: 189,
+                    lineNumber: 191,
                     columnNumber: 21
                 }, this)
             }, void 0, false, {

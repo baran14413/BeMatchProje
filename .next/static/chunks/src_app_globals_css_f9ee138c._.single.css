@@ -2717,6 +2717,10 @@ img {
   transition-duration: .3s;
 }
 
+.duration-500 {
+  transition-duration: .5s;
+}
+
 .ease-in-out {
   transition-timing-function: cubic-bezier(.4, 0, .2, 1);
 }
@@ -2767,6 +2771,10 @@ img {
 
 .duration-300 {
   animation-duration: .3s;
+}
+
+.duration-500 {
+  animation-duration: .5s;
 }
 
 .ease-in-out {
