@@ -137,7 +137,10 @@ export default function RandomChatPage() {
                     } else {
                         setTimeLeft(0);
                         if(timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-                        deleteDoc(docSnap.ref); 
+                        // Only delete if it's not a bot match and not permanent
+                        if (!data.isBotMatch) {
+                           deleteDoc(docSnap.ref); 
+                        }
                     }
                 }, 1000);
             }
@@ -206,7 +209,7 @@ export default function RandomChatPage() {
         deleteDoc(convoRef).catch(err => {
             console.error("Could not delete convo on exit: ", err);
         }).finally(() => {
-             // The onSnapshot listener will handle the redirect
+             router.push('/shuffle');
         });
     };
 
@@ -229,7 +232,7 @@ export default function RandomChatPage() {
     const myHeartClicked = amIUser1 ? conversation.user1.heartClicked : conversation.user2.heartClicked;
 
     return (
-        <div className="flex flex-col h-screen bg-background">
+        <div className="flex flex-col h-full bg-background">
             <header className="flex items-center gap-4 p-3 border-b bg-card shrink-0">
                 <Avatar>
                     <AvatarImage src={otherUser.avatarUrl} data-ai-hint={otherUser.name}/>
@@ -238,7 +241,6 @@ export default function RandomChatPage() {
                 <div className="flex-1">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
                         {otherUser.name}
-                        {conversation.isBotMatch && <Bot className="w-4 h-4 text-primary" />}
                     </h3>
                 </div>
                 <div className="flex items-center gap-2 text-lg font-mono font-bold text-primary">

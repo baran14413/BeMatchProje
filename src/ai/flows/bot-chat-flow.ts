@@ -10,8 +10,9 @@
 
 import { z } from 'zod';
 import { getFirestore, serverTimestamp, addDoc, collection, doc, getDoc } from 'firebase-admin/firestore';
-import { initializeApp, getApps } from 'firebase-admin/app';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
 import { botReplies } from '@/config/bot-config';
+import { auth as clientAuth, db as clientDb } from '@/lib/firebase'; // Assuming you have client instances exported
 
 // This is not a Genkit flow anymore, just a standard server action.
 
@@ -34,6 +35,11 @@ export async function botChatFlow(input: BotChatInput): Promise<BotChatOutput> {
     }
     
     const { conversationId } = parsedInput.data;
+    const currentUserId = clientAuth.currentUser?.uid;
+
+    if (!currentUserId) {
+         return { success: false, error: 'User not authenticated.' };
+    }
 
     if (!getApps().length) {
         initializeApp();
@@ -49,12 +55,19 @@ export async function botChatFlow(input: BotChatInput): Promise<BotChatOutput> {
         }
 
         const conversation = convoSnap.data();
-        // Assuming bot is always user2 in bot matches
-        const botId = conversation?.user2.uid; 
 
-        if (!botId || !botId.startsWith('bot_')) {
+        // Dynamically find the bot's ID
+        const botUser = conversation.user1.uid.startsWith('bot_') 
+            ? conversation.user1 
+            : conversation.user2.uid.startsWith('bot_') 
+            ? conversation.user2 
+            : null;
+
+        if (!botUser) {
             return { success: false, error: 'This is not a bot conversation.' };
         }
+
+        const botId = botUser.uid;
 
         // Simple logic to select a random reply from the config
         const reply = botReplies[Math.floor(Math.random() * botReplies.length)];
