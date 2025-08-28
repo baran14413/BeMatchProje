@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SendHorizonal, Heart, Hourglass, Loader2, X, Bot } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { doc, onSnapshot, getDoc, setDoc, serverTimestamp, collection, addDoc, updateDoc, deleteDoc, runTransaction, increment } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, setDoc, serverTimestamp, collection, addDoc, updateDoc, deleteDoc, runTransaction, increment, query, orderBy } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -181,10 +181,10 @@ export default function RandomChatPage() {
         
         // If it's a bot match, trigger the bot's response
         if (conversation.isBotMatch) {
-            await botChatFlow({
-                conversationId: conversationId,
-                userMessage: textToSend
-            });
+            // Add a small delay to make it feel more natural
+            setTimeout(() => {
+                botChatFlow({ conversationId });
+            }, 1000 + Math.random() * 1500);
         }
     };
 

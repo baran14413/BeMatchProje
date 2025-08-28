@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { botNames } from '@/config/bot-config';
+import { botNames, botOpenerMessages } from '@/config/bot-config';
 
 const DAILY_MATCH_LIMIT = 10;
 const AVG_WAIT_SECONDS_PER_USER = 15;
@@ -82,6 +82,44 @@ function ShuffleContent() {
         }
     }, [searchParams]);
     
+    const createBotMatch = useCallback(async () => {
+        if (!currentUser || !userProfile) return;
+
+        // Ensure user is still in the queue before creating a bot match
+        const userQueueRef = doc(db, 'randomMatchQueue', currentUser.uid);
+        const userQueueSnap = await getDoc(userQueueRef);
+        if (!userQueueSnap.exists()) {
+            return; // User has been matched with a real person
+        }
+
+        toast({ title: 'Gerçek kullanıcı bulunamadı, bot ile eşleşiyorsun!', duration: 3000 });
+        
+        await deleteDoc(userQueueRef); // Remove user from queue
+        
+        const botName = botNames[Math.floor(Math.random() * botNames.length)];
+        const botId = `bot_${botName.toLowerCase().replace(/ /g, '_')}`;
+        const botAvatar = `https://avatar.vercel.sh/${botId}.png`;
+        const botOpener = botOpenerMessages[Math.floor(Math.random() * botOpenerMessages.length)];
+
+        const newConvoRef = doc(collection(db, 'temporaryConversations'));
+        await setDoc(newConvoRef, {
+            users: [currentUser.uid, botId],
+            user1: { uid: currentUser.uid, name: userProfile.name, avatarUrl: userProfile.avatarUrl, heartClicked: false },
+            user2: { uid: botId, name: botName, avatarUrl: botAvatar, heartClicked: false },
+            isBotMatch: true,
+            createdAt: serverTimestamp(),
+            expiresAt: new Date(Date.now() + 5 * 60 * 1000)
+        });
+
+        // Bot sends the first message
+        await addDoc(collection(newConvoRef, 'messages'), {
+            text: botOpener,
+            senderId: botId,
+            timestamp: serverTimestamp(),
+        });
+        
+    }, [currentUser, userProfile, toast]);
+
     // Listen for created conversations and queue changes
     useEffect(() => {
         if (!currentUser || status !== 'searching') {
@@ -127,44 +165,6 @@ function ShuffleContent() {
         };
 
     }, [currentUser, status, router]);
-
-    const createBotMatch = useCallback(async () => {
-        if (!currentUser || !userProfile) return;
-
-        // Ensure user is still in the queue before creating a bot match
-        const userQueueRef = doc(db, 'randomMatchQueue', currentUser.uid);
-        const userQueueSnap = await getDoc(userQueueRef);
-        if (!userQueueSnap.exists()) {
-            return; // User has been matched with a real person
-        }
-
-        toast({ title: 'Gerçek kullanıcı bulunamadı, bot ile eşleşiyorsun!', duration: 3000 });
-        
-        await deleteDoc(userQueueRef); // Remove user from queue
-        
-        const botName = botNames[Math.floor(Math.random() * botNames.length)];
-        const botId = `bot_${botName.toLowerCase()}`;
-        const botAvatar = `https://avatar.vercel.sh/${botId}.png`;
-
-        const newConvoRef = doc(collection(db, 'temporaryConversations'));
-        await setDoc(newConvoRef, {
-            users: [currentUser.uid, botId],
-            user1: { uid: currentUser.uid, name: userProfile.name, avatarUrl: userProfile.avatarUrl, heartClicked: false },
-            user2: { uid: botId, name: botName, avatarUrl: botAvatar, heartClicked: false },
-            isBotMatch: true,
-            createdAt: serverTimestamp(),
-            expiresAt: new Date(Date.now() + 5 * 60 * 1000)
-        });
-
-        // Bot sends the first message
-        await addDoc(collection(newConvoRef, 'messages'), {
-            text: 'Merhaba!',
-            senderId: botId,
-            timestamp: serverTimestamp(),
-        });
-        
-    }, [currentUser, userProfile, toast]);
-    
 
     const handleSearchClick = useCallback(async () => {
         if (!currentUser || !userProfile?.gender) {
