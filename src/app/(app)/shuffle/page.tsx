@@ -7,16 +7,18 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { db, auth } from '@/lib/firebase';
-import { collection, query, where, getDocs, limit, doc, setDoc, serverTimestamp, deleteDoc, onSnapshot, getDoc, runTransaction, DocumentData, orderBy, updateDoc, increment } from 'firebase/firestore';
-import { Loader2, Sparkles, Zap, ThumbsUp, ThumbsDown, Info, Crown } from 'lucide-react';
+import { collection, query, where, getDocs, limit, doc, setDoc, serverTimestamp, deleteDoc, onSnapshot, getDoc, runTransaction, DocumentData, orderBy, updateDoc, increment, collectionGroup } from 'firebase/firestore';
+import { Loader2, Sparkles, Zap, ThumbsUp, ThumbsDown, Info, Crown, Bot } from 'lucide-react';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { botNames } from '@/config/bot-config';
 
 const DAILY_MATCH_LIMIT = 10;
 const AVG_WAIT_SECONDS_PER_USER = 15;
+const BOT_MATCH_TIMEOUT = 15 * 1000; // 15 seconds
 
 function ShuffleContent() {
     const [status, setStatus] = useState<'idle' | 'searching' | 'matched'>('idle');
@@ -31,6 +33,8 @@ function ShuffleContent() {
     const [showFeedback, setShowFeedback] = useState(false);
     const [queueSize, setQueueSize] = useState(0);
     const [queueUsers, setQueueUsers] = useState<DocumentData[]>([]);
+    
+    const botMatchTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     const estimatedWaitTime = Math.max(15, queueSize * AVG_WAIT_SECONDS_PER_USER);
 
@@ -82,6 +86,9 @@ function ShuffleContent() {
     useEffect(() => {
         if (!currentUser || status !== 'searching') {
             setQueueUsers([]);
+            if (botMatchTimerRef.current) {
+                clearTimeout(botMatchTimerRef.current);
+            }
             return;
         }
 
@@ -90,6 +97,7 @@ function ShuffleContent() {
         const unsubscribeConvo = onSnapshot(convoQuery, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added") {
+                    if (botMatchTimerRef.current) clearTimeout(botMatchTimerRef.current);
                     setStatus('matched');
                     router.push(`/random-chat/${change.doc.id}`);
                 }
@@ -97,7 +105,7 @@ function ShuffleContent() {
         });
 
         // Listener for queue size and avatars
-        const queueQuery = query(collection(db, 'randomMatchQueue'));
+        const queueQuery = query(collectionGroup(db, 'randomMatchQueue'));
         const unsubscribeQueue = onSnapshot(queueQuery, async (snapshot) => {
              setQueueSize(snapshot.size);
              const userIds = snapshot.docs.map(d => d.data().uid).filter(uid => uid !== currentUser.uid).slice(0, 5);
@@ -113,9 +121,50 @@ function ShuffleContent() {
         return () => {
             unsubscribeConvo();
             unsubscribeQueue();
+             if (botMatchTimerRef.current) {
+                clearTimeout(botMatchTimerRef.current);
+            }
         };
 
     }, [currentUser, status, router]);
+
+    const createBotMatch = useCallback(async () => {
+        if (!currentUser || !userProfile) return;
+
+        // Ensure user is still in the queue before creating a bot match
+        const userQueueRef = doc(db, 'randomMatchQueue', currentUser.uid);
+        const userQueueSnap = await getDoc(userQueueRef);
+        if (!userQueueSnap.exists()) {
+            return; // User has been matched with a real person
+        }
+
+        toast({ title: 'Gerçek kullanıcı bulunamadı, bot ile eşleşiyorsun!', duration: 3000 });
+        
+        await deleteDoc(userQueueRef); // Remove user from queue
+        
+        const botName = botNames[Math.floor(Math.random() * botNames.length)];
+        const botId = `bot_${botName.toLowerCase()}`;
+        const botAvatar = `https://avatar.vercel.sh/${botId}.png`;
+
+        const newConvoRef = doc(collection(db, 'temporaryConversations'));
+        await setDoc(newConvoRef, {
+            users: [currentUser.uid, botId],
+            user1: { uid: currentUser.uid, name: userProfile.name, avatarUrl: userProfile.avatarUrl, heartClicked: false },
+            user2: { uid: botId, name: botName, avatarUrl: botAvatar, heartClicked: false },
+            isBotMatch: true,
+            createdAt: serverTimestamp(),
+            expiresAt: new Date(Date.now() + 5 * 60 * 1000)
+        });
+
+        // Bot sends the first message
+        await addDoc(collection(newConvoRef, 'messages'), {
+            text: 'Merhaba!',
+            senderId: botId,
+            timestamp: serverTimestamp(),
+        });
+        
+    }, [currentUser, userProfile, toast]);
+    
 
     const handleSearchClick = useCallback(async () => {
         if (!currentUser || !userProfile?.gender) {
@@ -152,7 +201,7 @@ function ShuffleContent() {
                     const potentialMatchSnap = await transaction.get(potentialMatchRef);
 
                     if (!potentialMatchSnap.exists()) {
-                        throw new Error("Match already taken"); // This will trigger the catch block to add user to queue
+                        throw new Error("Match already taken"); 
                     }
 
                     transaction.delete(potentialMatchRef);
@@ -166,6 +215,7 @@ function ShuffleContent() {
                         users: [currentUser.uid, otherUserData.uid],
                         user1: { uid: currentUser.uid, name: userProfile.name, avatarUrl: userProfile.avatarUrl, heartClicked: false },
                         user2: { uid: otherUserData.uid, name: otherUserData.name, avatarUrl: otherUserData.avatarUrl, heartClicked: false },
+                        isBotMatch: false,
                         createdAt: serverTimestamp(),
                         expiresAt: new Date(Date.now() + 5 * 60 * 1000)
                     });
@@ -179,6 +229,8 @@ function ShuffleContent() {
                     isPremium: userProfile.isPremium || false,
                     enteredAt: serverTimestamp()
                 });
+                // Start timer for bot match
+                botMatchTimerRef.current = setTimeout(createBotMatch, BOT_MATCH_TIMEOUT);
             }
 
             // Decrement match count for non-premium user
@@ -201,14 +253,19 @@ function ShuffleContent() {
                 isPremium: userProfile.isPremium || false,
                 enteredAt: serverTimestamp()
             });
+             // Start timer for bot match
+            botMatchTimerRef.current = setTimeout(createBotMatch, BOT_MATCH_TIMEOUT);
         }
-    }, [currentUser, userProfile, toast, remainingMatches, router]);
+    }, [currentUser, userProfile, toast, remainingMatches, router, createBotMatch]);
     
     const handleCancelSearch = async () => {
         if (!currentUser) return;
         setStatus('idle');
         setQueueSize(0);
         setQueueUsers([]);
+         if (botMatchTimerRef.current) {
+            clearTimeout(botMatchTimerRef.current);
+        }
          try {
             await deleteDoc(doc(db, 'randomMatchQueue', currentUser.uid));
             toast({ title: "Arama iptal edildi." });

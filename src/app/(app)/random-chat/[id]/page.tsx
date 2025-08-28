@@ -7,13 +7,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SendHorizonal, Heart, Hourglass, Loader2, X } from 'lucide-react';
+import { SendHorizonal, Heart, Hourglass, Loader2, X, Bot } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { doc, onSnapshot, getDoc, setDoc, serverTimestamp, collection, addDoc, updateDoc, deleteDoc, runTransaction, increment } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import Link from 'next/link';
+import { botChatFlow } from '@/ai/flows/bot-chat-flow';
 
 
 type Message = {
@@ -26,6 +27,7 @@ type Message = {
 type TempConversation = {
     user1: { uid: string; name: string; avatarUrl: string; heartClicked: boolean };
     user2: { uid: string; name: string; avatarUrl: string; heartClicked: boolean };
+    isBotMatch: boolean;
     expiresAt: any;
 };
 
@@ -100,8 +102,8 @@ export default function RandomChatPage() {
                 setOtherUser(other);
             }
             
-            // Check for permanent match
-            if (data.user1.heartClicked && data.user2.heartClicked && !isMatchPermanent) {
+            // Check for permanent match (not possible with bot)
+            if (!data.isBotMatch && data.user1.heartClicked && data.user2.heartClicked && !isMatchPermanent) {
                 setIsMatchPermanent(true);
                 setShowMatchModal(true);
 
@@ -146,11 +148,8 @@ export default function RandomChatPage() {
         });
 
         // Fetch messages
-        const messagesRef = collection(db, 'temporaryConversations', conversationId, 'messages');
-        const messagesQuery = onSnapshot(messagesRef, (snapshot) => {
-            const msgs = snapshot.docs
-                .map(doc => ({ id: doc.id, ...doc.data() }))
-                .sort((a, b) => a.timestamp?.seconds - b.timestamp?.seconds) as Message[];
+        const messagesQuery = onSnapshot(query(collection(db, 'temporaryConversations', conversationId, 'messages'), orderBy('timestamp', 'asc')), (snapshot) => {
+            const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Message[];
             setMessages(msgs);
         });
 
@@ -168,19 +167,29 @@ export default function RandomChatPage() {
     }, [messages]);
 
     const handleSendMessage = async () => {
-        if (!messageInput.trim() || !currentUser || isMatchPermanent) return;
+        if (!messageInput.trim() || !currentUser || !conversation || isMatchPermanent) return;
+
+        const textToSend = messageInput.trim();
+        setMessageInput('');
 
         const messagesRef = collection(db, 'temporaryConversations', conversationId, 'messages');
         await addDoc(messagesRef, {
-            text: messageInput.trim(),
+            text: textToSend,
             senderId: currentUser.uid,
             timestamp: serverTimestamp(),
         });
-        setMessageInput('');
+        
+        // If it's a bot match, trigger the bot's response
+        if (conversation.isBotMatch) {
+            await botChatFlow({
+                conversationId: conversationId,
+                userMessage: textToSend
+            });
+        }
     };
 
     const handleHeartClick = async () => {
-        if (!currentUser || !conversation) return;
+        if (!currentUser || !conversation || conversation.isBotMatch) return;
         
         const userKey = conversation.user1.uid === currentUser.uid ? 'user1' : 'user2';
         
@@ -227,7 +236,10 @@ export default function RandomChatPage() {
                     <AvatarFallback>{otherUser.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                    <h3 className="text-lg font-semibold">{otherUser.name}</h3>
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                        {otherUser.name}
+                        {conversation.isBotMatch && <Bot className="w-4 h-4 text-primary" />}
+                    </h3>
                 </div>
                 <div className="flex items-center gap-2 text-lg font-mono font-bold text-primary">
                     <Hourglass className="w-5 h-5" />
@@ -268,7 +280,7 @@ export default function RandomChatPage() {
                         size="icon"
                         className={cn("rounded-full w-14 h-14", myHeartClicked ? "bg-green-500 hover:bg-green-600" : "bg-pink-500 hover:bg-pink-600")}
                         onClick={handleHeartClick}
-                        disabled={myHeartClicked || isMatchPermanent}
+                        disabled={myHeartClicked || isMatchPermanent || conversation.isBotMatch}
                     >
                         <Heart className="w-8 h-8 fill-white" />
                     </Button>
