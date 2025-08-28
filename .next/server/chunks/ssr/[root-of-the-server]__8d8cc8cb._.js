@@ -524,9 +524,9 @@ var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
 ;
 ;
 ;
-// This is not a Genkit flow anymore, just a standard server action.
 const BotChatInputSchema = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].object({
-    conversationId: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].string().describe('The ID of the temporary conversation.')
+    conversationId: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].string().describe('The ID of the temporary conversation.'),
+    currentUserId: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].string().describe('The ID of the human user in the conversation.')
 });
 const BotChatOutputSchema = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].object({
     success: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].boolean(),
@@ -540,7 +540,7 @@ async function botChatFlow(input) {
             error: 'Invalid input.'
         };
     }
-    const { conversationId } = parsedInput.data;
+    const { conversationId, currentUserId } = parsedInput.data;
     if (!(0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$29$__["getApps"])().length) {
         (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$29$__["initializeApp"])();
     }
@@ -555,12 +555,13 @@ async function botChatFlow(input) {
             };
         }
         const conversation = convoSnap.data();
-        // Assuming bot is always user2 in bot matches
-        const botId = conversation?.user2.uid;
-        if (!botId || !botId.startsWith('bot_')) {
+        const users = conversation.users;
+        // Find the bot's ID by finding the user that is NOT the current user
+        const botId = users.find((uid)=>uid !== currentUserId && uid.startsWith('bot_'));
+        if (!botId) {
             return {
                 success: false,
-                error: 'This is not a bot conversation.'
+                error: 'This is not a bot conversation or bot could not be identified.'
             };
         }
         // Simple logic to select a random reply from the config

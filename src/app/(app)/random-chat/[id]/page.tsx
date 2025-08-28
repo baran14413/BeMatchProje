@@ -87,9 +87,12 @@ export default function RandomChatPage() {
 
         const unsubscribe = onSnapshot(convoRef, async (docSnap) => {
             if (!docSnap.exists()) {
+                // If convo is deleted and it hasn't become a permanent match, handle exit.
                 if (!isMatchPermanent) {
-                   handleNoMatchFound();
-                   router.push('/shuffle');
+                   // Avoid showing this if the user initiated the exit.
+                   // The handleExit function will navigate them away.
+                   // This primarily handles the case where the other user leaves or time runs out.
+                   router.push('/shuffle?feedback=true');
                 }
                 return;
             }
@@ -163,7 +166,7 @@ export default function RandomChatPage() {
             messagesQuery();
         };
 
-    }, [currentUser, conversationId, router, isMatchPermanent, handleNoMatchFound, otherUser?.uid]);
+    }, [currentUser, conversationId, router, isMatchPermanent, otherUser?.uid]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -205,16 +208,13 @@ export default function RandomChatPage() {
     };
     
      const handleExit = () => {
-        const convoRef = doc(db, 'temporaryConversations', conversationId);
-        deleteDoc(convoRef).catch(err => {
-            console.error("Could not delete convo on exit: ", err);
-        }).finally(() => {
-             router.push('/shuffle');
-        });
+        // Just navigate away. The onSnapshot listener or timer will handle cleanup.
+        router.push('/shuffle');
     };
 
     const formatTimeLeft = (seconds: number | null) => {
         if (seconds === null) return '...';
+        if (seconds < 0) return '0:00';
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
         return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
