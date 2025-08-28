@@ -91,8 +91,6 @@ function ShuffleContent() {
         if (!userQueueSnap.exists()) {
             return; // User has been matched with a real person
         }
-
-        toast({ title: 'Gerçek kullanıcı bulunamadı, bot ile eşleşiyorsun!', duration: 3000 });
         
         await deleteDoc(userQueueRef); // Remove user from queue
         
@@ -118,7 +116,7 @@ function ShuffleContent() {
             timestamp: serverTimestamp(),
         });
         
-    }, [currentUser, userProfile, toast]);
+    }, [currentUser, userProfile]);
 
     // Listen for created conversations and queue changes
     useEffect(() => {

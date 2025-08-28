@@ -160,7 +160,7 @@ export default function RandomChatPage() {
             messagesQuery();
         };
 
-    }, [currentUser, conversationId, router, isMatchPermanent, otherUser, handleNoMatchFound]);
+    }, [currentUser, conversationId, router, isMatchPermanent, handleNoMatchFound, otherUser?.uid]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
