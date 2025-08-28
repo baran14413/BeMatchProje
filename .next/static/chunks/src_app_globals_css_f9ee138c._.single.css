@@ -3660,6 +3660,10 @@ img {
     justify-content: flex-end;
   }
 
+  .sm\:justify-center {
+    justify-content: center;
+  }
+
   .sm\:gap-4 {
     gap: 1rem;
   }

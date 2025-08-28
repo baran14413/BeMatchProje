@@ -4,7 +4,7 @@
 import React, { type ReactNode, useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe, Loader2, LogOut, Settings } from 'lucide-react';
+import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe, Loader2, LogOut, Settings, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useNetworkStatus } from '@/hooks/use-network-status';
@@ -20,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
@@ -58,6 +59,8 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const activityLoggedRef = useRef(false);
+  
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
 
   // Hydration fix state
   const [isClientReady, setIsClientReady] = useState(false);
@@ -82,6 +85,12 @@ function LayoutContent({ children }: { children: ReactNode }) {
               if (userDocSnap.exists()) {
                 const profileData = userDocSnap.data();
                 setCurrentUserProfile(profileData);
+
+                // Show welcome popup once per session
+                if (!sessionStorage.getItem('welcomePopupShown')) {
+                    setShowWelcomePopup(true);
+                    sessionStorage.setItem('welcomePopupShown', 'true');
+                }
                 
                 // Log activity only once per session, and only when we have the data
                 if (!activityLoggedRef.current && profileData.name && profileData.avatarUrl) {
@@ -217,6 +226,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
 
   return (
+    <>
         <div 
             className="flex min-h-screen flex-col bg-background text-foreground"
             style={{
@@ -313,6 +323,25 @@ function LayoutContent({ children }: { children: ReactNode }) {
             </nav>
         )}
         </div>
+        <AlertDialog open={showWelcomePopup} onOpenChange={setShowWelcomePopup}>
+            <AlertDialogContent>
+                <AlertDialogHeader className="items-center text-center">
+                    <Sparkles className="w-12 h-12 text-yellow-400 mb-4" />
+                    <AlertDialogTitle className="text-2xl">
+                        Hoş geldin, {currentUserProfile?.name?.split(' ')[0]}!
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                        BeMatch'i keşfetmeye hazır mısın?
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="sm:justify-center">
+                    <AlertDialogAction onClick={() => setShowWelcomePopup(false)}>
+                        Hadi Başlayalım!
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    </>
   );
 }
 
@@ -324,5 +353,3 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
-
-    
