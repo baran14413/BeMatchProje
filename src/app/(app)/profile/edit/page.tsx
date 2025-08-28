@@ -30,6 +30,7 @@ import {
   Code,
   Database,
   Star,
+  MessageSquareQuote
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -163,6 +164,7 @@ export default function EditProfilePage() {
         { icon: <Bell className="h-6 w-6" />, title: 'Bildirim Ayarları', href: '/profile/edit/notifications' },
         { icon: <Database className="h-6 w-6" />, title: 'Önbellek Yönetimi', href: '/profile/edit/cache' },
         { icon: <Download className="h-6 w-6" />, title: 'Uygulamayı Yükle', onClick: handleInstallClick },
+        { icon: <MessageSquareQuote className="h-6 w-6" />, title: 'Deneyimlerinizi Paylaşın', href: '/profile/edit/feedback' },
         { icon: <HelpCircle className="h-6 w-6" />, title: 'Uygulama Kılavuzu', href: '/profile/edit/guide' },
         { icon: <Code className="h-6 w-6" />, title: 'Teknoloji Kümesi', href: '/profile/edit/tech-stack' },
     ];

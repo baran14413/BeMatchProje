@@ -1,23 +1,28 @@
+
 {
     "name": "BeMatch",
     "short_name": "BeMatch",
+    "description": "Find your perfect match and walk together.",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#20254f",
-    "theme_color": "#1976d2",
-    "description": "Find your perfect match and walk together.",
+    "background_color": "#ffffff",
+    "theme_color": "#1E40AF",
     "icons": [
         {
             "src": "/icons/app-logo.svg",
-            "sizes": "192x192",
+            "sizes": "any",
             "type": "image/svg+xml",
-            "purpose": "any maskable"
+            "purpose": "any"
         },
         {
-            "src": "/icons/app-logo.svg",
+            "src": "/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/icons/icon-512x512.png",
             "sizes": "512x512",
-            "type": "image/svg+xml",
-            "purpose": "any maskable"
+            "type": "image/png"
         }
     ]
 }

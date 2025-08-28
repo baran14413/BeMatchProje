@@ -33,6 +33,7 @@ export default function RootLayout({
       <head>
         <meta name="theme-color" content="#1976d2" />
         <link rel="icon" href="/icons/app-logo.svg" type="image/svg+xml" />
+        <link rel="manifest" href="/manifest.json" />
       </head>
       <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable, roboto.variable)}>
         <ThemeProvider

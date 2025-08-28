@@ -16,7 +16,7 @@ import {
   SidebarInset,
   SidebarFooter,
 } from '@/components/ui/sidebar';
-import { Home, Users, Settings, LogOut, PanelLeft, LineChart, Search, ShieldCheck, Ban, ShieldAlert, FileWarning } from 'lucide-react';
+import { Home, Users, Settings, LogOut, PanelLeft, LineChart, Search, ShieldCheck, Ban, ShieldAlert, FileWarning, MessageSquareWarning, Star } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
@@ -50,12 +50,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (pathname === '/admin/blocked-ips') return 'Engellenen IP\'ler';
         if (pathname === '/admin/reported-content') return 'Rapor Edilen İçerikler';
         if (pathname === '/admin/system-status') return 'Sistem Durumu';
+        if (pathname === '/admin/feedback') return 'Geri Bildirimler';
         return 'Panel';
     }
 
     return (
         <SidebarProvider>
-            <Sidebar>
+            <Sidebar className='bg-background/80 backdrop-blur-sm'>
                 <SidebarHeader className="p-4">
                      <Link href="/admin" className="flex items-center gap-2 text-lg font-semibold">
                         <ShieldAlert className="h-7 w-7 text-primary" />
@@ -66,10 +67,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <SidebarMenu>
                        <NavItem href="/admin" icon={<Home />} label="Ana Sayfa" />
                        <NavItem href="/admin/users" icon={<Users />} label="Kullanıcı Yönetimi" />
+                       <NavItem href="/admin/system-status" icon={<LineChart />} label="Sistem Durumu" />
+                        <SidebarSeparator />
+                       <NavItem href="/admin/reported-content" icon={<MessageSquareWarning />} label="Rapor Edilenler" />
+                       <NavItem href="/admin/feedback" icon={<Star />} label="Geri Bildirimler" />
+                       <SidebarSeparator />
                        <NavItem href="/admin/activity-logs" icon={<ShieldCheck />} label="Aktivite Kayıtları" />
                        <NavItem href="/admin/blocked-ips" icon={<Ban />} label="Engellenen IP'ler" />
-                       <NavItem href="/admin/reported-content" icon={<FileWarning />} label="Rapor Edilenler" />
-                       <NavItem href="/admin/system-status" icon={<LineChart />} label="Sistem Durumu" />
                     </SidebarMenu>
                 </SidebarContent>
                 <SidebarFooter className="p-4 border-t">

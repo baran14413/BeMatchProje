@@ -6,10 +6,11 @@ import {
   Users,
   ShieldCheck,
   Ban,
-  FileWarning,
   LineChart,
   ChevronRight,
-  ShieldAlert
+  ShieldAlert,
+  MessageSquareWarning,
+  Star
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,11 +49,12 @@ const SectionTitle = ({ title }: { title: string }) => (
 export default function AdminDashboardPage() {
 
     const userManagementItems = [
-        { icon: <Users className="h-7 w-7" />, title: 'Kullanıcıları Yönet', description: 'Tüm kullanıcıları görüntüleyin, silin veya XP verin.', href: '/admin/users' },
+        { icon: <Users className="h-7 w-7" />, title: 'Kullanıcıları Yönet', description: 'Tüm kullanıcıları görüntüleyin veya silin.', href: '/admin/users' },
     ];
     
     const contentAndSecurityItems = [
-        { icon: <FileWarning className="h-7 w-7" />, title: 'Rapor Edilen İçerikler', description: 'Kullanıcılar tarafından şikayet edilen gönderileri inceleyin.', href: '/admin/reported-content' },
+        { icon: <MessageSquareWarning className="h-7 w-7" />, title: 'Rapor Edilen İçerikler', description: 'Kullanıcılar tarafından şikayet edilen gönderileri inceleyin.', href: '/admin/reported-content' },
+        { icon: <Star className="h-7 w-7" />, title: 'Geri Bildirimler', description: 'Kullanıcıların uygulama deneyimleri hakkındaki görüşleri.', href: '/admin/feedback' },
         { icon: <ShieldCheck className="h-7 w-7" />, title: 'Aktivite Kayıtları', description: 'Uygulamadaki son kullanıcı aktivitelerini ve IP adreslerini görüntüleyin.', href: '/admin/activity-logs' },
         { icon: <Ban className="h-7 w-7" />, title: 'Engellenen IP Adresleri', description: 'Uygulamaya erişimi engellenen IP adreslerini yönetin.', href: '/admin/blocked-ips' },
     ];
