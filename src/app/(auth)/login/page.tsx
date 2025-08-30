@@ -38,7 +38,7 @@ export default function LoginPage() {
         description: 'Yönlendiriliyorsunuz...',
         className: 'bg-green-500 text-white',
       });
-      router.push('/match');
+      router.push('/explore');
     } catch (error: any) {
       console.error('Login error', error);
       toast({

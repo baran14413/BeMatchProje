@@ -405,8 +405,8 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 isScrolling && "translate-y-full"
             )}>
                 <div className="grid h-full grid-cols-4">
-                    <NavButton href="/kesfet" icon={<Sparkles />} srText="Keşif" isActive={pathname === '/kesfet'} />
                     <NavButton href="/explore" icon={<Globe />} srText="Akış" isActive={pathname === '/explore'} />
+                    <NavButton href="/kesfet" icon={<Sparkles />} srText="Keşif" isActive={pathname === '/kesfet'} />
                     <NavButton href="/chat" icon={<MessageCircle />} srText="Sohbet" isActive={pathname.startsWith('/chat')} hasNotification={hasUnreadMessages}/>
                     <NavButton href={`/profile/${currentUserProfile?.username ?? ''}`} icon={<User />} srText="Profil" isActive={pathname.startsWith('/profile')} />
                 </div>
