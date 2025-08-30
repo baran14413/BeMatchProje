@@ -27,6 +27,7 @@ import { useRouter } from 'next/navigation';
 import { logActivity } from '@/ai/flows/log-activity-flow';
 import { motion, AnimatePresence } from 'framer-motion';
 import AppLockScreen from '@/components/ui/app-lock-screen';
+import AnimatedLogo from '@/components/ui/animated-logo';
 
 const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, isActive: boolean, hasNotification?: boolean }) => {
     return (
@@ -134,13 +135,13 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const getPageTitle = useCallback(() => {
     if (!isClientReady) return "BeMatch";
     if (pathname === '/kesfet') return 'Keşif';
-    if (pathname === '/explore') return 'Ana Akış';
+    if (pathname === '/explore') return 'Keşfet';
     if (pathname.startsWith('/profile/')) return 'Profil';
     if (pathname === '/notifications') return 'Bildirimler';
     if (pathname === '/chat') return 'Sohbetler';
     if (pathname.startsWith('/random-chat')) return 'Rastgele Sohbet';
     if (pathname === '/search') return 'Ara';
-    if (pathname === '/match') return 'Eşleşme';
+    if (pathname === '/match') return 'Ana Sayfa';
     return "BeMatch";
   }, [pathname, isClientReady]);
   
@@ -377,9 +378,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                               className="flex items-center gap-2"
                           >
-                            <div className='w-9 h-9 cursor-pointer' onClick={handleLogoClick}>
-                                <span className='text-3xl animate-pulse-heart-sm inline-block bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent'>❤️</span>
-                            </div>
+                             <AnimatedLogo onClick={handleLogoClick}/>
                             <span className="font-bold">{pageTitle}</span>
                           </motion.div>
                       )}
@@ -456,11 +455,10 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 "h-[var(--bottom-nav-height)]",
                 isScrolling && "translate-y-full"
             )}>
-                <div className="grid h-full grid-cols-4">
-                    <NavButton href="/explore" icon={<Globe />} srText="Akış" isActive={pathname === '/explore'} />
-                    <NavButton href="/kesfet" icon={<Sparkles />} srText="Keşif" isActive={pathname === '/kesfet'} />
-                    <NavButton href="/chat" icon={<MessageCircle />} srText="Sohbet" isActive={pathname.startsWith('/chat')} hasNotification={hasUnreadMessages}/>
-                    <NavButton href={`/profile/${currentUserProfile?.username ?? ''}`} icon={<User />} srText="Profil" isActive={pathname.startsWith('/profile')} />
+                <div className="grid h-full grid-cols-3">
+                    <NavButton href="/match" icon={<Home />} srText="Ana Sayfa" isActive={pathname === '/match'} />
+                    <NavButton href="/shuffle" icon={<Shuffle />} srText="Eşleş" isActive={pathname === '/shuffle'} />
+                    <NavButton href="/explore" icon={<Globe />} srText="Keşfet" isActive={pathname === '/explore'} />
                 </div>
             </nav>
         )}
@@ -477,3 +475,5 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
+
+    
