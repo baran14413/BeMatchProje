@@ -4,7 +4,7 @@
 import React, { type ReactNode, useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe, Loader2, LogOut, Settings, Sparkles } from 'lucide-react';
+import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe, Loader2, LogOut, Settings, Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useNetworkStatus } from '@/hooks/use-network-status';
@@ -27,6 +27,7 @@ import { useRouter } from 'next/navigation';
 import { logActivity } from '@/ai/flows/log-activity-flow';
 import { motion, AnimatePresence } from 'framer-motion';
 import AppLockScreen from '@/components/ui/app-lock-screen';
+import AnimatedLogo from '@/components/ui/animated-logo';
 
 
 const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, isActive: boolean, hasNotification?: boolean }) => {
@@ -327,7 +328,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                               className="flex items-center gap-2"
                           >
-                            <Heart className="h-7 w-7 text-primary" />
+                            <AnimatedLogo className="h-9 w-9" />
                             <span className="font-bold">{pageTitle}</span>
                           </motion.div>
                       )}
