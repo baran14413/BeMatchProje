@@ -34,8 +34,8 @@ const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { 
         <Link href={href} className="flex flex-col items-center justify-center gap-1 w-full h-full relative">
             <motion.div whileTap={{ scale: 0.9 }} className="relative flex flex-col items-center justify-center">
                  {React.cloneElement(icon as React.ReactElement, {
-                    className: cn('h-7 w-7 transition-all', isActive ? 'text-primary' : 'text-muted-foreground'),
-                    strokeWidth: 2.5
+                    className: cn('h-6 w-6 transition-all', isActive ? 'text-primary' : 'text-muted-foreground'),
+                    strokeWidth: 2
                 })}
                  <span className={cn("text-xs transition-colors", isActive ? 'text-primary font-bold' : 'text-foreground')}>
                     {srText}
@@ -456,8 +456,8 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 isScrolling && "translate-y-full"
             )}>
                 <div className="grid h-full grid-cols-3">
-                    <NavButton href="/match" icon={<Home />} srText="Ana Sayfa" isActive={pathname === '/match'} />
                     <NavButton href="/shuffle" icon={<Shuffle />} srText="Eşleş" isActive={pathname === '/shuffle'} />
+                    <NavButton href="/match" icon={<Home />} srText="Ana Sayfa" isActive={pathname === '/match'} />
                     <NavButton href="/explore" icon={<Globe />} srText="Keşfet" isActive={pathname === '/explore'} />
                 </div>
             </nav>
@@ -475,5 +475,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
+
+    
 
     
