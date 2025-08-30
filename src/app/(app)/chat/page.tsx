@@ -730,12 +730,13 @@ export default function ChatPage() {
         "w-full flex-col h-full flex md:border-r",
         isChatViewOpen ? "hidden md:flex md:w-1/3" : "flex",
       )}>
-        <header className="flex items-center gap-4 p-4 border-b bg-card shrink-0 sticky top-0">
-            <h2 className="text-xl font-bold flex-1">{currentUser?.displayName}</h2>
+        <header className="flex items-center justify-between p-4 border-b">
+            <h2 className="text-xl font-bold">Mesajlar</h2>
             <Button variant="ghost" size="icon" className="rounded-full" onClick={handleToggleEditMode}>
                 <Pencil className="w-5 h-5"/>
             </Button>
         </header>
+
 
         <div className='flex-1 flex flex-col'>
             <div className="p-4 border-b">
@@ -770,7 +771,7 @@ export default function ChatPage() {
             )}
             
             <div className='p-4 flex justify-between items-center'>
-                 <h3 className="text-lg font-bold">Mesajlar</h3>
+                 <h3 className="text-lg font-bold">Tüm Sohbetler</h3>
                  <Link href="#" className='text-sm font-semibold text-primary'>İstekler</Link>
             </div>
 

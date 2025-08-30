@@ -34,12 +34,9 @@ const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { 
         <Link href={href} className="flex flex-col items-center justify-center gap-1 w-full h-full relative">
             <motion.div whileTap={{ scale: 0.9 }} className="relative flex flex-col items-center justify-center">
                  {React.cloneElement(icon as React.ReactElement, {
-                    className: cn('h-6 w-6 transition-all', isActive ? 'text-primary' : 'text-muted-foreground'),
+                    className: cn('h-7 w-7 transition-all', isActive ? 'text-primary' : 'text-muted-foreground'),
                     strokeWidth: 2
                 })}
-                 <span className={cn("text-xs transition-colors", isActive ? 'text-primary font-bold' : 'text-foreground')}>
-                    {srText}
-                </span>
                 {hasNotification && (
                     <span className="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500 animate-pulse-heart" />
                 )}
@@ -131,21 +128,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
     const storedPreference = localStorage.getItem('disableAnimations');
     setAnimationsDisabled(storedPreference === 'true');
   }, []);
-
-  const getPageTitle = useCallback(() => {
-    if (!isClientReady) return "BeMatch";
-    if (pathname === '/kesfet') return 'Keşif';
-    if (pathname === '/explore') return 'Keşfet';
-    if (pathname.startsWith('/profile/')) return 'Profil';
-    if (pathname === '/notifications') return 'Bildirimler';
-    if (pathname === '/chat') return 'Sohbetler';
-    if (pathname.startsWith('/random-chat')) return 'Rastgele Sohbet';
-    if (pathname === '/search') return 'Ara';
-    if (pathname === '/match') return 'Ana Sayfa';
-    return "BeMatch";
-  }, [pathname, isClientReady]);
   
-
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
       setCurrentUser(user);
@@ -323,8 +306,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
       setTimeout(() => setIsExploding(false), 4000);
   };
 
-  const pageTitle = getPageTitle();
-
   if (isLocked === null) {
       return (
           <div className="flex h-screen w-full items-center justify-center">
@@ -379,7 +360,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
                               className="flex items-center gap-2"
                           >
                              <AnimatedLogo onClick={handleLogoClick}/>
-                            <span className="font-bold">{pageTitle}</span>
                           </motion.div>
                       )}
                   </AnimatePresence>
@@ -475,7 +455,3 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
-
-    
-
-    

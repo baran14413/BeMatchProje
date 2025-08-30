@@ -1,4 +1,5 @@
 {
+  "/(app)/chat/page": "app/(app)/chat/page.js",
   "/(app)/explore/page": "app/(app)/explore/page.js",
   "/(app)/kesfet/page": "app/(app)/kesfet/page.js",
   "/(app)/match/page": "app/(app)/match/page.js",
