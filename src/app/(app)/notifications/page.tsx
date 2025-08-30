@@ -8,7 +8,7 @@ import { ArrowLeft, Bell, Heart, Loader2, Star, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { collection, query, where, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, Timestamp, writeBatch, doc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
@@ -123,12 +123,23 @@ export default function NotificationsPage() {
             orderBy('createdAt', 'desc')
         );
 
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const unsubscribe = onSnapshot(q, async (querySnapshot) => {
             const fetchedNotifications = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             } as Notification));
             setNotifications(fetchedNotifications);
+
+            // Mark all fetched (and thus, viewed) notifications as read
+            const unreadNotifications = querySnapshot.docs.filter(doc => !doc.data().read);
+            if (unreadNotifications.length > 0) {
+                const batch = writeBatch(db);
+                unreadNotifications.forEach(doc => {
+                    batch.update(doc.ref, { read: true });
+                });
+                await batch.commit().catch(err => console.error("Error marking notifications as read:", err));
+            }
+
             setLoading(false);
         }, (error) => {
             console.error("Error fetching notifications: ", error);
@@ -172,7 +183,8 @@ export default function NotificationsPage() {
                      <div>
                         {notifications.map((item) => (
                            <Link href={getNotificationLink(item)} key={item.id} className={cn(
-                               "flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors"
+                                "flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors",
+                                !item.read && "bg-primary/5"
                             )}>
                                 <div className="shrink-0">
                                     <NotificationIcon notification={item} />
@@ -198,3 +210,5 @@ export default function NotificationsPage() {
         </div>
     );
 }
+
+    

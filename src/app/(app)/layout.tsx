@@ -11,7 +11,7 @@ import { useNetworkStatus } from '@/hooks/use-network-status';
 import { NetworkStatusBanner } from '@/components/ui/network-status-banner';
 import { auth, db, setupPresence } from '@/lib/firebase';
 import type { User as FirebaseUser } from 'firebase/auth';
-import { collection, query, where, onSnapshot, doc, getDoc, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, getDoc, orderBy, limit, updateDoc } from 'firebase/firestore';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,15 +35,15 @@ const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { 
             <motion.div whileTap={{ scale: 0.9 }} className="relative">
                  {React.cloneElement(icon as React.ReactElement, {
                     className: cn('h-7 w-7 transition-all', isActive ? 'text-primary' : 'text-muted-foreground'),
-                    strokeWidth: isActive ? 2.5 : 2
+                    strokeWidth: 2.5
                 })}
+                 <span className={cn("text-xs font-bold", isActive ? 'text-primary' : 'text-foreground')}>
+                    {srText}
+                </span>
                 {hasNotification && (
                     <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500" />
                 )}
             </motion.div>
-            <span className={cn("text-xs font-bold", isActive ? 'text-primary' : 'text-foreground')}>
-                {srText}
-            </span>
         </Link>
     );
 };
@@ -167,15 +167,17 @@ function LayoutContent({ children }: { children: ReactNode }) {
     const notificationsQuery = query(
       collection(db, 'notifications'),
       where('recipientId', '==', currentUser.uid),
+      where('read', '==', false),
       orderBy('createdAt', 'desc'),
       limit(1)
     );
     const unsubscribeNotifications = onSnapshot(notificationsQuery, (snapshot) => {
       if (!snapshot.empty) {
-        const newNotif = snapshot.docs[0].data();
-        const newNotifId = snapshot.docs[0].id;
+        const newNotifDoc = snapshot.docs[0];
+        const newNotif = newNotifDoc.data();
+        const newNotifId = newNotifDoc.id;
 
-        if (newNotifId !== lastShownNotificationIdRef.current && !newNotif.read) {
+        if (newNotifId !== lastShownNotificationIdRef.current) {
           const text = newNotif.type === 'like' 
             ? `**${newNotif.fromUser.name}** bir gönderini beğendi.`
             : newNotif.type === 'follow' 
@@ -185,6 +187,10 @@ function LayoutContent({ children }: { children: ReactNode }) {
           setLastNotification({ id: newNotifId, text });
           setShowNotification(true);
           lastShownNotificationIdRef.current = newNotifId;
+
+          // Mark as read after showing
+          const notifRef = doc(db, 'notifications', newNotifId);
+          updateDoc(notifRef, { read: true });
 
           setTimeout(() => {
             setShowNotification(false);
@@ -420,3 +426,5 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
+
+    
