@@ -1,0 +1,16 @@
+{
+  "node": {
+    "4089b26089702b1e5adfebade7e2643cec0eef947b": {
+      "workers": {
+        "app/(app)/profile/edit/app-lock/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/profile/edit/app-lock/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/(app)/profile/edit/app-lock/page": "action-browser"
+      }
+    }
+  },
+  "edge": {}
+}

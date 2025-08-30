@@ -44,6 +44,14 @@ export default function AppLockPage() {
         setIsMounted(true);
     }, []);
 
+    useEffect(() => {
+        // When modal opens, determine the first step based on if a PIN is already set.
+        if (isPinModalOpen) {
+            setPinStep(config.pin ? 'current' : 'new');
+        }
+    }, [isPinModalOpen, config.pin]);
+
+
     const saveConfig = (newConfig: Partial<AppLockConfig>) => {
         const updatedConfig = { ...config, ...newConfig };
         setConfig(updatedConfig);
@@ -57,6 +65,9 @@ export default function AppLockPage() {
             setIsPinModalOpen(true);
         } else {
             saveConfig({ isEnabled });
+            if (!isEnabled) {
+                 saveConfig({ isBiometricEnabled: false }); // Also disable biometrics if lock is turned off
+            }
         }
     };
     
@@ -82,8 +93,6 @@ export default function AppLockPage() {
         setCurrentPin('');
         setNewPin('');
         setConfirmPin('');
-        // If a PIN is set, next time they open it should ask for current PIN
-        setPinStep(config.pin ? 'current' : 'new');
     };
 
     const handlePinSubmit = () => {
@@ -130,7 +139,7 @@ export default function AppLockPage() {
     }
 
     return (
-        <>
+        <Dialog open={isPinModalOpen} onOpenChange={setIsPinModalOpen}>
             <Card>
                 <CardHeader>
                     <CardTitle>Uygulama Şifresi</CardTitle>
@@ -168,7 +177,7 @@ export default function AppLockPage() {
                             <div className="flex justify-between items-center">
                                <p className="text-sm text-muted-foreground">Uygulama şifrenizi değiştirmek için tıklayın.</p>
                                 <DialogTrigger asChild>
-                                    <Button variant="outline" onClick={() => setIsPinModalOpen(true)}>PIN Değiştir</Button>
+                                    <Button variant="outline">PIN Değiştir</Button>
                                 </DialogTrigger>
                             </div>
                         </>
@@ -176,34 +185,32 @@ export default function AppLockPage() {
                 </CardContent>
             </Card>
 
-            <Dialog open={isPinModalOpen} onOpenChange={(open) => !open && resetPinModal()}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle className="text-center">
-                            {pinStep === 'current' && 'Mevcut PIN\'inizi Girin'}
-                            {pinStep === 'new' && 'Yeni PIN Oluşturun'}
-                            {pinStep === 'confirm' && 'Yeni PIN\'inizi Onaylayın'}
-                        </DialogTitle>
-                        <DialogDescription className="text-center">
-                            Lütfen 4 haneli bir PIN kodu girin.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="py-4 space-y-4">
-                        {pinStep === 'current' && <PinInput value={currentPin} onChange={setCurrentPin}/> }
-                        {pinStep === 'new' && <PinInput value={newPin} onChange={setNewPin}/> }
-                        {pinStep === 'confirm' && <PinInput value={confirmPin} onChange={setConfirmPin}/> }
-                        
-                        {pinError && <p className="text-sm text-center text-destructive">{pinError}</p>}
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle className="text-center">
+                        {pinStep === 'current' && 'Mevcut PIN\'inizi Girin'}
+                        {pinStep === 'new' && 'Yeni PIN Oluşturun'}
+                        {pinStep === 'confirm' && 'Yeni PIN\'inizi Onaylayın'}
+                    </DialogTitle>
+                    <DialogDescription className="text-center">
+                        Lütfen 4 haneli bir PIN kodu girin.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-4">
+                    {pinStep === 'current' && <PinInput value={currentPin} onChange={setCurrentPin}/> }
+                    {pinStep === 'new' && <PinInput value={newPin} onChange={setNewPin}/> }
+                    {pinStep === 'confirm' && <PinInput value={confirmPin} onChange={setConfirmPin}/> }
+                    
+                    {pinError && <p className="text-sm text-center text-destructive">{pinError}</p>}
+                </div>
+                <DialogFooter className="sm:justify-between gap-2">
+                    {pinStep === 'current' && <Button variant="link" className='p-0 h-auto' onClick={() => toast({title: "Bu özellik yakında eklenecektir."})}>PIN'imi Unuttum</Button> }
+                    <div className="flex gap-2 ml-auto">
+                        <Button variant="outline" onClick={resetPinModal}>İptal</Button>
+                        <Button onClick={handlePinSubmit}>Devam</Button>
                     </div>
-                    <DialogFooter className="sm:justify-between gap-2">
-                        {pinStep === 'current' && <Button variant="link" className='p-0 h-auto' onClick={() => toast({title: "Bu özellik yakında eklenecektir."})}>PIN'imi Unuttum</Button> }
-                        <div className="flex gap-2 ml-auto">
-                            <Button variant="outline" onClick={resetPinModal}>İptal</Button>
-                            <Button onClick={handlePinSubmit}>Devam</Button>
-                        </div>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }

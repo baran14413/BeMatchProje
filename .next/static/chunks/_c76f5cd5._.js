@@ -206,7 +206,7 @@ const Separator = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5
         ref: ref,
         decorative: decorative,
         orientation: orientation,
-        className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("shrink-0 bg-border/50", orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]", className),
+        className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("shrink-0 bg-border", orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]", className),
         ...props
     }, void 0, false, {
         fileName: "[project]/src/components/ui/separator.tsx",
