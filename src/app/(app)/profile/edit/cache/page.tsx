@@ -55,12 +55,12 @@ export default function CacheManagementPage() {
             // Reload the page to apply changes
             setTimeout(() => window.location.reload(), 1500);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error clearing cache:", error);
             toast({
                 variant: 'destructive',
                 title: 'Hata',
-                description: 'Önbellek temizlenirken bir sorun oluştu.',
+                description: error.message || 'Önbellek temizlenirken bir sorun oluştu.',
             });
             setClearing(false);
         }

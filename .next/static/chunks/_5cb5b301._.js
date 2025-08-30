@@ -470,6 +470,17 @@ function AppLockPage() {
             setIsMounted(true);
         }
     }["AppLockPage.useEffect"], []);
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "AppLockPage.useEffect": ()=>{
+            // When modal opens, determine the first step based on if a PIN is already set.
+            if (isPinModalOpen) {
+                setPinStep(config.pin ? 'current' : 'new');
+            }
+        }
+    }["AppLockPage.useEffect"], [
+        isPinModalOpen,
+        config.pin
+    ]);
     const saveConfig = (newConfig)=>{
         const updatedConfig = {
             ...config,
@@ -487,6 +498,11 @@ function AppLockPage() {
             saveConfig({
                 isEnabled
             });
+            if (!isEnabled) {
+                saveConfig({
+                    isBiometricEnabled: false
+                }); // Also disable biometrics if lock is turned off
+            }
         }
     };
     const handleToggleBiometrics = async (isBiometricEnabled)=>{
@@ -518,8 +534,6 @@ function AppLockPage() {
         setCurrentPin('');
         setNewPin('');
         setConfirmPin('');
-        // If a PIN is set, next time they open it should ask for current PIN
-        setPinStep(config.pin ? 'current' : 'new');
     };
     const handlePinSubmit = ()=>{
         setPinError('');
@@ -563,7 +577,7 @@ function AppLockPage() {
             className: "text-center text-2xl tracking-[1.5rem] font-bold"
         }, void 0, false, {
             fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-            lineNumber: 115,
+            lineNumber: 124,
             columnNumber: 9
         }, this);
     if (!isMounted) {
@@ -573,16 +587,18 @@ function AppLockPage() {
                 className: "w-8 h-8 animate-spin"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                lineNumber: 129,
+                lineNumber: 138,
                 columnNumber: 71
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-            lineNumber: 129,
+            lineNumber: 138,
             columnNumber: 16
         }, this);
     }
-    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Dialog"], {
+        open: isPinModalOpen,
+        onOpenChange: setIsPinModalOpen,
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
                 children: [
@@ -592,20 +608,20 @@ function AppLockPage() {
                                 children: "Uygulama Şifresi"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                lineNumber: 136,
+                                lineNumber: 145,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
                                 children: "Uygulamaya erişimi bir PIN veya biyometrik kimlik doğrulama ile koruyun."
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                lineNumber: 137,
+                                lineNumber: 146,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                        lineNumber: 135,
+                        lineNumber: 144,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -622,20 +638,20 @@ function AppLockPage() {
                                                 className: "h-5 w-5 text-primary"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                                lineNumber: 144,
+                                                lineNumber: 153,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 children: "Uygulama Kilidini Aktifleştir"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                                lineNumber: 145,
+                                                lineNumber: 154,
                                                 columnNumber: 29
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                        lineNumber: 143,
+                                        lineNumber: 152,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$switch$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Switch"], {
@@ -644,20 +660,20 @@ function AppLockPage() {
                                         onCheckedChange: handleToggleLock
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                        lineNumber: 147,
+                                        lineNumber: 156,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                lineNumber: 142,
+                                lineNumber: 151,
                                 columnNumber: 21
                             }, this),
                             config.isEnabled && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$separator$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Separator"], {}, void 0, false, {
                                         fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                        lineNumber: 155,
+                                        lineNumber: 164,
                                         columnNumber: 29
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -671,20 +687,20 @@ function AppLockPage() {
                                                         className: "h-5 w-5 text-primary"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                                        lineNumber: 158,
+                                                        lineNumber: 167,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                         children: "Yüz Tanıma / Parmak İzi ile Aç"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                                        lineNumber: 159,
+                                                        lineNumber: 168,
                                                         columnNumber: 37
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                                lineNumber: 157,
+                                                lineNumber: 166,
                                                 columnNumber: 33
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$switch$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Switch"], {
@@ -693,18 +709,18 @@ function AppLockPage() {
                                                 onCheckedChange: handleToggleBiometrics
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                                lineNumber: 161,
+                                                lineNumber: 170,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                        lineNumber: 156,
+                                        lineNumber: 165,
                                         columnNumber: 29
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$separator$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Separator"], {}, void 0, false, {
                                         fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                        lineNumber: 167,
+                                        lineNumber: 176,
                                         columnNumber: 29
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -715,29 +731,28 @@ function AppLockPage() {
                                                 children: "Uygulama şifrenizi değiştirmek için tıklayın."
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                                lineNumber: 169,
+                                                lineNumber: 178,
                                                 columnNumber: 32
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogTrigger"], {
                                                 asChild: true,
                                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                                     variant: "outline",
-                                                    onClick: ()=>setIsPinModalOpen(true),
                                                     children: "PIN Değiştir"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                                    lineNumber: 171,
+                                                    lineNumber: 180,
                                                     columnNumber: 37
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                                lineNumber: 170,
+                                                lineNumber: 179,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                        lineNumber: 168,
+                                        lineNumber: 177,
                                         columnNumber: 29
                                     }, this)
                                 ]
@@ -745,151 +760,147 @@ function AppLockPage() {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                        lineNumber: 141,
+                        lineNumber: 150,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                lineNumber: 134,
+                lineNumber: 143,
                 columnNumber: 13
             }, this),
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Dialog"], {
-                open: isPinModalOpen,
-                onOpenChange: (open)=>!open && resetPinModal(),
-                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogContent"], {
-                    children: [
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogHeader"], {
-                            children: [
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogTitle"], {
-                                    className: "text-center",
-                                    children: [
-                                        pinStep === 'current' && 'Mevcut PIN\'inizi Girin',
-                                        pinStep === 'new' && 'Yeni PIN Oluşturun',
-                                        pinStep === 'confirm' && 'Yeni PIN\'inizi Onaylayın'
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                    lineNumber: 182,
-                                    columnNumber: 25
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogDescription"], {
-                                    className: "text-center",
-                                    children: "Lütfen 4 haneli bir PIN kodu girin."
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                    lineNumber: 187,
-                                    columnNumber: 25
-                                }, this)
-                            ]
-                        }, void 0, true, {
-                            fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                            lineNumber: 181,
-                            columnNumber: 21
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "py-4 space-y-4",
-                            children: [
-                                pinStep === 'current' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(PinInput, {
-                                    value: currentPin,
-                                    onChange: setCurrentPin
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                    lineNumber: 192,
-                                    columnNumber: 51
-                                }, this),
-                                pinStep === 'new' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(PinInput, {
-                                    value: newPin,
-                                    onChange: setNewPin
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                    lineNumber: 193,
-                                    columnNumber: 47
-                                }, this),
-                                pinStep === 'confirm' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(PinInput, {
-                                    value: confirmPin,
-                                    onChange: setConfirmPin
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                    lineNumber: 194,
-                                    columnNumber: 51
-                                }, this),
-                                pinError && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                    className: "text-sm text-center text-destructive",
-                                    children: pinError
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                    lineNumber: 196,
-                                    columnNumber: 38
-                                }, this)
-                            ]
-                        }, void 0, true, {
-                            fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                            lineNumber: 191,
-                            columnNumber: 21
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogFooter"], {
-                            className: "sm:justify-between gap-2",
-                            children: [
-                                pinStep === 'current' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
-                                    variant: "link",
-                                    className: "p-0 h-auto",
-                                    onClick: ()=>toast({
-                                            title: "Bu özellik yakında eklenecektir."
-                                        }),
-                                    children: "PIN'imi Unuttum"
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                    lineNumber: 199,
-                                    columnNumber: 51
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "flex gap-2 ml-auto",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
-                                            variant: "outline",
-                                            onClick: resetPinModal,
-                                            children: "İptal"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                            lineNumber: 201,
-                                            columnNumber: 29
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
-                                            onClick: handlePinSubmit,
-                                            children: "Devam"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                            lineNumber: 202,
-                                            columnNumber: 29
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                                    lineNumber: 200,
-                                    columnNumber: 25
-                                }, this)
-                            ]
-                        }, void 0, true, {
-                            fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                            lineNumber: 198,
-                            columnNumber: 21
-                        }, this)
-                    ]
-                }, void 0, true, {
-                    fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                    lineNumber: 180,
-                    columnNumber: 17
-                }, this)
-            }, void 0, false, {
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogContent"], {
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogHeader"], {
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogTitle"], {
+                                className: "text-center",
+                                children: [
+                                    pinStep === 'current' && 'Mevcut PIN\'inizi Girin',
+                                    pinStep === 'new' && 'Yeni PIN Oluşturun',
+                                    pinStep === 'confirm' && 'Yeni PIN\'inizi Onaylayın'
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
+                                lineNumber: 190,
+                                columnNumber: 21
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogDescription"], {
+                                className: "text-center",
+                                children: "Lütfen 4 haneli bir PIN kodu girin."
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
+                                lineNumber: 195,
+                                columnNumber: 21
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
+                        lineNumber: 189,
+                        columnNumber: 17
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "py-4 space-y-4",
+                        children: [
+                            pinStep === 'current' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(PinInput, {
+                                value: currentPin,
+                                onChange: setCurrentPin
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
+                                lineNumber: 200,
+                                columnNumber: 47
+                            }, this),
+                            pinStep === 'new' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(PinInput, {
+                                value: newPin,
+                                onChange: setNewPin
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
+                                lineNumber: 201,
+                                columnNumber: 43
+                            }, this),
+                            pinStep === 'confirm' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(PinInput, {
+                                value: confirmPin,
+                                onChange: setConfirmPin
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
+                                lineNumber: 202,
+                                columnNumber: 47
+                            }, this),
+                            pinError && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                className: "text-sm text-center text-destructive",
+                                children: pinError
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
+                                lineNumber: 204,
+                                columnNumber: 34
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
+                        lineNumber: 199,
+                        columnNumber: 17
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogFooter"], {
+                        className: "sm:justify-between gap-2",
+                        children: [
+                            pinStep === 'current' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                variant: "link",
+                                className: "p-0 h-auto",
+                                onClick: ()=>toast({
+                                        title: "Bu özellik yakında eklenecektir."
+                                    }),
+                                children: "PIN'imi Unuttum"
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
+                                lineNumber: 207,
+                                columnNumber: 47
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "flex gap-2 ml-auto",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                        variant: "outline",
+                                        onClick: resetPinModal,
+                                        children: "İptal"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
+                                        lineNumber: 209,
+                                        columnNumber: 25
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                        onClick: handlePinSubmit,
+                                        children: "Devam"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
+                                        lineNumber: 210,
+                                        columnNumber: 25
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
+                                lineNumber: 208,
+                                columnNumber: 21
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
+                        lineNumber: 206,
+                        columnNumber: 17
+                    }, this)
+                ]
+            }, void 0, true, {
                 fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
-                lineNumber: 179,
+                lineNumber: 188,
                 columnNumber: 13
             }, this)
         ]
-    }, void 0, true);
+    }, void 0, true, {
+        fileName: "[project]/src/app/(app)/profile/edit/app-lock/page.tsx",
+        lineNumber: 142,
+        columnNumber: 9
+    }, this);
 }
-_s(AppLockPage, "cFSSQQ/njIJI3evegRe2S2Vr7DU=", false, function() {
+_s(AppLockPage, "eO99y816L39627fX5A+YHmixcWk=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useToast"]
     ];

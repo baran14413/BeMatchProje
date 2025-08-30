@@ -2,9 +2,17 @@
   "/(app)/chat/page": "app/(app)/chat/page.js",
   "/(app)/explore/page": "app/(app)/explore/page.js",
   "/(app)/match/page": "app/(app)/match/page.js",
+  "/(app)/premium/page": "app/(app)/premium/page.js",
   "/(app)/profile/[username]/page": "app/(app)/profile/[username]/page.js",
+  "/(app)/profile/edit/app-lock/page": "app/(app)/profile/edit/app-lock/page.js",
   "/(app)/profile/edit/cache/page": "app/(app)/profile/edit/cache/page.js",
+  "/(app)/profile/edit/discovery/page": "app/(app)/profile/edit/discovery/page.js",
   "/(app)/profile/edit/page": "app/(app)/profile/edit/page.js",
+  "/(app)/profile/edit/personal/page": "app/(app)/profile/edit/personal/page.js",
+  "/(app)/profile/edit/photos/page": "app/(app)/profile/edit/photos/page.js",
+  "/(app)/profile/edit/picture/page": "app/(app)/profile/edit/picture/page.js",
+  "/(app)/profile/edit/saved-posts/page": "app/(app)/profile/edit/saved-posts/page.js",
+  "/(app)/profile/edit/wallet/page": "app/(app)/profile/edit/wallet/page.js",
   "/(app)/shuffle/page": "app/(app)/shuffle/page.js",
   "/page": "app/page.js"
 }

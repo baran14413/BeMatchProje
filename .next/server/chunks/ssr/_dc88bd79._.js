@@ -116,23 +116,14 @@ function WalletPage() {
         className: "max-w-2xl mx-auto",
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardHeader"], {
-                children: [
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardTitle"], {
-                        children: "Cüzdanım ve Abonelik"
-                    }, void 0, false, {
-                        fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                        lineNumber: 23,
-                        columnNumber: 17
-                    }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardDescription"], {
-                        children: "Mevcut abonelik durumunuzu ve ödeme bilgilerinizi yönetin."
-                    }, void 0, false, {
-                        fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                        lineNumber: 24,
-                        columnNumber: 17
-                    }, this)
-                ]
-            }, void 0, true, {
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardTitle"], {
+                    children: "Cüzdanım ve Abonelik"
+                }, void 0, false, {
+                    fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
+                    lineNumber: 23,
+                    columnNumber: 17
+                }, this)
+            }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
                 lineNumber: 22,
                 columnNumber: 13
@@ -150,12 +141,12 @@ function WalletPage() {
                                         className: "w-8 h-8 text-purple-600"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                                        lineNumber: 33,
+                                        lineNumber: 30,
                                         columnNumber: 33
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                                    lineNumber: 32,
+                                    lineNumber: 29,
                                     columnNumber: 29
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -165,7 +156,7 @@ function WalletPage() {
                                             children: subscription.planName
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                                            lineNumber: 36,
+                                            lineNumber: 33,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -173,19 +164,19 @@ function WalletPage() {
                                             children: "Aktif Abonelik"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                                            lineNumber: 37,
+                                            lineNumber: 34,
                                             columnNumber: 33
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                                    lineNumber: 35,
+                                    lineNumber: 32,
                                     columnNumber: 29
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                            lineNumber: 31,
+                            lineNumber: 28,
                             columnNumber: 25
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -195,7 +186,7 @@ function WalletPage() {
                                     className: "w-5 h-5"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                                    lineNumber: 41,
+                                    lineNumber: 38,
                                     columnNumber: 29
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -206,25 +197,25 @@ function WalletPage() {
                                             children: subscription.expiresAt
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                                            lineNumber: 42,
+                                            lineNumber: 39,
                                             columnNumber: 60
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                                    lineNumber: 42,
+                                    lineNumber: 39,
                                     columnNumber: 29
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                            lineNumber: 40,
+                            lineNumber: 37,
                             columnNumber: 25
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                    lineNumber: 30,
+                    lineNumber: 27,
                     columnNumber: 21
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "text-center p-10 border-2 border-dashed rounded-lg",
@@ -233,7 +224,7 @@ function WalletPage() {
                             className: "mx-auto w-12 h-12 text-muted-foreground mb-4"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                            lineNumber: 47,
+                            lineNumber: 44,
                             columnNumber: 25
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -241,7 +232,7 @@ function WalletPage() {
                             children: "Aktif Aboneliğiniz Yok"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                            lineNumber: 48,
+                            lineNumber: 45,
                             columnNumber: 25
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -249,7 +240,7 @@ function WalletPage() {
                             children: "Premium özelliklerden yararlanmak için mağazayı ziyaret edin."
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                            lineNumber: 49,
+                            lineNumber: 46,
                             columnNumber: 25
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -259,23 +250,23 @@ function WalletPage() {
                                 children: "Mağazaya Git"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                                lineNumber: 53,
+                                lineNumber: 50,
                                 columnNumber: 29
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                            lineNumber: 52,
+                            lineNumber: 49,
                             columnNumber: 25
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                    lineNumber: 46,
+                    lineNumber: 43,
                     columnNumber: 21
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                lineNumber: 28,
+                lineNumber: 25,
                 columnNumber: 13
             }, this),
             subscription.isActive && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardFooter"], {
@@ -286,7 +277,7 @@ function WalletPage() {
                         children: "Aboneliğinizi yönetin."
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                        lineNumber: 62,
+                        lineNumber: 59,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -297,7 +288,7 @@ function WalletPage() {
                                 children: "Aboneliği İptal Et"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                                lineNumber: 64,
+                                lineNumber: 61,
                                 columnNumber: 25
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -306,26 +297,26 @@ function WalletPage() {
                                         className: "mr-2 h-4 w-4"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                                        lineNumber: 66,
+                                        lineNumber: 63,
                                         columnNumber: 29
                                     }, this),
                                     "Şimdi Yenile"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                                lineNumber: 65,
+                                lineNumber: 62,
                                 columnNumber: 25
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                        lineNumber: 63,
+                        lineNumber: 60,
                         columnNumber: 21
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/profile/edit/wallet/page.tsx",
-                lineNumber: 61,
+                lineNumber: 58,
                 columnNumber: 17
             }, this)
         ]

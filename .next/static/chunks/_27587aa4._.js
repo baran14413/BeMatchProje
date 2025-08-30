@@ -304,25 +304,15 @@ function PremiumPage() {
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardTitle"], {
-                                            className: "text-3xl md:text-4xl text-white font-headline",
-                                            children: "BeMatch Premium"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/app/(app)/premium/page.tsx",
-                                            lineNumber: 71,
-                                            columnNumber: 29
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
-                                            className: "text-purple-200 text-lg mt-1",
-                                            children: "Deneyimini bir üst seviyeye taşı."
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/app/(app)/premium/page.tsx",
-                                            lineNumber: 72,
-                                            columnNumber: 29
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardTitle"], {
+                                        className: "text-3xl md:text-4xl text-white font-headline",
+                                        children: "BeMatch Premium"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/(app)/premium/page.tsx",
+                                        lineNumber: 71,
+                                        columnNumber: 29
+                                    }, this)
+                                }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/premium/page.tsx",
                                     lineNumber: 70,
                                     columnNumber: 25
@@ -348,7 +338,7 @@ function PremiumPage() {
                                             className: "w-5 h-5 text-green-400 shrink-0"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/premium/page.tsx",
-                                            lineNumber: 80,
+                                            lineNumber: 79,
                                             columnNumber: 32
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -356,23 +346,23 @@ function PremiumPage() {
                                             children: feature.text
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/premium/page.tsx",
-                                            lineNumber: 81,
+                                            lineNumber: 80,
                                             columnNumber: 32
                                         }, this)
                                     ]
                                 }, index, true, {
                                     fileName: "[project]/src/app/(app)/premium/page.tsx",
-                                    lineNumber: 79,
+                                    lineNumber: 78,
                                     columnNumber: 28
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/premium/page.tsx",
-                            lineNumber: 77,
+                            lineNumber: 76,
                             columnNumber: 20
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/premium/page.tsx",
-                        lineNumber: 76,
+                        lineNumber: 75,
                         columnNumber: 17
                     }, this)
                 ]
@@ -392,7 +382,7 @@ function PremiumPage() {
                                 children: "POPÜLER"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/premium/page.tsx",
-                                lineNumber: 101,
+                                lineNumber: 100,
                                 columnNumber: 29
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardHeader"], {
@@ -403,7 +393,7 @@ function PremiumPage() {
                                         children: pkg.icon
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/premium/page.tsx",
-                                        lineNumber: 106,
+                                        lineNumber: 105,
                                         columnNumber: 29
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardTitle"], {
@@ -411,7 +401,7 @@ function PremiumPage() {
                                         children: pkg.name
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/premium/page.tsx",
-                                        lineNumber: 109,
+                                        lineNumber: 108,
                                         columnNumber: 29
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
@@ -419,13 +409,13 @@ function PremiumPage() {
                                         children: pkg.price
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/premium/page.tsx",
-                                        lineNumber: 110,
+                                        lineNumber: 109,
                                         columnNumber: 29
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(app)/premium/page.tsx",
-                                lineNumber: 105,
+                                lineNumber: 104,
                                 columnNumber: 25
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardFooter"], {
@@ -435,23 +425,23 @@ function PremiumPage() {
                                     children: selectedPackage === pkg.id ? 'Seçildi' : 'Seç'
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/premium/page.tsx",
-                                    lineNumber: 113,
+                                    lineNumber: 112,
                                     columnNumber: 29
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/premium/page.tsx",
-                                lineNumber: 112,
+                                lineNumber: 111,
                                 columnNumber: 25
                             }, this)
                         ]
                     }, pkg.id, true, {
                         fileName: "[project]/src/app/(app)/premium/page.tsx",
-                        lineNumber: 90,
+                        lineNumber: 89,
                         columnNumber: 22
                     }, this))
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/premium/page.tsx",
-                lineNumber: 88,
+                lineNumber: 87,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -459,7 +449,7 @@ function PremiumPage() {
                 children: "Ödemeler güvenli bir şekilde işlenir. Aboneliğinizi istediğiniz zaman iptal edebilirsiniz."
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/premium/page.tsx",
-                lineNumber: 121,
+                lineNumber: 120,
                 columnNumber: 13
             }, this)
         ]

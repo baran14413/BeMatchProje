@@ -1,5 +1,5 @@
 
-import { initializeApp, getApps, getApp } from 'firebase/app';
+import { initializeApp, getApps, getApp, deleteApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, setDoc, serverTimestamp as firestoreServerTimestamp, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED, clearIndexedDbPersistence, terminate } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
@@ -55,10 +55,8 @@ if (typeof window !== 'undefined') {
 
 export const clearCache = async () => {
     try {
-        // Terminate Firestore to allow cache clearing
-        await terminate(db);
-        // Clear Firestore offline persistence
-        await clearIndexedDbPersistence(db);
+        // Delete the firebase app to release all resources
+        await firebase.app().delete();
         
         // Unregister all service workers
         if ('serviceWorker' in navigator) {
@@ -71,9 +69,28 @@ export const clearCache = async () => {
         // Clear Cache Storage
         const keys = await caches.keys();
         await Promise.all(keys.map(key => caches.delete(key)));
+        
+        // Clear IndexedDB for Firestore
+        const dbName = `firebase-indexeddb-main-` + firebaseConfig.appId;
+        const deleteRequest = indexedDB.deleteDatabase(dbName);
+
+        return new Promise<void>((resolve, reject) => {
+            deleteRequest.onsuccess = () => {
+                console.log("Firestore IndexedDB cache cleared successfully.");
+                resolve();
+            };
+            deleteRequest.onerror = (event) => {
+                console.error("Error clearing Firestore IndexedDB cache:", event);
+                reject(new Error("Could not clear IndexedDB cache."));
+            };
+             deleteRequest.onblocked = () => {
+                console.warn("Clearing IndexedDB is blocked. Please close other tabs with this app open.");
+                reject(new Error("Clearing cache is blocked. Close other tabs."));
+            };
+        });
 
     } catch (error) {
-        console.error("Error clearing all caches:", error);
+        console.error("Error during cache clearing process:", error);
         throw error;
     }
 };

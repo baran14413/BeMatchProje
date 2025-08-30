@@ -265,6 +265,8 @@ if ("TURBOPACK compile-time truthy", 1) {
 }
 const clearCache = async ()=>{
     try {
+        // Terminate Firestore to allow cache clearing
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["terminate"])(db);
         // Clear Firestore offline persistence
         await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["clearIndexedDbPersistence"])(db);
         // Unregister all service workers
