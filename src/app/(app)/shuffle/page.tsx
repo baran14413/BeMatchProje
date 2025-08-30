@@ -319,14 +319,10 @@ function ShuffleContent() {
         <>
             <div className="relative mb-6">
                  <Zap className="w-24 h-24 text-transparent bg-clip-text bg-gradient-to-br from-yellow-400 via-primary to-blue-500" />
-                 <Sparkles className="absolute -top-2 -right-2 w-8 h-8 text-yellow-400" />
             </div>
             <Card className="bg-background/80 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-2xl w-full max-w-sm">
                 <CardHeader>
                     <CardTitle className="text-3xl font-bold font-headline">Rastgele Eşleşme</CardTitle>
-                    <CardDescription className="text-muted-foreground mt-2">
-                         Butona tıkla ve o an eşleşme arayan başka biriyle 5 dakikalık sürpriz bir sohbete başla.
-                    </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center gap-4">
                      <Button 
@@ -362,7 +358,6 @@ function ShuffleContent() {
             <Card className="w-full max-w-sm text-center shadow-2xl">
                 <CardHeader>
                     <CardTitle>Deneyiminiz Nasıldı?</CardTitle>
-                    <CardDescription>Son rastgele sohbetiniz hakkındaki geri bildiriminiz, gelecekteki eşleşmeleri iyileştirmemize yardımcı olur.</CardDescription>
                 </CardHeader>
                 <CardFooter className="flex justify-center gap-4">
                     <Button variant="outline" size="lg" onClick={() => handleFeedback('bad')}>
@@ -384,7 +379,6 @@ function ShuffleContent() {
                 <>
                     <Sparkles className="w-24 h-24 text-green-500 mb-6 animate-pulse" />
                     <h1 className="text-3xl font-bold font-headline mb-2">Eşleşme Bulundu!</h1>
-                    <p className="max-w-md mb-8 text-muted-foreground">Sohbete yönlendiriliyorsun...</p>
                 </>
             )}
         </>
@@ -392,14 +386,8 @@ function ShuffleContent() {
 }
 
 export default function ShufflePage() {
-    const router = useRouter();
     return (
         <div className="flex flex-col items-center justify-center h-full p-4 text-center relative overflow-hidden">
-             <header className="absolute top-0 left-0 right-0 p-4 flex items-center">
-                <Button variant="ghost" size="icon" onClick={() => router.push('/kesfet')}>
-                    <ArrowLeft className="w-6 h-6" />
-                </Button>
-             </header>
              <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] dark:opacity-[0.05]"></div>
             <Suspense fallback={<Loader2 className="w-12 h-12 text-primary animate-spin" />}>
                 <ShuffleContent />

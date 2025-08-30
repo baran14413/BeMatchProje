@@ -21,9 +21,6 @@ export default function WalletPage() {
         <Card className="max-w-2xl mx-auto">
             <CardHeader>
                 <CardTitle>Cüzdanım ve Abonelik</CardTitle>
-                <CardDescription>
-                    Mevcut abonelik durumunuzu ve ödeme bilgilerinizi yönetin.
-                </CardDescription>
             </CardHeader>
             <CardContent>
                 {subscription.isActive ? (

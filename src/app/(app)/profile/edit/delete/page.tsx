@@ -71,9 +71,6 @@ export default function DeleteAccountPage() {
     <Card className="max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>Aramızdan ayrılmana gerçekten üzüldük.</CardTitle>
-        <CardDescription>
-          Deneyimini iyileştirmemize yardımcı olmak için neden ayrıldığını bizimle paylaşır mısın?
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <RadioGroup

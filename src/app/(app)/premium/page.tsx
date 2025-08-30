@@ -69,7 +69,6 @@ export default function PremiumPage() {
                         <Crown className="w-12 h-12"/>
                         <div>
                             <CardTitle className="text-3xl md:text-4xl text-white font-headline">BeMatch Premium</CardTitle>
-                            <CardDescription className="text-purple-200 text-lg mt-1">Deneyimini bir üst seviyeye taşı.</CardDescription>
                         </div>
                     </div>
                 </CardHeader>

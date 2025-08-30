@@ -34,7 +34,7 @@ const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { 
         <Link href={href} className="flex flex-col items-center justify-center gap-1 w-full h-full relative">
             <motion.div whileTap={{ scale: 0.9 }} className="relative flex flex-col items-center justify-center">
                  {React.cloneElement(icon as React.ReactElement, {
-                    className: cn('h-7 w-7 transition-all', isActive ? 'text-primary' : 'text-muted-foreground'),
+                    className: cn('h-5 w-5 transition-all', isActive ? 'text-primary' : 'text-muted-foreground'),
                     strokeWidth: 2
                 })}
                 {hasNotification && (

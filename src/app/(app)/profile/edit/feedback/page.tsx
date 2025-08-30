@@ -79,9 +79,6 @@ export default function FeedbackPage() {
     <Card className="max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>Deneyiminizi Paylaşın</CardTitle>
-        <CardDescription>
-          Uygulamamızı geliştirmemize yardımcı olun. Geri bildirimleriniz bizim için çok değerli.
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="text-center space-y-2">

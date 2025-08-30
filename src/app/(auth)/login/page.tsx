@@ -35,7 +35,6 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       toast({
         title: 'Giriş Başarılı!',
-        description: 'Yönlendiriliyorsunuz...',
         className: 'bg-green-500 text-white',
       });
       router.push('/explore');
@@ -61,9 +60,6 @@ export default function LoginPage() {
             <form onSubmit={handleLogin}>
                 <CardHeader className="text-center">
                 <CardTitle className="text-2xl">Hesabına Giriş Yap</CardTitle>
-                <CardDescription>
-                    Kaldığın yerden devam et.
-                </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4">
                 <div className="grid gap-2">

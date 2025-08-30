@@ -45,9 +45,6 @@ export default function TechStackPage() {
         <Card>
             <CardHeader>
                 <CardTitle>Teknoloji Kümesi</CardTitle>
-                <CardDescription>
-                    Bu projenin kalbinde yer alan teknolojiler ve neden seçildikleri hakkında bilgi edinin.
-                </CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
                 {techSections.map(section => (
@@ -71,5 +68,3 @@ export default function TechStackPage() {
         </Card>
     );
 }
-
-    

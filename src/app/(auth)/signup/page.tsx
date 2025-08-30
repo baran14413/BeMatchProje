@@ -340,14 +340,6 @@ export default function SignupPage() {
         <Card className="w-full">
         <CardHeader>
             <CardTitle className="text-2xl font-headline">Hesap Oluştur</CardTitle>
-            <CardDescription>
-            {step === 1 && "Adım 1: Kişisel bilgilerinizi girin."}
-            {step === 2 && "Adım 2: Sizi daha iyi tanımamıza yardımcı olun."}
-            {step === 3 && "Adım 3: Güçlü bir şifre oluşturun."}
-            {step === 4 && "Adım 4: Kendinizi tanıtın."}
-            {step === 5 && "Adım 5: Profil fotoğrafınızı yükleyin."}
-            {step === 6 && "Adım 6: Neredeyse bitti! Son bir onay."}
-            </CardDescription>
             <Progress value={progress} className="w-full mt-2" />
         </CardHeader>
         <CardContent className="min-h-[400px]">
@@ -569,9 +561,6 @@ export default function SignupPage() {
                             <Alert className="border-green-500 text-green-700 dark:text-green-400">
                             <UserCheck className="h-4 w-4 text-green-500" />
                             <AlertTitle>Doğrulama Başarılı!</AlertTitle>
-                            <AlertDescription>
-                            Harika! Neredeyse bitti.
-                            </AlertDescription>
                             </Alert>
                             <div className="flex items-center space-x-2 pt-4">
                                 <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(checked) => setTermsAccepted(checked as boolean)} />

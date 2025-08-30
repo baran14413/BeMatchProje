@@ -49,9 +49,6 @@ export default function GuidePage() {
         <Card>
             <CardHeader>
                 <CardTitle>Uygulama Kılavuzu</CardTitle>
-                <CardDescription>
-                   Uygulama özellikleri ve sıkça sorulan sorular hakkında bilgi edinin.
-                </CardDescription>
             </CardHeader>
             <CardContent>
                 <Accordion type="single" collapsible className="w-full">

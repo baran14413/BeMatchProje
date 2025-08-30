@@ -70,9 +70,6 @@ export default function CacheManagementPage() {
         <Card>
             <CardHeader>
                 <CardTitle>Önbellek Yönetimi</CardTitle>
-                <CardDescription>
-                    Uygulamanın çevrimdışı kullanım için sakladığı verileri yönetin.
-                </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="p-6 rounded-lg bg-muted/50 flex items-center justify-between">
@@ -107,5 +104,3 @@ export default function CacheManagementPage() {
         </Card>
     );
 }
-
-    
