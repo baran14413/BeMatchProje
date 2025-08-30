@@ -113,6 +113,7 @@ type Post = DocumentData & {
   isTranslated?: boolean;
   isTranslating?: boolean;
   likes: number;
+  recentLikers: User[];
   commentsCount: number;
   liked: boolean;
   comments: Comment[];
@@ -198,8 +199,6 @@ export default function ExplorePage() {
                     });
                 }
                 
-                const postIds = postsData.map(p => p.id);
-
                 const populatedPosts = await Promise.all(
                     postsData.map(async (post) => {
                         let isGalleryLocked = false;
@@ -218,7 +217,19 @@ export default function ExplorePage() {
                         const likeDocRef = doc(db, 'posts', post.id, 'likes', currentUser.uid);
                         const likeDocSnap = await getDoc(likeDocRef);
 
-                        return { ...post, user: authorData, comments: [], isGalleryLocked, liked: likeDocSnap.exists() };
+                        // Fetch recent likers
+                        const recentLikersQuery = query(collection(db, 'posts', post.id, 'likes'), orderBy('likedAt', 'desc'), limit(3));
+                        const recentLikersSnapshot = await getDocs(recentLikersQuery);
+                        const recentLikerIds = recentLikersSnapshot.docs.map(d => d.id);
+                        let recentLikersData: User[] = [];
+                        if (recentLikerIds.length > 0) {
+                           const likersQuery = query(collection(db, 'users'), where('uid', 'in', recentLikerIds));
+                           const likersSnapshot = await getDocs(likersQuery);
+                           recentLikersData = likersSnapshot.docs.map(d => ({ ...d.data(), uid: d.id } as User));
+                        }
+
+
+                        return { ...post, user: authorData, comments: [], isGalleryLocked, liked: likeDocSnap.exists(), recentLikers: recentLikersData };
                     })
                 );
 
@@ -440,7 +451,7 @@ export default function ExplorePage() {
         setIsLikersLoading(true);
         setLikers([]);
         try {
-            const likesQuery = query(collection(db, 'posts', postId, 'likes'));
+            const likesQuery = query(collection(db, 'posts', postId, 'likes'), orderBy('likedAt', 'desc'));
             const likesSnapshot = await getDocs(likesQuery);
             const likerIds = likesSnapshot.docs.map(d => d.id);
             
@@ -588,6 +599,7 @@ export default function ExplorePage() {
                 user: currentUserData,
                 comments: [],
                 liked: false,
+                recentLikers: [],
             } as Post;
             
             setPosts(prev => [newPostForUI, ...prev]);
@@ -752,17 +764,28 @@ export default function ExplorePage() {
                         </div>
 
                         <div className="px-3 pb-3 text-sm">
-                             <span className="font-semibold cursor-pointer" onClick={() => handleOpenLikes(post.id)}>{post.likes.toLocaleString()} beğeni</span>
+                            {post.likes > 0 && (
+                                <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleOpenLikes(post.id)}>
+                                    <div className="flex -space-x-2">
+                                        {post.recentLikers.slice(0, 3).map((liker: User) => (
+                                            <Avatar key={liker.uid} className="w-5 h-5 border-2 border-background">
+                                                <AvatarImage src={liker.avatarUrl} />
+                                                <AvatarFallback>{liker.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                        ))}
+                                    </div>
+                                    <p className="text-muted-foreground">
+                                        <span className="font-semibold text-foreground">{post.recentLikers[0]?.name || post.likes}</span>
+                                        {post.likes > 1 && ` ve diğer ${post.likes - 1} kişi`} beğendi.
+                                    </p>
+                                </div>
+                            )}
+
                             {post.type === 'photo' && post.caption && !post.isGalleryLocked && (
-                                 <div className="whitespace-pre-wrap break-words">
+                                 <div className="mt-2 whitespace-pre-wrap break-words">
                                     <Link href={`/profile/${post.user?.username}`} className="font-semibold mr-1">{post.user?.name}</Link>
                                     <HashtagAndMentionRenderer text={post.caption} />
                                  </div>
-                            )}
-                            {post.commentsCount > 0 && (
-                                <button className="text-muted-foreground mt-1 cursor-pointer" onClick={() => handleOpenComments(post)}>
-                                {post.commentsCount.toLocaleString()} yorumun tümünü gör
-                                </button>
                             )}
                         </div>
                     </CardContent>
@@ -961,3 +984,5 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    
