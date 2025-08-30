@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Crown, Loader2, User, Heart, MessageSquare } from 'lucide-react';
+import { MapPin, Crown, Loader2, User, Heart, MessageSquare, ArrowLeft } from 'lucide-react';
 import { collection, query, where, getDocs, DocumentData } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/sheet';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { useRouter } from 'next/navigation';
 
 
 const UserSkeleton = () => (
@@ -37,6 +38,7 @@ export default function MatchPage() {
   const [loading, setLoading] = useState(true);
   const currentUser = auth.currentUser;
   const [previewUser, setPreviewUser] = useState<DocumentData | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -72,13 +74,19 @@ export default function MatchPage() {
 
   return (
     <Sheet onOpenChange={(open) => !open && setPreviewUser(null)}>
+        <header className="flex items-center gap-4 p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10 md:hidden">
+            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <ArrowLeft className="w-5 h-5"/>
+            </Button>
+            <h1 className="text-xl font-bold">Yakınındaki Kişiler</h1>
+        </header>
         <div className="container mx-auto p-2 sm:p-4">
             {loading ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
-                    {[...Array(8)].map((_, i) => <UserSkeleton key={i} />)}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
+                    {[...Array(10)].map((_, i) => <UserSkeleton key={i} />)}
                 </div>
             ) : users.length > 0 ? (
-                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
+                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
                     {users.map((user) => (
                     <SheetTrigger asChild key={user.id} onClick={() => setPreviewUser(user)}>
                         <div className="block group">

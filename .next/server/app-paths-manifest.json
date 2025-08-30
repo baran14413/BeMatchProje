@@ -3,6 +3,7 @@
   "/(app)/explore/page": "app/(app)/explore/page.js",
   "/(app)/match/page": "app/(app)/match/page.js",
   "/(app)/notifications/page": "app/(app)/notifications/page.js",
+  "/(app)/profile/[username]/page": "app/(app)/profile/[username]/page.js",
   "/(app)/shuffle/page": "app/(app)/shuffle/page.js",
   "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js"

@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, X as XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin, ArrowLeft, Smile, Mic, ListCollapse, Music, Hash, Globe, ChevronRight } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, X as XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin, ArrowLeft, Smile, Mic, ListCollapse, Music, Hash, Globe, ChevronRight, Paperclip } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -89,6 +89,7 @@ type Comment = {
   authorId: string;
   user?: User;
   text: string;
+  imageUrl?: string;
   originalText?: string;
   lang?: string;
   isTranslating?: boolean;
@@ -145,6 +146,7 @@ export default function ExplorePage() {
     const currentUser = auth.currentUser;
     const fileInputRef = useRef<HTMLInputElement>(null);
     const createFileInputRef = useRef<HTMLInputElement>(null);
+    const commentFileInputRef = useRef<HTMLInputElement>(null);
     
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     
@@ -152,6 +154,7 @@ export default function ExplorePage() {
     const [activePostForComments, setActivePostForComments] = useState<Post | null>(null);
     const [isCommentsLoading, setIsCommentsLoading] = useState(false);
     const [isPostingComment, setIsPostingComment] = useState(false);
+    const [commentImage, setCommentImage] = useState<string | null>(null);
 
     const [isLikesDialogVisible, setIsLikesDialogVisible] = useState(false);
     const [likers, setLikers] = useState<User[]>([]);
@@ -340,18 +343,26 @@ export default function ExplorePage() {
     };
 
     const handlePostComment = async () => {
-        if (!currentUser || !activePostForComments || !commentInput.trim()) return;
+        if (!currentUser || !activePostForComments || (!commentInput.trim() && !commentImage)) return;
 
         setIsPostingComment(true);
 
-        const newCommentData = {
-            authorId: currentUser.uid,
-            text: commentInput.trim(),
-            likes: 0,
-            createdAt: serverTimestamp(),
-        };
-
         try {
+            let imageUrl: string | undefined = undefined;
+            if (commentImage) {
+                const storageRef = ref(storage, `comment_images/${activePostForComments.id}/${Date.now()}`);
+                const uploadTask = await uploadString(storageRef, commentImage, 'data_url');
+                imageUrl = await getDownloadURL(uploadTask.ref);
+            }
+
+            const newCommentData = {
+                authorId: currentUser.uid,
+                text: commentInput.trim(),
+                imageUrl: imageUrl,
+                likes: 0,
+                createdAt: serverTimestamp(),
+            };
+
             const postRef = doc(db, 'posts', activePostForComments.id);
             const commentsRef = collection(postRef, 'comments');
             
@@ -400,11 +411,27 @@ export default function ExplorePage() {
             );
 
             setCommentInput('');
+            setCommentImage(null);
         } catch (error) {
             console.error('Error posting comment:', error);
             toast({ variant: 'destructive', title: 'Yorum gönderilemedi.' });
         } finally {
             setIsPostingComment(false);
+        }
+    };
+    
+    const onSelectCommentImage = (e: ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const reader = new FileReader();
+            reader.addEventListener('load', () => {
+                if (reader.result) {
+                    setCommentImage(reader.result.toString());
+                }
+            });
+            reader.readAsDataURL(e.target.files[0]);
+        }
+        if (commentFileInputRef.current) {
+            commentFileInputRef.current.value = '';
         }
     };
 
@@ -811,7 +838,7 @@ export default function ExplorePage() {
         </Dialog>
 
 
-      <Sheet open={isCommentSheetOpen} onOpenChange={(open) => { if (!open) { setActivePostForComments(null); setCommentInput(''); } setCommentSheetOpen(open); }}>
+      <Sheet open={isCommentSheetOpen} onOpenChange={(open) => { if (!open) { setActivePostForComments(null); setCommentInput(''); setCommentImage(null); } setCommentSheetOpen(open); }}>
             <SheetContent side="bottom" className="rounded-t-xl h-[80vh] flex flex-col p-0">
                 <SheetHeader className="text-center p-4 border-b shrink-0">
                     <SheetTitle>Yorumlar</SheetTitle>
@@ -836,7 +863,10 @@ export default function ExplorePage() {
                                             <span className="text-xs text-muted-foreground font-mono">{comment.createdAt ? formatRelativeTime(comment.createdAt) : ''}</span>
                                         </div>
                                         
-                                        <div className="mt-1"><HashtagAndMentionRenderer text={comment.text}/></div>
+                                        {comment.imageUrl && (
+                                            <Image src={comment.imageUrl} alt="Yorum resmi" width={150} height={150} className="mt-2 rounded-lg object-cover" />
+                                        )}
+                                        {comment.text && <div className="mt-1"><HashtagAndMentionRenderer text={comment.text}/></div>}
                                         <div className="flex gap-4 text-xs text-muted-foreground mt-2 items-center">
                                             <button className="cursor-pointer hover:underline" onClick={() => handleReply(comment.user!.username)}>Yanıtla</button>
                                         </div>
@@ -858,6 +888,15 @@ export default function ExplorePage() {
                     </div>
                 </ScrollArea>
                 <div className="p-2 bg-background border-t shrink-0">
+                    <input type="file" ref={commentFileInputRef} onChange={onSelectCommentImage} accept="image/*" className="hidden" />
+                    {commentImage && (
+                        <div className="p-2 relative w-fit">
+                            <Image src={commentImage} alt="Yorum resmi önizlemesi" width={60} height={60} className="rounded-md" />
+                            <Button size="icon" variant="destructive" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setCommentImage(null)}>
+                                <XIcon className="h-4 w-4"/>
+                            </Button>
+                        </div>
+                    )}
                     <div className="flex items-center gap-4 px-2 py-1">
                         {['❤️', '👏', '😂', '🔥', '😢'].map(emoji => (
                             <span key={emoji} className="text-2xl cursor-pointer" onClick={() => handleAddEmoji(emoji)}>{emoji}</span>
@@ -869,6 +908,9 @@ export default function ExplorePage() {
                             <AvatarFallback>{currentUser?.displayName?.charAt(0) || 'B'}</AvatarFallback>
                         </Avatar>
                         <div className="relative flex-1">
+                             <Button type="button" size="icon" variant="ghost" className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground" onClick={() => commentFileInputRef.current?.click()}>
+                                <Paperclip className="h-5 w-5" />
+                            </Button>
                             <MentionTextarea 
                                 isInput={true}
                                 placeholder="Yorum ekle..." 
@@ -876,8 +918,9 @@ export default function ExplorePage() {
                                 setValue={setCommentInput}
                                 onEnterPress={handlePostComment}
                                 disabled={isPostingComment}
+                                className="pl-10"
                             />
-                            <Button type="submit" size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" disabled={isPostingComment || !commentInput.trim()}>
+                            <Button type="submit" size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" disabled={isPostingComment || (!commentInput.trim() && !commentImage)}>
                                 {isPostingComment ? <Loader2 className="h-4 w-4 animate-spin"/> : <Send className="h-4 w-4" />}
                             </Button>
                         </div>

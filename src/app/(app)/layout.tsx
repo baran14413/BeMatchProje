@@ -41,7 +41,7 @@ const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { 
                     {srText}
                 </span>
                 {hasNotification && (
-                    <span className="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500" />
+                    <span className="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500 animate-pulse-heart" />
                 )}
             </motion.div>
         </Link>
@@ -90,9 +90,8 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
   const getPageTitle = useCallback(() => {
     if (!isClientReady) return "BeMatch";
-    if (pathname === '/match') return 'Eşleşme';
-    if (pathname === '/shuffle') return 'Rastgele Eşleşme';
-    if (pathname === '/explore') return 'Keşfet';
+    if (pathname === '/kesfet') return 'Keşif';
+    if (pathname === '/explore') return 'Ana Akış';
     if (pathname.startsWith('/profile/')) return 'Profil';
     if (pathname === '/notifications') return 'Bildirimler';
     if (pathname === '/chat') return 'Sohbetler';
@@ -405,10 +404,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 "h-[var(--bottom-nav-height)]",
                 isScrolling && "translate-y-full"
             )}>
-                <div className="grid h-full grid-cols-5">
-                    <NavButton href="/match" icon={<Home />} srText="Ana Sayfa" isActive={pathname === '/match'} />
-                    <NavButton href="/shuffle" icon={<Shuffle />} srText="Karıştır" isActive={pathname === '/shuffle'} />
-                    <NavButton href="/explore" icon={<Globe />} srText="Keşfet" isActive={pathname === '/explore'} />
+                <div className="grid h-full grid-cols-4">
+                    <NavButton href="/kesfet" icon={<Sparkles />} srText="Keşif" isActive={pathname === '/kesfet'} />
+                    <NavButton href="/explore" icon={<Globe />} srText="Akış" isActive={pathname === '/explore'} />
                     <NavButton href="/chat" icon={<MessageCircle />} srText="Sohbet" isActive={pathname.startsWith('/chat')} hasNotification={hasUnreadMessages}/>
                     <NavButton href={`/profile/${currentUserProfile?.username ?? ''}`} icon={<User />} srText="Profil" isActive={pathname.startsWith('/profile')} />
                 </div>
