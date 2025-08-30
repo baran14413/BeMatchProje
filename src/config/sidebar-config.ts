@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Bu dosya, uygulamanın kenar çubuğu (sidebar) bileşeni
  * için temel yapılandırma ayarlarını içerir. Bu ayarlar, kenar çubuğunun
