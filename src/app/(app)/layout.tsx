@@ -66,6 +66,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const [lastNotification, setLastNotification] = useState<{ id: string, text: string } | null>(null);
   const [showNotification, setShowNotification] = useState(false);
   const activityLoggedRef = useRef(false);
+  const lastShownNotificationIdRef = useRef<string | null>(null);
   
   const [isClientReady, setIsClientReady] = useState(false);
 
@@ -174,8 +175,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
         const newNotif = snapshot.docs[0].data();
         const newNotifId = snapshot.docs[0].id;
 
-        // Only show notification if it's new and has not been shown before
-        if (newNotifId !== lastNotification?.id && !newNotif.read) {
+        if (newNotifId !== lastShownNotificationIdRef.current && !newNotif.read) {
           const text = newNotif.type === 'like' 
             ? `**${newNotif.fromUser.name}** bir gönderini beğendi.`
             : newNotif.type === 'follow' 
@@ -184,9 +184,11 @@ function LayoutContent({ children }: { children: ReactNode }) {
           
           setLastNotification({ id: newNotifId, text });
           setShowNotification(true);
+          lastShownNotificationIdRef.current = newNotifId;
+
           setTimeout(() => {
             setShowNotification(false);
-          }, 4000); // Hide after 4 seconds
+          }, 4000);
         }
       }
     }, (error) => {
@@ -217,7 +219,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
         unsubscribeNotifications();
         unsubscribeConversations();
     };
-  }, [currentUser, lastNotification?.id]);
+  }, [currentUser]);
 
 
   const isChatPage = pathname === '/chat';
