@@ -352,6 +352,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$crown$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Crown$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/crown.js [app-ssr] (ecmascript) <export default as Crown>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$heart$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Heart$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/heart.js [app-ssr] (ecmascript) <export default as Heart>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$message$2d$square$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__MessageSquare$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/message-square.js [app-ssr] (ecmascript) <export default as MessageSquare>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$left$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowLeft$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/arrow-left.js [app-ssr] (ecmascript) <export default as ArrowLeft>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$firestore$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/firestore/dist/index.mjs [app-ssr] (ecmascript) <module evaluation>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/firestore/dist/index.node.mjs [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/firebase.ts [app-ssr] (ecmascript)");
@@ -362,7 +363,9 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$b
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/sheet.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/avatar.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$separator$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/separator.tsx [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/navigation.js [app-ssr] (ecmascript)");
 'use client';
+;
 ;
 ;
 ;
@@ -384,12 +387,12 @@ const UserSkeleton = ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$pr
             className: "w-full h-full"
         }, void 0, false, {
             fileName: "[project]/src/app/(app)/match/page.tsx",
-            lineNumber: 31,
+            lineNumber: 32,
             columnNumber: 9
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/app/(app)/match/page.tsx",
-        lineNumber: 30,
+        lineNumber: 31,
         columnNumber: 5
     }, this);
 function MatchPage() {
@@ -397,6 +400,7 @@ function MatchPage() {
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
     const currentUser = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["auth"].currentUser;
     const [previewUser, setPreviewUser] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
+    const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRouter"])();
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         const fetchUsers = async ()=>{
             if (!currentUser) {
@@ -434,23 +438,56 @@ function MatchPage() {
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Sheet"], {
         onOpenChange: (open)=>!open && setPreviewUser(null),
         children: [
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("header", {
+                className: "flex items-center gap-4 p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10 md:hidden",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
+                        variant: "ghost",
+                        size: "icon",
+                        onClick: ()=>router.back(),
+                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$left$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowLeft$3e$__["ArrowLeft"], {
+                            className: "w-5 h-5"
+                        }, void 0, false, {
+                            fileName: "[project]/src/app/(app)/match/page.tsx",
+                            lineNumber: 79,
+                            columnNumber: 17
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/(app)/match/page.tsx",
+                        lineNumber: 78,
+                        columnNumber: 13
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
+                        className: "text-xl font-bold",
+                        children: "Yakınındaki Kişiler"
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/(app)/match/page.tsx",
+                        lineNumber: 81,
+                        columnNumber: 13
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/app/(app)/match/page.tsx",
+                lineNumber: 77,
+                columnNumber: 9
+            }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "container mx-auto p-2 sm:p-4",
                 children: loading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4",
+                    className: "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4",
                     children: [
-                        ...Array(8)
+                        ...Array(10)
                     ].map((_, i)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(UserSkeleton, {}, i, false, {
                             fileName: "[project]/src/app/(app)/match/page.tsx",
-                            lineNumber: 78,
-                            columnNumber: 50
+                            lineNumber: 86,
+                            columnNumber: 51
                         }, this))
                 }, void 0, false, {
                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                    lineNumber: 77,
+                    lineNumber: 85,
                     columnNumber: 17
                 }, this) : users.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4",
+                    className: "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4",
                     children: users.map((user)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SheetTrigger"], {
                             asChild: true,
                             onClick: ()=>setPreviewUser(user),
@@ -469,7 +506,7 @@ function MatchPage() {
                                                 "data-ai-hint": user.aiHint || 'portrait'
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                lineNumber: 88,
+                                                lineNumber: 96,
                                                 columnNumber: 41
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["cn"])("w-full h-full bg-gradient-to-br flex items-center justify-center", getGradientForUser(user.id)),
@@ -477,19 +514,19 @@ function MatchPage() {
                                                     className: "w-1/2 h-1/2 text-white/50"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                    lineNumber: 97,
+                                                    lineNumber: 105,
                                                     columnNumber: 45
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                lineNumber: 96,
+                                                lineNumber: 104,
                                                 columnNumber: 41
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                lineNumber: 101,
+                                                lineNumber: 109,
                                                 columnNumber: 37
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -503,7 +540,7 @@ function MatchPage() {
                                                                 children: user.name
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                                lineNumber: 105,
+                                                                lineNumber: 113,
                                                                 columnNumber: 45
                                                             }, this),
                                                             user.age && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -511,13 +548,13 @@ function MatchPage() {
                                                                 children: user.age
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                                lineNumber: 106,
+                                                                lineNumber: 114,
                                                                 columnNumber: 58
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                        lineNumber: 104,
+                                                        lineNumber: 112,
                                                         columnNumber: 41
                                                     }, this),
                                                     user.city && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -527,7 +564,7 @@ function MatchPage() {
                                                                 className: "w-3 h-3"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                                lineNumber: 110,
+                                                                lineNumber: 118,
                                                                 columnNumber: 49
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -535,13 +572,13 @@ function MatchPage() {
                                                                 children: user.city
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                                lineNumber: 111,
+                                                                lineNumber: 119,
                                                                 columnNumber: 49
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                        lineNumber: 109,
+                                                        lineNumber: 117,
                                                         columnNumber: 45
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -553,51 +590,51 @@ function MatchPage() {
                                                                     className: "w-3 h-3 mr-1"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                                    lineNumber: 116,
+                                                                    lineNumber: 124,
                                                                     columnNumber: 162
                                                                 }, this),
                                                                 "Premium"
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                            lineNumber: 116,
+                                                            lineNumber: 124,
                                                             columnNumber: 64
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                        lineNumber: 115,
+                                                        lineNumber: 123,
                                                         columnNumber: 41
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                lineNumber: 103,
+                                                lineNumber: 111,
                                                 columnNumber: 37
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/match/page.tsx",
-                                        lineNumber: 86,
+                                        lineNumber: 94,
                                         columnNumber: 29
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                                    lineNumber: 85,
+                                    lineNumber: 93,
                                     columnNumber: 29
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/match/page.tsx",
-                                lineNumber: 84,
+                                lineNumber: 92,
                                 columnNumber: 25
                             }, this)
                         }, user.id, false, {
                             fileName: "[project]/src/app/(app)/match/page.tsx",
-                            lineNumber: 83,
+                            lineNumber: 91,
                             columnNumber: 21
                         }, this))
                 }, void 0, false, {
                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                    lineNumber: 81,
+                    lineNumber: 89,
                     columnNumber: 18
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "flex flex-col items-center justify-center h-[70vh] text-center text-muted-foreground",
@@ -607,7 +644,7 @@ function MatchPage() {
                             children: "Görünüşe Göre Etrafta Kimse Kalmadı"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/match/page.tsx",
-                            lineNumber: 127,
+                            lineNumber: 135,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -615,18 +652,18 @@ function MatchPage() {
                             children: "Daha fazla kişi görmek için daha sonra tekrar kontrol et."
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/match/page.tsx",
-                            lineNumber: 128,
+                            lineNumber: 136,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                    lineNumber: 126,
+                    lineNumber: 134,
                     columnNumber: 17
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/match/page.tsx",
-                lineNumber: 75,
+                lineNumber: 83,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SheetContent"], {
@@ -647,7 +684,7 @@ function MatchPage() {
                                                 alt: previewUser.name
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                lineNumber: 140,
+                                                lineNumber: 148,
                                                 columnNumber: 33
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["AvatarFallback"], {
                                                 className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["cn"])("bg-gradient-to-br", getGradientForUser(previewUser.id)),
@@ -655,17 +692,17 @@ function MatchPage() {
                                                     className: "w-10 h-10 text-white/70"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                    lineNumber: 143,
+                                                    lineNumber: 151,
                                                     columnNumber: 37
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                lineNumber: 142,
+                                                lineNumber: 150,
                                                 columnNumber: 33
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/match/page.tsx",
-                                            lineNumber: 138,
+                                            lineNumber: 146,
                                             columnNumber: 26
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -676,7 +713,7 @@ function MatchPage() {
                                                     children: previewUser.name
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                    lineNumber: 148,
+                                                    lineNumber: 156,
                                                     columnNumber: 30
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SheetDescription"], {
@@ -686,19 +723,19 @@ function MatchPage() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                    lineNumber: 149,
+                                                    lineNumber: 157,
                                                     columnNumber: 30
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/match/page.tsx",
-                                            lineNumber: 147,
+                                            lineNumber: 155,
                                             columnNumber: 26
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                                    lineNumber: 137,
+                                    lineNumber: 145,
                                     columnNumber: 22
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -706,20 +743,20 @@ function MatchPage() {
                                     children: previewUser.bio || "Henüz bir biyografi eklenmemiş."
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                                    lineNumber: 152,
+                                    lineNumber: 160,
                                     columnNumber: 23
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/match/page.tsx",
-                            lineNumber: 136,
+                            lineNumber: 144,
                             columnNumber: 17
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$separator$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Separator"], {
                             className: "my-4"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/match/page.tsx",
-                            lineNumber: 154,
+                            lineNumber: 162,
                             columnNumber: 18
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SheetFooter"], {
@@ -735,17 +772,17 @@ function MatchPage() {
                                             children: "Profili Gör"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/match/page.tsx",
-                                            lineNumber: 158,
+                                            lineNumber: 166,
                                             columnNumber: 26
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/match/page.tsx",
-                                        lineNumber: 157,
+                                        lineNumber: 165,
                                         columnNumber: 22
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                                    lineNumber: 156,
+                                    lineNumber: 164,
                                     columnNumber: 20
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SheetClose"], {
@@ -761,43 +798,43 @@ function MatchPage() {
                                                     className: "mr-2 h-4 w-4"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                                                    lineNumber: 164,
+                                                    lineNumber: 172,
                                                     columnNumber: 30
                                                 }, this),
                                                 " Mesaj Gönder"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/match/page.tsx",
-                                            lineNumber: 163,
+                                            lineNumber: 171,
                                             columnNumber: 26
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/match/page.tsx",
-                                        lineNumber: 162,
+                                        lineNumber: 170,
                                         columnNumber: 22
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/match/page.tsx",
-                                    lineNumber: 161,
+                                    lineNumber: 169,
                                     columnNumber: 20
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/match/page.tsx",
-                            lineNumber: 155,
+                            lineNumber: 163,
                             columnNumber: 17
                         }, this)
                     ]
                 }, void 0, true)
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/match/page.tsx",
-                lineNumber: 133,
+                lineNumber: 141,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(app)/match/page.tsx",
-        lineNumber: 74,
+        lineNumber: 76,
         columnNumber: 5
     }, this);
 }

@@ -3,7 +3,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Shuffle, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
