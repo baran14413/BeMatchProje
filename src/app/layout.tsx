@@ -3,19 +3,14 @@ import { Toaster } from "@/components/ui/toaster"
 import './globals.css';
 import { Inter as FontSans } from 'next/font/google';
 import { cn } from '@/lib/utils';
-import { Roboto } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
 
 const fontSans = FontSans({
   subsets: ['latin'],
   variable: '--font-sans',
+  weight: ['400', '500', '600', '700']
 });
 
-const roboto = Roboto({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-roboto',
-});
 
 export const metadata: Metadata = {
   title: 'BeMatch',
@@ -35,7 +30,7 @@ export default function RootLayout({
         <link rel="icon" href="/icons/app-logo.svg" type="image/svg+xml" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable, roboto.variable)}>
+      <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
         <ThemeProvider
             attribute="class"
             defaultTheme="system"

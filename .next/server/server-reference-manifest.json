@@ -2,6 +2,10 @@
   "node": {
     "4089b26089702b1e5adfebade7e2643cec0eef947b": {
       "workers": {
+        "app/(app)/chat/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/chat/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        },
         "app/(app)/match/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/match/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
@@ -16,6 +20,7 @@
         }
       },
       "layer": {
+        "app/(app)/chat/page": "action-browser",
         "app/(app)/match/page": "action-browser",
         "app/(app)/notifications/page": "action-browser",
         "app/(app)/shuffle/page": "action-browser"
