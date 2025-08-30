@@ -27,8 +27,6 @@ import { useRouter } from 'next/navigation';
 import { logActivity } from '@/ai/flows/log-activity-flow';
 import { motion, AnimatePresence } from 'framer-motion';
 import AppLockScreen from '@/components/ui/app-lock-screen';
-import AnimatedLogo from '@/components/ui/animated-logo';
-
 
 const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, isActive: boolean, hasNotification?: boolean }) => {
     return (
@@ -46,6 +44,49 @@ const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { 
                 )}
             </motion.div>
         </Link>
+    );
+};
+
+const HeartExplosion = ({ isExploding }: { isExploding: boolean }) => {
+    const colors = ['#ff6b6b', '#f94d6a', '#f06595', '#a26af7', '#7048e8', '#4263eb'];
+    const hearts = Array.from({ length: 30 }); // Create 30 hearts
+
+    return (
+        <AnimatePresence>
+            {isExploding && (
+                <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
+                    {hearts.map((_, i) => {
+                        const randomXStart = Math.random() * 100; // vw
+                        const randomXEnd = randomXStart + (Math.random() - 0.5) * 50;
+                        const randomDuration = 2 + Math.random() * 2;
+                        const randomDelay = Math.random() * 1;
+                        const randomScale = 0.5 + Math.random();
+                        const randomColor = colors[i % colors.length];
+
+                        return (
+                            <motion.div
+                                key={i}
+                                initial={{ x: `${randomXStart}vw`, y: '110vh', opacity: 1, scale: randomScale }}
+                                animate={{
+                                    x: `${randomXEnd}vw`,
+                                    y: '-10vh',
+                                    opacity: 0,
+                                }}
+                                transition={{
+                                    duration: randomDuration,
+                                    delay: randomDelay,
+                                    ease: "easeOut",
+                                }}
+                                className="absolute"
+                                style={{ color: randomColor }}
+                            >
+                                <Heart className="w-8 h-8" fill="currentColor" />
+                            </motion.div>
+                        );
+                    })}
+                </div>
+            )}
+        </AnimatePresence>
     );
 };
 
@@ -72,6 +113,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const [isClientReady, setIsClientReady] = useState(false);
 
   const [isLocked, setIsLocked] = useState<boolean | null>(null);
+  const [isExploding, setIsExploding] = useState(false);
 
    useEffect(() => {
     const lockConfig = localStorage.getItem('app-lock-config');
@@ -98,6 +140,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
     if (pathname === '/chat') return 'Sohbetler';
     if (pathname.startsWith('/random-chat')) return 'Rastgele Sohbet';
     if (pathname === '/search') return 'Ara';
+    if (pathname === '/match') return 'Eşleşme';
     return "BeMatch";
   }, [pathname, isClientReady]);
   
@@ -273,6 +316,11 @@ function LayoutContent({ children }: { children: ReactNode }) {
     });
     router.push('/login');
   };
+  
+  const handleLogoClick = () => {
+      setIsExploding(true);
+      setTimeout(() => setIsExploding(false), 4000);
+  };
 
   const pageTitle = getPageTitle();
 
@@ -289,6 +337,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
   return (
     <>
+        <HeartExplosion isExploding={isExploding} />
         <div 
             className="flex min-h-screen flex-col bg-background text-foreground"
             style={{
@@ -328,7 +377,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
                               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                               className="flex items-center gap-2"
                           >
-                            <AnimatedLogo className="h-9 w-9" />
+                            <div className='w-9 h-9 cursor-pointer' onClick={handleLogoClick}>
+                                <span className='text-3xl animate-pulse-heart-sm inline-block bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent'>❤️</span>
+                            </div>
                             <span className="font-bold">{pageTitle}</span>
                           </motion.div>
                       )}
@@ -421,7 +472,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
 export default function AppLayout({ children }: { children: ReactNode }) {
     return (
-        <Suspense fallback={<div>BeMatch Yükleniyor...</div>}>
+        <Suspense fallback={<div>Yükleniyor...</div>}>
             <LayoutContent>{children}</LayoutContent>
         </Suspense>
     )

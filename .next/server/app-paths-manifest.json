@@ -1,3 +1,7 @@
 {
+  "/(app)/explore/page": "app/(app)/explore/page.js",
+  "/(app)/kesfet/page": "app/(app)/kesfet/page.js",
+  "/(app)/random-chat/[id]/page": "app/(app)/random-chat/[id]/page.js",
+  "/(app)/shuffle/page": "app/(app)/shuffle/page.js",
   "/page": "app/page.js"
 }

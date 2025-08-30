@@ -743,6 +743,10 @@ img {
   display: block;
 }
 
+.inline-block {
+  display: inline-block;
+}
+
 .flex {
   display: flex;
 }
@@ -1268,6 +1272,20 @@ img {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
+@keyframes loader-spin {
+  0% {
+    transform: rotate(0);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-loader-spin {
+  animation: 1s linear infinite loader-spin;
+}
+
 @keyframes ping {
   75%, 100% {
     opacity: 0;
@@ -1303,6 +1321,20 @@ img {
 
 .animate-pulse-heart {
   animation: 1.5s ease-in-out infinite pulse-heart;
+}
+
+@keyframes pulse-heart-sm {
+  0%, 100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+.animate-pulse-heart-sm {
+  animation: 1.5s ease-in-out infinite pulse-heart-sm;
 }
 
 @keyframes spin {
@@ -2017,6 +2049,11 @@ img {
 .via-primary {
   --tw-gradient-to: hsl(var(--primary) / 0) var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), hsl(var(--primary)) var(--tw-gradient-via-position), var(--tw-gradient-to);
+}
+
+.via-red-500 {
+  --tw-gradient-to: #ef444400 var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), #ef4444 var(--tw-gradient-via-position), var(--tw-gradient-to);
 }
 
 .to-blue-50 {

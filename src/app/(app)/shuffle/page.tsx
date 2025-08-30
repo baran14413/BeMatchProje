@@ -35,6 +35,7 @@ function ShuffleContent() {
     const [queueUsers, setQueueUsers] = useState<DocumentData[]>([]);
     
     const botMatchTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const hasBeenMatchedRef = useRef(false);
 
     const estimatedWaitTime = Math.max(15, queueSize * AVG_WAIT_SECONDS_PER_USER);
 
@@ -83,18 +84,19 @@ function ShuffleContent() {
     }, [searchParams]);
     
     const createBotMatch = useCallback(async () => {
-        if (!currentUser || !userProfile) return;
-
-        // Ensure user is still in the queue before creating a bot match
+        if (!currentUser || !userProfile || hasBeenMatchedRef.current) return;
+        
+        hasBeenMatchedRef.current = true;
         const userQueueRef = doc(db, 'randomMatchQueue', currentUser.uid);
         
         try {
-             await runTransaction(db, async (transaction) => {
-                const userQueueSnap = await transaction.get(userQueueRef);
-                if (!userQueueSnap.exists()) {
-                    return; // User has been matched with a real person, so we do nothing.
-                }
+             const userQueueSnap = await getDoc(userQueueRef);
+             if (!userQueueSnap.exists()) {
+                hasBeenMatchedRef.current = false;
+                return; // User was matched with a real person, so do nothing.
+             }
 
+             await runTransaction(db, async (transaction) => {
                 transaction.delete(userQueueRef); // Remove user from queue
                 
                 const botName = botNames[Math.floor(Math.random() * botNames.length)];
@@ -111,8 +113,7 @@ function ShuffleContent() {
                     createdAt: serverTimestamp(),
                     expiresAt: new Date(Date.now() + 5 * 60 * 1000)
                 });
-
-                // Bot sends the first message
+                
                 const messagesRef = doc(collection(newConvoRef, 'messages'));
                 transaction.set(messagesRef, {
                     text: botOpener,
@@ -121,6 +122,7 @@ function ShuffleContent() {
                 });
              });
         } catch (error) {
+            hasBeenMatchedRef.current = false;
             console.error("Error creating bot match:", error);
         }
         
@@ -135,12 +137,15 @@ function ShuffleContent() {
             }
             return;
         }
+        
+        hasBeenMatchedRef.current = false;
 
         // Listener for my own conversation
         const convoQuery = query(collection(db, 'temporaryConversations'), where('users', 'array-contains', currentUser.uid));
         const unsubscribeConvo = onSnapshot(convoQuery, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
-                if (change.type === "added") {
+                if (change.type === "added" && !hasBeenMatchedRef.current) {
+                    hasBeenMatchedRef.current = true;
                     if (botMatchTimerRef.current) clearTimeout(botMatchTimerRef.current);
                     setStatus('matched');
                     router.push(`/random-chat/${change.doc.id}`);
@@ -191,7 +196,6 @@ function ShuffleContent() {
 
         try {
             await runTransaction(db, async (transaction) => {
-                // Find a potential match inside the transaction
                 const premiumQuery = query(queueRef, where('gender', '==', targetGender), where('isPremium', '==', true), limit(1));
                 let snapshot = await getDocs(premiumQuery);
 
@@ -203,11 +207,9 @@ function ShuffleContent() {
                 const matchDoc = snapshot.docs.length > 0 ? snapshot.docs[0] : null;
 
                 if (matchDoc) {
-                    // Match found
                     const otherUserId = matchDoc.id;
                     const otherUserData = matchDoc.data();
                     
-                    // Atomically remove both users from queue and create convo
                     transaction.delete(doc(queueRef, otherUserId));
                     
                     const newConvoRef = doc(collection(db, 'temporaryConversations'));
@@ -221,7 +223,6 @@ function ShuffleContent() {
                         expiresAt: new Date(Date.now() + 5 * 60 * 1000)
                     });
                 } else {
-                     // No match found, add user to queue
                     const userQueueRef = doc(db, 'randomMatchQueue', currentUser.uid);
                      transaction.set(userQueueRef, {
                         uid: currentUser.uid,
@@ -229,11 +230,9 @@ function ShuffleContent() {
                         isPremium: userProfile.isPremium || false,
                         enteredAt: serverTimestamp()
                     });
-                     // IMPORTANT: Start bot timer only after successfully adding to queue
                      botMatchTimerRef.current = setTimeout(createBotMatch, BOT_MATCH_TIMEOUT);
                 }
 
-                // Decrement match count for non-premium user
                 if (!userProfile.isPremium) {
                     const userDocRef = doc(db, 'users', currentUser.uid);
                     const userDocSnap = await getDoc(userDocRef);
@@ -250,7 +249,6 @@ function ShuffleContent() {
             console.error("Matching transaction failed: ", error);
             toast({ title: 'Eşleştirme sırasında bir sorun oluştu, lütfen tekrar deneyin.', variant: 'destructive' });
             setStatus('idle');
-             // If we failed after adding to queue, remove from queue
             const userQueueRef = doc(db, 'randomMatchQueue', currentUser.uid);
             await deleteDoc(userQueueRef).catch(() => {});
         }

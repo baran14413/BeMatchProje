@@ -4,9 +4,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth, db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
-import { Loader2 } from 'lucide-react';
+import { auth } from '@/lib/firebase';
 
 export default function Home() {
     const router = useRouter();
@@ -30,7 +28,8 @@ export default function Home() {
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-center bg-background p-8">
-            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+            <div className="w-16 h-16 rounded-full animate-loader-spin border-4 border-t-transparent"></div>
+            <p className="mt-4 text-lg text-muted-foreground font-semibold animate-pulse">Yükleniyor...</p>
         </main>
     );
 }
