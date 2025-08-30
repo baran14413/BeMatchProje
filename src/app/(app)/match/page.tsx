@@ -5,8 +5,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Crown, Loader2, User, Heart, MessageSquare, ArrowLeft } from 'lucide-react';
-import { collection, query, where, getDocs, DocumentData } from 'firebase/firestore';
+import { MapPin, Crown, Loader2, User, Heart } from 'lucide-react';
+import { collection, query, where, getDocs, DocumentData, doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
@@ -25,6 +25,7 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
+import { MessageSquare } from 'lucide-react';
 
 
 const UserSkeleton = () => (
@@ -46,11 +47,50 @@ export default function MatchPage() {
         setLoading(false);
         return;
       }
+
       try {
-        const usersQuery = query(collection(db, 'users'), where('uid', '!=', currentUser.uid));
+        // 1. Fetch current user's profile to get their criteria
+        const currentUserDocRef = doc(db, 'users', currentUser.uid);
+        const currentUserDocSnap = await getDoc(currentUserDocRef);
+        
+        if (!currentUserDocSnap.exists()) {
+            console.error("Current user profile not found!");
+            setLoading(false);
+            return;
+        }
+
+        const currentUserData = currentUserDocSnap.data();
+        const userAge = currentUserData.age;
+        const userGender = currentUserData.gender;
+        const userCity = currentUserData.city;
+
+        if (!userAge || !userGender || !userCity) {
+            console.error("Current user's age, gender, or city is missing.");
+            setUsers([]);
+            setLoading(false);
+            return;
+        }
+
+        // 2. Define the filtering logic
+        const targetGender = userGender === 'male' ? 'female' : 'male';
+        const minAge = parseInt(userAge) - 2;
+        const maxAge = parseInt(userAge) + 5;
+        
+        // 3. Construct the query
+        const usersQuery = query(
+            collection(db, 'users'), 
+            where('uid', '!=', currentUser.uid),
+            where('gender', '==', targetGender),
+            where('city', '==', userCity),
+            where('age', '>=', minAge.toString()),
+            where('age', '<=', maxAge.toString())
+        );
+
         const userSnapshot = await getDocs(usersQuery);
         const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
         setUsers(userList);
+
       } catch (error) {
         console.error("Error fetching users: ", error);
       } finally {
@@ -74,12 +114,6 @@ export default function MatchPage() {
 
   return (
     <Sheet onOpenChange={(open) => !open && setPreviewUser(null)}>
-        <header className="flex items-center gap-4 p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10 md:hidden">
-            <Button variant="ghost" size="icon" onClick={() => router.push('/kesfet')}>
-                <ArrowLeft className="w-5 h-5"/>
-            </Button>
-            <h1 className="text-xl font-bold">Yakınındaki Kişiler</h1>
-        </header>
         <div className="container mx-auto p-2 sm:p-4">
             {loading ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
@@ -133,7 +167,7 @@ export default function MatchPage() {
             ) : (
                 <div className="flex flex-col items-center justify-center h-[70vh] text-center text-muted-foreground">
                     <h3 className="text-xl font-bold">Görünüşe Göre Etrafta Kimse Kalmadı</h3>
-                    <p className="mt-2 text-sm">Daha fazla kişi görmek için daha sonra tekrar kontrol et.</p>
+                    <p className="mt-2 text-sm">Filtrelerinize uyan kimseyi bulamadık. Daha sonra tekrar kontrol edin.</p>
                 </div>
             )}
         </div>
