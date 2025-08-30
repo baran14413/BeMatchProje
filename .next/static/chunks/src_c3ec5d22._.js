@@ -265,10 +265,8 @@ if ("TURBOPACK compile-time truthy", 1) {
 }
 const clearCache = async ()=>{
     try {
-        // Terminate Firestore to allow cache clearing
-        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["terminate"])(db);
-        // Clear Firestore offline persistence
-        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["clearIndexedDbPersistence"])(db);
+        // Delete the firebase app to release all resources
+        await __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2d$compat$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].app().delete();
         // Unregister all service workers
         if ('serviceWorker' in navigator) {
             const registrations = await navigator.serviceWorker.getRegistrations();
@@ -279,8 +277,25 @@ const clearCache = async ()=>{
         // Clear Cache Storage
         const keys = await caches.keys();
         await Promise.all(keys.map((key)=>caches.delete(key)));
+        // Clear IndexedDB for Firestore
+        const dbName = `firebase-indexeddb-main-` + firebaseConfig.appId;
+        const deleteRequest = indexedDB.deleteDatabase(dbName);
+        return new Promise((resolve, reject)=>{
+            deleteRequest.onsuccess = ()=>{
+                console.log("Firestore IndexedDB cache cleared successfully.");
+                resolve();
+            };
+            deleteRequest.onerror = (event)=>{
+                console.error("Error clearing Firestore IndexedDB cache:", event);
+                reject(new Error("Could not clear IndexedDB cache."));
+            };
+            deleteRequest.onblocked = ()=>{
+                console.warn("Clearing IndexedDB is blocked. Please close other tabs with this app open.");
+                reject(new Error("Clearing cache is blocked. Close other tabs."));
+            };
+        });
     } catch (error) {
-        console.error("Error clearing all caches:", error);
+        console.error("Error during cache clearing process:", error);
         throw error;
     }
 };

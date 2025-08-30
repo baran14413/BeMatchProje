@@ -225,7 +225,7 @@ function CacheManagementPage() {
             toast({
                 variant: 'destructive',
                 title: 'Hata',
-                description: 'Önbellek temizlenirken bir sorun oluştu.'
+                description: error.message || 'Önbellek temizlenirken bir sorun oluştu.'
             });
             setClearing(false);
         }

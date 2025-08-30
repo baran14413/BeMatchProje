@@ -8,13 +8,14 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { db, auth } from '@/lib/firebase';
 import { collection, query, where, getDocs, limit, doc, setDoc, serverTimestamp, deleteDoc, onSnapshot, getDoc, runTransaction, DocumentData, orderBy, updateDoc, increment, collectionGroup } from 'firebase/firestore';
-import { Loader2, Sparkles, Zap, ThumbsUp, ThumbsDown, Info, Crown, Bot, ArrowLeft } from 'lucide-react';
+import { Loader2, Sparkles, Zap, ThumbsUp, ThumbsDown, Info, Crown, Bot, ArrowLeft, MessageSquare, Phone } from 'lucide-react';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { botNames, botOpenerMessages } from '@/config/bot-config';
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 
 const DAILY_MATCH_LIMIT = 10;
 const AVG_WAIT_SECONDS_PER_USER = 15;
@@ -29,6 +30,10 @@ function ShuffleContent() {
     const searchParams = useSearchParams();
     const currentUser = auth.currentUser;
     const { toast } = useToast();
+    
+    const [api, setApi] = useState<CarouselApi>()
+    const [current, setCurrent] = useState(0)
+    const [count, setCount] = useState(0)
 
     const [showFeedback, setShowFeedback] = useState(false);
     const [queueSize, setQueueSize] = useState(0);
@@ -38,6 +43,19 @@ function ShuffleContent() {
     const hasBeenMatchedRef = useRef(false);
 
     const estimatedWaitTime = Math.max(15, queueSize * AVG_WAIT_SECONDS_PER_USER);
+
+     useEffect(() => {
+        if (!api) {
+            return
+        }
+
+        setCount(api.scrollSnapList().length)
+        setCurrent(api.selectedScrollSnap() + 1)
+
+        api.on("select", () => {
+            setCurrent(api.selectedScrollSnap() + 1)
+        })
+    }, [api])
 
     // Fetch current user's profile and match count
     useEffect(() => {
@@ -316,37 +334,74 @@ function ShuffleContent() {
     );
     
     const IdleUI = () => (
-        <>
-            <div className="relative mb-6">
-                 <Zap className="w-24 h-24 text-transparent bg-clip-text bg-gradient-to-br from-yellow-400 via-primary to-blue-500" />
+        <div className='w-full max-w-sm flex flex-col items-center'>
+            <h1 className="text-3xl font-bold font-headline">Rastgele Eşleşme</h1>
+            <p className="max-w-md mt-2 mb-6 text-muted-foreground mx-auto">
+                Sohbet türünü seçerek sana uygun biriyle tanış.
+            </p>
+            <Carousel setApi={setApi} className="w-full">
+                <CarouselContent>
+                    <CarouselItem>
+                         <Card className="bg-background/80 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-2xl w-full">
+                            <CardHeader className='items-center'>
+                                <MessageSquare className='w-12 h-12 text-primary mb-2'/>
+                                <CardTitle className="text-2xl font-bold">Yazılı Eşleşme</CardTitle>
+                            </CardHeader>
+                            <CardContent className="flex flex-col items-center gap-4">
+                                <Button 
+                                    size="lg" 
+                                    className="h-14 w-full text-lg rounded-full shadow-lg bg-gradient-to-r from-primary to-blue-500 text-primary-foreground transition-transform hover:scale-105"
+                                    onClick={handleSearchClick}
+                                    disabled={isLoadingProfile || (remainingMatches !== null && remainingMatches <= 0)}
+                                >
+                                    {isLoadingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-3 h-5 w-5" />}
+                                    Eşleşme Bul
+                                </Button>
+                                {remainingMatches !== null && isFinite(remainingMatches) && (
+                                    <Badge variant={remainingMatches > 0 ? "secondary" : "destructive"}>
+                                        Kalan Hak: {remainingMatches}
+                                    </Badge>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </CarouselItem>
+                    <CarouselItem>
+                         <Card className="bg-muted/50 border-2 border-dashed shadow-none rounded-2xl w-full">
+                            <CardHeader className='items-center'>
+                                <Phone className='w-12 h-12 text-muted-foreground mb-2'/>
+                                <CardTitle className="text-2xl font-bold text-muted-foreground">Sesli Eşleşme</CardTitle>
+                            </CardHeader>
+                             <CardContent className="flex flex-col items-center gap-4">
+                                <Button 
+                                    size="lg" 
+                                    className="h-14 w-full text-lg rounded-full"
+                                    disabled
+                                >
+                                    Yakında...
+                                </Button>
+                                 <Badge variant="outline">
+                                    Heyecan verici bu özellik için beklemede kal!
+                                </Badge>
+                            </CardContent>
+                        </Card>
+                    </CarouselItem>
+                </CarouselContent>
+            </Carousel>
+            <div className="py-4 flex justify-center gap-2">
+                {Array.from({ length: count }).map((_, i) => (
+                    <button
+                        key={i}
+                        onClick={() => api?.scrollTo(i)}
+                        className={cn('h-2 w-2 rounded-full transition-all', current === i + 1 ? 'w-4 bg-primary' : 'bg-muted-foreground/30')}
+                    />
+                ))}
             </div>
-            <Card className="bg-background/80 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-2xl w-full max-w-sm">
-                <CardHeader>
-                    <CardTitle className="text-3xl font-bold font-headline">Rastgele Eşleşme</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col items-center gap-4">
-                     <Button 
-                        size="lg" 
-                        className="h-16 w-full text-xl rounded-full shadow-lg bg-gradient-to-r from-primary to-blue-500 text-primary-foreground transition-transform hover:scale-105"
-                        onClick={handleSearchClick}
-                        disabled={isLoadingProfile || (remainingMatches !== null && remainingMatches <= 0)}
-                    >
-                        {isLoadingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-3 h-5 w-5" />}
-                        Eşleşme Bul
-                    </Button>
-                     {remainingMatches !== null && isFinite(remainingMatches) && (
-                        <Badge variant={remainingMatches > 0 ? "secondary" : "destructive"}>
-                            Kalan Hak: {remainingMatches}
-                        </Badge>
-                    )}
-                </CardContent>
-            </Card>
-            <div className="absolute bottom-6 flex items-center text-xs text-muted-foreground gap-1">
+             <div className="absolute bottom-6 flex items-center text-xs text-muted-foreground gap-1">
                 <Info className="w-3 h-3" />
                 <span>Premium üyeler sınırsız ve öncelikli eşleşir.</span>
                 <Link href="/premium" className="underline font-semibold ml-1">Yükselt</Link>
             </div>
-        </>
+        </div>
     );
 
     if (isLoadingProfile) {

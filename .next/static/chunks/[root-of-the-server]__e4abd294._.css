@@ -1989,6 +1989,10 @@ img {
   background-color: #eab30833;
 }
 
+.bg-muted-foreground\/30 {
+  background-color: hsl(var(--muted-foreground) / .3);
+}
+
 .bg-gradient-to-br {
   background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
 }
