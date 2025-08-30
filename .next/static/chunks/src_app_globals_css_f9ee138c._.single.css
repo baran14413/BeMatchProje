@@ -262,17 +262,17 @@ img, video {
   --accent-foreground: 222.2 47.4% 11.2%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
+  --border: 215 27.9% 82.9%;
   --input: 214.3 31.8% 91.4%;
   --ring: 221 83% 53%;
   --radius: .8rem;
+  --header-height: 4rem;
+  --bottom-nav-height: 4rem;
   --chart-1: 12 76% 61%;
   --chart-2: 173 58% 39%;
   --chart-3: 197 37% 24%;
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
-  --header-height: 3rem;
-  --bottom-nav-height: 3rem;
 }
 
 .dark {
@@ -292,7 +292,7 @@ img, video {
   --accent-foreground: 210 40% 98%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
+  --border: 217 32.6% 25.5%;
   --input: 217.2 32.6% 17.5%;
   --ring: 217 91% 60%;
 }
@@ -304,6 +304,7 @@ img, video {
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   overscroll-behavior-y: contain;
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -328,6 +329,11 @@ img {
   .container {
     max-width: 1400px;
   }
+}
+
+.bg-grid-pattern {
+  background-image: linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px);
+  background-size: 3rem 3rem;
 }
 
 .sr-only {
