@@ -76,18 +76,22 @@ export default function MatchPage() {
         const minAge = parseInt(userAge) - 2;
         const maxAge = parseInt(userAge) + 5;
         
-        // 3. Construct the query
+        // 3. Construct a simpler query
         const usersQuery = query(
             collection(db, 'users'), 
-            where('uid', '!=', currentUser.uid),
             where('gender', '==', targetGender),
-            where('city', '==', userCity),
-            where('age', '>=', minAge.toString()),
-            where('age', '<=', maxAge.toString())
+            where('city', '==', userCity)
         );
 
         const userSnapshot = await getDocs(usersQuery);
-        const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // 4. Filter the remaining logic in the client
+        const userList = userSnapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(user => {
+                const age = parseInt(user.age);
+                return user.id !== currentUser.uid && age >= minAge && age <= maxAge;
+            });
         
         setUsers(userList);
 
