@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { db, auth } from '@/lib/firebase';
 import { collection, query, where, getDocs, limit, doc, setDoc, serverTimestamp, deleteDoc, onSnapshot, getDoc, runTransaction, DocumentData, orderBy, updateDoc, increment, collectionGroup } from 'firebase/firestore';
-import { Loader2, Sparkles, Zap, ThumbsUp, ThumbsDown, Info, Crown, Bot, ArrowLeft, MessageSquare, Phone } from 'lucide-react';
+import { Loader2, Zap, ThumbsUp, ThumbsDown, Info, Crown, Bot, MessageSquare, Phone } from 'lucide-react';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -339,6 +339,15 @@ function ShuffleContent() {
             <p className="max-w-md mt-2 mb-6 text-muted-foreground mx-auto">
                 Sohbet türünü seçerek sana uygun biriyle tanış.
             </p>
+            <div className="mb-4 flex justify-center gap-2">
+                {Array.from({ length: count }).map((_, i) => (
+                    <button
+                        key={i}
+                        onClick={() => api?.scrollTo(i)}
+                        className={cn('h-2 w-2 rounded-full transition-all', current === i + 1 ? 'w-4 bg-primary' : 'bg-muted-foreground/30')}
+                    />
+                ))}
+            </div>
             <Carousel setApi={setApi} className="w-full">
                 <CarouselContent>
                     <CarouselItem>
@@ -354,7 +363,7 @@ function ShuffleContent() {
                                     onClick={handleSearchClick}
                                     disabled={isLoadingProfile || (remainingMatches !== null && remainingMatches <= 0)}
                                 >
-                                    {isLoadingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-3 h-5 w-5" />}
+                                    {isLoadingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Zap className="mr-3 h-5 w-5" />}
                                     Eşleşme Bul
                                 </Button>
                                 {remainingMatches !== null && isFinite(remainingMatches) && (
@@ -387,15 +396,6 @@ function ShuffleContent() {
                     </CarouselItem>
                 </CarouselContent>
             </Carousel>
-            <div className="py-4 flex justify-center gap-2">
-                {Array.from({ length: count }).map((_, i) => (
-                    <button
-                        key={i}
-                        onClick={() => api?.scrollTo(i)}
-                        className={cn('h-2 w-2 rounded-full transition-all', current === i + 1 ? 'w-4 bg-primary' : 'bg-muted-foreground/30')}
-                    />
-                ))}
-            </div>
              <div className="absolute bottom-6 flex items-center text-xs text-muted-foreground gap-1">
                 <Info className="w-3 h-3" />
                 <span>Premium üyeler sınırsız ve öncelikli eşleşir.</span>
@@ -449,3 +449,4 @@ export default function ShufflePage() {
         </div>
     );
 }
+
