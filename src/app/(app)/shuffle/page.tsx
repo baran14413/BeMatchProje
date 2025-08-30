@@ -432,7 +432,6 @@ function ShuffleContent() {
             {status === 'searching' && <SearchingUI />}
             {status === 'matched' && (
                 <>
-                    <Sparkles className="w-24 h-24 text-green-500 mb-6 animate-pulse" />
                     <h1 className="text-3xl font-bold font-headline mb-2">Eşleşme Bulundu!</h1>
                 </>
             )}
