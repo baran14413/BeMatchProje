@@ -25,7 +25,7 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { collection, query, orderBy, getDocs, doc, getDoc, DocumentData, writeBatch, arrayUnion, updateDoc, increment, addDoc, serverTimestamp, where, documentId, arrayRemove, runTransaction, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, doc, getDoc, DocumentData, writeBatch, arrayUnion, updateDoc, increment, addDoc, serverTimestamp, where, documentId, arrayRemove, runTransaction, setDoc, deleteDoc, limit } from 'firebase/firestore';
 import { db, auth, storage } from '@/lib/firebase';
 import { getDownloadURL, ref, uploadString, deleteObject } from 'firebase/storage';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -774,9 +774,8 @@ export default function ExplorePage() {
                                             </Avatar>
                                         ))}
                                     </div>
-                                    <p className="text-muted-foreground">
-                                        <span className="font-semibold text-foreground">{post.recentLikers[0]?.name || post.likes}</span>
-                                        {post.likes > 1 && ` ve diğer ${post.likes - 1} kişi`} beğendi.
+                                     <p className="text-muted-foreground">
+                                        <span className="font-semibold text-foreground">{post.likes.toLocaleString()}</span> beğeni
                                     </p>
                                 </div>
                             )}
@@ -984,5 +983,7 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    
 
     
