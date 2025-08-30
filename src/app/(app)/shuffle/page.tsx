@@ -87,34 +87,42 @@ function ShuffleContent() {
 
         // Ensure user is still in the queue before creating a bot match
         const userQueueRef = doc(db, 'randomMatchQueue', currentUser.uid);
-        const userQueueSnap = await getDoc(userQueueRef);
-        if (!userQueueSnap.exists()) {
-            return; // User has been matched with a real person
+        
+        try {
+             await runTransaction(db, async (transaction) => {
+                const userQueueSnap = await transaction.get(userQueueRef);
+                if (!userQueueSnap.exists()) {
+                    return; // User has been matched with a real person, so we do nothing.
+                }
+
+                transaction.delete(userQueueRef); // Remove user from queue
+                
+                const botName = botNames[Math.floor(Math.random() * botNames.length)];
+                const botId = `bot_${botName.toLowerCase().replace(/ /g, '_')}`;
+                const botAvatar = `https://avatar.vercel.sh/${botId}.png`;
+                const botOpener = botOpenerMessages[Math.floor(Math.random() * botOpenerMessages.length)];
+
+                const newConvoRef = doc(collection(db, 'temporaryConversations'));
+                transaction.set(newConvoRef, {
+                    users: [currentUser.uid, botId],
+                    user1: { uid: currentUser.uid, name: userProfile.name, avatarUrl: userProfile.avatarUrl, heartClicked: false },
+                    user2: { uid: botId, name: botName, avatarUrl: botAvatar, heartClicked: false },
+                    isBotMatch: true,
+                    createdAt: serverTimestamp(),
+                    expiresAt: new Date(Date.now() + 5 * 60 * 1000)
+                });
+
+                // Bot sends the first message
+                const messagesRef = doc(collection(newConvoRef, 'messages'));
+                transaction.set(messagesRef, {
+                    text: botOpener,
+                    senderId: botId,
+                    timestamp: serverTimestamp(),
+                });
+             });
+        } catch (error) {
+            console.error("Error creating bot match:", error);
         }
-        
-        await deleteDoc(userQueueRef); // Remove user from queue
-        
-        const botName = botNames[Math.floor(Math.random() * botNames.length)];
-        const botId = `bot_${botName.toLowerCase().replace(/ /g, '_')}`;
-        const botAvatar = `https://avatar.vercel.sh/${botId}.png`;
-        const botOpener = botOpenerMessages[Math.floor(Math.random() * botOpenerMessages.length)];
-
-        const newConvoRef = doc(collection(db, 'temporaryConversations'));
-        await setDoc(newConvoRef, {
-            users: [currentUser.uid, botId],
-            user1: { uid: currentUser.uid, name: userProfile.name, avatarUrl: userProfile.avatarUrl, heartClicked: false },
-            user2: { uid: botId, name: botName, avatarUrl: botAvatar, heartClicked: false },
-            isBotMatch: true,
-            createdAt: serverTimestamp(),
-            expiresAt: new Date(Date.now() + 5 * 60 * 1000)
-        });
-
-        // Bot sends the first message
-        await addDoc(collection(newConvoRef, 'messages'), {
-            text: botOpener,
-            senderId: botId,
-            timestamp: serverTimestamp(),
-        });
         
     }, [currentUser, userProfile]);
 
@@ -182,42 +190,28 @@ function ShuffleContent() {
         const queueRef = collection(db, 'randomMatchQueue');
 
         try {
-            // Find a potential match outside the transaction
-            const premiumQuery = query(queueRef, where('gender', '==', targetGender), where('isPremium', '==', true), limit(1));
-            let snapshot = await getDocs(premiumQuery);
+            await runTransaction(db, async (transaction) => {
+                // Find a potential match inside the transaction
+                const premiumQuery = query(queueRef, where('gender', '==', targetGender), where('isPremium', '==', true), limit(1));
+                let snapshot = await getDocs(premiumQuery);
 
-            if (snapshot.empty) {
-                const standardQuery = query(queueRef, where('gender', '==', targetGender), limit(1));
-                snapshot = await getDocs(standardQuery);
-            }
+                if (snapshot.empty) {
+                    const standardQuery = query(queueRef, where('gender', '==', targetGender), limit(1));
+                    snapshot = await getDocs(standardQuery);
+                }
+                
+                const matchDoc = snapshot.docs.length > 0 ? snapshot.docs[0] : null;
 
-            const matchDoc = snapshot.docs.length > 0 ? snapshot.docs[0] : null;
-
-            if (matchDoc) {
-                // Match found, now run transaction to atomically claim it
-                const otherUserRef = matchDoc.ref;
-                const otherUserId = matchDoc.id;
-
-                await runTransaction(db, async (transaction) => {
-                    const otherUserQueueDoc = await transaction.get(otherUserRef);
-                    if (!otherUserQueueDoc.exists()) {
-                        // The user was matched by someone else in the meantime
-                        throw new Error("Eşleşme başkası tarafından kapıldı.");
-                    }
-
-                    const otherUserDataDoc = await transaction.get(doc(db, 'users', otherUserId));
-                    if (!otherUserDataDoc.exists()) {
-                        transaction.delete(otherUserRef); // Clean up stale queue entry
-                        throw new Error("Eşleşecek kullanıcının bilgileri bulunamadı.");
-                    }
-                    const otherUserData = otherUserDataDoc.data();
+                if (matchDoc) {
+                    // Match found
+                    const otherUserId = matchDoc.id;
+                    const otherUserData = matchDoc.data();
                     
-                    transaction.delete(otherUserRef);
+                    // Atomically remove both users from queue and create convo
+                    transaction.delete(doc(queueRef, otherUserId));
                     
                     const newConvoRef = doc(collection(db, 'temporaryConversations'));
                     
-                    if (!userProfile || !otherUserData) throw new Error("Kullanıcı bilgileri eksik.");
-
                     transaction.set(newConvoRef, {
                         users: [currentUser.uid, otherUserData.uid],
                         user1: { uid: currentUser.uid, name: userProfile.name, avatarUrl: userProfile.avatarUrl, heartClicked: false },
@@ -226,35 +220,34 @@ function ShuffleContent() {
                         createdAt: serverTimestamp(),
                         expiresAt: new Date(Date.now() + 5 * 60 * 1000)
                     });
-                });
-
-            } else {
-                 // No match found, add user to queue and start bot timer
-                 await runTransaction(db, async (transaction) => {
+                } else {
+                     // No match found, add user to queue
                     const userQueueRef = doc(db, 'randomMatchQueue', currentUser.uid);
-                    transaction.set(userQueueRef, {
+                     transaction.set(userQueueRef, {
                         uid: currentUser.uid,
                         gender: userProfile.gender,
                         isPremium: userProfile.isPremium || false,
                         enteredAt: serverTimestamp()
                     });
-                });
-                botMatchTimerRef.current = setTimeout(createBotMatch, BOT_MATCH_TIMEOUT);
-            }
-
-            // Decrement match count for non-premium user
-            if (!userProfile.isPremium) {
-                const userDocRef = doc(db, 'users', currentUser.uid);
-                const userDocSnap = await getDoc(userDocRef);
-                const today = new Date().toISOString().split('T')[0];
-                if (userDocSnap.exists() && userDocSnap.data().dailyMatch?.date === today) {
-                    await updateDoc(userDocRef, { 'dailyMatch.count': increment(1) });
-                } else {
-                    await updateDoc(userDocRef, { dailyMatch: { date: today, count: 1 } });
+                     // IMPORTANT: Start bot timer only after successfully adding to queue
+                     botMatchTimerRef.current = setTimeout(createBotMatch, BOT_MATCH_TIMEOUT);
                 }
-            }
+
+                // Decrement match count for non-premium user
+                if (!userProfile.isPremium) {
+                    const userDocRef = doc(db, 'users', currentUser.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+                    const today = new Date().toISOString().split('T')[0];
+                    if (userDocSnap.exists() && userDocSnap.data().dailyMatch?.date === today) {
+                        transaction.update(userDocRef, { 'dailyMatch.count': increment(1) });
+                    } else {
+                        transaction.update(userDocRef, { dailyMatch: { date: today, count: 1 } });
+                    }
+                }
+            });
+
         } catch (error) {
-            console.error("Matching process failed: ", error);
+            console.error("Matching transaction failed: ", error);
             toast({ title: 'Eşleştirme sırasında bir sorun oluştu, lütfen tekrar deneyin.', variant: 'destructive' });
             setStatus('idle');
              // If we failed after adding to queue, remove from queue
@@ -410,3 +403,5 @@ export default function ShufflePage() {
         </div>
     );
 }
+
+    

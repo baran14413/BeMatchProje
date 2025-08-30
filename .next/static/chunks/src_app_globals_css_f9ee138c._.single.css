@@ -1766,6 +1766,10 @@ img {
   background-color: hsl(var(--background));
 }
 
+.bg-background\/50 {
+  background-color: hsl(var(--background) / .5);
+}
+
 .bg-background\/80 {
   background-color: hsl(var(--background) / .8);
 }
@@ -1921,10 +1925,6 @@ img {
 
 .bg-yellow-500\/20 {
   background-color: #eab30833;
-}
-
-.bg-background\/50 {
-  background-color: hsl(var(--background) / .5);
 }
 
 .bg-gradient-to-br {
@@ -2371,16 +2371,16 @@ img {
   line-height: 1.625;
 }
 
+.tracking-\[1\.5rem\] {
+  letter-spacing: 1.5rem;
+}
+
 .tracking-tight {
   letter-spacing: -.025em;
 }
 
 .tracking-widest {
   letter-spacing: .1em;
-}
-
-.tracking-\[1\.5rem\] {
-  letter-spacing: 1.5rem;
 }
 
 .text-accent-foreground {
@@ -2955,10 +2955,6 @@ img {
 
 .hover\:text-foreground:hover {
   color: hsl(var(--foreground));
-}
-
-.hover\:text-primary:hover {
-  color: hsl(var(--primary));
 }
 
 .hover\:text-primary-foreground:hover {
@@ -3652,10 +3648,6 @@ img {
 
   .sm\:justify-end {
     justify-content: flex-end;
-  }
-
-  .sm\:justify-center {
-    justify-content: center;
   }
 
   .sm\:justify-between {
