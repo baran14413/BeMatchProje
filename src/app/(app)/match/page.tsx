@@ -1,11 +1,11 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Crown, Loader2, User, Heart } from 'lucide-react';
+import { MapPin, Crown, Loader2, User, Heart, Filter } from 'lucide-react';
 import { collection, query, where, getDocs, DocumentData, doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,11 +22,11 @@ import {
   SheetFooter,
   SheetClose,
 } from '@/components/ui/sheet';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
-import { useRouter } from 'next/navigation';
-import { MessageSquare } from 'lucide-react';
-
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Slider } from '@/components/ui/slider';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { cities } from '@/config/turkey-locations';
 
 const UserSkeleton = () => (
     <div className="w-full aspect-[3/4] bg-muted rounded-xl">
@@ -34,12 +34,24 @@ const UserSkeleton = () => (
     </div>
 );
 
+type Filters = {
+  gender: 'male' | 'female' | 'all';
+  ageRange: [number, number];
+  cities: string[];
+};
+
 export default function MatchPage() {
-  const [users, setUsers] = useState<DocumentData[]>([]);
+  const [allUsers, setAllUsers] = useState<DocumentData[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<DocumentData[]>([]);
   const [loading, setLoading] = useState(true);
   const currentUser = auth.currentUser;
-  const [previewUser, setPreviewUser] = useState<DocumentData | null>(null);
-  const router = useRouter();
+  
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const [filters, setFilters] = useState<Filters>({
+    gender: 'all',
+    ageRange: [18, 65],
+    cities: []
+  });
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -49,52 +61,14 @@ export default function MatchPage() {
       }
 
       try {
-        // 1. Fetch current user's profile to get their criteria
-        const currentUserDocRef = doc(db, 'users', currentUser.uid);
-        const currentUserDocSnap = await getDoc(currentUserDocRef);
-        
-        if (!currentUserDocSnap.exists()) {
-            console.error("Current user profile not found!");
-            setLoading(false);
-            return;
-        }
-
-        const currentUserData = currentUserDocSnap.data();
-        const userAge = currentUserData.age;
-        const userGender = currentUserData.gender;
-        const userCity = currentUserData.city;
-
-        if (!userAge || !userGender || !userCity) {
-            console.error("Current user's age, gender, or city is missing.");
-            setUsers([]);
-            setLoading(false);
-            return;
-        }
-
-        // 2. Define the filtering logic
-        const targetGender = userGender === 'male' ? 'female' : 'male';
-        const minAge = parseInt(userAge) - 2;
-        const maxAge = parseInt(userAge) + 5;
-        
-        // 3. Construct a simpler query
         const usersQuery = query(
-            collection(db, 'users'), 
-            where('gender', '==', targetGender),
-            where('city', '==', userCity)
+          collection(db, 'users'), 
+          where('uid', '!=', currentUser.uid)
         );
-
         const userSnapshot = await getDocs(usersQuery);
-        
-        // 4. Filter the remaining logic in the client
-        const userList = userSnapshot.docs
-            .map(doc => ({ id: doc.id, ...doc.data() }))
-            .filter(user => {
-                const age = parseInt(user.age);
-                return user.id !== currentUser.uid && age >= minAge && age <= maxAge;
-            });
-        
-        setUsers(userList);
-
+        const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setAllUsers(userList);
+        setFilteredUsers(userList);
       } catch (error) {
         console.error("Error fetching users: ", error);
       } finally {
@@ -104,6 +78,40 @@ export default function MatchPage() {
 
     fetchUsers();
   }, [currentUser]);
+  
+  const applyFilters = () => {
+      let usersToFilter = [...allUsers];
+
+      // Gender filter
+      if (filters.gender !== 'all') {
+          usersToFilter = usersToFilter.filter(user => user.gender === filters.gender);
+      }
+      
+      // Age range filter
+      usersToFilter = usersToFilter.filter(user => {
+          const age = parseInt(user.age);
+          return age >= filters.ageRange[0] && age <= filters.ageRange[1];
+      });
+
+      // City filter
+      if (filters.cities.length > 0) {
+          usersToFilter = usersToFilter.filter(user => filters.cities.includes(user.city));
+      }
+      
+      setFilteredUsers(usersToFilter);
+      setIsFilterSheetOpen(false);
+  };
+  
+  const clearFilters = () => {
+      setFilters({
+          gender: 'all',
+          ageRange: [18, 65],
+          cities: []
+      });
+      setFilteredUsers(allUsers);
+      setIsFilterSheetOpen(false);
+  };
+
 
   const getGradientForUser = (userId: string) => {
     const gradients = [
@@ -116,104 +124,131 @@ export default function MatchPage() {
     return gradients[index];
   };
 
+  const cityOptions = useMemo(() => cities.map(city => ({ value: city.name, label: city.name })), []);
+
   return (
-    <Sheet onOpenChange={(open) => !open && setPreviewUser(null)}>
+    <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
         <div className="container mx-auto p-2 sm:p-4">
+            <header className="flex items-center justify-between mb-4 px-2">
+                <h1 className="text-2xl font-bold font-headline">Keşfet</h1>
+                <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                        <Filter className="w-6 h-6" />
+                    </Button>
+                </SheetTrigger>
+            </header>
+
             {loading ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
                     {[...Array(10)].map((_, i) => <UserSkeleton key={i} />)}
                 </div>
-            ) : users.length > 0 ? (
+            ) : filteredUsers.length > 0 ? (
                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
-                    {users.map((user) => (
-                    <SheetTrigger asChild key={user.id} onClick={() => setPreviewUser(user)}>
-                        <div className="block group">
-                            <Card className="w-full aspect-[3/4] rounded-xl overflow-hidden transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl border-2 border-transparent hover:border-primary">
-                            <CardContent className="p-0 h-full w-full relative">
-                                    {user.avatarUrl ? (
-                                        <Image
-                                            src={user.avatarUrl}
-                                            alt={user.name}
-                                            fill
-                                            className="object-cover"
-                                            data-ai-hint={user.aiHint || 'portrait'}
-                                        />
-                                    ) : (
-                                        <div className={cn("w-full h-full bg-gradient-to-br flex items-center justify-center", getGradientForUser(user.id))}>
-                                            <Heart className="w-1/2 h-1/2 text-white/50"/>
-                                        </div>
-                                    )}
-
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                                    
-                                    <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="text-lg font-bold truncate">{user.name}</h3>
-                                            {user.age && <p className="text-base text-white/80">{user.age}</p>}
-                                        </div>
-                                         {user.city && (
-                                            <div className="flex items-center gap-1 text-xs text-white/70 mt-1">
-                                                <MapPin className="w-3 h-3"/>
-                                                <p className="truncate">{user.city}</p>
-                                            </div>
-                                         )}
-                                        
-                                        <div className="flex items-center gap-4 mt-2">
-                                            {user.isPremium && <Badge className="bg-yellow-500/20 text-yellow-300 border-none backdrop-blur-sm p-1 px-2 text-xs"><Crown className="w-3 h-3 mr-1"/>Premium</Badge>}
-                                        </div>
+                    {filteredUsers.map((user) => (
+                    <Link href={`/profile/${user.username}`} key={user.id} className="block group">
+                        <Card className="w-full aspect-[3/4] rounded-xl overflow-hidden transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl border-2 border-transparent hover:border-primary">
+                        <CardContent className="p-0 h-full w-full relative">
+                                {user.avatarUrl ? (
+                                    <Image
+                                        src={user.avatarUrl}
+                                        alt={user.name}
+                                        fill
+                                        className="object-cover"
+                                        data-ai-hint={user.aiHint || 'portrait'}
+                                    />
+                                ) : (
+                                    <div className={cn("w-full h-full bg-gradient-to-br flex items-center justify-center", getGradientForUser(user.id))}>
+                                        <Heart className="w-1/2 h-1/2 text-white/50"/>
                                     </div>
-                            </CardContent>
-                            </Card>
-                        </div>
-                    </SheetTrigger>
+                                )}
+
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                                
+                                <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="text-lg font-bold truncate">{user.name}</h3>
+                                        {user.age && <p className="text-base text-white/80">{user.age}</p>}
+                                    </div>
+                                     {user.city && (
+                                        <div className="flex items-center gap-1 text-xs text-white/70 mt-1">
+                                            <MapPin className="w-3 h-3"/>
+                                            <p className="truncate">{user.city}</p>
+                                        </div>
+                                     )}
+                                    
+                                    <div className="flex items-center gap-4 mt-2">
+                                        {user.isPremium && <Badge className="bg-yellow-500/20 text-yellow-300 border-none backdrop-blur-sm p-1 px-2 text-xs"><Crown className="w-3 h-3 mr-1"/>Premium</Badge>}
+                                    </div>
+                                </div>
+                        </CardContent>
+                        </Card>
+                    </Link>
                     ))}
                 </div>
             ) : (
                 <div className="flex flex-col items-center justify-center h-[70vh] text-center text-muted-foreground">
-                    <h3 className="text-xl font-bold">Görünüşe Göre Etrafta Kimse Kalmadı</h3>
-                    <p className="mt-2 text-sm">Filtrelerinize uyan kimseyi bulamadık. Daha sonra tekrar kontrol edin.</p>
+                    <h3 className="text-xl font-bold">Sonuç Bulunamadı</h3>
+                    <p className="mt-2 text-sm max-w-xs">Filtrelerinize uyan kimseyi bulamadık. Filtreleri genişletmeyi veya temizlemeyi deneyin.</p>
+                     <Button variant="outline" className="mt-4" onClick={clearFilters}>Filtreyi Temizle</Button>
                 </div>
             )}
         </div>
 
-        <SheetContent side="bottom" className="rounded-t-xl h-auto max-h-[85vh] flex flex-col p-0">
-             {previewUser && (
-                <>
-                <SheetHeader className="p-6 pb-0 text-left">
-                     <div className="flex items-center gap-4">
-                         <Avatar className="w-20 h-20 border-2">
-                            {previewUser.avatarUrl ? (
-                                <AvatarImage src={previewUser.avatarUrl} alt={previewUser.name} />
-                            ) : (
-                                <AvatarFallback className={cn("bg-gradient-to-br", getGradientForUser(previewUser.id))}>
-                                    <Heart className="w-10 h-10 text-white/70" />
-                                </AvatarFallback>
-                            )}
-                         </Avatar>
-                         <div className="flex-1">
-                             <SheetTitle className="text-2xl font-bold">{previewUser.name}</SheetTitle>
-                             <SheetDescription>@{previewUser.username}</SheetDescription>
-                         </div>
-                     </div>
-                      <p className="text-sm text-muted-foreground pt-4">{previewUser.bio || "Henüz bir biyografi eklenmemiş."}</p>
-                </SheetHeader>
-                 <Separator className="my-4"/>
-                <SheetFooter className="p-6 pt-0 flex-col sm:flex-col sm:justify-start gap-3">
-                   <SheetClose asChild>
-                     <Link href={`/profile/${previewUser.username}`} className='w-full'>
-                         <Button className="w-full">Profili Gör</Button>
-                     </Link>
-                   </SheetClose>
-                   <SheetClose asChild>
-                     <Link href={`/chat?userId=${previewUser.uid}`} className='w-full'>
-                         <Button className="w-full" variant="outline">
-                             <MessageSquare className="mr-2 h-4 w-4"/> Mesaj Gönder
-                         </Button>
-                     </Link>
-                   </SheetClose>
-                </SheetFooter>
-                </>
-             )}
+        <SheetContent side="bottom" className="rounded-t-xl h-auto max-h-[85vh] flex flex-col p-6">
+             <SheetHeader className="text-left">
+                 <SheetTitle className="text-2xl">Filtrele</SheetTitle>
+                 <SheetDescription>Arama kriterlerinizi belirleyerek size en uygun kişileri bulun.</SheetDescription>
+             </SheetHeader>
+             <div className="flex-1 space-y-6 overflow-y-auto py-4">
+                <div>
+                    <Label className="font-semibold">Cinsiyet</Label>
+                    <RadioGroup 
+                        value={filters.gender}
+                        onValueChange={(value) => setFilters(prev => ({ ...prev, gender: value as 'male' | 'female' | 'all' }))} 
+                        className="flex gap-4 mt-2"
+                    >
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="female" id="female" />
+                            <Label htmlFor="female">Kadın</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="male" id="male" />
+                            <Label htmlFor="male">Erkek</Label>
+                        </div>
+                         <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="all" id="all" />
+                            <Label htmlFor="all">Tümü</Label>
+                        </div>
+                    </RadioGroup>
+                </div>
+                 <div>
+                    <Label htmlFor="ageRange" className="font-semibold">Yaş Aralığı: <span className="text-primary font-bold">{filters.ageRange[0]} - {filters.ageRange[1]}</span></Label>
+                     <Slider
+                        id="ageRange"
+                        value={filters.ageRange}
+                        min={18}
+                        max={65}
+                        step={1}
+                        minStepsBetweenThumbs={1}
+                        onValueChange={(value) => setFilters(prev => ({ ...prev, ageRange: value as [number, number] }))}
+                        className="mt-4"
+                    />
+                </div>
+                <div>
+                    <Label className="font-semibold">Şehir</Label>
+                    <MultiSelect
+                        options={cityOptions}
+                        selected={filters.cities}
+                        onChange={(selected) => setFilters(prev => ({...prev, cities: selected}))}
+                        placeholder="Bir veya daha fazla şehir seçin..."
+                        className="mt-2"
+                    />
+                </div>
+             </div>
+             <SheetFooter className="pt-4 flex-row sm:flex-row sm:justify-between gap-2">
+                <Button variant="outline" onClick={clearFilters} className="w-full sm:w-auto">Filtreyi Temizle</Button>
+                <Button onClick={applyFilters} className="w-full sm:w-auto">Filtreleri Uygula</Button>
+             </SheetFooter>
         </SheetContent>
     </Sheet>
   );
