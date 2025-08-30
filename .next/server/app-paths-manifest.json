@@ -2,6 +2,9 @@
   "/(app)/chat/page": "app/(app)/chat/page.js",
   "/(app)/explore/page": "app/(app)/explore/page.js",
   "/(app)/match/page": "app/(app)/match/page.js",
+  "/(app)/profile/[username]/page": "app/(app)/profile/[username]/page.js",
+  "/(app)/profile/edit/cache/page": "app/(app)/profile/edit/cache/page.js",
+  "/(app)/profile/edit/page": "app/(app)/profile/edit/page.js",
   "/(app)/shuffle/page": "app/(app)/shuffle/page.js",
   "/page": "app/page.js"
 }

@@ -1,7 +1,7 @@
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, setDoc, serverTimestamp as firestoreServerTimestamp, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED, clearIndexedDbPersistence } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, serverTimestamp as firestoreServerTimestamp, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED, clearIndexedDbPersistence, terminate } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getDatabase, ref, onValue, set, onDisconnect, serverTimestamp as rtdbServerTimestamp, goOffline, goOnline } from 'firebase/database';
 import 'firebase/compat/firestore';
@@ -55,6 +55,8 @@ if (typeof window !== 'undefined') {
 
 export const clearCache = async () => {
     try {
+        // Terminate Firestore to allow cache clearing
+        await terminate(db);
         // Clear Firestore offline persistence
         await clearIndexedDbPersistence(db);
         
