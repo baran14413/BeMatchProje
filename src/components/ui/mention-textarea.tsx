@@ -153,4 +153,3 @@ export const MentionTextarea: React.FC<MentionTextareaProps> = ({
     </div>
   );
 };
-

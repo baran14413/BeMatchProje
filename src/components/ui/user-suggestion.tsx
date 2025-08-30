@@ -72,4 +72,3 @@ export const SuggestionList: React.FC<SuggestionListProps> = ({ children }) => {
         </div>
     )
 }
-

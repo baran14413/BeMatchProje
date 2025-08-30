@@ -42,6 +42,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 
 type Post = {
     id: string;
@@ -511,34 +513,78 @@ export default function UserProfilePage() {
         <Separator />
 
         {/* Posts Section */}
-        <div>
-             {showGalleryContent ? (
-                <div>
-                    {userPosts.length > 0 ? (
-                        userPosts.map((post) => <PostCard key={post.id} post={post} user={userProfile} />)
+         <Tabs defaultValue="grid" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="grid"><Grid3x3 /></TabsTrigger>
+                <TabsTrigger value="list"><List /></TabsTrigger>
+            </TabsList>
+            <TabsContent value="grid">
+                 {showGalleryContent ? (
+                    userPosts.length > 0 ? (
+                        <div className="grid grid-cols-3 gap-1">
+                            {userPosts.filter(p=> p.type === 'photo').map(post => (
+                                <Link href="#" key={post.id} className="relative aspect-square group">
+                                     <Image
+                                        src={post.url!}
+                                        alt={post.caption || `Post by ${userProfile.name}`}
+                                        fill
+                                        className="object-cover"
+                                        data-ai-hint={post.aiHint}
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-4">
+                                        <div className="flex items-center gap-1">
+                                            <Heart className="w-4 h-4" />
+                                            <span className="text-sm font-semibold">{post.likes}</span>
+                                        </div>
+                                         <div className="flex items-center gap-1">
+                                            <MessageSquare className="w-4 h-4" />
+                                            <span className="text-sm font-semibold">{post.commentsCount}</span>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
                     ) : (
                         <div className="text-center py-10 text-muted-foreground">
                             <p>Henüz gönderi yok.</p>
                         </div>
-                    )}
-                </div>
-            ) : (
-                 <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4 rounded-lg border-2 border-dashed">
-                    <Lock className="w-12 h-12 text-muted-foreground/50"/>
-                    <h3 className="font-bold text-lg text-foreground">Bu Galeri Gizli</h3>
-                    <p className="text-sm max-w-xs">
-                        {userProfile.name} kullanıcısının gönderilerini görmek için erişim izni istemeniz gerekiyor.
-                    </p>
-                    <Button 
-                        onClick={handleRequestAccess} 
-                        disabled={requestStatus !== 'idle'}
-                    >
-                        {requestStatus === 'loading' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {requestStatus === 'sent' ? 'İstek Gönderildi' : 'İzin İste'}
-                    </Button>
-                </div>
-            )}
-        </div>
+                    )
+                ) : (
+                     <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4 rounded-lg border-2 border-dashed">
+                        <Lock className="w-12 h-12 text-muted-foreground/50"/>
+                        <h3 className="font-bold text-lg text-foreground">Bu Galeri Gizli</h3>
+                        <p className="text-sm max-w-xs">
+                            {userProfile.name} kullanıcısının gönderilerini görmek için erişim izni istemeniz gerekiyor.
+                        </p>
+                        <Button 
+                            onClick={handleRequestAccess} 
+                            disabled={requestStatus !== 'idle'}
+                        >
+                            {requestStatus === 'loading' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {requestStatus === 'sent' ? 'İstek Gönderildi' : 'İzin İste'}
+                        </Button>
+                    </div>
+                )}
+            </TabsContent>
+            <TabsContent value="list">
+                 {showGalleryContent ? (
+                    <div>
+                        {userPosts.length > 0 ? (
+                            userPosts.map((post) => <PostCard key={post.id} post={post} user={userProfile} />)
+                        ) : (
+                            <div className="text-center py-10 text-muted-foreground">
+                                <p>Henüz gönderi yok.</p>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                     <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4 rounded-lg border-2 border-dashed">
+                        <Lock className="w-12 h-12 text-muted-foreground/50"/>
+                        <h3 className="font-bold text-lg text-foreground">Bu Galeri Gizli</h3>
+                    </div>
+                )}
+            </TabsContent>
+        </Tabs>
       </div>
       
        <Sheet open={isListSheetOpen} onOpenChange={setIsListSheetOpen}>

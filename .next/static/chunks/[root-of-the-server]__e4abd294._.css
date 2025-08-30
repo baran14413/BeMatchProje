@@ -1937,6 +1937,10 @@ img {
   background-color: #eab30833;
 }
 
+.bg-black\/40 {
+  background-color: #0006;
+}
+
 .bg-gradient-to-br {
   background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
 }

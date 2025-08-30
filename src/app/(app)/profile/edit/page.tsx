@@ -52,12 +52,10 @@ interface SettingsItemProps {
   isLast?: boolean;
 }
 
-const SettingsItem: React.FC<SettingsItemProps> = ({ icon, title, href, onClick, value, isFirst, isLast }) => {
+const SettingsItem: React.FC<SettingsItemProps> = ({ icon, title, href, onClick, value }) => {
   const content = (
     <div className={cn(
       "flex items-center p-4 transition-colors hover:bg-muted/50",
-       isFirst && "rounded-t-lg",
-       isLast && "rounded-b-lg",
        onClick && "cursor-pointer"
     )} onClick={onClick}>
       <div className="mr-4 text-muted-foreground">{icon}</div>
@@ -70,9 +68,9 @@ const SettingsItem: React.FC<SettingsItemProps> = ({ icon, title, href, onClick,
   );
 
   if (href && !onClick) {
-    return <Link href={href}>{content}</Link>;
+    return <Link href={href} className="block">{content}</Link>;
   }
-  return content;
+  return <div className="block">{content}</div>;
 };
 
 const SectionTitle = ({ title }: { title: string }) => (
@@ -188,10 +186,8 @@ export default function EditProfilePage() {
                                 icon={item.icon} 
                                 title={item.title} 
                                 href={item.href}
-                                isFirst={index === 0}
-                                isLast={index === accountItems.length -1}
                             />
-                            {index < accountItems.length - 1 && <Separator className="bg-border/50" />}
+                            {index < accountItems.length - 1 && <Separator />}
                         </React.Fragment>
                     ))}
                 </CardContent>
@@ -207,10 +203,8 @@ export default function EditProfilePage() {
                                 icon={item.icon} 
                                 title={item.title} 
                                 href={item.href}
-                                isFirst={index === 0}
-                                isLast={index === premiumItems.length -1}
                             />
-                            {index < premiumItems.length - 1 && <Separator className="bg-border/50" />}
+                            {index < premiumItems.length - 1 && <Separator />}
                         </React.Fragment>
                     ))}
                 </CardContent>
@@ -226,10 +220,8 @@ export default function EditProfilePage() {
                                 icon={item.icon}
                                 title={item.title}
                                 href={item.href}
-                                isFirst={index === 0}
-                                isLast={index === contentPreferenceItems.length -1}
                             />
-                             {index < contentPreferenceItems.length - 1 && <Separator className="bg-border/50" />}
+                             {index < contentPreferenceItems.length - 1 && <Separator />}
                         </React.Fragment>
                     ))}
                 </CardContent>
@@ -245,10 +237,8 @@ export default function EditProfilePage() {
                                 icon={item.icon}
                                 title={item.title}
                                 href={item.href}
-                                isFirst={index === 0}
-                                isLast={index === privacyAndSecurityItems.length -1}
                             />
-                             {index < privacyAndSecurityItems.length - 1 && <Separator className="bg-border/50" />}
+                             {index < privacyAndSecurityItems.length - 1 && <Separator />}
                         </React.Fragment>
                     ))}
                 </CardContent>
@@ -265,10 +255,8 @@ export default function EditProfilePage() {
                                 title={item.title}
                                 href={item.href}
                                 onClick={item.onClick}
-                                isFirst={index === 0}
-                                isLast={index === applicationItems.length -1}
                             />
-                             {index < applicationItems.length - 1 && <Separator className="bg-border/50" />}
+                             {index < applicationItems.length - 1 && <Separator />}
                         </React.Fragment>
                     ))}
                 </CardContent>
@@ -286,10 +274,8 @@ export default function EditProfilePage() {
                                 title={item.title}
                                 href={item.href}
                                 onClick={item.onClick}
-                                isFirst={index === 0}
-                                isLast={index === aboutItems.length -1}
                             />
-                             {index < aboutItems.length - 1 && <Separator className="bg-border/50" />}
+                             {index < aboutItems.length - 1 && <Separator />}
                         </React.Fragment>
                     ))}
                 </CardContent>
@@ -307,10 +293,8 @@ export default function EditProfilePage() {
                                 title={item.title}
                                 href={item.href}
                                 onClick={item.onClick}
-                                isFirst={index === 0}
-                                isLast={index === otherItems.length -1}
                             />
-                             {index < otherItems.length - 1 && <Separator className="bg-border/50" />}
+                             {index < otherItems.length - 1 && <Separator />}
                         </React.Fragment>
                     ))}
                 </CardContent>

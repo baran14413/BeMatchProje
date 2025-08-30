@@ -91,4 +91,3 @@ export const useHashtagSuggestions = (rawQuery: string | null) => {
 
   return { suggestions, loading };
 };
-
