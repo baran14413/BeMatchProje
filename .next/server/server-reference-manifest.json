@@ -1,58 +1,5 @@
 {
-  "node": {
-    "4089b26089702b1e5adfebade7e2643cec0eef947b": {
-      "workers": {
-        "app/(app)/chat/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/chat/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        },
-        "app/(app)/explore/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/explore/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        },
-        "app/(app)/kesfet/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/kesfet/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        },
-        "app/(app)/match/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/match/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        },
-        "app/(app)/profile/[username]/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/profile/[username]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        },
-        "app/(app)/random-chat/[id]/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/random-chat/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/bot-chat-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        },
-        "app/(app)/shuffle/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/shuffle/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        }
-      },
-      "layer": {
-        "app/(app)/chat/page": "action-browser",
-        "app/(app)/explore/page": "action-browser",
-        "app/(app)/kesfet/page": "action-browser",
-        "app/(app)/match/page": "action-browser",
-        "app/(app)/profile/[username]/page": "action-browser",
-        "app/(app)/random-chat/[id]/page": "action-browser",
-        "app/(app)/shuffle/page": "action-browser"
-      }
-    },
-    "40b255bfd8b59a95f5e0235c9886029314b563b0c9": {
-      "workers": {
-        "app/(app)/random-chat/[id]/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/random-chat/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/bot-chat-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        }
-      },
-      "layer": {
-        "app/(app)/random-chat/[id]/page": "action-browser"
-      }
-    }
-  },
+  "node": {},
   "edge": {},
   "encryptionKey": "RR9qWedF7LKg52rPaWB/UVfEmrz1et13H2Cfbow2Pes="
 }
