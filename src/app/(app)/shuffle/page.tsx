@@ -336,7 +336,7 @@ function ShuffleContent() {
     const IdleUI = () => (
         <div className='w-full max-w-sm flex flex-col items-center'>
             <h1 className="text-3xl font-bold font-headline">Rastgele Eşleşme</h1>
-            <p className="max-w-md mt-2 mb-6 text-muted-foreground mx-auto">
+            <p className="max-w-md mt-2 mb-4 text-muted-foreground mx-auto">
                 Sohbet türünü seçerek sana uygun biriyle tanış.
             </p>
             <div className="mb-4 flex justify-center gap-2">
@@ -449,4 +449,3 @@ export default function ShufflePage() {
         </div>
     );
 }
-
