@@ -31,17 +31,17 @@ import AppLockScreen from '@/components/ui/app-lock-screen';
 
 const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, isActive: boolean, hasNotification?: boolean }) => {
     return (
-        <Link href={href} className="flex flex-col items-center justify-center gap-1 w-full h-full">
-            <motion.div whileTap={{ scale: 0.9 }} className="relative">
+        <Link href={href} className="flex flex-col items-center justify-center gap-1 w-full h-full relative">
+            <motion.div whileTap={{ scale: 0.9 }} className="relative flex flex-col items-center justify-center">
                  {React.cloneElement(icon as React.ReactElement, {
                     className: cn('h-7 w-7 transition-all', isActive ? 'text-primary' : 'text-muted-foreground'),
                     strokeWidth: 2.5
                 })}
-                 <span className={cn("text-xs font-bold", isActive ? 'text-primary' : 'text-foreground')}>
+                 <span className={cn("text-xs transition-colors", isActive ? 'text-primary font-bold' : 'text-foreground')}>
                     {srText}
                 </span>
                 {hasNotification && (
-                    <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500" />
+                    <span className="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500" />
                 )}
             </motion.div>
         </Link>
@@ -171,7 +171,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
       orderBy('createdAt', 'desc'),
       limit(1)
     );
-    const unsubscribeNotifications = onSnapshot(notificationsQuery, (snapshot) => {
+    const unsubscribeNotifications = onSnapshot(notificationsQuery, async (snapshot) => {
       if (!snapshot.empty) {
         const newNotifDoc = snapshot.docs[0];
         const newNotif = newNotifDoc.data();
@@ -190,7 +190,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
           // Mark as read after showing
           const notifRef = doc(db, 'notifications', newNotifId);
-          updateDoc(notifRef, { read: true });
+          await updateDoc(notifRef, { read: true });
 
           setTimeout(() => {
             setShowNotification(false);
@@ -405,10 +405,11 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 "h-[var(--bottom-nav-height)]",
                 isScrolling && "translate-y-full"
             )}>
-                <div className="grid h-full grid-cols-4">
-                    <NavButton href="/shuffle" icon={<Shuffle />} srText="Karıştır" isActive={pathname === '/shuffle'} />
+                <div className="grid h-full grid-cols-5">
                     <NavButton href="/match" icon={<Home />} srText="Ana Sayfa" isActive={pathname === '/match'} />
+                    <NavButton href="/shuffle" icon={<Shuffle />} srText="Karıştır" isActive={pathname === '/shuffle'} />
                     <NavButton href="/explore" icon={<Globe />} srText="Keşfet" isActive={pathname === '/explore'} />
+                    <NavButton href="/chat" icon={<MessageCircle />} srText="Sohbet" isActive={pathname.startsWith('/chat')} hasNotification={hasUnreadMessages}/>
                     <NavButton href={`/profile/${currentUserProfile?.username ?? ''}`} icon={<User />} srText="Profil" isActive={pathname.startsWith('/profile')} />
                 </div>
             </nav>
@@ -426,5 +427,3 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
-
-    

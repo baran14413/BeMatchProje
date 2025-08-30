@@ -194,7 +194,7 @@ export default function ChatPage() {
             });
         }
         
-        const convos = querySnapshot.docs.map(docSnap => {
+        const convosPromises = querySnapshot.docs.map(async (docSnap) => {
             const data = docSnap.data();
             const otherUserId = data.users.find((uid: string) => uid !== currentUser.uid);
             
@@ -203,7 +203,16 @@ export default function ChatPage() {
                unreadCount = 1; // Simplified: 1 indicates "new messages", not an exact count.
             }
             
-            const otherUser = otherUserId ? usersData[otherUserId] : null;
+            let otherUser: UserData | null = otherUserId ? usersData[otherUserId] : null;
+
+            // Ensure otherUser data is fetched if not already in the map (real-time additions)
+            if (otherUserId && !otherUser) {
+                const userDocSnap = await getDoc(doc(db, 'users', otherUserId));
+                if (userDocSnap.exists()) {
+                    otherUser = { ...userDocSnap.data(), uid: userDocSnap.id } as UserData;
+                }
+            }
+
 
             if (otherUser) {
                  return {
@@ -217,7 +226,10 @@ export default function ChatPage() {
             }
             return null;
 
-        }).filter((c): c is Conversation => c !== null);
+        });
+        
+        const convos = (await Promise.all(convosPromises)).filter((c): c is Conversation => c !== null);
+
 
         convos.sort((a, b) => {
             if (a.isPinned !== b.isPinned) {
@@ -710,58 +722,19 @@ export default function ChatPage() {
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     };
 
-    const isAnySelectedPinned = conversations.some(c => selectedIds.has(c.id) && c.isPinned);
-    const isAnySelectedMuted = conversations.some(c => selectedIds.has(c.id) && c.isMuted);
+    const onlineUsers = conversations.filter(c => c.otherUser.isOnline);
 
-    const renderOnlineStatus = () => {
-        if (!activeChat) return null;
-        if (activeChat.otherUser.isOnline) {
-            return <p className='text-xs text-green-500'>Çevrimiçi</p>;
-        }
-        if (activeChat.otherUser.lastSeen) {
-            return <p className='text-xs text-muted-foreground'>{formatRelativeTime(activeChat.otherUser.lastSeen.toDate())} aktifti</p>;
-        }
-        return <p className='text-xs text-muted-foreground'>Çevrimdışı</p>;
-    };
-
-
-  return (
+    return (
     <div className="flex h-screen bg-background text-foreground">
       <aside className={cn(
         "w-full flex-col h-full flex md:border-r",
         isChatViewOpen ? "hidden md:flex md:w-1/3" : "flex",
       )}>
-        <header className="flex items-center gap-4 p-3 border-b bg-card shrink-0 sticky top-0">
-            {isEditMode ? (
-                <>
-                   <div className='flex items-center gap-2'>
-                       <Button variant="ghost" size="icon" className="rounded-full" onClick={handleDelete} disabled={selectedIds.size === 0}>
-                           <Trash2 className="w-5 h-5"/>
-                       </Button>
-                        <Button variant="ghost" size="icon" className="rounded-full" onClick={handleToggleMute} disabled={selectedIds.size === 0}>
-                           <BellOff className="w-5 h-5"/>
-                           <span className='sr-only'>{isAnySelectedMuted ? "Sessizden Al" : "Sessize Al"}</span>
-                       </Button>
-                        <Button variant="ghost" size="icon" className="rounded-full" onClick={handleTogglePin} disabled={selectedIds.size === 0}>
-                           {isAnySelectedPinned ? <PinOff className="w-5 h-5" /> : <Pin className="w-5 h-5"/>}
-                           <span className='sr-only'>{isAnySelectedPinned ? "Sabitlemeyi Kaldır" : "Sabitle"}</span>
-                       </Button>
-                   </div>
-                   <div className='flex-1 text-center font-semibold'>
-                        {selectedIds.size > 0 ? `${selectedIds.size} seçildi` : "Öğe seçin"}
-                   </div>
-                   <Button variant="ghost" size="icon" className="rounded-full" onClick={handleToggleEditMode}>
-                       <X className="w-5 h-5"/>
-                   </Button>
-                </>
-            ) : (
-                 <>
-                    <h2 className="text-xl font-bold font-headline flex-1">Sohbetler</h2>
-                    <Button variant="ghost" size="icon" className="rounded-full" onClick={handleToggleEditMode}>
-                        <Pencil className="w-5 h-5"/>
-                    </Button>
-                 </>
-            )}
+        <header className="flex items-center gap-4 p-4 border-b bg-card shrink-0 sticky top-0">
+            <h2 className="text-xl font-bold flex-1">{currentUser?.displayName}</h2>
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={handleToggleEditMode}>
+                <Pencil className="w-5 h-5"/>
+            </Button>
         </header>
 
         <div className='flex-1 flex flex-col'>
@@ -771,12 +744,42 @@ export default function ChatPage() {
                     <Input placeholder="Ara..." className="pl-8" />
                 </div>
             </div>
+
+             {/* Online Users */}
+            {loading ? (
+                <div className="p-4"><Skeleton className="h-24 w-full" /></div>
+            ) : onlineUsers.length > 0 && (
+                 <div className="p-4 border-b">
+                    <ScrollArea className="w-full whitespace-nowrap">
+                        <div className="flex gap-4">
+                        {onlineUsers.map(convo => (
+                            <Link href={`/chat?conversationId=${convo.id}`} key={convo.id} className="flex flex-col items-center gap-2 w-20 text-center">
+                                <div className="relative">
+                                    <Avatar className="w-16 h-16 border-2 border-primary">
+                                        <AvatarImage src={convo.otherUser.avatarUrl} />
+                                        <AvatarFallback>{convo.otherUser.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                     <div className='absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-background'/>
+                                </div>
+                                <p className="text-xs font-medium truncate w-full">{convo.otherUser.name}</p>
+                            </Link>
+                        ))}
+                        </div>
+                    </ScrollArea>
+                </div>
+            )}
+            
+            <div className='p-4 flex justify-between items-center'>
+                 <h3 className="text-lg font-bold">Mesajlar</h3>
+                 <Link href="#" className='text-sm font-semibold text-primary'>İstekler</Link>
+            </div>
+
             <ScrollArea className="flex-1">
             {loading ? (
                 <div className="p-4 space-y-4">
                     {[...Array(5)].map((_, i) => (
-                        <div key={i} className="flex items-center gap-3">
-                            <Skeleton className="w-12 h-12 rounded-full" />
+                        <div key={i} className="flex items-center gap-4">
+                            <Skeleton className="w-14 h-14 rounded-full" />
                             <div className="flex-1 space-y-2">
                                 <Skeleton className="h-4 w-24" />
                                 <Skeleton className="h-4 w-48" />
@@ -789,43 +792,29 @@ export default function ChatPage() {
                     <div
                     key={convo.id}
                     className={cn(
-                        'flex items-center gap-3 p-4 cursor-pointer transition-colors relative',
-                        selectedIds.has(convo.id) ? 'bg-primary/20' : 'hover:bg-muted/50',
-                        convo.unreadCount > 0 && !convo.isMuted && 'bg-primary/5',
-                        activeChat?.id === convo.id && 'bg-muted'
+                        'flex items-center gap-4 p-4 cursor-pointer transition-colors relative hover:bg-muted/50',
+                         activeChat?.id === convo.id && 'bg-muted'
                     )}
                     onClick={() => handleItemClick(convo)}
                     >
-                    {convo.isPinned && <Pin className="w-4 h-4 text-muted-foreground absolute top-2 right-2" />}
-                    {isEditMode && (
-                      <Checkbox
-                        checked={selectedIds.has(convo.id)}
-                        onCheckedChange={() => handleItemClick(convo)}
-                        className="h-5 w-5"
-                      />
-                    )}
-                    <div className='relative'>
-                        <Avatar className='w-12 h-12'>
-                        <AvatarImage src={convo.otherUser.avatarUrl} data-ai-hint={convo.otherUser.name} />
-                        <AvatarFallback>{convo.otherUser.name?.charAt(0) || '?'}</AvatarFallback>
-                        </Avatar>
-                        {convo.otherUser.isOnline && <div className='absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background'/>}
-                    </div>
+                    <Avatar className='w-14 h-14 border-2 border-primary/20'>
+                    <AvatarImage src={convo.otherUser.avatarUrl} data-ai-hint={convo.otherUser.name} />
+                    <AvatarFallback>{convo.otherUser.name?.charAt(0) || '?'}</AvatarFallback>
+                    </Avatar>
+
                     <div className="flex-1 overflow-hidden">
-                        <div className="flex justify-between items-center">
-                            <p className={cn("truncate", convo.unreadCount > 0 && !convo.isMuted ? "font-bold" : "font-semibold")}>{convo.otherUser.name}</p>
-                             <span className="text-xs text-muted-foreground font-mono whitespace-nowrap ml-2">{formatRelativeTime(convo.lastMessage?.timestamp?.toDate() || null)}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                             <p className="text-sm text-muted-foreground truncate">@{convo.otherUser.username}</p>
-                             <div className="flex flex-col items-end gap-1 self-start">
-                                {convo.unreadCount > 0 && !convo.isMuted && (
-                                    <Badge className="bg-green-500 text-white w-5 h-5 flex items-center justify-center p-0 text-xs">{convo.unreadCount}</Badge>
-                                )}
-                                {convo.isMuted && <BellOff className="w-4 h-4 text-muted-foreground" />}
-                             </div>
-                        </div>
+                        <p className={cn("truncate", convo.unreadCount > 0 && !convo.isMuted ? "font-bold" : "font-semibold")}>{convo.otherUser.name}</p>
+                        <p className="text-sm text-muted-foreground truncate">
+                         {convo.lastMessage?.text || 'Henüz mesaj yok.'}
+                        </p>
                     </div>
+                     <div className="flex flex-col items-end gap-1 self-start">
+                        <span className="text-xs text-muted-foreground font-mono whitespace-nowrap ml-2">{formatRelativeTime(convo.lastMessage?.timestamp?.toDate() || null)}</span>
+                        {convo.unreadCount > 0 && !convo.isMuted && (
+                            <div className="w-2.5 h-2.5 bg-blue-500 rounded-full mt-1"></div>
+                        )}
+                        {convo.isMuted && <BellOff className="w-4 h-4 text-muted-foreground mt-1" />}
+                     </div>
                     </div>
                 ))
             ) : (
