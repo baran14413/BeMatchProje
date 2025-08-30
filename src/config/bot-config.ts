@@ -1,8 +1,8 @@
 
 /**
- * @fileOverview This file contains the configuration for the chat bots.
- * It includes a list of Turkish female names for the bots and a set of
- * predefined replies they can use in conversations.
+ * @fileOverview Bu dosya, sohbet botlarının yapılandırmasını içerir.
+ * Botlar için Türkçe kadın isimleri listesini ve sohbetlerde
+ * kullanabilecekleri önceden tanımlanmış bir dizi yanıtı barındırır.
  */
 
 export const botNames: string[] = [
