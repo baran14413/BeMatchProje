@@ -3828,6 +3828,10 @@ img {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
+  .md\:gap-8 {
+    gap: 2rem;
+  }
+
   .md\:rounded-xl {
     border-radius: .75rem;
   }

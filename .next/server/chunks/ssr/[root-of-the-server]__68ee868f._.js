@@ -308,7 +308,7 @@ function Home() {
             await new Promise((resolve)=>setTimeout(resolve, 100));
             if (user) {
                 // User is logged in, redirect to the main app experience
-                router.replace('/match');
+                router.replace('/explore');
             } else {
                 // User is not logged in, redirect to the login page
                 router.replace('/login');

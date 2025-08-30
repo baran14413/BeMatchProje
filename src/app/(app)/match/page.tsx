@@ -75,7 +75,7 @@ export default function MatchPage() {
   return (
     <Sheet onOpenChange={(open) => !open && setPreviewUser(null)}>
         <header className="flex items-center gap-4 p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10 md:hidden">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+            <Button variant="ghost" size="icon" onClick={() => router.push('/kesfet')}>
                 <ArrowLeft className="w-5 h-5"/>
             </Button>
             <h1 className="text-xl font-bold">Yakınındaki Kişiler</h1>

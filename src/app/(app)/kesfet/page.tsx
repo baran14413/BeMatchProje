@@ -3,7 +3,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Shuffle, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -79,7 +79,7 @@ export default function DiscoveryPage() {
                     BeMatch'in sunduğu farklı tanışma deneyimlerini buradan keşfet.
                 </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8">
                 {features.map((feature, index) => (
                     <DiscoveryCard key={index} custom={index} {...feature} />
                 ))}

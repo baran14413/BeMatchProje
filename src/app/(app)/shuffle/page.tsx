@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { db, auth } from '@/lib/firebase';
 import { collection, query, where, getDocs, limit, doc, setDoc, serverTimestamp, deleteDoc, onSnapshot, getDoc, runTransaction, DocumentData, orderBy, updateDoc, increment, collectionGroup } from 'firebase/firestore';
-import { Loader2, Sparkles, Zap, ThumbsUp, ThumbsDown, Info, Crown, Bot } from 'lucide-react';
+import { Loader2, Sparkles, Zap, ThumbsUp, ThumbsDown, Info, Crown, Bot, ArrowLeft } from 'lucide-react';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -394,8 +394,14 @@ function ShuffleContent() {
 }
 
 export default function ShufflePage() {
+    const router = useRouter();
     return (
         <div className="flex flex-col items-center justify-center h-full p-4 text-center relative overflow-hidden">
+             <header className="absolute top-0 left-0 right-0 p-4 flex items-center">
+                <Button variant="ghost" size="icon" onClick={() => router.push('/kesfet')}>
+                    <ArrowLeft className="w-6 h-6" />
+                </Button>
+             </header>
              <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] dark:opacity-[0.05]"></div>
             <Suspense fallback={<Loader2 className="w-12 h-12 text-primary animate-spin" />}>
                 <ShuffleContent />
@@ -403,5 +409,3 @@ export default function ShufflePage() {
         </div>
     );
 }
-
-    
