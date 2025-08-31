@@ -573,7 +573,8 @@ export default function ChatPage() {
     const handleDeleteMessageForEveryone = async (messageId: string) => {
         if (!activeChat || !messageId) return;
         const messageRef = doc(db, 'conversations', activeChat.id, 'messages', messageId);
-        await updateDoc(messageRef, { text: "Bu mesaj silindi.", imageUrl: undefined, audioUrl: undefined, isDeleted: true, reaction: null });
+        // Remove the imageUrl and audioUrl fields by not including them in the update.
+        await updateDoc(messageRef, { text: "Bu mesaj silindi.", isDeleted: true, reaction: null });
         setMenuOpenFor(null);
     };
 
