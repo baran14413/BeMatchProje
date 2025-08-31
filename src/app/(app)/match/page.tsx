@@ -8,37 +8,31 @@ import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import Image from 'next/image';
-import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
 
 type UserProfile = {
   uid: string;
   name: string;
   username: string;
-  age: number;
-  bio: string;
   avatarUrl: string;
   hobbies: string[];
 };
 
-const UserCardSkeleton = () => (
-    <Card className="w-full">
-         <CardContent className="flex items-center gap-4 p-4">
-            <Skeleton className="w-20 h-20 rounded-full" />
-            <div className="flex-1 space-y-2">
-                <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-8 w-40" />
-            </div>
-             <div className="flex flex-col gap-2">
-                <Skeleton className="h-9 w-24" />
-                <Skeleton className="h-9 w-24" />
-            </div>
-         </CardContent>
-    </Card>
+const UserRowSkeleton = () => (
+    <div className="flex items-center gap-4 p-4">
+        <Skeleton className="w-16 h-16 rounded-full" />
+        <div className="flex-1 space-y-2">
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-8 w-40" />
+        </div>
+        <div className="flex flex-col gap-2">
+            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-9 w-24" />
+        </div>
+    </div>
 );
 
 export default function MatchPage() {
@@ -67,9 +61,7 @@ export default function MatchPage() {
                 uid: doc.id,
                 name: data.name || 'Bilinmiyor',
                 username: data.username || 'kullanici',
-                age: data.age || '?',
-                bio: data.bio || '',
-                avatarUrl: data.avatarUrl || 'https://placehold.co/600x800.png',
+                avatarUrl: data.avatarUrl || 'https://placehold.co/128x128.png',
                 hobbies: data.hobbies || []
             }
         }) as UserProfile[];
@@ -93,18 +85,9 @@ export default function MatchPage() {
 
 
   return (
-    <div className="container mx-auto max-w-2xl p-4 md:p-8">
-       <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold font-headline mb-4 text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">
-                Yeni Kişileri Keşfet
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Aramıza yeni katılan veya sana uygun olabileceğini düşündüğümüz profiller.
-            </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4">
-            {loading && Array.from({length: 5}).map((_, i) => <UserCardSkeleton key={i} />)}
+    <div className="w-full">
+        <div className="flex flex-col">
+            {loading && Array.from({length: 8}).map((_, i) => <UserRowSkeleton key={i} />)}
             
             {!loading && users.length === 0 && (
                  <div className="col-span-full text-center text-muted-foreground py-20">
@@ -114,33 +97,35 @@ export default function MatchPage() {
             )}
 
             {!loading && users.map((user) => (
-                 <Card key={user.uid} className="w-full">
-                    <CardContent className="flex items-center gap-4 p-4">
-                        <Avatar className='w-20 h-20'>
-                            <AvatarImage src={user.avatarUrl} alt={user.name} />
-                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 overflow-hidden">
-                            <h3 className="font-bold text-lg truncate">{user.name.split(' ')[0]}</h3>
-                            <p className="text-sm text-muted-foreground">@{user.username}</p>
-                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{user.bio}</p>
+                 <div key={user.uid} className="flex items-center gap-4 p-4 border-b">
+                    <Avatar className='w-16 h-16'>
+                        <AvatarImage src={user.avatarUrl} alt={user.name} />
+                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 overflow-hidden">
+                        <h3 className="font-bold text-lg truncate">{user.name.split(' ')[0]}</h3>
+                        <p className="text-sm text-muted-foreground">@{user.username}</p>
+                         <div className="flex flex-wrap gap-1 mt-2">
+                            {user.hobbies.map((hobby) => (
+                                <Badge key={hobby} variant="secondary">{hobby}</Badge>
+                            ))}
                         </div>
-                        <div className="flex flex-col gap-2 shrink-0">
-                           <Link href={`/chat?userId=${user.uid}`}>
-                                <Button size="sm" className="w-full">
-                                    <MessageCircle className="mr-2 h-4 w-4" />
-                                    Mesaj
-                                </Button>
-                            </Link>
-                             <Link href={`/profile/${user.username}`}>
-                                <Button size="sm" variant="outline" className="w-full">
-                                    <User className="mr-2 h-4 w-4" />
-                                    Profil
-                                </Button>
-                            </Link>
-                        </div>
-                    </CardContent>
-                 </Card>
+                    </div>
+                    <div className="flex flex-col gap-2 shrink-0">
+                       <Link href={`/chat?userId=${user.uid}`}>
+                            <Button size="sm" className="w-full">
+                                <MessageCircle className="mr-2 h-4 w-4" />
+                                Mesaj
+                            </Button>
+                        </Link>
+                         <Link href={`/profile/${user.username}`}>
+                            <Button size="sm" variant="outline" className="w-full">
+                                <User className="mr-2 h-4 w-4" />
+                                Profil
+                            </Button>
+                        </Link>
+                    </div>
+                 </div>
             ))}
         </div>
     </div>
