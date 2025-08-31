@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { Loader2 } from 'lucide-react';
 
 export default function Home() {
     const router = useRouter();
@@ -16,7 +17,7 @@ export default function Home() {
             
             if (user) {
                 // User is logged in, redirect to the main app experience
-                router.replace('/explore');
+                router.replace('/match');
             } else {
                 // User is not logged in, redirect to the login page
                 router.replace('/login');
@@ -28,7 +29,7 @@ export default function Home() {
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-center bg-background p-8">
-            <div className="text-4xl font-bold text-primary animate-pulse tracking-widest">...</div>
+            <Loader2 className="h-16 w-16 animate-spin text-primary" />
         </main>
     );
 }
