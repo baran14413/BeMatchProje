@@ -1,3 +1,5 @@
 {
+  "/(app)/admin/page": "app/(app)/admin/page.js",
+  "/(app)/explore/page": "app/(app)/explore/page.js",
   "/page": "app/page.js"
 }

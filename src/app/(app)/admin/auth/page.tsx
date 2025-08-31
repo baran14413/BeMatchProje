@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { KeyRound, ShieldAlert, Lock, Camera, Loader2, AlertTriangle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
@@ -235,4 +236,3 @@ export default function AdminAuthPage({ onAuthenticated }: AdminAuthPageProps) {
         </main>
     );
 }
-
