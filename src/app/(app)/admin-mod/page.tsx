@@ -2,63 +2,46 @@
 'use client';
 
 import React from 'react';
-import {
-  ChevronRight,
-  ShieldHalf,
-  MessageSquareWarning,
-} from 'lucide-react';
+import { ChevronRight, ShieldHalf, MessageSquareWarning } from 'lucide-react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface AdminMenuItemProps {
+interface AdminCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
   href: string;
 }
 
-const AdminMenuItem: React.FC<AdminMenuItemProps> = ({ icon, title, description, href }) => {
+const AdminCard: React.FC<AdminCardProps> = ({ icon, title, description, href }) => {
   return (
-    <Link href={href} className="block hover:bg-muted/50 rounded-lg">
-        <div className="flex items-center p-4">
-            <div className="mr-4 text-primary">{icon}</div>
-            <div className="flex-1">
-                <p className="font-semibold">{title}</p>
-                <p className="text-sm text-muted-foreground">{description}</p>
+    <Link href={href} className="block group">
+      <Card className="h-full hover:border-primary transition-colors hover:shadow-lg">
+        <CardHeader>
+            <div className="flex justify-between items-start">
+                 <div className="p-3 bg-muted rounded-md mb-4">{icon}</div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
             </div>
-            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-        </div>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </CardHeader>
+      </Card>
     </Link>
   );
 };
 
 export default function AdminModDashboardPage() {
-
-    const moderationItems = [
-        { icon: <MessageSquareWarning className="h-7 w-7" />, title: 'Şikayet Yönetimi', description: 'Kullanıcılar tarafından şikayet edilen içerikleri inceleyin.', href: '/admin-mod/reported-content' },
-    ];
+  const moderationItems = [
+    { icon: <MessageSquareWarning className="h-7 w-7 text-primary" />, title: 'Şikayet Yönetimi', description: 'Kullanıcılar tarafından şikayet edilen içerikleri inceleyin.', href: '/admin-mod/reported-content' },
+  ];
 
   return (
     <div className="space-y-6">
-        <Card className="overflow-hidden">
-            <CardHeader className='bg-muted/30'>
-                <div className="flex items-center gap-3">
-                     <ShieldHalf className="h-8 w-8 text-primary"/>
-                    <div>
-                        <CardTitle>Moderatör Paneli</CardTitle>
-                    </div>
-                </div>
-            </CardHeader>
-            <CardContent className="p-0">
-                {moderationItems.map((item, index) => (
-                    <React.Fragment key={item.title}>
-                        <AdminMenuItem {...item} />
-                        {index < moderationItems.length - 1 && <Separator />}
-                    </React.Fragment>
-                ))}
-            </CardContent>
-        </Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {moderationItems.map((item, index) => (
+            <AdminCard key={index} {...item} />
+          ))}
+      </div>
     </div>
   );
 }
