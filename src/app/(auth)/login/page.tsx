@@ -37,7 +37,7 @@ export default function LoginPage() {
         title: 'Giriş Başarılı!',
         className: 'bg-green-500 text-white',
       });
-      router.push('/explore');
+      router.push('/match');
     } catch (error: any) {
       console.error('Login error', error);
       toast({

@@ -69,7 +69,7 @@ export default function TutorialPage() {
       setDirection(1);
       setStep(step + 1);
     } else {
-      router.push('/explore');
+      router.push('/match');
     }
   };
 

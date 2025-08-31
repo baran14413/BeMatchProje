@@ -18,7 +18,7 @@ export default function Home() {
             
             if (user) {
                 // User is logged in, redirect to the main app experience
-                router.replace('/explore');
+                router.replace('/match');
             } else {
                 // User is not logged in, redirect to the login page
                 router.replace('/login');
