@@ -358,7 +358,7 @@ export default function ExplorePage() {
                     } as Comment
                 });
 
-                setPosts(prevPosts => prevPosts.map(p => p.id === post.id ? { ...p, comments } : p));
+                setActivePostForComments(prevPost => prevPost ? { ...prevPost, comments } : null);
                 
             } catch (error) {
                  console.error("Error fetching comments:", error);
@@ -406,13 +406,13 @@ export default function ExplorePage() {
                         avatar: currentUser.photoURL,
                     },
                     type: 'comment',
-                    postType: activePostForComments.type,
                     postId: activePostForComments.id,
                     content: newCommentData.text.substring(0, 50),
                     read: false,
                     createdAt: serverTimestamp(),
                 });
             }
+
 
             const newCommentForUI = {
                 ...newCommentData,
@@ -422,19 +422,15 @@ export default function ExplorePage() {
                 liked: false,
             };
 
-            setPosts((prevPosts) =>
-                prevPosts.map((p) =>
-                    p.id === activePostForComments.id
-                        ? {
-                              ...p,
-                              comments: [newCommentForUI, ...p.comments],
-                              commentsCount: p.commentsCount + 1,
-                          }
-                        : p
-                )
-            );
             setActivePostForComments((prev) =>
                 prev ? { ...prev, comments: [newCommentForUI, ...prev.comments], commentsCount: prev.commentsCount + 1 } : null
+            );
+             setPosts((prevPosts) =>
+                prevPosts.map((p) =>
+                    p.id === activePostForComments.id
+                        ? { ...p, commentsCount: p.commentsCount + 1 }
+                        : p
+                )
             );
 
             setCommentInput('');
@@ -490,26 +486,22 @@ export default function ExplorePage() {
 
 
     const handleCommentLikeClick = (postId: string, commentId: string) => {
-        const updatedPosts = posts.map(post => {
-            if (post.id === postId) {
+        if (!activePostForComments) return;
+        
+        const updatedComments = activePostForComments.comments.map(comment => {
+            if (comment.id === commentId) {
                 return {
-                    ...post,
-                    comments: post.comments.map(comment => {
-                        if (comment.id === commentId) {
-                            return {
-                                ...comment,
-                                liked: !comment.liked,
-                                likes: comment.liked ? comment.likes - 1 : comment.likes + 1
-                            };
-                        }
-                        return comment;
-                    })
+                    ...comment,
+                    liked: !comment.liked,
+                    likes: comment.liked ? comment.likes - 1 : comment.likes + 1
                 };
             }
-            return post;
+            return comment;
         });
-        setPosts(updatedPosts);
-        setActivePostForComments(updatedPosts.find(p => p.id === postId) || null);
+
+        setActivePostForComments({ ...activePostForComments, comments: updatedComments });
+
+        // This is an optimistic update. In a real app, you'd also update Firestore.
     };
     
 
