@@ -360,7 +360,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                       ) : (
                            <motion.div
                               key="title"
-                              initial={{ x: "-100%", opacity: 0 }}
+                              initial={{ x: 0, opacity: 1 }}
                               animate={{ x: 0, opacity: 1 }}
                               exit={{ x: "-100%", opacity: 0 }}
                               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
@@ -444,9 +444,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 isScrolling && "translate-y-full"
             )}>
                 <div className="grid h-full grid-cols-3">
-                    <NavButton href="/shuffle" icon={<Shuffle />} srText="Eşleş" isActive={pathname === '/shuffle'} />
-                    <NavButton href="/match" icon={<Home />} srText="Ana Sayfa" isActive={pathname === '/match'} />
-                    <NavButton href="/explore" icon={<Globe />} srText="Keşfet" isActive={pathname === '/explore'} />
+                    <NavButton href="/explore" icon={<Home />} srText="Ana Sayfa" isActive={pathname === '/explore'} />
+                    <NavButton href="/kesfet" icon={<Globe />} srText="Keşfet" isActive={pathname === '/kesfet'} />
+                    <NavButton href="/profile" icon={<User />} srText="Profile" isActive={pathname.startsWith('/profile')} />
                 </div>
             </nav>
         )}
