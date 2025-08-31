@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { UserX, Loader2, Trash2, Award } from 'lucide-react';
+import { UserX, Loader2, Trash2, Award, Gem } from 'lucide-react';
 import { db, auth } from '@/lib/firebase';
 import { collection, getDocs, DocumentData, doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +23,7 @@ type AppUser = DocumentData & {
   avatarUrl: string;
   aiHint?: string;
   isModerator?: boolean;
+  isPremium?: boolean;
 };
 
 
@@ -97,6 +98,24 @@ export default function ManageUsersPage() {
         }
     };
 
+    const handleTogglePremium = async (userToUpdate: AppUser) => {
+        const newStatus = !userToUpdate.isPremium;
+        try {
+            const userDocRef = doc(db, 'users', userToUpdate.uid);
+            await updateDoc(userDocRef, { isPremium: newStatus });
+            
+            setUsers(prev => prev.map(u => 
+                u.uid === userToUpdate.uid ? { ...u, isPremium: newStatus } : u
+            ));
+            
+            toast({ title: "Premium Durumu Güncellendi", description: `${userToUpdate.name} adlı kullanıcı ${newStatus ? 'artık premium üye' : 'artık premium üye değil'}.`, className: 'bg-green-500 text-white' });
+        } catch (error: any) {
+             console.error("Error updating premium status:", error);
+             toast({ variant: 'destructive', title: 'Premium durumu güncellenemedi.', description: error.message });
+        }
+    };
+
+
     return (
         <Card>
             <CardHeader>
@@ -122,12 +141,21 @@ export default function ManageUsersPage() {
                                     <div>
                                         <p className="font-medium flex items-center gap-2">
                                             {user.name}
-                                            {user.isModerator && <Award className="w-4 h-4 text-green-500" />}
+                                            {user.isModerator && <Award className="w-4 h-4 text-green-500" title="Moderatör" />}
+                                            {user.isPremium && <Gem className="w-4 h-4 text-purple-500" title="Premium Üye" />}
                                         </p>
                                         <p className="text-sm text-muted-foreground">{user.email}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
+                                     <Button 
+                                        variant={user.isPremium ? 'secondary' : 'outline'} 
+                                        size="sm"
+                                        onClick={() => handleTogglePremium(user)}
+                                    >
+                                        <Gem className="mr-2 h-4 w-4" />
+                                        {user.isPremium ? 'Premium\'u Al' : 'Premium Ver'}
+                                    </Button>
                                     <Button 
                                         variant={user.isModerator ? 'secondary' : 'outline'} 
                                         size="sm"

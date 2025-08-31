@@ -10,7 +10,8 @@ import {
   ChevronRight,
   MessageSquareWarning,
   Star,
-  Code
+  Code,
+  CreditCard
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,7 +42,8 @@ const AdminCard: React.FC<AdminCardProps> = ({ icon, title, description, href })
 
 export default function AdminDashboardPage() {
     const adminFeatures = [
-        { icon: <Users className="h-7 w-7 text-primary" />, title: 'Kullanıcıları Yönet', description: 'Tüm kullanıcıları görüntüleyin veya silin.', href: '/admin/users' },
+        { icon: <Users className="h-7 w-7 text-primary" />, title: 'Kullanıcıları Yönet', description: 'Tüm kullanıcıları görüntüleyin, silin veya yetkilendirin.', href: '/admin/users' },
+        { icon: <CreditCard className="h-7 w-7 text-primary" />, title: 'Ödeme Onayları', description: 'Kullanıcıların premium ödeme bildirimlerini yönetin.', href: '/admin/payment-confirmations' },
         { icon: <MessageSquareWarning className="h-7 w-7 text-primary" />, title: 'Rapor Edilen İçerikler', description: 'Kullanıcı şikayetlerini inceleyin.', href: '/admin/reported-content' },
         { icon: <Star className="h-7 w-7 text-primary" />, title: 'Geri Bildirimler', description: 'Kullanıcıların uygulama hakkındaki görüşleri.', href: '/admin/feedback' },
         { icon: <ShieldCheck className="h-7 w-7 text-primary" />, title: 'Aktivite Kayıtları', description: 'Son kullanıcı aktivitelerini ve IP adreslerini görüntüleyin.', href: '/admin/activity-logs' },

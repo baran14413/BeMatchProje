@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Star, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, X as XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin, ArrowLeft, Smile, Mic, ListCollapse, Music, Hash, Globe, ChevronRight, Paperclip } from 'lucide-react';
+import { Star, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, X as XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin, ArrowLeft, Smile, Mic, ListCollapse, Music, Hash, Globe, ChevronRight, Paperclip, Crown } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -655,6 +655,7 @@ export default function ExplorePage() {
                                     <Link href={`/profile/${post.user?.username}`} className="font-semibold text-sm truncate hover:underline">
                                         {post.user?.name}
                                     </Link>
+                                    {post.user?.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
                                 </div>
                                 <span className="text-xs text-muted-foreground truncate">@{post.user?.username}</span>
                             </div>
@@ -918,7 +919,10 @@ export default function ExplorePage() {
                                     </Link>
                                     <div className="flex-1 text-sm">
                                         <div className="flex items-baseline gap-2">
-                                            <Link href={`/profile/${comment.user?.username}`} className="font-semibold">{comment.user?.name}</Link>
+                                            <Link href={`/profile/${comment.user?.username}`} className="font-semibold flex items-center gap-1.5">
+                                                {comment.user?.name}
+                                                {comment.user?.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
+                                            </Link>
                                             <span className="text-xs text-muted-foreground font-mono">{comment.createdAt ? formatRelativeTime(comment.createdAt) : ''}</span>
                                         </div>
                                         
