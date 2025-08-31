@@ -185,7 +185,8 @@ function LayoutContent({ children }: { children: ReactNode }) {
                           userName: profileData.name,
                           userAvatar: profileData.avatarUrl,
                           ipAddress: data.ip,
-                          userAgent: navigator.userAgent
+                          userAgent: navigator.userAgent,
+                          activity: 'Giriş yaptı'
                       });
                       activityLoggedRef.current = true;
                     }).catch(err => console.error("Could not fetch IP for logging:", err));
@@ -488,5 +489,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
+
+    
 
     
