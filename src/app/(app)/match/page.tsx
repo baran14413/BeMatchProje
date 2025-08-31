@@ -97,7 +97,7 @@ export default function MatchPage() {
             )}
 
             {!loading && users.map((user) => (
-                 <div key={user.uid} className="flex items-center gap-4 p-4 border-b">
+                 <div key={user.uid} className="flex items-center gap-4 p-4">
                     <Avatar className='w-16 h-16'>
                         <AvatarImage src={user.avatarUrl} alt={user.name} />
                         <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>

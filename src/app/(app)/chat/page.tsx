@@ -794,7 +794,7 @@ export default function ChatPage() {
                     <div
                     key={convo.id}
                     className={cn(
-                        'flex items-center gap-4 p-4 cursor-pointer transition-colors relative hover:bg-muted/50',
+                        'flex items-center gap-4 p-4 cursor-pointer transition-colors relative hover:bg-muted/50 border-b',
                          activeChat?.id === convo.id && 'bg-muted'
                     )}
                     onClick={() => handleItemClick(convo)}
