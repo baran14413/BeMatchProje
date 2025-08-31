@@ -1,9 +1,9 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   SidebarProvider,
   Sidebar,
@@ -23,7 +23,7 @@ import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-
+import AdminAuthPage from './auth/page';
 
 const NavItem = ({ href, icon, label }: { href: string, icon: React.ReactNode, label: string }) => {
     const pathname = usePathname();
@@ -43,6 +43,15 @@ const NavItem = ({ href, icon, label }: { href: string, icon: React.ReactNode, l
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const user = auth.currentUser;
     const pathname = usePathname();
+    const router = useRouter();
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+     useEffect(() => {
+        const adminAuth = sessionStorage.getItem('admin-authenticated');
+        if (adminAuth === 'true') {
+            setIsAuthenticated(true);
+        }
+    }, []);
 
     const getPageTitle = () => {
         if (pathname === '/admin') return 'Yönetim Paneli';
@@ -53,6 +62,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (pathname === '/admin/system-status') return 'Sistem Durumu';
         if (pathname === '/admin/feedback') return 'Geri Bildirimler';
         return 'Panel';
+    }
+
+    if (!isAuthenticated) {
+        return <AdminAuthPage onAuthenticated={() => setIsAuthenticated(true)} />;
     }
 
     return (
