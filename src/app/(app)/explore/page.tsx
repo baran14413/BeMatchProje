@@ -777,13 +777,19 @@ export default function ExplorePage() {
                     )}
 
                     <div className="flex items-center justify-between p-3">
-                        <div className='flex items-center gap-3'>
-                            <Button variant="ghost" size="icon" onClick={() => handleLikeClick(post.id)}>
-                                <Star className="w-6 h-6" fill={post.liked ? 'hsl(var(--yellow-400))' : 'transparent'} stroke={post.liked ? 'hsl(var(--yellow-400))' : 'currentColor'}/>
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleOpenComments(post)}>
-                                <MessageCircle className="w-6 h-6" />
-                            </Button>
+                        <div className="flex items-center gap-4">
+                            <div className="flex flex-col items-center">
+                                <Button variant="ghost" size="icon" onClick={() => handleLikeClick(post.id)}>
+                                    <Star className="w-6 h-6" fill={post.liked ? 'hsl(var(--yellow-400))' : 'transparent'} stroke={post.liked ? 'hsl(var(--yellow-400))' : 'currentColor'}/>
+                                </Button>
+                                <span className="text-xs text-muted-foreground">Yıldız</span>
+                            </div>
+                             <div className="flex flex-col items-center">
+                                <Button variant="ghost" size="icon" onClick={() => handleOpenComments(post)}>
+                                    <MessageCircle className="w-6 h-6" />
+                                </Button>
+                                <span className="text-xs text-muted-foreground">Yorum</span>
+                            </div>
                         </div>
                         <Button variant="ghost" size="icon">
                             <Bookmark className="w-6 h-6" />
