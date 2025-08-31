@@ -53,7 +53,7 @@ export default function AdminAuthPage({ onAuthenticated }: AdminAuthPageProps) {
             if (inputValue === ADMIN_KEY) {
                 setError('');
                 toast({ title: 'Giriş Başarılı!', description: 'Yönetim paneline yönlendiriliyorsunuz...', className: 'bg-green-500 text-white' });
-                sessionStorage.setItem('admin-authenticated', 'true');
+                sessionStorage.setItem('adminAuthTimestamp', Date.now().toString());
                 onAuthenticated();
             } else {
                 handleFailedAttempt('Hatalı Anahtar.');

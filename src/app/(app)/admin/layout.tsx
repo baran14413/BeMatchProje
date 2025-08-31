@@ -11,16 +11,30 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AdminAuthPage from './auth/page';
 
+const FIVE_MINUTES = 5 * 60 * 1000;
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const user = auth.currentUser;
     const router = useRouter();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    // This state is now managed within the layout and does not persist in sessionStorage.
-    // Every time the layout is mounted, the user must re-authenticate.
+    useEffect(() => {
+        const authTimestampStr = sessionStorage.getItem('adminAuthTimestamp');
+        if (authTimestampStr) {
+            const authTimestamp = parseInt(authTimestampStr, 10);
+            if (Date.now() - authTimestamp < FIVE_MINUTES) {
+                setIsAuthenticated(true);
+            }
+        }
+    }, []);
+
+    const handleAuthentication = () => {
+        setIsAuthenticated(true);
+        sessionStorage.setItem('adminAuthTimestamp', Date.now().toString());
+    };
 
     if (!isAuthenticated) {
-        return <AdminAuthPage onAuthenticated={() => setIsAuthenticated(true)} />;
+        return <AdminAuthPage onAuthenticated={handleAuthentication} />;
     }
 
     return (
