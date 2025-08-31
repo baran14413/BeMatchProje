@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { logSuspiciousActivity } from '@/ai/flows/log-suspicious-activity-flow';
 
 const ADMIN_PIN = '2005';
 const ADMIN_KEY = 'baranemir';
+const MAX_ATTEMPTS = 2;
 
 type AuthStep = 'pin' | 'key' | 'face-verify' | 'locked';
 
@@ -28,13 +29,16 @@ export default function AdminAuthPage({ onAuthenticated }: AdminAuthPageProps) {
     const [error, setError] = useState('');
     const { toast } = useToast();
     
+    // State to hold credentials that led to face-verify
+    const [lastAttemptedPin, setLastAttemptedPin] = useState('');
+    const [lastAttemptedKey, setLastAttemptedKey] = useState('');
+    
     // Face verification states
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
     const [isVerifying, setIsVerifying] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     
-
     const handleVerification = () => {
         if (authStep === 'pin') {
             if (inputValue === ADMIN_PIN) {
@@ -59,37 +63,54 @@ export default function AdminAuthPage({ onAuthenticated }: AdminAuthPageProps) {
     
     const handleFailedAttempt = (errorMessage: string) => {
         const newAttempts = attempts + 1;
-        setError(errorMessage);
-        setInputValue('');
+        const remainingAttempts = MAX_ATTEMPTS - newAttempts;
         
-        if (newAttempts >= 2) {
+        if (remainingAttempts <= 0) {
+            // Store the failing credentials before moving to face verification
+            if(authStep === 'pin') setLastAttemptedPin(inputValue);
+            if(authStep === 'key') setLastAttemptedKey(inputValue);
+
             setAuthStep('face-verify');
+            setError(''); // Clear PIN/Key error
             setAttempts(0); // Reset attempts for the next phase
         } else {
+            setError(`${errorMessage} Kalan deneme hakkı: ${remainingAttempts}`);
             setAttempts(newAttempts);
         }
+        setInputValue('');
     };
     
     useEffect(() => {
-        if (authStep === 'face-verify') {
-            const getCameraPermission = async () => {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    setHasCameraPermission(true);
-                    if (videoRef.current) {
-                        videoRef.current.srcObject = stream;
-                    }
-                } catch (err) {
-                    console.error('Error accessing camera:', err);
-                    setHasCameraPermission(false);
+        let stream: MediaStream | null = null;
+        const getCameraPermission = async () => {
+            setHasCameraPermission(null); // Reset on each attempt
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                setHasCameraPermission(true);
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
                 }
-            };
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                setHasCameraPermission(false);
+            }
+        };
+
+        if (authStep === 'face-verify') {
             getCameraPermission();
         }
+
+        return () => {
+            stream?.getTracks().forEach(track => track.stop());
+             if (videoRef.current) {
+                videoRef.current.srcObject = null;
+            }
+        };
     }, [authStep]);
 
+
     const handleCaptureAndVerify = async () => {
-        if (!videoRef.current || !canvasRef.current) return;
+        if (!videoRef.current || !canvasRef.current || !hasCameraPermission) return;
         setIsVerifying(true);
         
         const video = videoRef.current;
@@ -102,17 +123,19 @@ export default function AdminAuthPage({ onAuthenticated }: AdminAuthPageProps) {
 
         try {
             await logSuspiciousActivity({
-                attemptedPin: authStep === 'pin' ? inputValue : 'N/A',
-                attemptedKey: authStep === 'key' ? inputValue : 'N/A',
+                attemptedPin: lastAttemptedPin,
+                attemptedKey: lastAttemptedKey,
                 photoDataUri: photoDataUri,
             });
             
             toast({
                 title: 'Güvenlik Kontrolü Başarılı',
-                description: 'Ek deneme haklarınız tanımlandı.',
+                description: 'Ek deneme haklarınız tanımlandı. Lütfen tekrar deneyin.',
             });
-            setAuthStep('pin'); // Go back to PIN entry
-            setAttempts(-2); // Gives 4 attempts total (since it becomes -1 on next failure)
+            setAuthStep('pin');
+            setInputValue('');
+            setError('');
+            setAttempts(-2); // Gives 4 total attempts, as it increments to -1 on first failure
             
         } catch (error) {
             toast({
@@ -122,9 +145,11 @@ export default function AdminAuthPage({ onAuthenticated }: AdminAuthPageProps) {
             });
         } finally {
             setIsVerifying(false);
-             video.srcObject?.getTracks().forEach(track => track.stop());
+            // Stop camera tracks after capture
+            video.srcObject?.getTracks().forEach(track => track.stop());
         }
     };
+
 
     const cardVariants = {
         initial: { opacity: 0, y: 20 },
@@ -211,7 +236,7 @@ export default function AdminAuthPage({ onAuthenticated }: AdminAuthPageProps) {
                                         <AlertTriangle className="h-4 w-4" />
                                         <AlertTitle>Kamera Erişimi Reddedildi</AlertTitle>
                                         <AlertDescription>
-                                            Güvenlik doğrulaması için lütfen tarayıcı ayarlarından kamera izni verin.
+                                            Güvenlik doğrulaması için lütfen tarayıcı ayarlarından kamera izni verin ve sayfayı yenileyin.
                                         </AlertDescription>
                                     </Alert>
                                 )}
@@ -219,7 +244,7 @@ export default function AdminAuthPage({ onAuthenticated }: AdminAuthPageProps) {
                                     <div className='flex flex-col items-center gap-4'>
                                         <p className="text-sm text-muted-foreground text-center">Şüpheli giriş denemesi. Ek deneme hakkı için lütfen yüzünüzün net bir fotoğrafını çekin.</p>
                                         <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-primary">
-                                            <video ref={videoRef} className="w-full h-full object-cover scale-x-[-1]" autoPlay muted />
+                                            <video ref={videoRef} className="w-full h-full object-cover scale-x-[-1]" autoPlay muted playsInline />
                                         </div>
                                          <Button className="w-full" onClick={handleCaptureAndVerify} disabled={isVerifying}>
                                             {isVerifying && <Loader2 className="mr-2 animate-spin" />}
