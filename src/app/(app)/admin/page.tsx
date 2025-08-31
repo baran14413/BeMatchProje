@@ -49,7 +49,7 @@ export default function AdminDashboardPage() {
     ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-background">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {adminFeatures.map((item, index) => (
                 <AdminCard key={index} {...item} />

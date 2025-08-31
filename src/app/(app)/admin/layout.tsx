@@ -16,12 +16,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const router = useRouter();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-     useEffect(() => {
-        const adminAuth = sessionStorage.getItem('admin-authenticated');
-        if (adminAuth === 'true') {
-            setIsAuthenticated(true);
-        }
-    }, []);
+    // This state is now managed within the layout and does not persist in sessionStorage.
+    // Every time the layout is mounted, the user must re-authenticate.
 
     if (!isAuthenticated) {
         return <AdminAuthPage onAuthenticated={() => setIsAuthenticated(true)} />;
@@ -62,7 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </Avatar>
                 )}
             </header>
-            <main className="flex flex-1 flex-col gap-4 p-4 sm:px-8 sm:py-6">
+            <main className="flex flex-1 flex-col gap-4 p-4 sm:px-8 sm:py-6 bg-background">
                 {children}
             </main>
         </div>
