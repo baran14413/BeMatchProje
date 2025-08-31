@@ -5,6 +5,8 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import Lottie from "lottie-react";
+import loadingAnimation from "@/lib/animations/loaderemir.json";
 
 export default function Home() {
     const router = useRouter();
@@ -28,7 +30,9 @@ export default function Home() {
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-center bg-background p-8">
-            <div className="w-16 h-16 rounded-full animate-loader-spin border-4 border-t-transparent"></div>
+            <div className="w-24 h-24">
+                 <Lottie animationData={loadingAnimation} loop={true} />
+            </div>
             <p className="mt-4 text-lg text-muted-foreground font-semibold animate-pulse">Yükleniyor...</p>
         </main>
     );

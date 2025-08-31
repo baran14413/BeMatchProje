@@ -123,7 +123,7 @@ type Post = DocumentData & {
 };
 
 const PostSkeleton = () => (
-    <Card className="rounded-none md:rounded-xl overflow-hidden shadow-none md:shadow-sm border-0 md:border-b w-full">
+    <Card className="w-full">
         <CardContent className="p-0">
             <div className="flex items-center gap-3 p-3">
                 <Skeleton className="w-8 h-8 rounded-full" />
@@ -617,7 +617,7 @@ export default function ExplorePage() {
 
   return (
     <div className="container mx-auto max-w-lg p-0 md:pb-20">
-      <div className="flex flex-col">
+      <div className="flex flex-col space-y-4">
         {loading ? (
             <>
                 <PostSkeleton />
@@ -626,7 +626,7 @@ export default function ExplorePage() {
         ) : posts.length > 0 ? (
             posts.map((post) => (
             <div key={post.id} className="w-full">
-                <Card className="w-full rounded-none md:rounded-xl overflow-hidden shadow-none border-0 md:border-b">
+                <Card className="w-full">
                     <CardContent className="p-0">
                         <div className="flex items-center justify-between gap-3 p-3">
                             <div className="flex items-center gap-3 flex-1 overflow-hidden">
@@ -983,7 +983,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-    
-
-    

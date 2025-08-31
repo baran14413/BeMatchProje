@@ -33,6 +33,10 @@
         "app/(app)/profile/edit/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/profile/edit/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
+        },
+        "app/(app)/shuffle/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/shuffle/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
         }
       },
       "layer": {
@@ -43,7 +47,8 @@
         "app/(app)/admin/users/page": "action-browser",
         "app/(app)/explore/page": "action-browser",
         "app/(app)/profile/edit/app-lock/page": "action-browser",
-        "app/(app)/profile/edit/page": "action-browser"
+        "app/(app)/profile/edit/page": "action-browser",
+        "app/(app)/shuffle/page": "action-browser"
       }
     },
     "40680b24048d25ecd6783caec7cb78d07ae0bb6343": {

@@ -8,6 +8,7 @@ var { g: global, __dirname, k: __turbopack_refresh__, m: module } = __turbopack_
 __turbopack_context__.s({
     "app": (()=>app),
     "auth": (()=>auth),
+    "clearCache": (()=>clearCache),
     "db": (()=>db),
     "setupPresence": (()=>setupPresence),
     "storage": (()=>storage)
@@ -72,6 +73,42 @@ if ("TURBOPACK compile-time truthy", 1) {
         console.error("Error enabling Firestore persistence:", error);
     }
 }
+const clearCache = async ()=>{
+    try {
+        // Delete the firebase app to release all resources
+        await __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2d$compat$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].app().delete();
+        // Unregister all service workers
+        if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations){
+                await registration.unregister();
+            }
+        }
+        // Clear Cache Storage
+        const keys = await caches.keys();
+        await Promise.all(keys.map((key)=>caches.delete(key)));
+        // Clear IndexedDB for Firestore
+        const dbName = `firebase-indexeddb-main-` + firebaseConfig.appId;
+        const deleteRequest = indexedDB.deleteDatabase(dbName);
+        return new Promise((resolve, reject)=>{
+            deleteRequest.onsuccess = ()=>{
+                console.log("Firestore IndexedDB cache cleared successfully.");
+                resolve();
+            };
+            deleteRequest.onerror = (event)=>{
+                console.error("Error clearing Firestore IndexedDB cache:", event);
+                reject(new Error("Could not clear IndexedDB cache."));
+            };
+            deleteRequest.onblocked = ()=>{
+                console.warn("Clearing IndexedDB is blocked. Please close other tabs with this app open.");
+                reject(new Error("Clearing cache is blocked. Close other tabs."));
+            };
+        });
+    } catch (error) {
+        console.error("Error during cache clearing process:", error);
+        throw error;
+    }
+};
 // Presence management
 const setupPresence = (userId)=>{
     const userStatusDatabaseRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ref"])(rtdb, '/status/' + userId);
@@ -145,12 +182,10 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navi
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$auth$2f$dist$2f$esm$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/auth/dist/esm/index.esm.js [app-client] (ecmascript) <module evaluation>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__z__as__onAuthStateChanged$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/node_modules/@firebase/auth/dist/esm2017/index-8e6e89cb.js [app-client] (ecmascript) <export z as onAuthStateChanged>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/firebase.ts [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$firestore$2f$dist$2f$esm$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/firestore/dist/esm/index.esm.js [app-client] (ecmascript) <module evaluation>");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/firestore/dist/index.esm2017.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lottie$2d$react$2f$build$2f$index$2e$umd$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lottie-react/build/index.umd.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$animations$2f$loaderemir$2e$json__$28$json$29$__ = __turbopack_context__.i("[project]/src/lib/animations/loaderemir.json (json)");
 ;
-var _s = __turbopack_context__.k.signature(), _s1 = __turbopack_context__.k.signature();
+var _s = __turbopack_context__.k.signature();
 'use client';
 ;
 ;
@@ -158,153 +193,23 @@ var _s = __turbopack_context__.k.signature(), _s1 = __turbopack_context__.k.sign
 ;
 ;
 ;
-;
-const initialMessages = [
-    "Bağlantı kuruluyor...",
-    "Güvenlik kontrolü yapılıyor...",
-    "Oturum doğrulanıyor...",
-    "Her şeyi profesyonel hale getiriyoruz...",
-    "Neredeyse hazır!"
-];
-const SplashScreen = ({ messages })=>{
-    _s();
-    const [messageIndex, setMessageIndex] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(0);
-    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
-        "SplashScreen.useEffect": ()=>{
-            const messageInterval = setInterval({
-                "SplashScreen.useEffect.messageInterval": ()=>{
-                    setMessageIndex({
-                        "SplashScreen.useEffect.messageInterval": (prev)=>{
-                            if (prev === messages.length - 1) {
-                                clearInterval(messageInterval);
-                                return prev;
-                            }
-                            return (prev + 1) % messages.length;
-                        }
-                    }["SplashScreen.useEffect.messageInterval"]);
-                }
-            }["SplashScreen.useEffect.messageInterval"], 1200);
-            return ({
-                "SplashScreen.useEffect": ()=>{
-                    clearInterval(messageInterval);
-                }
-            })["SplashScreen.useEffect"];
-        }
-    }["SplashScreen.useEffect"], [
-        messages
-    ]);
-    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-        className: "flex flex-col items-center justify-center gap-8 w-full max-w-sm text-center",
-        children: [
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
-                className: "text-6xl font-bold font-headline tracking-tighter animate-beat",
-                children: [
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                        className: "text-blue-500",
-                        children: "Be"
-                    }, void 0, false, {
-                        fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 42,
-                        columnNumber: 17
-                    }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                        className: "text-primary",
-                        children: "Match"
-                    }, void 0, false, {
-                        fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 43,
-                        columnNumber: 17
-                    }, this)
-                ]
-            }, void 0, true, {
-                fileName: "[project]/src/app/page.tsx",
-                lineNumber: 41,
-                columnNumber: 13
-            }, this),
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "w-full space-y-2",
-                children: [
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lottie$2d$react$2f$build$2f$index$2e$umd$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
-                        animationData: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$animations$2f$loaderemir$2e$json__$28$json$29$__["default"],
-                        loop: true,
-                        style: {
-                            width: 150,
-                            height: 150,
-                            margin: 'auto'
-                        }
-                    }, void 0, false, {
-                        fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 46,
-                        columnNumber: 18
-                    }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                        className: "text-sm text-muted-foreground transition-opacity duration-500 h-5",
-                        children: messages[messageIndex]
-                    }, void 0, false, {
-                        fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 47,
-                        columnNumber: 17
-                    }, this)
-                ]
-            }, void 0, true, {
-                fileName: "[project]/src/app/page.tsx",
-                lineNumber: 45,
-                columnNumber: 13
-            }, this)
-        ]
-    }, void 0, true, {
-        fileName: "[project]/src/app/page.tsx",
-        lineNumber: 40,
-        columnNumber: 9
-    }, this);
-};
-_s(SplashScreen, "pQxPLBHqPp7jggV+6yas1n6qJTo=");
-_c = SplashScreen;
 function Home() {
-    _s1();
+    _s();
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"])();
-    const [loadingMessages, setLoadingMessages] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(initialMessages);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "Home.useEffect": ()=>{
             const unsubscribe = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$8e6e89cb$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__z__as__onAuthStateChanged$3e$__["onAuthStateChanged"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["auth"], {
                 "Home.useEffect.unsubscribe": async (user)=>{
-                    // Give splash screen a minimum time to display
+                    // Give a moment for the initial check, then redirect.
                     await new Promise({
-                        "Home.useEffect.unsubscribe": (resolve)=>setTimeout(resolve, 2000)
+                        "Home.useEffect.unsubscribe": (resolve)=>setTimeout(resolve, 100)
                     }["Home.useEffect.unsubscribe"]);
                     if (user) {
-                        try {
-                            const userDoc = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDoc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'users', user.uid));
-                            if (userDoc.exists()) {
-                                const userData = userDoc.data();
-                                setLoadingMessages({
-                                    "Home.useEffect.unsubscribe": (prev)=>[
-                                            ...prev.slice(0, prev.length - 1),
-                                            `${userData.name}, hoş geldin!`
-                                        ]
-                                }["Home.useEffect.unsubscribe"]);
-                                setTimeout({
-                                    "Home.useEffect.unsubscribe": ()=>{
-                                        router.replace('/explore');
-                                    }
-                                }["Home.useEffect.unsubscribe"], 1500);
-                            } else {
-                                setTimeout({
-                                    "Home.useEffect.unsubscribe": ()=>router.replace('/login')
-                                }["Home.useEffect.unsubscribe"], 1000);
-                            }
-                        } catch (error) {
-                            console.error("Error fetching user data, redirecting to login", error);
-                            setTimeout({
-                                "Home.useEffect.unsubscribe": ()=>router.replace('/login')
-                            }["Home.useEffect.unsubscribe"], 1000);
-                        }
+                        // User is logged in, redirect to the main app experience
+                        router.replace('/explore');
                     } else {
-                        setTimeout({
-                            "Home.useEffect.unsubscribe": ()=>{
-                                router.replace('/login');
-                            }
-                        }["Home.useEffect.unsubscribe"], 2000);
+                        // User is not logged in, redirect to the login page
+                        router.replace('/login');
                     }
                 }
             }["Home.useEffect.unsubscribe"]);
@@ -316,73 +221,46 @@ function Home() {
         router
     ]);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
-        className: "flex min-h-screen flex-col items-center justify-center bg-background p-8 relative",
+        className: "flex min-h-screen flex-col items-center justify-center bg-background p-8",
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "flex-1 flex items-center justify-center",
-                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(SplashScreen, {
-                    messages: loadingMessages
+                className: "w-24 h-24",
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lottie$2d$react$2f$build$2f$index$2e$umd$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                    animationData: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$animations$2f$loaderemir$2e$json__$28$json$29$__["default"],
+                    loop: true
                 }, void 0, false, {
                     fileName: "[project]/src/app/page.tsx",
-                    lineNumber: 93,
-                    columnNumber: 17
+                    lineNumber: 34,
+                    columnNumber: 18
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 92,
+                lineNumber: 33,
                 columnNumber: 13
             }, this),
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "absolute bottom-8 flex flex-col items-center gap-1",
-                children: [
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                        className: "text-xs font-light text-muted-foreground tracking-wider",
-                        children: "Created By"
-                    }, void 0, false, {
-                        fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 96,
-                        columnNumber: 17
-                    }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                        className: "font-bold text-lg tracking-widest",
-                        children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                className: "text-blue-500",
-                                children: "B"
-                            }, void 0, false, {
-                                fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 98,
-                                columnNumber: 21
-                            }, this),
-                            "E"
-                        ]
-                    }, void 0, true, {
-                        fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 97,
-                        columnNumber: 17
-                    }, this)
-                ]
-            }, void 0, true, {
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                className: "mt-4 text-lg text-muted-foreground font-semibold animate-pulse",
+                children: "Yükleniyor..."
+            }, void 0, false, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 95,
+                lineNumber: 36,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/page.tsx",
-        lineNumber: 91,
+        lineNumber: 32,
         columnNumber: 9
     }, this);
 }
-_s1(Home, "e9zbStGSHbfHppE16D5psEeMaGQ=", false, function() {
+_s(Home, "vQduR7x+OPXj6PSmJyFnf+hU7bg=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"]
     ];
 });
-_c1 = Home;
-var _c, _c1;
-__turbopack_context__.k.register(_c, "SplashScreen");
-__turbopack_context__.k.register(_c1, "Home");
+_c = Home;
+var _c;
+__turbopack_context__.k.register(_c, "Home");
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(module, globalThis.$RefreshHelpers$);
 }
