@@ -17,11 +17,10 @@ import {
   SidebarFooter,
   SidebarSeparator,
 } from '@/components/ui/sidebar';
-import { Home, Users, Settings, LogOut, PanelLeft, LineChart, Search, ShieldCheck, Ban, ShieldAlert, FileWarning, MessageSquareWarning, Star, Users2 } from 'lucide-react';
+import { Home, LogOut, MessageSquareWarning, Search, ShieldHalf } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 
 
@@ -40,18 +39,13 @@ const NavItem = ({ href, icon, label }: { href: string, icon: React.ReactNode, l
     );
 };
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminModLayout({ children }: { children: React.ReactNode }) {
     const user = auth.currentUser;
     const pathname = usePathname();
 
     const getPageTitle = () => {
-        if (pathname === '/admin') return 'Yönetim Paneli';
-        if (pathname === '/admin/users') return 'Kullanıcılar';
-        if (pathname === '/admin/activity-logs') return 'Aktivite Kayıtları';
-        if (pathname === '/admin/blocked-ips') return 'Engellenen IP\'ler';
-        if (pathname === '/admin/reported-content') return 'Rapor Edilen İçerikler';
-        if (pathname === '/admin/system-status') return 'Sistem Durumu';
-        if (pathname === '/admin/feedback') return 'Geri Bildirimler';
+        if (pathname === '/admin-mod') return 'Moderatör Paneli';
+        if (pathname === '/admin-mod/reported-content') return 'Şikayet Yönetimi';
         return 'Panel';
     }
 
@@ -59,24 +53,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <SidebarProvider>
             <Sidebar className='bg-background/80 backdrop-blur-sm'>
                 <SidebarHeader className="p-4">
-                     <Link href="/admin" className="flex items-center gap-2 text-lg font-semibold">
-                        <ShieldAlert className="h-7 w-7 text-primary" />
-                        <span className="font-bold text-foreground">Admin Paneli</span>
+                     <Link href="/admin-mod" className="flex items-center gap-2 text-lg font-semibold">
+                        <ShieldHalf className="h-7 w-7 text-primary" />
+                        <span className="font-bold text-foreground">Mod Paneli</span>
                     </Link>
                 </SidebarHeader>
                 <SidebarContent className="p-2">
                     <SidebarMenu>
-                       <NavItem href="/admin" icon={<Home />} label="Ana Sayfa" />
-                       <NavItem href="/admin/users" icon={<Users />} label="Kullanıcı Yönetimi" />
-                       <NavItem href="/admin/system-status" icon={<LineChart />} label="Sistem Durumu" />
-                        <SidebarSeparator />
-                       <NavItem href="/admin/reported-content" icon={<MessageSquareWarning />} label="Rapor Edilenler" />
-                       <NavItem href="/admin/feedback" icon={<Star />} label="Geri Bildirimler" />
-                       <SidebarSeparator />
-                       <NavItem href="/admin/activity-logs" icon={<ShieldCheck />} label="Aktivite Kayıtları" />
-                       <NavItem href="/admin/blocked-ips" icon={<Ban />} label="Engellenen IP'ler" />
-                       <SidebarSeparator />
-                        <NavItem href="/admin-mod" icon={<Users2 />} label="Moderatör Paneli" />
+                       <NavItem href="/admin-mod" icon={<Home />} label="Ana Sayfa" />
+                       <NavItem href="/admin-mod/reported-content" icon={<MessageSquareWarning />} label="Şikayet Yönetimi" />
                     </SidebarMenu>
                 </SidebarContent>
                 <SidebarFooter className="p-4 border-t">
@@ -101,14 +86,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
                             type="search"
-                            placeholder="Ara..."
+                            placeholder="Kullanıcı, gönderi ara..."
                             className="w-full rounded-full bg-muted pl-8"
                             />
                         </div>
                         {user?.photoURL && (
                             <Avatar className="w-9 h-9">
                                 <AvatarImage src={user.photoURL} />
-                                <AvatarFallback>{user.displayName?.charAt(0) ?? 'A'}</AvatarFallback>
+                                <AvatarFallback>{user.displayName?.charAt(0) ?? 'M'}</AvatarFallback>
                             </Avatar>
                         )}
                     </div>

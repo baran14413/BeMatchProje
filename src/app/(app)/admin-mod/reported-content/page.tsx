@@ -1,15 +1,15 @@
 
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageSquareWarning } from 'lucide-react';
 
 
-export default function ReportedContentPage() {
+export default function ModReportedContentPage() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Rapor Edilen İçerikler</CardTitle>
+                <CardTitle>Şikayet Edilen İçerikler</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-10 border-2 border-dashed rounded-lg">
