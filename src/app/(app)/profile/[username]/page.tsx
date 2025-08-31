@@ -78,7 +78,7 @@ const PostCard = ({ post, user }: { post: Post, user: DocumentData }) => (
                 </Link>
                 <div className='flex flex-col'>
                     <div className='flex items-center gap-2'>
-                        <Link href={`/profile/${user.username}`} className="font-semibold text-sm">{user.name}</Link>
+                        <Link href={`/profile/${user.username}`} className="font-semibold text-sm">{user.name.split(' ')[0]}</Link>
                         {user.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
                     </div>
                      {post.isAiEdited && (
@@ -126,13 +126,13 @@ const PostCard = ({ post, user }: { post: Post, user: DocumentData }) => (
                 <p className="font-semibold">{post.likes.toLocaleString()} yıldız</p>
                 {(post.caption || (post.type === 'photo' && !post.textContent)) && (
                      <p>
-                        <Link href={`/profile/${user.username}`} className="font-semibold">{user.name}</Link>{' '}
+                        <Link href={`/profile/${user.username}`} className="font-semibold">{user.name.split(' ')[0]}</Link>{' '}
                         {post.caption}
                     </p>
                 )}
                  {post.type === 'text' && post.textContent && (
                     <p>
-                        <Link href={`/profile/${user.username}`} className="font-semibold">{user.name}</Link>{' '}
+                        <Link href={`/profile/${user.username}`} className="font-semibold">{user.name.split(' ')[0]}</Link>{' '}
                         {post.textContent}
                     </p>
                 )}
@@ -278,7 +278,7 @@ export default function UserProfilePage() {
               createdAt: serverTimestamp()
           });
           setRequestStatus('sent');
-          toast({ title: 'İstek Gönderildi', description: `${userProfile.name} isteğinizi aldığında size bildireceğiz.` });
+          toast({ title: 'İstek Gönderildi', description: `${userProfile.name.split(' ')[0]} isteğinizi aldığında size bildireceğiz.` });
       } catch (error) {
           console.error("Error sending access request:", error);
           toast({ variant: 'destructive', title: 'İstek Gönderilemedi' });
@@ -438,7 +438,7 @@ export default function UserProfilePage() {
                 <div className="flex-1 flex flex-col gap-3">
                      <div className="flex items-center justify-between">
                          <h1 className="text-lg font-bold flex items-center gap-2">
-                             {userProfile.name}
+                             {userProfile.name.split(' ')[0]}
                              {userProfile.isPremium && <Crown className="w-5 h-5 text-yellow-500" />}
                         </h1>
                         {isMyProfile ? (
@@ -485,107 +485,75 @@ export default function UserProfilePage() {
                 </div>
             </div>
              {/* Action Buttons */}
-            <div className="flex gap-2 w-full">
-                {isMyProfile ? (
-                    <Link href="/profile/edit" className="w-full">
-                        <Button variant="outline" className="w-full">
-                            <Pencil className="mr-2 h-4 w-4" /> Profili Düzenle
+            {!isMyProfile && (
+                 <div className="flex gap-2 w-full">
+                    <Button className="flex-1" onClick={handleFollowToggle} disabled={isFollowProcessing}>
+                        {isFollowProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 
+                        isFollowing ? <UserCheckIcon className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />
+                        }
+                        {isFollowing ? 'Takip Ediliyor' : 'Takip Et'}
+                    </Button>
+                    <Link href={`/chat?userId=${userProfile.uid}`} className="flex-1">
+                        <Button variant="secondary" className="w-full">
+                            <MessageSquare className="mr-2 h-4 w-4" /> Mesaj
                         </Button>
                     </Link>
-                ) : (
-                    <>
-                        <Button className="flex-1" onClick={handleFollowToggle} disabled={isFollowProcessing}>
-                            {isFollowProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 
-                            isFollowing ? <UserCheckIcon className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />
-                            }
-                            {isFollowing ? 'Takip Ediliyor' : 'Takip Et'}
-                        </Button>
-                        <Link href={`/chat?userId=${userProfile.uid}`} className="flex-1">
-                            <Button variant="secondary" className="w-full">
-                                <MessageSquare className="mr-2 h-4 w-4" /> Mesaj
-                            </Button>
-                        </Link>
-                    </>
-                )}
-            </div>
+                </div>
+            )}
         </header>
 
         
         <Separator className="mt-2"/>
 
         {/* Posts Section */}
-         <Tabs defaultValue="grid" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="grid"><Grid3x3 /></TabsTrigger>
-                <TabsTrigger value="list"><List /></TabsTrigger>
-            </TabsList>
-            <TabsContent value="grid">
-                 {showGalleryContent ? (
-                    userPosts.length > 0 ? (
-                        <div className="grid grid-cols-3 gap-1">
-                            {userPosts.filter(p=> p.type === 'photo').map(post => (
-                                <Link href="#" key={post.id} className="relative aspect-square group">
-                                     <Image
-                                        src={post.url!}
-                                        alt={post.caption || `Post by ${userProfile.name}`}
-                                        fill
-                                        className="object-cover"
-                                        data-ai-hint={post.aiHint}
-                                    />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-4">
-                                        <div className="flex items-center gap-1">
-                                            <Star className="w-4 h-4" />
-                                            <span className="text-sm font-semibold">{post.likes}</span>
-                                        </div>
-                                         <div className="flex items-center gap-1">
-                                            <MessageSquare className="w-4 h-4" />
-                                            <span className="text-sm font-semibold">{post.commentsCount}</span>
-                                        </div>
+         <div className="w-full">
+             {showGalleryContent ? (
+                userPosts.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-1">
+                        {userPosts.filter(p=> p.type === 'photo').map(post => (
+                            <Link href="#" key={post.id} className="relative aspect-square group">
+                                 <Image
+                                    src={post.url!}
+                                    alt={post.caption || `Post by ${userProfile.name.split(' ')[0]}`}
+                                    fill
+                                    className="object-cover"
+                                    data-ai-hint={post.aiHint}
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-4">
+                                    <div className="flex items-center gap-1">
+                                        <Star className="w-4 h-4" />
+                                        <span className="text-sm font-semibold">{post.likes}</span>
                                     </div>
-                                </Link>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-10 text-muted-foreground">
-                            <p>Henüz gönderi yok.</p>
-                        </div>
-                    )
-                ) : (
-                     <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4 rounded-lg border-2 border-dashed">
-                        <Lock className="w-12 h-12 text-muted-foreground/50"/>
-                        <h3 className="font-bold text-lg text-foreground">Bu Galeri Gizli</h3>
-                        <p className="text-sm max-w-xs">
-                            {userProfile.name} kullanıcısının gönderilerini görmek için erişim izni istemeniz gerekiyor.
-                        </p>
-                        <Button 
-                            onClick={handleRequestAccess} 
-                            disabled={requestStatus !== 'idle'}
-                        >
-                            {requestStatus === 'loading' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {requestStatus === 'sent' ? 'İstek Gönderildi' : 'İzin İste'}
-                        </Button>
-                    </div>
-                )}
-            </TabsContent>
-            <TabsContent value="list">
-                 {showGalleryContent ? (
-                    <div>
-                        {userPosts.length > 0 ? (
-                            userPosts.map((post) => <PostCard key={post.id} post={post} user={userProfile} />)
-                        ) : (
-                            <div className="text-center py-10 text-muted-foreground">
-                                <p>Henüz gönderi yok.</p>
-                            </div>
-                        )}
+                                     <div className="flex items-center gap-1">
+                                        <MessageSquare className="w-4 h-4" />
+                                        <span className="text-sm font-semibold">{post.commentsCount}</span>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
                     </div>
                 ) : (
-                     <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4 rounded-lg border-2 border-dashed">
-                        <Lock className="w-12 h-12 text-muted-foreground/50"/>
-                        <h3 className="font-bold text-lg text-foreground">Bu Galeri Gizli</h3>
+                    <div className="text-center py-10 text-muted-foreground">
+                        <p>Henüz gönderi yok.</p>
                     </div>
-                )}
-            </TabsContent>
-        </Tabs>
+                )
+            ) : (
+                 <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4 rounded-lg border-2 border-dashed">
+                    <Lock className="w-12 h-12 text-muted-foreground/50"/>
+                    <h3 className="font-bold text-lg text-foreground">Bu Galeri Gizli</h3>
+                    <p className="text-sm max-w-xs">
+                        {userProfile.name.split(' ')[0]} kullanıcısının gönderilerini görmek için erişim izni istemeniz gerekiyor.
+                    </p>
+                    <Button 
+                        onClick={handleRequestAccess} 
+                        disabled={requestStatus !== 'idle'}
+                    >
+                        {requestStatus === 'loading' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {requestStatus === 'sent' ? 'İstek Gönderildi' : 'İzin İste'}
+                    </Button>
+                </div>
+            )}
+        </div>
       </div>
       
        <Sheet open={isListSheetOpen} onOpenChange={setIsListSheetOpen}>

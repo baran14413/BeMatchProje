@@ -186,7 +186,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                           userAvatar: profileData.avatarUrl,
                           ipAddress: data.ip,
                           userAgent: navigator.userAgent,
-                          activity: 'Giriş yaptı'
+                          activity: 'Giriş yapıldı'
                       });
                       activityLoggedRef.current = true;
                     }).catch(err => console.error("Could not fetch IP for logging:", err));
@@ -419,40 +419,14 @@ function LayoutContent({ children }: { children: ReactNode }) {
                            <Loader2 className="h-5 w-5 animate-spin" />
                          </Button>
                     ) : currentUser && (
-                       <DropdownMenu>
-                           <DropdownMenuTrigger asChild>
-                               <Button variant="ghost" size="icon" className="relative rounded-full h-9 w-9">
-                                    <Avatar className='h-8 w-8'>
-                                        {currentUserProfile?.avatarUrl && <AvatarImage src={currentUserProfile.avatarUrl}/>}
-                                        <AvatarFallback>{currentUserProfile?.name?.charAt(0) || 'U'}</AvatarFallback>
-                                    </Avatar>
-                               </Button>
-                           </DropdownMenuTrigger>
-                           <DropdownMenuContent align="end" className="w-56">
-                               <DropdownMenuLabel>
-                                   <p className='font-bold truncate'>{currentUserProfile?.name}</p>
-                                   <p className='text-xs text-muted-foreground font-normal truncate'>{currentUserProfile?.email}</p>
-                               </DropdownMenuLabel>
-                               <DropdownMenuSeparator />
-                                <Link href={currentUserProfile?.username ? `/profile/${currentUserProfile.username}` : '/profile'}>
-                                   <DropdownMenuItem>
-                                        <User className="mr-2 h-4 w-4" />
-                                        <span>Profil</span>
-                                   </DropdownMenuItem>
-                                </Link>
-                                 <Link href="/profile/edit">
-                                   <DropdownMenuItem>
-                                        <Settings className="mr-2 h-4 w-4" />
-                                        <span>Ayarlar</span>
-                                   </DropdownMenuItem>
-                                </Link>
-                               <DropdownMenuSeparator />
-                               <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                                   <LogOut className="mr-2 h-4 w-4" />
-                                   <span>Çıkış Yap</span>
-                               </DropdownMenuItem>
-                           </DropdownMenuContent>
-                       </DropdownMenu>
+                       <Link href={currentUserProfile?.username ? `/profile/${currentUserProfile.username}` : '/profile'}>
+                         <Button variant="ghost" size="icon" className="relative rounded-full h-9 w-9">
+                              <Avatar className='h-8 w-8'>
+                                  {currentUserProfile?.avatarUrl && <AvatarImage src={currentUserProfile.avatarUrl}/>}
+                                  <AvatarFallback>{currentUserProfile?.name?.charAt(0) || 'U'}</AvatarFallback>
+                              </Avatar>
+                         </Button>
+                       </Link>
                     )}
                 </div>
             </header>
