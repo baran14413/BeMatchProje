@@ -115,6 +115,31 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const [isExploding, setIsExploding] = useState(false);
 
    useEffect(() => {
+    // Disable right-click context menu
+    const handleContextMenu = (e: MouseEvent) => e.preventDefault();
+    document.addEventListener('contextmenu', handleContextMenu);
+
+    // Disable F12 key and other developer tools shortcuts
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+        (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+        (e.ctrlKey && e.shiftKey && e.key === 'C') ||
+        (e.ctrlKey && e.key === 'U')
+      ) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+   useEffect(() => {
     const lockConfig = localStorage.getItem('app-lock-config');
     if (lockConfig) {
       const { isEnabled } = JSON.parse(lockConfig);
@@ -463,3 +488,5 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
+
+    
