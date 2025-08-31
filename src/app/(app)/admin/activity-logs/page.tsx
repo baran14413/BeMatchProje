@@ -30,6 +30,7 @@ type ActivityLog = {
   ipAddress: string;
   userAgent: string;
   timestamp: Date;
+  activity: string;
 };
 
 const parseUserAgent = (ua: string): { deviceName: string, deviceType: 'laptop' | 'smartphone' | 'desktop' } => {
@@ -128,6 +129,7 @@ export default function ActivityLogsPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Kullanıcı</TableHead>
+                                <TableHead>Aktivite</TableHead>
                                 <TableHead>IP Adresi</TableHead>
                                 <TableHead>Cihaz</TableHead>
                                 <TableHead>Tarih</TableHead>
@@ -151,6 +153,7 @@ export default function ActivityLogsPage() {
                                                 </div>
                                             </div>
                                         </TableCell>
+                                        <TableCell>{log.activity}</TableCell>
                                         <TableCell>{log.ipAddress}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
@@ -178,7 +181,7 @@ export default function ActivityLogsPage() {
                                 )
                              }) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center text-muted-foreground h-24">
+                                    <TableCell colSpan={6} className="text-center text-muted-foreground h-24">
                                         Hiç aktivite kaydı bulunamadı.
                                     </TableCell>
                                 </TableRow>

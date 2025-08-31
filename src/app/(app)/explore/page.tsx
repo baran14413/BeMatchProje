@@ -174,10 +174,6 @@ export default function ExplorePage() {
 
     useEffect(() => {
         const fetchPostsAndAuthors = async () => {
-            if (!currentUser) {
-                setLoading(false);
-                return;
-            }
             setLoading(true);
             try {
                 const postsQuery = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
@@ -206,7 +202,7 @@ export default function ExplorePage() {
                         let isGalleryLocked = false;
                         const authorData = authorsData[post.authorId];
 
-                        if (authorData) {
+                        if (authorData && currentUser) {
                             if (post.type === 'photo' && authorData.isGalleryPrivate && post.authorId !== currentUser.uid) {
                                 const permissionDocRef = doc(db, 'users', post.authorId, 'galleryPermissions', currentUser.uid);
                                 const permissionDocSnap = await getDoc(permissionDocRef);
@@ -216,8 +212,13 @@ export default function ExplorePage() {
                             }
                         }
                         
-                        const likeDocRef = doc(db, 'posts', post.id, 'likes', currentUser.uid);
-                        const likeDocSnap = await getDoc(likeDocRef);
+                        let liked = false;
+                        if (currentUser) {
+                           const likeDocRef = doc(db, 'posts', post.id, 'likes', currentUser.uid);
+                           const likeDocSnap = await getDoc(likeDocRef);
+                           liked = likeDocSnap.exists();
+                        }
+
 
                         // Fetch recent likers
                         const recentLikersQuery = query(collection(db, 'posts', post.id, 'likes'), orderBy('likedAt', 'desc'), limit(3));
@@ -231,7 +232,7 @@ export default function ExplorePage() {
                         }
 
 
-                        return { ...post, user: authorData, comments: [], isGalleryLocked, liked: likeDocSnap.exists(), recentLikers: recentLikersData };
+                        return { ...post, user: authorData, comments: [], isGalleryLocked, liked, recentLikers: recentLikersData };
                     })
                 );
 

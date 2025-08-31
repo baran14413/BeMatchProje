@@ -19,6 +19,7 @@ const LogActivityInputSchema = z.object({
   userAvatar: z.string().describe('The avatar URL of the user.'),
   ipAddress: z.string().describe('The IP address of the user.'),
   userAgent: z.string().describe('The user agent string of the user\'s browser.'),
+  activity: z.string().describe('The description of the activity performed by the user.')
 });
 export type LogActivityInput = z.infer<typeof LogActivityInputSchema>;
 
@@ -51,6 +52,7 @@ const logActivityFlow = ai.defineFlow(
                 name: input.userName,
                 avatarUrl: input.userAvatar,
             },
+            activity: input.activity,
             ipAddress: input.ipAddress,
             userAgent: input.userAgent,
             timestamp: serverTimestamp(),
