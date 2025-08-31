@@ -166,7 +166,6 @@ export default function EditProfilePage() {
     const aboutItems = [
         { icon: <MessageSquareQuote className="h-6 w-6" />, title: 'Deneyimlerinizi Paylaşın', href: '/profile/edit/feedback' },
         { icon: <HelpCircle className="h-6 w-6" />, title: 'Uygulama Kılavuzu', href: '/profile/edit/guide' },
-        { icon: <Code className="h-6 w-6" />, title: 'Teknoloji Kümesi', href: '/profile/edit/tech-stack' },
     ]
 
     const otherItems = [

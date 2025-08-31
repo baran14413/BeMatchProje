@@ -9,7 +9,8 @@ import {
   LineChart,
   ChevronRight,
   MessageSquareWarning,
-  Star
+  Star,
+  Code
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,6 +47,7 @@ export default function AdminDashboardPage() {
         { icon: <ShieldCheck className="h-7 w-7 text-primary" />, title: 'Aktivite Kayıtları', description: 'Son kullanıcı aktivitelerini ve IP adreslerini görüntüleyin.', href: '/admin/activity-logs' },
         { icon: <Ban className="h-7 w-7 text-primary" />, title: 'Engellenen IP Adresleri', description: 'Uygulamaya erişimi engellenen IP adreslerini yönetin.', href: '/admin/blocked-ips' },
         { icon: <LineChart className="h-7 w-7 text-primary" />, title: 'Sistem Durumu', description: 'Uygulama metriklerini ve genel performansı izleyin.', href: '/admin/system-status' },
+        { icon: <Code className="h-7 w-7 text-primary" />, title: 'Teknolojilerimiz', description: 'Uygulamanın arkasındaki teknoloji ve mimari.', href: '/admin/technologies' },
     ];
 
   return (
