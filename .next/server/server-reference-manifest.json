@@ -6,6 +6,10 @@
           "moduleId": "[project]/.next-internal/server/app/(app)/admin-mod/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
         },
+        "app/(app)/admin-mod/reported-content/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/admin-mod/reported-content/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        },
         "app/(app)/admin/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
@@ -18,6 +22,10 @@
           "moduleId": "[project]/.next-internal/server/app/(app)/explore/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
         },
+        "app/(app)/profile/edit/app-lock/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/profile/edit/app-lock/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        },
         "app/(app)/profile/edit/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/profile/edit/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
@@ -25,9 +33,11 @@
       },
       "layer": {
         "app/(app)/admin-mod/page": "action-browser",
+        "app/(app)/admin-mod/reported-content/page": "action-browser",
         "app/(app)/admin/page": "action-browser",
         "app/(app)/admin/users/page": "action-browser",
         "app/(app)/explore/page": "action-browser",
+        "app/(app)/profile/edit/app-lock/page": "action-browser",
         "app/(app)/profile/edit/page": "action-browser"
       }
     },

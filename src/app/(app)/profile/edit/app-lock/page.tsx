@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -66,7 +65,7 @@ export default function AppLockPage() {
         } else {
             saveConfig({ isEnabled });
             if (!isEnabled) {
-                 saveConfig({ isBiometricEnabled: false }); // Also disable biometrics if lock is turned off
+                 saveConfig({ isEnabled: false, isBiometricEnabled: false }); // Also disable biometrics if lock is turned off
             }
         }
     };
