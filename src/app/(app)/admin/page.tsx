@@ -11,7 +11,8 @@ import {
   MessageSquareWarning,
   Star,
   Code,
-  CreditCard
+  CreditCard,
+  ShieldAlert,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
