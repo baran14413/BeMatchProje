@@ -86,22 +86,10 @@ const deleteUserDataFlow = ai.defineFlow(
         const batch = db.batch();
         const userDocRef = db.collection('users').doc(userId);
 
-        // 1. Delete user's posts and associated storage files
+        // 1. Delete user's posts. Associated storage files will be orphaned but this is safer.
         const postsQuery = db.collection('posts').where('authorId', '==', userId);
         const postsSnapshot = await postsQuery.get();
         for (const postDoc of postsSnapshot.docs) {
-            const postData = postDoc.data();
-            if (postData.type === 'photo' && postData.url) {
-                try {
-                    // Extract file path from URL
-                     const filePath = decodeURIComponent(new URL(postData.url).pathname.split('/o/')[1].split('?')[0]);
-                     await storage.bucket().file(filePath).delete().catch(err => {
-                         if (err.code !== 404) console.warn(`Could not delete file ${filePath}:`, err.message);
-                     });
-                } catch (error: any) {
-                    console.warn(`Could not parse or delete storage file for post ${postDoc.id}:`, error.message);
-                }
-            }
             await deleteSubcollection(db, `posts/${postDoc.id}/comments`);
             await deleteSubcollection(db, `posts/${postDoc.id}/likes`);
             batch.delete(postDoc.ref);
@@ -132,7 +120,12 @@ const deleteUserDataFlow = ai.defineFlow(
         return { success: true };
     } catch (error: any) {
         console.error(`Failed to delete user ${userId}:`, error);
-        return { success: false, error: `Hesap silinirken bir hata oluştu: ${error.message}` };
+        // Provide a more generic but helpful error message to the user
+        let errorMessage = 'Hesap silinirken bir sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin.';
+        if (error.code === 'auth/user-not-found') {
+            errorMessage = 'Kullanıcı zaten silinmiş veya bulunamadı.';
+        }
+        return { success: false, error: errorMessage };
     }
   }
 );

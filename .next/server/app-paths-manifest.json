@@ -2,6 +2,7 @@
   "/(app)/admin-mod/page": "app/(app)/admin-mod/page.js",
   "/(app)/admin-mod/reported-content/page": "app/(app)/admin-mod/reported-content/page.js",
   "/(app)/admin/page": "app/(app)/admin/page.js",
+  "/(app)/admin/reported-content/page": "app/(app)/admin/reported-content/page.js",
   "/(app)/admin/users/page": "app/(app)/admin/users/page.js",
   "/(app)/explore/page": "app/(app)/explore/page.js",
   "/(app)/profile/edit/app-lock/page": "app/(app)/profile/edit/app-lock/page.js",
