@@ -11,7 +11,9 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getFirestore, serverTimestamp, addDoc, collection } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
 import { initializeApp, getApps } from 'firebase-admin/app';
+
 
 const PaymentNotificationInputSchema = z.object({
   userId: z.string().describe('The UID of the user submitting the notification.'),
@@ -19,6 +21,9 @@ const PaymentNotificationInputSchema = z.object({
   userEmail: z.string().email().describe("The email of the user."),
   packageName: z.string().describe('The name of the package the user claims to have bought.'),
   packagePrice: z.string().describe('The price of the package.'),
+   receiptDataUri: z.string().optional().describe(
+      "A photo of the payment receipt, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+    ),
 });
 export type PaymentNotificationInput = z.infer<typeof PaymentNotificationInputSchema>;
 
@@ -43,15 +48,36 @@ const handlePaymentNotificationFlow = ai.defineFlow(
         initializeApp();
     }
     const db = getFirestore();
+    const storage = getStorage().bucket(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET);
 
     try {
+      let receiptUrl = '';
+      if (input.receiptDataUri) {
+          const mimeType = input.receiptDataUri.match(/data:(.*);base64,/)?.[1] || 'image/jpeg';
+          const fileExtension = mimeType.split('/')[1] || 'jpg';
+          const buffer = Buffer.from(input.receiptDataUri.split('base64,')[1], 'base64');
+          const fileName = `receipts/${input.userId}/${Date.now()}.${fileExtension}`;
+          const file = storage.file(fileName);
+
+          await file.save(buffer, {
+              metadata: {
+                  contentType: mimeType,
+              },
+          });
+          receiptUrl = await file.getSignedUrl({
+              action: 'read',
+              expires: '03-09-2491' 
+          }).then(urls => urls[0]);
+      }
+        
       await addDoc(collection(db, 'paymentNotifications'), {
         userId: input.userId,
         userName: input.userName,
         userEmail: input.userEmail,
         packageName: input.packageName,
         packagePrice: input.packagePrice,
-        isCompleted: false, // Admin needs to manually verify and mark as complete
+        receiptUrl: receiptUrl,
+        isCompleted: false, 
         createdAt: serverTimestamp(),
       });
       return { success: true };

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Loader2, CheckCircle, Package, User, Mail, Link as LinkIcon } from 'lucide-react';
+import { Loader2, CheckCircle, Package, User, Mail, Link as LinkIcon, FileText } from 'lucide-react';
 import { db, auth } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy, DocumentData, Timestamp, updateDoc, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -21,6 +21,7 @@ type PaymentNotification = {
   userEmail: string;
   packageName: string;
   packagePrice: string;
+  receiptUrl?: string;
   isCompleted: boolean;
   createdAt: Date;
 };
@@ -87,6 +88,7 @@ export default function PaymentConfirmationsPage() {
                         <Loader2 className="w-8 h-8 animate-spin" />
                     </div>
                 ) : (
+                    <div className="overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -127,6 +129,14 @@ export default function PaymentConfirmationsPage() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-right space-x-2">
+                                        {item.receiptUrl && (
+                                            <a href={item.receiptUrl} target="_blank" rel="noopener noreferrer">
+                                                <Button variant="outline" size="sm">
+                                                    <FileText className="mr-2 h-4 w-4"/>
+                                                    Dekontu Görüntüle
+                                                </Button>
+                                            </a>
+                                        )}
                                         <Link href={`/admin/users`}>
                                             <Button variant="outline" size="sm">
                                                 <LinkIcon className="mr-2 h-4 w-4"/>
@@ -148,6 +158,7 @@ export default function PaymentConfirmationsPage() {
                             )}
                         </TableBody>
                     </Table>
+                    </div>
                 )}
             </CardContent>
         </Card>

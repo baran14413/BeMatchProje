@@ -4,14 +4,15 @@
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Check, Crown, Star, ArrowLeft, Gem, Loader2, Copy } from "lucide-react";
+import { Check, Crown, Star, ArrowLeft, Gem, Loader2, Copy, AlertTriangle, Upload } from "lucide-react";
 import { useRouter } from 'next/navigation';
-import { useState } from "react";
+import { useState, useRef, ChangeEvent } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { handlePaymentNotification } from '@/ai/flows/handle-payment-notification-flow';
+import Image from "next/image";
 
 const features = [
     { text: "Sınırsız Beğeni Hakkı", icon: <Star className="w-4 h-4 text-yellow-500"/> },
@@ -56,18 +57,31 @@ const IBAN = "TR43 0013 4000 0237 7767 6000 01";
 const ALICI = "Emirhan Deşdemir (Denizbank)";
 
 export default function PremiumPage() {
-    const [selectedPackage, setSelectedPackage] = useState('monthly');
+    const [selectedPackageId, setSelectedPackageId] = useState('monthly');
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [isNotifying, setIsNotifying] = useState(false);
+    const [receiptImage, setReceiptImage] = useState<string | null>(null);
     const router = useRouter();
     const currentUser = auth.currentUser;
     const { toast } = useToast();
+    const fileInputRef = useRef<HTMLInputElement>(null);
     
-    const activePackage = packages.find(p => p.id === selectedPackage);
+    const activePackage = packages.find(p => p.id === selectedPackageId);
 
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
         toast({ title: "Kopyalandı!", description: `${text} panoya kopyalandı.` });
+    };
+
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                setReceiptImage(event.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     const handleNotifyPayment = async () => {
@@ -80,11 +94,12 @@ export default function PremiumPage() {
                 userEmail: currentUser.email || 'Bilinmiyor',
                 packageName: activePackage.name,
                 packagePrice: activePackage.price,
+                receiptDataUri: receiptImage || undefined,
             });
             if (result.success) {
                 toast({
                     title: 'Bildiriminiz Alındı!',
-                    description: 'Ödemeniz kontrol edildikten sonra premium üyeliğiniz en kısa sürede aktif edilecektir.',
+                    description: 'Ödemeniz kontrol edildikten sonra (maks. 5 dk) premium üyeliğiniz aktif edilecektir.',
                     className: 'bg-green-500 text-white',
                 });
                 setIsPaymentModalOpen(false);
@@ -95,7 +110,13 @@ export default function PremiumPage() {
             toast({ variant: 'destructive', title: 'Bildirim Gönderilemedi', description: error.message });
         } finally {
             setIsNotifying(false);
+            setReceiptImage(null);
         }
+    };
+    
+    const openPaymentModal = (packageId: string) => {
+        setSelectedPackageId(packageId);
+        setIsPaymentModalOpen(true);
     };
 
     return (
@@ -134,12 +155,9 @@ export default function PremiumPage() {
                         <Card 
                             key={pkg.id} 
                             className={cn(
-                                "flex flex-col text-center transition-all duration-300 relative overflow-hidden cursor-pointer",
-                                pkg.bgColor,
-                                selectedPackage === pkg.id ? 'border-2 shadow-2xl scale-105' : 'hover:shadow-lg hover:-translate-y-1',
-                                selectedPackage === pkg.id ? pkg.borderColor : 'border'
+                                "flex flex-col text-center transition-all duration-300 relative overflow-hidden",
+                                pkg.bgColor, 'border', pkg.borderColor
                             )}
-                            onClick={() => setSelectedPackage(pkg.id)}
                         >
                             <CardHeader className="flex-grow-0">
                                 <div className="mx-auto bg-white/20 p-4 rounded-full w-fit mb-4">
@@ -151,7 +169,7 @@ export default function PremiumPage() {
                             <CardFooter className="mt-auto p-6">
                                 <Button 
                                     className={cn("w-full font-bold text-lg py-6", pkg.buttonClass)} 
-                                    onClick={() => setIsPaymentModalOpen(true)}
+                                    onClick={() => openPaymentModal(pkg.id)}
                                 >
                                 Satın Al
                                 </Button>
@@ -160,17 +178,20 @@ export default function PremiumPage() {
                     ))}
                 </div>
 
-                <p className="text-center text-xs text-muted-foreground mt-8">
-                    Ödemeler manuel olarak kontrol edilmektedir. Aboneliğiniz, ödemeniz onaylandıktan sonraki birkaç saat içinde aktif olacaktır.
-                </p>
+                 <div className="text-center text-xs text-muted-foreground mt-8 p-4 border rounded-lg">
+                    <h4 className="font-semibold text-sm mb-2 text-foreground">Kullanıcı Sözleşmesi ve Bilgilendirme</h4>
+                    <p>
+                        "V1 Ödeme Sistemi" aracılığıyla yapılan tüm ödemeler manuel olarak kontrol edilmektedir. Ödemenizin onaylanması ve premium özelliklerin hesabınıza tanımlanması, yoğunluğa bağlı olarak maksimum 5 dakika sürebilir. Ödeme yaparken açıklama kısmına size özel verilen kodu doğru girdiğinizden emin olunuz. Hatalı veya eksik bilgi girilmesi durumunda işleminiz gecikebilir. Bu hizmeti kullanarak bu şartları kabul etmiş sayılırsınız.
+                    </p>
+                </div>
             </div>
             
             <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
-                <DialogContent>
+                <DialogContent className="max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Ödeme Bilgileri</DialogTitle>
+                        <DialogTitle>V1 Ödeme Sistemi</DialogTitle>
                         <DialogDescription>
-                            Lütfen aşağıdaki hesaba seçtiğiniz paket tutarını gönderin. <strong>Açıklama kısmına aşağıdaki kodu yazmayı unutmayın.</strong>
+                            Lütfen aşağıdaki hesaba seçtiğiniz paket tutarını gönderin.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -187,15 +208,28 @@ export default function PremiumPage() {
                             </AlertDescription>
                         </Alert>
                          <Alert variant="destructive">
+                            <AlertTriangle className="h-4 w-4" />
                             <AlertTitle>Açıklama Kodu (ZORUNLU)</AlertTitle>
-                            <AlertDescription className="flex justify-between items-center">
-                               <p>Ödemenizi size atayabilmemiz için bu kodu banka transferi açıklamasına yazmalısınız.</p>
-                                <div className="flex items-center gap-2">
-                                    <span className="font-mono text-sm bg-muted p-1 rounded">{currentUser?.uid}</span>
-                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => copyToClipboard(currentUser?.uid || '')}><Copy className="w-4 h-4"/></Button>
+                            <AlertDescription className="flex flex-wrap justify-between items-center gap-2">
+                               <p className="text-xs">Ödemenizi size atayabilmemiz için bu kodu banka transferi açıklamasına yazmalısınız.</p>
+                                <div className="flex items-center gap-2 bg-muted p-1 rounded-md">
+                                    <span className="font-mono text-xs">{currentUser?.uid}</span>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(currentUser?.uid || '')}><Copy className="w-3 h-3"/></Button>
                                 </div>
                             </AlertDescription>
                         </Alert>
+                        <div>
+                             <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+                             <Button variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()}>
+                                <Upload className="mr-2 h-4 w-4" />
+                                Dekont Yükle (İsteğe Bağlı)
+                            </Button>
+                            {receiptImage && (
+                                <div className="mt-2 relative w-24 h-24 mx-auto">
+                                    <Image src={receiptImage} alt="Dekont önizleme" layout="fill" className="rounded-md object-cover" />
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsPaymentModalOpen(false)}>İptal</Button>
