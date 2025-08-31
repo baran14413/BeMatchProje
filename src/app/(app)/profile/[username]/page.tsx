@@ -148,23 +148,21 @@ const PostCard = ({ post, user }: { post: Post, user: DocumentData }) => (
 
 const ProfileSkeleton = () => (
   <div className="flex flex-col gap-6">
-    <header className="flex gap-4 items-center">
-      <Skeleton className="w-24 h-24 rounded-full" />
-      <div className="flex-1 grid grid-cols-3 gap-4 text-center">
-        <div className="flex flex-col items-center gap-1"><Skeleton className="h-6 w-8" /><Skeleton className="h-4 w-16" /></div>
-        <div className="flex flex-col items-center gap-1"><Skeleton className="h-6 w-8" /><Skeleton className="h-4 w-16" /></div>
-        <div className="flex flex-col items-center gap-1"><Skeleton className="h-6 w-8" /><Skeleton className="h-4 w-16" /></div>
-      </div>
+    <header className="flex gap-6 items-start">
+      <Skeleton className="w-20 h-20 rounded-full" />
+       <div className="flex-1 space-y-3">
+           <Skeleton className="h-5 w-32" />
+            <div className="flex gap-4">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-20" />
+            </div>
+             <Skeleton className="h-10 w-full" />
+       </div>
     </header>
-    <div className="flex flex-col gap-2">
-      <Skeleton className="h-6 w-32" />
-      <Skeleton className="h-4 w-24" />
-      <Skeleton className="h-4 w-full mt-2" />
+    <div className="space-y-2">
+      <Skeleton className="h-4 w-full" />
       <Skeleton className="h-4 w-3/4" />
-    </div>
-    <div className="flex gap-2 w-full">
-      <Skeleton className="h-10 flex-1" />
-      <Skeleton className="h-10 flex-1" />
     </div>
   </div>
 );
@@ -405,8 +403,8 @@ export default function UserProfilePage() {
 
   const StatItem = ({ value, label, onClick }: { value: number | undefined, label: string, onClick?: () => void }) => (
       <div className={cn("flex flex-col items-center", onClick && "cursor-pointer")} onClick={onClick}>
-          <p className="text-xl font-bold">{value ?? 0}</p>
-          <p className="text-sm text-muted-foreground">{label}</p>
+          <p className="text-base font-bold">{value ?? 0}</p>
+          <p className="text-xs text-muted-foreground">{label}</p>
       </div>
   );
   
@@ -427,42 +425,71 @@ export default function UserProfilePage() {
 
   return (
     <div className="container mx-auto max-w-3xl p-4 md:p-6 pb-20">
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
 
         {/* Profile Header */}
         <header className="flex flex-col gap-4">
-            <div className="flex gap-4 items-center">
-                <div className="relative shrink-0">
-                    <Avatar className="w-24 h-24 border-2 border-primary">
-                        <AvatarImage src={userProfile.avatarUrl} data-ai-hint={userProfile.aiHint} />
-                        <AvatarFallback className="text-3xl">{userProfile.name?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                </div>
-                <div className="flex-1 grid grid-cols-3 gap-2 text-center">
-                    <StatItem value={userPosts.length} label="Gönderi" />
-                    <StatItem value={userProfile.stats?.followers} label="Takipçi" onClick={() => fetchFollowList('followers')} />
-                    <StatItem value={userProfile.stats?.following} label="Takip" onClick={() => fetchFollowList('following')} />
+            <div className="flex gap-4 items-start">
+                <Avatar className="w-20 h-20 border-2 border-primary shrink-0">
+                    <AvatarImage src={userProfile.avatarUrl} data-ai-hint={userProfile.aiHint} />
+                    <AvatarFallback className="text-3xl">{userProfile.name?.charAt(0)}</AvatarFallback>
+                </Avatar>
+
+                <div className="flex-1 flex flex-col gap-3">
+                     <div className="flex items-center justify-between">
+                         <h1 className="text-lg font-bold flex items-center gap-2">
+                             {userProfile.name}
+                             {userProfile.isPremium && <Crown className="w-5 h-5 text-yellow-500" />}
+                        </h1>
+                        {isMyProfile ? (
+                            <Link href="/profile/edit">
+                                <Button variant="ghost" size="icon"><Settings className="h-5 w-5" /></Button>
+                            </Link>
+                        ) : (
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <MoreVertical className="h-5 w-5" />
+                                </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                    <Flag className="mr-2 h-4 w-4" />
+                                    <span>Şikayet Et</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                    <Ban className="mr-2 h-4 w-4" />
+                                    <span>Engelle</span>
+                                </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
+                     </div>
+                     <div className="flex gap-4 text-center">
+                        <StatItem value={userPosts.length} label="Gönderi" />
+                        <StatItem value={userProfile.stats?.followers} label="Takipçi" onClick={() => fetchFollowList('followers')} />
+                        <StatItem value={userProfile.stats?.following} label="Takip" onClick={() => fetchFollowList('following')} />
+                    </div>
                 </div>
             </div>
             {/* Bio Section */}
             <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                    <h1 className="text-lg font-bold">{userProfile.name}</h1>
-                    {userProfile.isPremium && <Crown className="w-5 h-5 text-yellow-500" />}
-                </div>
                 <p className="text-muted-foreground text-sm">@{userProfile.username}</p>
-                <div className="flex items-center gap-1.5 mt-1">
-                    <ShieldCheck className="w-4 h-4 text-green-500" />
-                    <p className="text-xs font-medium text-green-600">Doğrulanmış Profil</p>
+                <p className="text-sm mt-2">{userProfile.bio}</p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                    {userProfile.hobbies?.map((interest: string) => (
+                    <Badge key={interest} variant="secondary" className="text-xs rounded-md">
+                        {interest}
+                    </Badge>
+                    ))}
                 </div>
-                <p className="text-muted-foreground text-sm mt-2">{userProfile.bio}</p>
             </div>
              {/* Action Buttons */}
             <div className="flex gap-2 w-full">
                 {isMyProfile ? (
                     <Link href="/profile/edit" className="w-full">
                         <Button variant="outline" className="w-full">
-                            <Settings className="mr-2 h-4 w-4" /> Profili Düzenle
+                            <Pencil className="mr-2 h-4 w-4" /> Profili Düzenle
                         </Button>
                     </Link>
                 ) : (
@@ -471,46 +498,20 @@ export default function UserProfilePage() {
                             {isFollowProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 
                             isFollowing ? <UserCheckIcon className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />
                             }
-                            {isFollowing ? 'Takibi Bırak' : 'Takip Et'}
+                            {isFollowing ? 'Takip Ediliyor' : 'Takip Et'}
                         </Button>
                         <Link href={`/chat?userId=${userProfile.uid}`} className="flex-1">
                             <Button variant="secondary" className="w-full">
-                                <MessageSquare className="mr-2 h-4 w-4" /> Mesaj Gönder
+                                <MessageSquare className="mr-2 h-4 w-4" /> Mesaj
                             </Button>
                         </Link>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon">
-                                <MoreVertical className="h-4 w-4" />
-                                <span className="sr-only">Daha Fazla</span>
-                            </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                                <Flag className="mr-2 h-4 w-4" />
-                                <span>Şikayet Et</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive focus:text-destructive">
-                                <Ban className="mr-2 h-4 w-4" />
-                                <span>Engelle</span>
-                            </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
                     </>
                 )}
             </div>
         </header>
 
-        {/* Interests */}
-        <div className="flex flex-wrap gap-2">
-            {userProfile.hobbies?.map((interest: string) => (
-              <Badge key={interest} variant="secondary" className="text-xs rounded-md">
-                {interest}
-              </Badge>
-            ))}
-        </div>
         
-        <Separator />
+        <Separator className="mt-2"/>
 
         {/* Posts Section */}
          <Tabs defaultValue="grid" className="w-full">
