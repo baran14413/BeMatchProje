@@ -402,7 +402,7 @@ export default function UserProfilePage() {
 
 
   const StatItem = ({ value, label, onClick }: { value: number | undefined, label: string, onClick?: () => void }) => (
-      <div className={cn("flex flex-col items-center", onClick && "cursor-pointer")} onClick={onClick}>
+      <div className={cn("text-center", onClick && "cursor-pointer")} onClick={onClick}>
           <p className="text-base font-bold">{value ?? 0}</p>
           <p className="text-xs text-muted-foreground">{label}</p>
       </div>
@@ -429,51 +429,49 @@ export default function UserProfilePage() {
 
         {/* Profile Header */}
         <header className="flex flex-col gap-4">
-            <div className="flex gap-4 items-start">
+            <div className="flex gap-4 items-center">
                 <Avatar className="w-20 h-20 border-2 border-primary shrink-0">
                     <AvatarImage src={userProfile.avatarUrl} data-ai-hint={userProfile.aiHint} />
                     <AvatarFallback className="text-3xl">{userProfile.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
 
-                <div className="flex-1 flex flex-col gap-3">
-                     <div className="flex items-center justify-between">
-                         <h1 className="text-lg font-bold flex items-center gap-2">
-                             {userProfile.name.split(' ')[0]}
-                             {userProfile.isPremium && <Crown className="w-5 h-5 text-yellow-500" />}
-                        </h1>
-                        {isMyProfile ? (
-                            <Link href="/profile/edit">
-                                <Button variant="ghost" size="icon"><Settings className="h-5 w-5" /></Button>
-                            </Link>
-                        ) : (
-                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                    <MoreVertical className="h-5 w-5" />
-                                </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
-                                    <Flag className="mr-2 h-4 w-4" />
-                                    <span>Şikayet Et</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive focus:text-destructive">
-                                    <Ban className="mr-2 h-4 w-4" />
-                                    <span>Engelle</span>
-                                </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        )}
-                     </div>
-                     <div className="flex gap-4 text-center">
-                        <StatItem value={userPosts.length} label="Gönderi" />
-                        <StatItem value={userProfile.stats?.followers} label="Takipçi" onClick={() => fetchFollowList('followers')} />
-                        <StatItem value={userProfile.stats?.following} label="Takip" onClick={() => fetchFollowList('following')} />
-                    </div>
+                <div className="flex-1 flex items-center justify-around">
+                    <StatItem value={userPosts.length} label="Gönderi" />
+                    <StatItem value={userProfile.stats?.followers} label="Takipçi" onClick={() => fetchFollowList('followers')} />
+                    <StatItem value={userProfile.stats?.following} label="Takip" onClick={() => fetchFollowList('following')} />
                 </div>
+                 {isMyProfile ? (
+                    <Link href="/profile/edit">
+                        <Button variant="ghost" size="icon"><Settings className="h-5 w-5" /></Button>
+                    </Link>
+                ) : (
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-5 w-5" />
+                        </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                        <DropdownMenuItem>
+                            <Flag className="mr-2 h-4 w-4" />
+                            <span>Şikayet Et</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive focus:text-destructive">
+                            <Ban className="mr-2 h-4 w-4" />
+                            <span>Engelle</span>
+                        </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
             </div>
             {/* Bio Section */}
             <div className="flex flex-col">
+                 <div className="flex items-center gap-2">
+                    <h1 className="text-lg font-bold">
+                        {userProfile.name.split(' ')[0]}
+                    </h1>
+                     {userProfile.isPremium && <Crown className="w-5 h-5 text-yellow-500" />}
+                </div>
                 <p className="text-muted-foreground text-sm">@{userProfile.username}</p>
                 <p className="text-sm mt-2">{userProfile.bio}</p>
                 <div className="flex flex-wrap gap-2 mt-2">
@@ -509,27 +507,9 @@ export default function UserProfilePage() {
          <div className="w-full">
              {showGalleryContent ? (
                 userPosts.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-1">
-                        {userPosts.filter(p=> p.type === 'photo').map(post => (
-                            <Link href="#" key={post.id} className="relative aspect-square group">
-                                 <Image
-                                    src={post.url!}
-                                    alt={post.caption || `Post by ${userProfile.name.split(' ')[0]}`}
-                                    fill
-                                    className="object-cover"
-                                    data-ai-hint={post.aiHint}
-                                />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-4">
-                                    <div className="flex items-center gap-1">
-                                        <Star className="w-4 h-4" />
-                                        <span className="text-sm font-semibold">{post.likes}</span>
-                                    </div>
-                                     <div className="flex items-center gap-1">
-                                        <MessageSquare className="w-4 h-4" />
-                                        <span className="text-sm font-semibold">{post.commentsCount}</span>
-                                    </div>
-                                </div>
-                            </Link>
+                    <div className="flex flex-col gap-4">
+                        {userPosts.map(post => (
+                           <PostCard key={post.id} post={post} user={userProfile} />
                         ))}
                     </div>
                 ) : (
@@ -601,3 +581,6 @@ export default function UserProfilePage() {
     </div>
   );
 }
+
+
+    
