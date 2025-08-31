@@ -19,7 +19,7 @@ import {
   MoreVertical,
   Flag,
   Ban,
-  Heart,
+  Star,
   Bookmark,
   UserPlus,
   Settings,
@@ -111,7 +111,7 @@ const PostCard = ({ post, user }: { post: Post, user: DocumentData }) => (
             <div className="flex items-center justify-between p-3">
                 <div className='flex items-center gap-3'>
                     <Button variant="ghost" size="icon">
-                        <Heart className="w-6 h-6" />
+                        <Star className="w-6 h-6" />
                     </Button>
                     <Button variant="ghost" size="icon">
                         <MessageSquare className="w-6 h-6" />
@@ -123,7 +123,7 @@ const PostCard = ({ post, user }: { post: Post, user: DocumentData }) => (
             </div>
 
             <div className="px-3 pb-3 text-sm">
-                <p className="font-semibold">{post.likes.toLocaleString()} beğeni</p>
+                <p className="font-semibold">{post.likes.toLocaleString()} yıldız</p>
                 {(post.caption || (post.type === 'photo' && !post.textContent)) && (
                      <p>
                         <Link href={`/profile/${user.username}`} className="font-semibold">{user.name}</Link>{' '}
@@ -533,7 +533,7 @@ export default function UserProfilePage() {
                                     />
                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-4">
                                         <div className="flex items-center gap-1">
-                                            <Heart className="w-4 h-4" />
+                                            <Star className="w-4 h-4" />
                                             <span className="text-sm font-semibold">{post.likes}</span>
                                         </div>
                                          <div className="flex items-center gap-1">

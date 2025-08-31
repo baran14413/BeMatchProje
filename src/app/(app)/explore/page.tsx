@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, X as XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin, ArrowLeft, Smile, Mic, ListCollapse, Music, Hash, Globe, ChevronRight, Paperclip } from 'lucide-react';
+import { Star, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, X as XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin, ArrowLeft, Smile, Mic, ListCollapse, Music, Hash, Globe, ChevronRight, Paperclip } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -34,6 +34,7 @@ import { useRouter } from 'next/navigation';
 import { MentionTextarea } from '@/components/ui/mention-textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
+import { AnimatePresence, motion } from 'framer-motion';
 
 
 const formatRelativeTime = (date: Date) => {
@@ -123,8 +124,8 @@ type Post = DocumentData & {
 };
 
 const PostSkeleton = () => (
-    <Card className="w-full">
-        <CardContent className="p-0">
+    <div className="w-full">
+        <div className="p-0">
             <div className="flex items-center gap-3 p-3">
                 <Skeleton className="w-8 h-8 rounded-full" />
                 <Skeleton className="h-4 w-24" />
@@ -134,8 +135,8 @@ const PostSkeleton = () => (
                 <Skeleton className="h-4 w-1/4" />
                 <Skeleton className="h-4 w-3/4" />
             </div>
-        </CardContent>
-    </Card>
+        </div>
+    </div>
 );
 
 export default function ExplorePage() {
@@ -160,6 +161,7 @@ export default function ExplorePage() {
     const [isLikesDialogVisible, setIsLikesDialogVisible] = useState(false);
     const [likers, setLikers] = useState<User[]>([]);
     const [isLikersLoading, setIsLikersLoading] = useState(false);
+    const [showStarAnimation, setShowStarAnimation] = useState<string | null>(null);
 
     // Create/Edit Post States
     const [editingPost, setEditingPost] = useState<Post | null>(null);
@@ -308,9 +310,22 @@ export default function ExplorePage() {
                 newPosts[postIndex] = post;
                 return newPosts;
             });
-            toast({ variant: 'destructive', title: 'Beğenme işlemi başarısız oldu.' });
+            toast({ variant: 'destructive', title: 'Yıldızlama işlemi başarısız oldu.' });
         }
     };
+    
+    const handleDoubleClickLike = (postId: string) => {
+        const postIndex = posts.findIndex((p) => p.id === postId);
+        if (postIndex === -1) return;
+        const post = posts[postIndex];
+
+        if (!post.liked) {
+            handleLikeClick(postId);
+        }
+
+        setShowStarAnimation(postId);
+        setTimeout(() => setShowStarAnimation(null), 800);
+    }
     
     const handleOpenComments = async (post: Post) => {
         if (!isCommentSheetOpen) {
@@ -617,7 +632,7 @@ export default function ExplorePage() {
 
   return (
     <div className="container mx-auto max-w-lg p-0 md:pb-20">
-      <div className="flex flex-col space-y-4">
+      <div className="flex flex-col">
         {loading ? (
             <>
                 <PostSkeleton />
@@ -625,170 +640,186 @@ export default function ExplorePage() {
             </>
         ) : posts.length > 0 ? (
             posts.map((post) => (
-            <div key={post.id} className="w-full">
-                <Card className="w-full">
-                    <CardContent className="p-0">
-                        <div className="flex items-center justify-between gap-3 p-3">
-                            <div className="flex items-center gap-3 flex-1 overflow-hidden">
-                                <Link href={`/profile/${post.user?.username}`}>
-                                    <Avatar className="w-10 h-10">
-                                        <AvatarImage src={post.user?.avatarUrl} data-ai-hint={post.user?.aiHint} />
-                                        <AvatarFallback>{post.user?.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                </Link>
-                                <div className="flex flex-col overflow-hidden">
-                                    <div className="flex items-center gap-2">
-                                        <Link href={`/profile/${post.user?.username}`} className="font-semibold text-sm truncate hover:underline">
-                                            {post.user?.name}
-                                        </Link>
-                                    </div>
-                                    <span className="text-xs text-muted-foreground truncate">@{post.user?.username}</span>
+            <div key={post.id} className="w-full border-b">
+                <div className="p-0">
+                    <div className="flex items-center justify-between gap-3 p-3">
+                        <div className="flex items-center gap-3 flex-1 overflow-hidden">
+                            <Link href={`/profile/${post.user?.username}`}>
+                                <Avatar className="w-10 h-10">
+                                    <AvatarImage src={post.user?.avatarUrl} data-ai-hint={post.user?.aiHint} />
+                                    <AvatarFallback>{post.user?.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                            </Link>
+                            <div className="flex flex-col overflow-hidden">
+                                <div className="flex items-center gap-2">
+                                    <Link href={`/profile/${post.user?.username}`} className="font-semibold text-sm truncate hover:underline">
+                                        {post.user?.name}
+                                    </Link>
                                 </div>
-                            </div>
-                            <div className="ml-auto">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                            <MoreHorizontal className="w-5 h-5"/>
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        {post.authorId === currentUser?.uid ? (
-                                            <>
-                                                <DropdownMenuItem>
-                                                    <Pencil className="mr-2 h-4 w-4"/>
-                                                    <span>Düzenle</span>
-                                                </DropdownMenuItem>
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                                            <Trash2 className="mr-2 h-4 w-4"/>
-                                                            <span>Sil</span>
-                                                        </DropdownMenuItem>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                Bu işlem geri alınamaz. Bu gönderiyi kalıcı olarak silecektir.
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>İptal</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => handleDeletePost(post)} className={cn(buttonVariants({variant: "destructive"}))}>
-                                                                Sil
-                                                            </AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <DropdownMenuItem>
-                                                    <EyeOff className="mr-2 h-4 w-4"/>
-                                                    <span>Gönderiyi Gizle</span>
-                                                </DropdownMenuItem>
-                                                 <DropdownMenuItem>
-                                                    <EyeOff className="mr-2 h-4 w-4"/>
-                                                    <span>Bu Kullanıcıdan Gizle</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem className="text-destructive focus:text-destructive">
-                                                    <UserX className="mr-2 h-4 w-4"/>
-                                                    <span>Kullanıcıyı Engelle</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem>
-                                                    <Flag className="mr-2 h-4 w-4"/>
-                                                    <span>Gönderiyi Şikayet Et</span>
-                                                </DropdownMenuItem>
-                                            </>
-                                        )}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                                <span className="text-xs text-muted-foreground truncate">@{post.user?.username}</span>
                             </div>
                         </div>
+                        <div className="ml-auto">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <MoreHorizontal className="w-5 h-5"/>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    {post.authorId === currentUser?.uid ? (
+                                        <>
+                                            <DropdownMenuItem>
+                                                <Pencil className="mr-2 h-4 w-4"/>
+                                                <span>Düzenle</span>
+                                            </DropdownMenuItem>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                        <Trash2 className="mr-2 h-4 w-4"/>
+                                                        <span>Sil</span>
+                                                    </DropdownMenuItem>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            Bu işlem geri alınamaz. Bu gönderiyi kalıcı olarak silecektir.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>İptal</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleDeletePost(post)} className={cn(buttonVariants({variant: "destructive"}))}>
+                                                            Sil
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <DropdownMenuItem>
+                                                <EyeOff className="mr-2 h-4 w-4"/>
+                                                <span>Gönderiyi Gizle</span>
+                                            </DropdownMenuItem>
+                                             <DropdownMenuItem>
+                                                <EyeOff className="mr-2 h-4 w-4"/>
+                                                <span>Bu Kullanıcıdan Gizle</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                                <UserX className="mr-2 h-4 w-4"/>
+                                                <span>Kullanıcıyı Engelle</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem>
+                                                <Flag className="mr-2 h-4 w-4"/>
+                                                <span>Gönderiyi Şikayet Et</span>
+                                            </DropdownMenuItem>
+                                        </>
+                                    )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    </div>
 
-                        {post.type === 'photo' && post.url && (
-                            <div className="relative w-full aspect-square group" onDoubleClick={() => handleLikeClick(post.id)}>
-                                <Image
-                                src={post.url}
-                                alt={`Post by ${post.user?.name}`}
-                                fill
-                                className={cn("object-cover", post.isGalleryLocked && "blur-md")}
-                                data-ai-hint={post.aiHint}
-                                priority
-                                />
-                                {post.isGalleryLocked && (
-                                     <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center text-white p-4">
-                                        <Lock className="w-10 h-10 mb-4"/>
-                                        <h3 className="font-bold">Bu Galeri Gizli</h3>
-                                        <Link href={`/profile/${post.user?.username}`} className='mt-4'>
-                                            <Button variant="secondary">
-                                                Galeriyi görmek için izin iste
-                                            </Button>
-                                        </Link>
-                                    </div>
+                    {post.type === 'photo' && post.url && (
+                        <div className="relative w-full aspect-square group" onDoubleClick={() => handleDoubleClickLike(post.id)}>
+                            <Image
+                            src={post.url}
+                            alt={`Post by ${post.user?.name}`}
+                            fill
+                            className={cn("object-cover", post.isGalleryLocked && "blur-md")}
+                            data-ai-hint={post.aiHint}
+                            priority
+                            />
+                            {post.isGalleryLocked && (
+                                 <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center text-white p-4">
+                                    <Lock className="w-10 h-10 mb-4"/>
+                                    <h3 className="font-bold">Bu Galeri Gizli</h3>
+                                    <Link href={`/profile/${post.user?.username}`} className='mt-4'>
+                                        <Button variant="secondary">
+                                            Galeriyi görmek için izin iste
+                                        </Button>
+                                    </Link>
+                                </div>
+                            )}
+                             <AnimatePresence>
+                                {showStarAnimation === post.id && (
+                                    <motion.div
+                                        initial={{ scale: 0.5, opacity: 0 }}
+                                        animate={{ scale: 1.2, opacity: 1 }}
+                                        exit={{ scale: 1.5, opacity: 0 }}
+                                        transition={{ duration: 0.4, ease: 'easeOut' }}
+                                        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                                    >
+                                        <Star className="w-24 h-24 text-white drop-shadow-lg" fill="white" />
+                                    </motion.div>
                                 )}
-                            </div>
-                        )}
-                        
-                        {post.type === 'text' && (
-                            <div className="px-4 py-2">
-                                {post.isTranslating ? (
-                                    <p className="text-sm text-muted-foreground italic flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</p>
-                                ) : (
-                                    <div className="whitespace-pre-wrap break-words"><HashtagAndMentionRenderer text={post.textContent || ''} /></div>
-                                )}
+                            </AnimatePresence>
+                        </div>
+                    )}
+                    
+                    {post.type === 'text' && (
+                        <div className="px-4 py-2" onDoubleClick={() => handleDoubleClickLike(post.id)}>
+                            {post.isTranslating ? (
+                                <p className="text-sm text-muted-foreground italic flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</p>
+                            ) : (
+                                <div className="whitespace-pre-wrap break-words"><HashtagAndMentionRenderer text={post.textContent || ''} /></div>
+                            )}
 
-                                {((post.lang && post.lang !== 'tr') || post.isTranslated) && (
-                                    <button className="text-xs text-muted-foreground hover:underline mt-2 flex items-center gap-1">
-                                        <Languages className="w-3 h-3"/>
-                                        {post.isTranslated ? 'Aslına bak' : 'Çevirisine bak'}
-                                    </button>
-                                )}
-                            </div>
-                        )}
+                            {((post.lang && post.lang !== 'tr') || post.isTranslated) && (
+                                <button className="text-xs text-muted-foreground hover:underline mt-2 flex items-center gap-1">
+                                    <Languages className="w-3 h-3"/>
+                                    {post.isTranslated ? 'Aslına bak' : 'Çevirisine bak'}
+                                </button>
+                            )}
+                        </div>
+                    )}
 
-                        <div className="flex items-center justify-between p-3">
-                            <div className='flex items-center gap-3'>
-                                <Button variant="ghost" size="icon" onClick={() => handleLikeClick(post.id)}>
-                                    <Heart className="w-6 h-6" fill={post.liked ? 'hsl(var(--destructive))' : 'transparent'} stroke={post.liked ? 'hsl(var(--destructive))' : 'currentColor'}/>
-                                </Button>
-                                <Button variant="ghost" size="icon" onClick={() => handleOpenComments(post)}>
-                                    <MessageCircle className="w-6 h-6" />
-                                </Button>
-                            </div>
-                            <Button variant="ghost" size="icon">
-                                <Bookmark className="w-6 h-6" />
+                    <div className="flex items-center justify-between p-3">
+                        <div className='flex items-center gap-3'>
+                            <Button variant="ghost" size="icon" onClick={() => handleLikeClick(post.id)}>
+                                <Star className="w-6 h-6" fill={post.liked ? 'hsl(var(--yellow-400))' : 'transparent'} stroke={post.liked ? 'hsl(var(--yellow-400))' : 'currentColor'}/>
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleOpenComments(post)}>
+                                <MessageCircle className="w-6 h-6" />
                             </Button>
                         </div>
+                        <Button variant="ghost" size="icon">
+                            <Bookmark className="w-6 h-6" />
+                        </Button>
+                    </div>
 
-                        <div className="px-3 pb-3 text-sm">
-                            {post.likes > 0 && (
-                                <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleOpenLikes(post.id)}>
-                                    <div className="flex -space-x-2">
-                                        {post.recentLikers.slice(0, 3).map((liker: User) => (
-                                            <Avatar key={liker.uid} className="w-5 h-5 border-2 border-background">
-                                                <AvatarImage src={liker.avatarUrl} />
-                                                <AvatarFallback>{liker.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                        ))}
-                                    </div>
-                                     <p className="text-muted-foreground">
-                                        <span className="font-semibold text-foreground">{post.likes.toLocaleString()}</span> beğeni
-                                    </p>
+                    <div className="px-3 pb-3 text-sm">
+                        {post.likes > 0 && (
+                            <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleOpenLikes(post.id)}>
+                                <div className="flex -space-x-2">
+                                    {post.recentLikers.slice(0, 3).map((liker: User) => (
+                                        <Avatar key={liker.uid} className="w-5 h-5 border-2 border-background">
+                                            <AvatarImage src={liker.avatarUrl} />
+                                            <AvatarFallback>{liker.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                    ))}
                                 </div>
-                            )}
+                                 <p className="text-muted-foreground">
+                                    <span className="font-semibold text-foreground">{post.likes.toLocaleString()}</span> yıldız
+                                </p>
+                            </div>
+                        )}
 
-                            {post.type === 'photo' && post.caption && !post.isGalleryLocked && (
-                                 <div className="mt-2 whitespace-pre-wrap break-words">
-                                    <Link href={`/profile/${post.user?.username}`} className="font-semibold mr-1">{post.user?.name}</Link>
-                                    <HashtagAndMentionRenderer text={post.caption} />
-                                 </div>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
+                        {post.type === 'photo' && post.caption && !post.isGalleryLocked && (
+                             <div className="mt-2 whitespace-pre-wrap break-words">
+                                <Link href={`/profile/${post.user?.username}`} className="font-semibold mr-1">{post.user?.name}</Link>
+                                <HashtagAndMentionRenderer text={post.caption} />
+                             </div>
+                        )}
+                        {post.commentsCount > 0 && (
+                             <p className="text-muted-foreground mt-1 cursor-pointer hover:underline" onClick={() => handleOpenComments(post)}>
+                                {post.commentsCount} yorumun tümünü gör
+                            </p>
+                        )}
+                    </div>
+                </div>
             </div>
         ))) : (
              <div className="text-center text-muted-foreground py-20 flex flex-col items-center justify-center">
@@ -894,10 +925,10 @@ export default function ExplorePage() {
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center gap-0.5">
-                                        <Heart 
+                                        <Star 
                                             className="w-4 h-4 cursor-pointer" 
-                                            fill={comment.liked ? 'hsl(var(--destructive))' : 'transparent'} 
-                                            stroke={comment.liked ? 'hsl(var(--destructive))' : 'currentColor'}
+                                            fill={comment.liked ? 'hsl(var(--yellow-400))' : 'transparent'} 
+                                            stroke={comment.liked ? 'hsl(var(--yellow-400))' : 'currentColor'}
                                             onClick={() => handleCommentLikeClick(activePostForComments.id, comment.id)}
                                         />
                                         <span className="text-xs text-muted-foreground">{comment.likes > 0 ? comment.likes : ''}</span>
@@ -954,7 +985,7 @@ export default function ExplorePage() {
         <Dialog open={isLikesDialogVisible} onOpenChange={setIsLikesDialogVisible}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Beğenenler</DialogTitle>
+                    <DialogTitle>Yıldızlayanlar</DialogTitle>
                 </DialogHeader>
                 <ScrollArea className="max-h-[60vh] -mx-6">
                    <div className='px-6'>
@@ -973,7 +1004,7 @@ export default function ExplorePage() {
                             ))}
                         </div>
                     ) : (
-                        <p className="text-center text-muted-foreground py-10">Henüz kimse beğenmedi.</p>
+                        <p className="text-center text-muted-foreground py-10">Henüz kimse yıldızlamadı.</p>
                     )}
                    </div>
                 </ScrollArea>

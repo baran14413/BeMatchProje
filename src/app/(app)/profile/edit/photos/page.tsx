@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Trash2, Grid3x3, List, Heart, MessageSquare, Bookmark, Pencil, Loader2 } from 'lucide-react';
+import { Trash2, Grid3x3, List, Star, MessageSquare, Bookmark, Pencil, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { db, auth, storage } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, getDoc, DocumentData, deleteDoc, orderBy } from 'firebase/firestore';
@@ -86,7 +86,7 @@ const PostCard = ({ post, user, onDelete }: { post: Post, user: DocumentData, on
             <div className="flex items-center justify-between p-3">
                 <div className='flex items-center gap-3'>
                     <Button variant="ghost" size="icon" disabled>
-                        <Heart className="w-6 h-6" />
+                        <Star className="w-6 h-6" />
                     </Button>
                     <Button variant="ghost" size="icon" disabled>
                         <MessageSquare className="w-6 h-6" />
@@ -98,7 +98,7 @@ const PostCard = ({ post, user, onDelete }: { post: Post, user: DocumentData, on
             </div>
 
             <div className="px-3 pb-3 text-sm">
-                <p className="font-semibold">{post.likes.toLocaleString()} beğeni</p>
+                <p className="font-semibold">{post.likes.toLocaleString()} yıldız</p>
                 {(post.caption || (post.type === 'photo' && !post.textContent)) && (
                      <p>
                         <span className="font-semibold">{user.name}</span>{' '}
