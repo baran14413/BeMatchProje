@@ -7,7 +7,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { UserX, Loader2, Trash2, Award } from 'lucide-react';
 import { db, auth } from '@/lib/firebase';
-import { collection, getDocs, DocumentData } from 'firebase/firestore';
+import { collection, getDocs, DocumentData, doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { deleteUserData } from '@/ai/flows/delete-user-data-flow';
@@ -22,6 +22,7 @@ type AppUser = DocumentData & {
   email: string;
   avatarUrl: string;
   aiHint?: string;
+  isModerator?: boolean;
 };
 
 
@@ -78,6 +79,23 @@ export default function ManageUsersPage() {
             setUsers(originalUsers); // Revert UI on failure
         }
     };
+    
+    const handleToggleModerator = async (userToUpdate: AppUser) => {
+        const newStatus = !userToUpdate.isModerator;
+        try {
+            const userDocRef = doc(db, 'users', userToUpdate.uid);
+            await updateDoc(userDocRef, { isModerator: newStatus });
+            
+            setUsers(prev => prev.map(u => 
+                u.uid === userToUpdate.uid ? { ...u, isModerator: newStatus } : u
+            ));
+            
+            toast({ title: "Yetki Güncellendi", description: `${userToUpdate.name} şimdi ${newStatus ? 'bir moderatör' : 'artık bir moderatör değil'}.` });
+        } catch (error: any) {
+             console.error("Error updating moderator status:", error);
+             toast({ variant: 'destructive', title: 'Yetki güncellenemedi.', description: error.message });
+        }
+    };
 
     return (
         <Card>
@@ -102,11 +120,23 @@ export default function ManageUsersPage() {
                                         <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <p className="font-medium">{user.name}</p>
+                                        <p className="font-medium flex items-center gap-2">
+                                            {user.name}
+                                            {user.isModerator && <Award className="w-4 h-4 text-green-500" />}
+                                        </p>
                                         <p className="text-sm text-muted-foreground">{user.email}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
+                                    <Button 
+                                        variant={user.isModerator ? 'secondary' : 'outline'} 
+                                        size="sm"
+                                        onClick={() => handleToggleModerator(user)}
+                                        disabled={user.uid === currentUser?.uid}
+                                    >
+                                        <Award className="mr-2 h-4 w-4" />
+                                        {user.isModerator ? 'Yetkiyi Al' : 'Moderatör Yap'}
+                                    </Button>
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button variant="destructive" size="sm" disabled={user.uid === currentUser?.uid}>

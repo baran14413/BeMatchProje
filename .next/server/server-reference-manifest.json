@@ -2,8 +2,16 @@
   "node": {
     "4089b26089702b1e5adfebade7e2643cec0eef947b": {
       "workers": {
+        "app/(app)/admin-mod/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/admin-mod/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        },
         "app/(app)/admin/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        },
+        "app/(app)/admin/users/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/admin/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/ai/flows/delete-user-data-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
         },
         "app/(app)/explore/page": {
@@ -12,7 +20,9 @@
         }
       },
       "layer": {
+        "app/(app)/admin-mod/page": "action-browser",
         "app/(app)/admin/page": "action-browser",
+        "app/(app)/admin/users/page": "action-browser",
         "app/(app)/explore/page": "action-browser"
       }
     },
@@ -21,10 +31,26 @@
         "app/(app)/admin/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
+        },
+        "app/(app)/admin/users/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/admin/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/ai/flows/delete-user-data-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
         }
       },
       "layer": {
-        "app/(app)/admin/page": "action-browser"
+        "app/(app)/admin/page": "action-browser",
+        "app/(app)/admin/users/page": "action-browser"
+      }
+    },
+    "4076365984dec01c64a5fd543a3b6e6674f10ecaec": {
+      "workers": {
+        "app/(app)/admin/users/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/admin/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/ai/flows/delete-user-data-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/(app)/admin/users/page": "action-browser"
       }
     }
   },

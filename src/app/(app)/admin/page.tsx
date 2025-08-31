@@ -64,7 +64,7 @@ export default function AdminDashboardPage() {
     ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-background">
         <Card className="overflow-hidden">
             <CardHeader className='bg-muted/30'>
                 <div className="flex items-center gap-3">

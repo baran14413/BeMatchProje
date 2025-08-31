@@ -1182,12 +1182,16 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$ai$2f$flows$2f$data$3
 ;
 const ADMIN_PIN = '2005';
 const ADMIN_KEY = 'baranemir';
+const MAX_ATTEMPTS = 2;
 function AdminAuthPage({ onAuthenticated }) {
     const [authStep, setAuthStep] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('pin');
     const [inputValue, setInputValue] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
     const [attempts, setAttempts] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(0);
     const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
     const { toast } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useToast"])();
+    // State to hold credentials that led to face-verify
+    const [lastAttemptedPin, setLastAttemptedPin] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
+    const [lastAttemptedKey, setLastAttemptedKey] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
     // Face verification states
     const [hasCameraPermission, setHasCameraPermission] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [isVerifying, setIsVerifying] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
@@ -1220,38 +1224,51 @@ function AdminAuthPage({ onAuthenticated }) {
     };
     const handleFailedAttempt = (errorMessage)=>{
         const newAttempts = attempts + 1;
-        setError(errorMessage);
-        setInputValue('');
-        if (newAttempts >= 2) {
+        const remainingAttempts = MAX_ATTEMPTS - newAttempts;
+        if (remainingAttempts <= 0) {
+            // Store the failing credentials before moving to face verification
+            if (authStep === 'pin') setLastAttemptedPin(inputValue);
+            if (authStep === 'key') setLastAttemptedKey(inputValue);
             setAuthStep('face-verify');
+            setError(''); // Clear PIN/Key error
             setAttempts(0); // Reset attempts for the next phase
         } else {
+            setError(`${errorMessage} Kalan deneme hakkı: ${remainingAttempts}`);
             setAttempts(newAttempts);
         }
+        setInputValue('');
     };
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
-        if (authStep === 'face-verify') {
-            const getCameraPermission = async ()=>{
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: true
-                    });
-                    setHasCameraPermission(true);
-                    if (videoRef.current) {
-                        videoRef.current.srcObject = stream;
-                    }
-                } catch (err) {
-                    console.error('Error accessing camera:', err);
-                    setHasCameraPermission(false);
+        let stream = null;
+        const getCameraPermission = async ()=>{
+            setHasCameraPermission(null); // Reset on each attempt
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: true
+                });
+                setHasCameraPermission(true);
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
                 }
-            };
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                setHasCameraPermission(false);
+            }
+        };
+        if (authStep === 'face-verify') {
             getCameraPermission();
         }
+        return ()=>{
+            stream?.getTracks().forEach((track)=>track.stop());
+            if (videoRef.current) {
+                videoRef.current.srcObject = null;
+            }
+        };
     }, [
         authStep
     ]);
     const handleCaptureAndVerify = async ()=>{
-        if (!videoRef.current || !canvasRef.current) return;
+        if (!videoRef.current || !canvasRef.current || !hasCameraPermission) return;
         setIsVerifying(true);
         const video = videoRef.current;
         const canvas = canvasRef.current;
@@ -1261,16 +1278,18 @@ function AdminAuthPage({ onAuthenticated }) {
         const photoDataUri = canvas.toDataURL('image/jpeg');
         try {
             await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$ai$2f$flows$2f$data$3a$04fbc1__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$text$2f$javascript$3e$__["logSuspiciousActivity"])({
-                attemptedPin: authStep === 'pin' ? inputValue : 'N/A',
-                attemptedKey: authStep === 'key' ? inputValue : 'N/A',
+                attemptedPin: lastAttemptedPin,
+                attemptedKey: lastAttemptedKey,
                 photoDataUri: photoDataUri
             });
             toast({
                 title: 'Güvenlik Kontrolü Başarılı',
-                description: 'Ek deneme haklarınız tanımlandı.'
+                description: 'Ek deneme haklarınız tanımlandı. Lütfen tekrar deneyin.'
             });
-            setAuthStep('pin'); // Go back to PIN entry
-            setAttempts(-2); // Gives 4 attempts total (since it becomes -1 on next failure)
+            setAuthStep('pin');
+            setInputValue('');
+            setError('');
+            setAttempts(-2); // Gives 4 total attempts, as it increments to -1 on first failure
         } catch (error) {
             toast({
                 variant: 'destructive',
@@ -1279,6 +1298,7 @@ function AdminAuthPage({ onAuthenticated }) {
             });
         } finally{
             setIsVerifying(false);
+            // Stop camera tracks after capture
             video.srcObject?.getTracks().forEach((track)=>track.stop());
         }
     };
@@ -1304,7 +1324,7 @@ function AdminAuthPage({ onAuthenticated }) {
                 className: "hidden"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                lineNumber: 137,
+                lineNumber: 162,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$components$2f$AnimatePresence$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["AnimatePresence"], {
@@ -1325,7 +1345,7 @@ function AdminAuthPage({ onAuthenticated }) {
                                             className: "mx-auto h-12 w-12 text-primary"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                            lineNumber: 143,
+                                            lineNumber: 168,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardTitle"], {
@@ -1333,20 +1353,20 @@ function AdminAuthPage({ onAuthenticated }) {
                                             children: "Admin Paneli Korumalı"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                            lineNumber: 144,
+                                            lineNumber: 169,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardDescription"], {
                                             children: "Devam etmek için lütfen PIN kodunuzu girin."
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                            lineNumber: 145,
+                                            lineNumber: 170,
                                             columnNumber: 33
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                    lineNumber: 142,
+                                    lineNumber: 167,
                                     columnNumber: 29
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1358,7 +1378,7 @@ function AdminAuthPage({ onAuthenticated }) {
                                                 children: "PIN"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                                lineNumber: 149,
+                                                lineNumber: 174,
                                                 columnNumber: 37
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -1370,7 +1390,7 @@ function AdminAuthPage({ onAuthenticated }) {
                                                 autoFocus: true
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                                lineNumber: 150,
+                                                lineNumber: 175,
                                                 columnNumber: 37
                                             }, this),
                                             error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1378,18 +1398,18 @@ function AdminAuthPage({ onAuthenticated }) {
                                                 children: error
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                                lineNumber: 158,
+                                                lineNumber: 183,
                                                 columnNumber: 47
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                        lineNumber: 148,
+                                        lineNumber: 173,
                                         columnNumber: 33
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                    lineNumber: 147,
+                                    lineNumber: 172,
                                     columnNumber: 29
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardFooter"], {
@@ -1401,30 +1421,30 @@ function AdminAuthPage({ onAuthenticated }) {
                                                 className: "mr-2"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                                lineNumber: 163,
+                                                lineNumber: 188,
                                                 columnNumber: 37
                                             }, this),
                                             "Doğrula"
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                        lineNumber: 162,
+                                        lineNumber: 187,
                                         columnNumber: 33
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                    lineNumber: 161,
+                                    lineNumber: 186,
                                     columnNumber: 29
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                            lineNumber: 141,
+                            lineNumber: 166,
                             columnNumber: 25
                         }, this)
                     }, "pin", false, {
                         fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                        lineNumber: 140,
+                        lineNumber: 165,
                         columnNumber: 21
                     }, this),
                     authStep === 'key' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["motion"].div, {
@@ -1442,7 +1462,7 @@ function AdminAuthPage({ onAuthenticated }) {
                                             className: "mx-auto h-12 w-12 text-primary"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                            lineNumber: 175,
+                                            lineNumber: 200,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardTitle"], {
@@ -1450,20 +1470,20 @@ function AdminAuthPage({ onAuthenticated }) {
                                             children: "Güvenlik Anahtarı"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                            lineNumber: 176,
+                                            lineNumber: 201,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardDescription"], {
                                             children: "Lütfen güvenlik anahtarınızı girin."
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                            lineNumber: 177,
+                                            lineNumber: 202,
                                             columnNumber: 33
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                    lineNumber: 174,
+                                    lineNumber: 199,
                                     columnNumber: 29
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1475,7 +1495,7 @@ function AdminAuthPage({ onAuthenticated }) {
                                                 children: "Anahtar"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                                lineNumber: 181,
+                                                lineNumber: 206,
                                                 columnNumber: 37
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -1487,7 +1507,7 @@ function AdminAuthPage({ onAuthenticated }) {
                                                 autoFocus: true
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                                lineNumber: 182,
+                                                lineNumber: 207,
                                                 columnNumber: 37
                                             }, this),
                                             error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1495,18 +1515,18 @@ function AdminAuthPage({ onAuthenticated }) {
                                                 children: error
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                                lineNumber: 190,
+                                                lineNumber: 215,
                                                 columnNumber: 47
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                        lineNumber: 180,
+                                        lineNumber: 205,
                                         columnNumber: 33
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                    lineNumber: 179,
+                                    lineNumber: 204,
                                     columnNumber: 29
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardFooter"], {
@@ -1516,23 +1536,23 @@ function AdminAuthPage({ onAuthenticated }) {
                                         children: "Onayla"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                        lineNumber: 194,
+                                        lineNumber: 219,
                                         columnNumber: 33
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                    lineNumber: 193,
+                                    lineNumber: 218,
                                     columnNumber: 29
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                            lineNumber: 173,
+                            lineNumber: 198,
                             columnNumber: 25
                         }, this)
                     }, "key", false, {
                         fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                        lineNumber: 172,
+                        lineNumber: 197,
                         columnNumber: 21
                     }, this),
                     authStep === 'face-verify' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["motion"].div, {
@@ -1550,7 +1570,7 @@ function AdminAuthPage({ onAuthenticated }) {
                                             className: "mx-auto h-12 w-12 text-destructive"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                            lineNumber: 204,
+                                            lineNumber: 229,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardTitle"], {
@@ -1558,13 +1578,13 @@ function AdminAuthPage({ onAuthenticated }) {
                                             children: "Yüz Doğrulama Gerekiyor"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                            lineNumber: 205,
+                                            lineNumber: 230,
                                             columnNumber: 33
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                    lineNumber: 203,
+                                    lineNumber: 228,
                                     columnNumber: 30
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1575,12 +1595,12 @@ function AdminAuthPage({ onAuthenticated }) {
                                                 className: "w-8 h-8 animate-spin"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                                lineNumber: 208,
+                                                lineNumber: 233,
                                                 columnNumber: 107
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                            lineNumber: 208,
+                                            lineNumber: 233,
                                             columnNumber: 66
                                         }, this),
                                         hasCameraPermission === false && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Alert"], {
@@ -1590,27 +1610,27 @@ function AdminAuthPage({ onAuthenticated }) {
                                                     className: "h-4 w-4"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                                    lineNumber: 211,
+                                                    lineNumber: 236,
                                                     columnNumber: 41
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["AlertTitle"], {
                                                     children: "Kamera Erişimi Reddedildi"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                                    lineNumber: 212,
+                                                    lineNumber: 237,
                                                     columnNumber: 41
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["AlertDescription"], {
-                                                    children: "Güvenlik doğrulaması için lütfen tarayıcı ayarlarından kamera izni verin."
+                                                    children: "Güvenlik doğrulaması için lütfen tarayıcı ayarlarından kamera izni verin ve sayfayı yenileyin."
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                                    lineNumber: 213,
+                                                    lineNumber: 238,
                                                     columnNumber: 41
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                            lineNumber: 210,
+                                            lineNumber: 235,
                                             columnNumber: 38
                                         }, this),
                                         hasCameraPermission === true && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1621,7 +1641,7 @@ function AdminAuthPage({ onAuthenticated }) {
                                                     children: "Şüpheli giriş denemesi. Ek deneme hakkı için lütfen yüzünüzün net bir fotoğrafını çekin."
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                                    lineNumber: 220,
+                                                    lineNumber: 245,
                                                     columnNumber: 41
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1630,15 +1650,16 @@ function AdminAuthPage({ onAuthenticated }) {
                                                         ref: videoRef,
                                                         className: "w-full h-full object-cover scale-x-[-1]",
                                                         autoPlay: true,
-                                                        muted: true
+                                                        muted: true,
+                                                        playsInline: true
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                                        lineNumber: 222,
+                                                        lineNumber: 247,
                                                         columnNumber: 45
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                                    lineNumber: 221,
+                                                    lineNumber: 246,
                                                     columnNumber: 41
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -1650,49 +1671,49 @@ function AdminAuthPage({ onAuthenticated }) {
                                                             className: "mr-2 animate-spin"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                                            lineNumber: 225,
+                                                            lineNumber: 250,
                                                             columnNumber: 61
                                                         }, this),
                                                         "Doğrula ve Devam Et"
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                                    lineNumber: 224,
+                                                    lineNumber: 249,
                                                     columnNumber: 42
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                            lineNumber: 219,
+                                            lineNumber: 244,
                                             columnNumber: 37
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                                    lineNumber: 207,
+                                    lineNumber: 232,
                                     columnNumber: 29
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                            lineNumber: 202,
+                            lineNumber: 227,
                             columnNumber: 26
                         }, this)
                     }, "face", false, {
                         fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                        lineNumber: 201,
+                        lineNumber: 226,
                         columnNumber: 21
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-                lineNumber: 138,
+                lineNumber: 163,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(app)/admin/auth/page.tsx",
-        lineNumber: 136,
+        lineNumber: 161,
         columnNumber: 9
     }, this);
 }
