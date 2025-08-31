@@ -12,6 +12,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 type UserProfile = {
   uid: string;
@@ -25,22 +26,18 @@ type UserProfile = {
 
 const UserCardSkeleton = () => (
     <Card className="w-full">
-        <Skeleton className="w-full aspect-[3/4]"/>
-        <CardHeader>
-            <Skeleton className="h-6 w-3/4 mb-2" />
-            <Skeleton className="h-4 w-1/2" />
-        </CardHeader>
-        <CardContent>
-             <div className="flex flex-wrap gap-2">
-                <Skeleton className="h-6 w-16 rounded-full" />
-                <Skeleton className="h-6 w-20 rounded-full" />
-                <Skeleton className="h-6 w-14 rounded-full" />
+         <CardContent className="flex items-center gap-4 p-4">
+            <Skeleton className="w-20 h-20 rounded-full" />
+            <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-8 w-40" />
             </div>
-        </CardContent>
-        <CardFooter className="grid grid-cols-2 gap-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-        </CardFooter>
+             <div className="flex flex-col gap-2">
+                <Skeleton className="h-9 w-24" />
+                <Skeleton className="h-9 w-24" />
+            </div>
+         </CardContent>
     </Card>
 );
 
@@ -58,7 +55,6 @@ export default function MatchPage() {
       }
       setLoading(true);
       try {
-        // In a real app, you'd have more complex logic to exclude users you've already interacted with.
         const usersQuery = query(
           collection(db, 'users'),
           where('uid', '!=', currentUser.uid),
@@ -78,7 +74,6 @@ export default function MatchPage() {
             }
         }) as UserProfile[];
         
-        // Shuffle users for variety
         setUsers(fetchedUsers.sort(() => Math.random() - 0.5));
 
       } catch (error) {
@@ -98,7 +93,7 @@ export default function MatchPage() {
 
 
   return (
-    <div className="container mx-auto max-w-4xl p-4 md:p-8">
+    <div className="container mx-auto max-w-2xl p-4 md:p-8">
        <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold font-headline mb-4 text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">
                 Yeni Kişileri Keşfet
@@ -108,8 +103,8 @@ export default function MatchPage() {
             </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {loading && Array.from({length: 8}).map((_, i) => <UserCardSkeleton key={i} />)}
+        <div className="grid grid-cols-1 gap-4">
+            {loading && Array.from({length: 5}).map((_, i) => <UserCardSkeleton key={i} />)}
             
             {!loading && users.length === 0 && (
                  <div className="col-span-full text-center text-muted-foreground py-20">
@@ -119,42 +114,32 @@ export default function MatchPage() {
             )}
 
             {!loading && users.map((user) => (
-                 <Card key={user.uid} className="overflow-hidden flex flex-col group">
-                    <div className="relative w-full aspect-[3/4] overflow-hidden">
-                        <Image
-                            src={user.avatarUrl}
-                            alt={user.name}
-                            fill
-                            className="object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                    </div>
-                     <CardHeader>
-                        <CardTitle className="truncate">{user.name}, {user.age}</CardTitle>
-                        <CardDescription className="line-clamp-2 h-[40px]">{user.bio}</CardDescription>
-                    </CardHeader>
-                     <CardContent className="flex-grow">
-                        <div className="flex flex-wrap gap-2">
-                            {user.hobbies.slice(0, 3).map(hobby => (
-                                <Badge key={hobby} variant="secondary" className="text-xs">
-                                    {hobby}
-                                </Badge>
-                            ))}
+                 <Card key={user.uid} className="w-full">
+                    <CardContent className="flex items-center gap-4 p-4">
+                        <Avatar className='w-20 h-20'>
+                            <AvatarImage src={user.avatarUrl} alt={user.name} />
+                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 overflow-hidden">
+                            <h3 className="font-bold text-lg truncate">{user.name.split(' ')[0]}</h3>
+                            <p className="text-sm text-muted-foreground">@{user.username}</p>
+                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{user.bio}</p>
+                        </div>
+                        <div className="flex flex-col gap-2 shrink-0">
+                           <Link href={`/chat?userId=${user.uid}`}>
+                                <Button size="sm" className="w-full">
+                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                    Mesaj
+                                </Button>
+                            </Link>
+                             <Link href={`/profile/${user.username}`}>
+                                <Button size="sm" variant="outline" className="w-full">
+                                    <User className="mr-2 h-4 w-4" />
+                                    Profil
+                                </Button>
+                            </Link>
                         </div>
                     </CardContent>
-                    <CardFooter className="grid grid-cols-2 gap-2 mt-auto">
-                        <Link href={`/profile/${user.username}`}>
-                            <Button variant="outline" className="w-full">
-                                <User className="mr-2 h-4 w-4" />
-                                Profil
-                            </Button>
-                        </Link>
-                         <Link href={`/chat?userId=${user.uid}`}>
-                            <Button className="w-full">
-                                <MessageCircle className="mr-2 h-4 w-4" />
-                                Mesaj
-                            </Button>
-                        </Link>
-                    </CardFooter>
                  </Card>
             ))}
         </div>
