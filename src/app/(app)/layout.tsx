@@ -368,14 +368,14 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 !isOnline || isPoorConnection ? 'top-10' : 'top-0', 
                 isScrolling && "-translate-y-full"
             )}>
-              <div className="flex items-center gap-2 text-lg font-semibold overflow-hidden">
+               <div className="flex-1 flex items-center gap-2">
                   <AnimatePresence initial={false}>
                       {showNotification && lastNotification ? (
                           <motion.div
                               key={lastNotification.id}
-                              initial={{ x: "-100%", opacity: 0 }}
-                              animate={{ x: 0, opacity: 1 }}
-                              exit={{ x: "-100%", opacity: 0 }}
+                              initial={{ y: -20, opacity: 0 }}
+                              animate={{ y: 0, opacity: 1 }}
+                              exit={{ y: -20, opacity: 0 }}
                               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                               className="flex items-center gap-2"
                           >
@@ -385,9 +385,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
                       ) : (
                            <motion.div
                               key="title"
-                              initial={{ x: 0, opacity: 1 }}
-                              animate={{ x: 0, opacity: 1 }}
-                              exit={{ x: "-100%", opacity: 0 }}
+                              initial={{ y: -20, opacity: 0 }}
+                              animate={{ y: 0, opacity: 1 }}
+                              exit={{ y: 20, opacity: 0 }}
                               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                               className="flex items-center gap-2"
                           >
