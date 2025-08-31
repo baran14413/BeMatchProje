@@ -469,11 +469,10 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 "h-[var(--bottom-nav-height)]",
                 isScrolling && "translate-y-full"
             )}>
-                <div className="grid h-full grid-cols-4">
+                <div className="grid h-full grid-cols-3">
                     <NavButton href="/shuffle" icon={<Shuffle />} srText="Rastgele" isActive={pathname === '/shuffle'} />
                     <NavButton href="/match" icon={<Home />} srText="Ana Sayfa" isActive={pathname === '/match'} />
                     <NavButton href="/explore" icon={<Globe />} srText="Keşfet" isActive={pathname === '/explore'} />
-                    <NavButton href="/profile" icon={<User />} srText="Profile" isActive={pathname.startsWith('/profile')} />
                 </div>
             </nav>
         )}
