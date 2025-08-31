@@ -34,7 +34,7 @@ const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { 
         <Link href={href} className="flex flex-col items-center justify-center gap-1 w-full h-full relative">
             <motion.div whileTap={{ scale: 0.9 }} className="relative flex flex-col items-center justify-center">
                  {React.cloneElement(icon as React.ReactElement, {
-                    className: cn('h-5 w-5 transition-all', isActive ? 'text-primary' : 'text-muted-foreground'),
+                    className: cn('h-6 w-6 transition-all', isActive ? 'text-primary' : 'text-muted-foreground'),
                     strokeWidth: 2
                 })}
                 {hasNotification && (
@@ -107,6 +107,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const [showNotification, setShowNotification] = useState(false);
   const activityLoggedRef = useRef(false);
   const lastShownNotificationIdRef = useRef<string | null>(null);
+  const notificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const [isClientReady, setIsClientReady] = useState(false);
 
@@ -146,7 +147,8 @@ function LayoutContent({ children }: { children: ReactNode }) {
                     const welcomeText = `Hoş geldin, ${profileData.name?.split(' ')[0]}! ❤️`;
                     setLastNotification({ id: 'welcome-message', text: welcomeText });
                     setShowNotification(true);
-                    setTimeout(() => setShowNotification(false), 6000);
+                     if (notificationTimeoutRef.current) clearTimeout(notificationTimeoutRef.current);
+                    notificationTimeoutRef.current = setTimeout(() => setShowNotification(false), 6000);
                     sessionStorage.setItem('welcomeMessageShown', 'true');
                 }
                 if (!activityLoggedRef.current && profileData.name && profileData.avatarUrl) {
@@ -180,16 +182,19 @@ function LayoutContent({ children }: { children: ReactNode }) {
         activityLoggedRef.current = false;
       }
     });
-    return () => unsubscribeAuth();
+    return () => {
+        unsubscribeAuth();
+        if (notificationTimeoutRef.current) clearTimeout(notificationTimeoutRef.current);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (!currentUser) {
         setHasUnreadMessages(false);
-        setLastNotification(null);
         return;
     };
+    if (notificationTimeoutRef.current) clearTimeout(notificationTimeoutRef.current);
 
     const notificationsQuery = query(
       collection(db, 'notifications'),
@@ -219,8 +224,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
           const notifRef = doc(db, 'notifications', newNotifId);
           await updateDoc(notifRef, { read: true });
 
-          setTimeout(() => {
-            setShowNotification(false);
+           if (notificationTimeoutRef.current) clearTimeout(notificationTimeoutRef.current);
+           notificationTimeoutRef.current = setTimeout(() => {
+                setShowNotification(false);
           }, 4000);
         }
       }
@@ -251,6 +257,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
     return () => {
         unsubscribeNotifications();
         unsubscribeConversations();
+        if (notificationTimeoutRef.current) clearTimeout(notificationTimeoutRef.current);
     };
   }, [currentUser]);
 
@@ -340,7 +347,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                   <AnimatePresence initial={false}>
                       {showNotification && lastNotification ? (
                           <motion.div
-                              key="notification"
+                              key={lastNotification.id}
                               initial={{ x: "-100%", opacity: 0 }}
                               animate={{ x: 0, opacity: 1 }}
                               exit={{ x: "-100%", opacity: 0 }}
@@ -360,6 +367,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                               className="flex items-center gap-2"
                           >
                              <AnimatedLogo onClick={handleLogoClick}/>
+                             <span className='font-headline text-xl'>BeMatch</span>
                           </motion.div>
                       )}
                   </AnimatePresence>

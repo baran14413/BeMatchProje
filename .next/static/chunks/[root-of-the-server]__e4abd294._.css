@@ -266,8 +266,8 @@ img, video {
   --input: 214.3 31.8% 91.4%;
   --ring: 221 83% 53%;
   --radius: .8rem;
-  --header-height: 4rem;
-  --bottom-nav-height: 4rem;
+  --header-height: 3.5rem;
+  --bottom-nav-height: 3.5rem;
   --chart-1: 12 76% 61%;
   --chart-2: 173 58% 39%;
   --chart-3: 197 37% 24%;
@@ -725,10 +725,6 @@ img {
 
 .block {
   display: block;
-}
-
-.inline-block {
-  display: inline-block;
 }
 
 .flex {
@@ -1302,20 +1298,6 @@ img {
 
 .animate-pulse-heart {
   animation: 1.5s ease-in-out infinite pulse-heart;
-}
-
-@keyframes pulse-heart-sm {
-  0%, 100% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.15);
-  }
-}
-
-.animate-pulse-heart-sm {
-  animation: 1.5s ease-in-out infinite pulse-heart-sm;
 }
 
 @keyframes spin {
@@ -2015,11 +1997,6 @@ img {
 .via-black\/40 {
   --tw-gradient-to: #0000 var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), #0006 var(--tw-gradient-via-position), var(--tw-gradient-to);
-}
-
-.via-red-500 {
-  --tw-gradient-to: #ef444400 var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), #ef4444 var(--tw-gradient-via-position), var(--tw-gradient-to);
 }
 
 .to-blue-50 {

@@ -3,7 +3,7 @@
 
 import Lottie from 'lottie-react';
 import { cn } from '@/lib/utils';
-import { Heart } from 'lucide-react';
+import heartAnimation from '@/lib/animations/heart-lottie.json';
 
 interface AnimatedLogoProps {
     className?: string;
@@ -12,8 +12,8 @@ interface AnimatedLogoProps {
 
 const AnimatedLogo: React.FC<AnimatedLogoProps> = ({ className, onClick }) => {
     return (
-         <div className={cn("w-10 h-10 flex items-center justify-center cursor-pointer", className)} onClick={onClick}>
-            <span className='text-3xl animate-pulse-heart-sm inline-block bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent'>❤️</span>
+         <div className={cn("w-8 h-8 flex items-center justify-center cursor-pointer", className)} onClick={onClick}>
+            <Lottie animationData={heartAnimation} loop={false} />
         </div>
     );
 };
