@@ -33,15 +33,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  webpack: (config, { isServer }) => {
-    // Bu, Turbopack ile uyumluluk sorunlarını önlemek içindir.
-    // Geliştirme ortamında bu ayarı atlıyoruz.
-    if (process.env.NODE_ENV === 'development') {
-      return config;
-    }
-    // Gerekli diğer webpack ayarları buraya eklenebilir.
-    return config;
-  },
 };
 
 export default withPWA(nextConfig);

@@ -463,7 +463,7 @@ function LoginPage() {
                 title: 'Giriş Başarılı!',
                 className: 'bg-green-500 text-white'
             });
-            router.push('/explore');
+            router.push('/match');
         } catch (error) {
             console.error('Login error', error);
             toast({
