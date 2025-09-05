@@ -98,6 +98,8 @@ type Comment = {
   likes: number;
   liked: boolean;
   createdAt: any; // Can be Timestamp or Date
+  parentId?: string | null;
+  replies?: Comment[];
 };
 
 type Post = DocumentData & {
@@ -162,6 +164,9 @@ export default function ExplorePage() {
     const [likers, setLikers] = useState<User[]>([]);
     const [isLikersLoading, setIsLikersLoading] = useState(false);
     const [showStarAnimation, setShowStarAnimation] = useState<string | null>(null);
+
+    const [replyingTo, setReplyingTo] = useState<{ id: string; username: string } | null>(null);
+
 
     // Create/Edit Post States
     const [editingPost, setEditingPost] = useState<Post | null>(null);
@@ -337,18 +342,18 @@ export default function ExplorePage() {
                 const commentsQuery = query(collection(db, 'posts', post.id, 'comments'), orderBy('createdAt', 'desc'));
                 const commentsSnapshot = await getDocs(commentsQuery);
                 
-                const commentAuthors = new Set(commentsSnapshot.docs.map(d => d.data().authorId));
+                const authorIds = new Set(commentsSnapshot.docs.map(d => d.data().authorId));
                 let authorDetails: Record<string, User> = {};
 
-                if (commentAuthors.size > 0) {
-                    const usersQuery = query(collection(db, 'users'), where('uid', 'in', Array.from(commentAuthors)));
+                if (authorIds.size > 0) {
+                    const usersQuery = query(collection(db, 'users'), where('uid', 'in', Array.from(authorIds)));
                     const usersSnapshot = await getDocs(usersQuery);
                     usersSnapshot.forEach(doc => {
                          authorDetails[doc.data().uid] = { ...doc.data(), uid: doc.id } as User;
                     });
                 }
                 
-                const comments = commentsSnapshot.docs.map(doc => {
+                const commentsData = commentsSnapshot.docs.map(doc => {
                     const data = doc.data();
                     return { 
                         id: doc.id,
@@ -358,7 +363,22 @@ export default function ExplorePage() {
                     } as Comment
                 });
 
-                setActivePostForComments(prevPost => prevPost ? { ...prevPost, comments } : null);
+                // Build the comment tree
+                const commentMap = new Map<string, Comment>();
+                const topLevelComments: Comment[] = [];
+                commentsData.forEach(comment => {
+                    comment.replies = [];
+                    commentMap.set(comment.id, comment);
+                });
+                commentsData.forEach(comment => {
+                    if (comment.parentId && commentMap.has(comment.parentId)) {
+                        commentMap.get(comment.parentId)!.replies!.push(comment);
+                    } else {
+                        topLevelComments.push(comment);
+                    }
+                });
+
+                setActivePostForComments(prevPost => prevPost ? { ...prevPost, comments: topLevelComments } : null);
                 
             } catch (error) {
                  console.error("Error fetching comments:", error);
@@ -382,17 +402,12 @@ export default function ExplorePage() {
                 imageUrl = await getDownloadURL(uploadTask.ref);
             }
 
-            const newCommentData: {
-                authorId: string;
-                text: string;
-                imageUrl?: string;
-                likes: number;
-                createdAt: any;
-            } = {
+            const newCommentData: any = {
                 authorId: currentUser.uid,
                 text: commentInput.trim(),
                 likes: 0,
                 createdAt: serverTimestamp(),
+                parentId: replyingTo?.id || null,
             };
 
             if (imageUrl) {
@@ -423,17 +438,38 @@ export default function ExplorePage() {
             }
 
 
-            const newCommentForUI = {
+            const newCommentForUI: Comment = {
                 ...newCommentData,
                 id: newCommentRef.id,
                 user: { uid: currentUser.uid, name: currentUser.displayName || 'Siz', avatarUrl: currentUser.photoURL || '', username: currentUser.email?.split('@')[0] || 'user' },
                 createdAt: new Date(),
                 liked: false,
+                replies: [],
             };
 
-            setActivePostForComments((prev) =>
-                prev ? { ...prev, comments: [newCommentForUI, ...prev.comments], commentsCount: prev.commentsCount + 1 } : null
-            );
+            setActivePostForComments((prev) => {
+                if (!prev) return null;
+                const newComments = [...prev.comments];
+                 if (newCommentForUI.parentId) {
+                    const findAndInsertReply = (comments: Comment[]): boolean => {
+                        for (const comment of comments) {
+                            if (comment.id === newCommentForUI.parentId) {
+                                comment.replies = [newCommentForUI, ...(comment.replies || [])];
+                                return true;
+                            }
+                            if (comment.replies && findAndInsertReply(comment.replies)) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    };
+                    findAndInsertReply(newComments);
+                 } else {
+                    newComments.unshift(newCommentForUI);
+                 }
+                 return { ...prev, comments: newComments, commentsCount: prev.commentsCount + 1 };
+            });
+
              setPosts((prevPosts) =>
                 prevPosts.map((p) =>
                     p.id === activePostForComments.id
@@ -444,6 +480,8 @@ export default function ExplorePage() {
 
             setCommentInput('');
             setCommentImage(null);
+            setReplyingTo(null);
+
         } catch (error) {
             console.error('Error posting comment:', error);
             toast({ variant: 'destructive', title: 'Yorum gönderilemedi.' });
@@ -516,8 +554,10 @@ export default function ExplorePage() {
 
     const handleAddEmoji = (emoji: string) => setCommentInput(prevInput => prevInput + emoji);
     
-    const handleReply = (username: string) => { 
-        setCommentInput(prev => `@${username} ${prev}`); 
+    const handleReply = (comment: Comment) => { 
+        if (!comment.user?.username) return;
+        setReplyingTo({ id: comment.id, username: comment.user.username });
+        setCommentInput(prev => `@${comment.user!.username} ${prev}`);
     };
     
     const handleDeletePost = async (post: Post) => {
@@ -630,6 +670,44 @@ export default function ExplorePage() {
             resetCreateState();
         }
     };
+
+
+  const CommentComponent = ({ comment, isReply }: { comment: Comment, isReply: boolean}) => (
+    <div className={cn("flex items-start gap-3", isReply && "mt-4")}>
+        <Link href={`/profile/${comment.user?.username}`}>
+            <Avatar className={isReply ? "w-6 h-6" : "w-8 h-8"}>
+                <AvatarImage src={comment.user?.avatarUrl} data-ai-hint={comment.user?.aiHint} />
+                <AvatarFallback>{comment.user?.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+        </Link>
+        <div className="flex-1 text-sm">
+            <div className="flex items-baseline gap-2">
+                <Link href={`/profile/${comment.user?.username}`} className="font-semibold flex items-center gap-1.5">
+                    {comment.user?.name}
+                    {comment.user?.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
+                </Link>
+                <span className="text-xs text-muted-foreground font-mono">{comment.createdAt ? formatRelativeTime(comment.createdAt) : ''}</span>
+            </div>
+            
+            {comment.imageUrl && (
+                <Image src={comment.imageUrl} alt="Yorum resmi" width={150} height={150} className="mt-2 rounded-lg object-cover" />
+            )}
+            {comment.text && <div className="mt-1"><HashtagAndMentionRenderer text={comment.text}/></div>}
+            <div className="flex gap-4 text-xs text-muted-foreground mt-2 items-center">
+                <button className="cursor-pointer hover:underline" onClick={() => handleReply(comment)}>Yanıtla</button>
+            </div>
+        </div>
+        <div className="flex flex-col items-center gap-0.5">
+            <Star 
+                className="w-4 h-4 cursor-pointer" 
+                fill={comment.liked ? 'hsl(var(--yellow-400))' : 'transparent'} 
+                stroke={comment.liked ? 'hsl(var(--yellow-400))' : 'currentColor'}
+                onClick={() => handleCommentLikeClick(activePostForComments!.id, comment.id)}
+            />
+            <span className="text-xs text-muted-foreground">{comment.likes > 0 ? comment.likes : ''}</span>
+        </div>
+    </div>
+);
 
 
   return (
@@ -900,53 +978,31 @@ export default function ExplorePage() {
         </Dialog>
 
 
-      <Sheet open={isCommentSheetOpen} onOpenChange={(open) => { if (!open) { setActivePostForComments(null); setCommentInput(''); setCommentImage(null); } setCommentSheetOpen(open); }}>
+      <Sheet open={isCommentSheetOpen} onOpenChange={(open) => { if (!open) { setActivePostForComments(null); setCommentInput(''); setCommentImage(null); setReplyingTo(null); } setCommentSheetOpen(open); }}>
             <SheetContent side="bottom" className="rounded-t-xl h-[80vh] flex flex-col p-0">
                 <SheetHeader className="text-center p-4 border-b shrink-0">
                     <SheetTitle>Yorumlar</SheetTitle>
                     <SheetClose className="absolute left-4 top-1/2 -translate-y-1/2" />
                 </SheetHeader>
                 <ScrollArea className="flex-1">
-                    <div className="flex flex-col gap-4 p-4">
+                    <div className="p-4">
                        {isCommentsLoading ? (
                            <div className='flex justify-center items-center h-full'><Loader2 className="w-6 h-6 animate-spin"/></div>
                        ) : activePostForComments && activePostForComments.comments.length > 0 ? (
-                            activePostForComments.comments.map(comment => (
-                                <div key={comment.id} className="flex items-start gap-3">
-                                    <Link href={`/profile/${comment.user?.username}`}>
-                                        <Avatar className="w-8 h-8">
-                                            <AvatarImage src={comment.user?.avatarUrl} data-ai-hint={comment.user?.aiHint} />
-                                            <AvatarFallback>{comment.user?.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                    </Link>
-                                    <div className="flex-1 text-sm">
-                                        <div className="flex items-baseline gap-2">
-                                            <Link href={`/profile/${comment.user?.username}`} className="font-semibold flex items-center gap-1.5">
-                                                {comment.user?.name}
-                                                {comment.user?.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
-                                            </Link>
-                                            <span className="text-xs text-muted-foreground font-mono">{comment.createdAt ? formatRelativeTime(comment.createdAt) : ''}</span>
-                                        </div>
-                                        
-                                        {comment.imageUrl && (
-                                            <Image src={comment.imageUrl} alt="Yorum resmi" width={150} height={150} className="mt-2 rounded-lg object-cover" />
+                            <div className="flex flex-col gap-4">
+                                {activePostForComments.comments.map(comment => (
+                                    <div key={comment.id}>
+                                        <CommentComponent comment={comment} isReply={false}/>
+                                        {comment.replies && comment.replies.length > 0 && (
+                                            <div className="pl-8 mt-4 space-y-4 border-l-2 ml-4">
+                                                {comment.replies.map(reply => (
+                                                    <CommentComponent key={reply.id} comment={reply} isReply={true}/>
+                                                ))}
+                                            </div>
                                         )}
-                                        {comment.text && <div className="mt-1"><HashtagAndMentionRenderer text={comment.text}/></div>}
-                                        <div className="flex gap-4 text-xs text-muted-foreground mt-2 items-center">
-                                            <button className="cursor-pointer hover:underline" onClick={() => handleReply(comment.user!.username)}>Yanıtla</button>
-                                        </div>
                                     </div>
-                                    <div className="flex flex-col items-center gap-0.5">
-                                        <Star 
-                                            className="w-4 h-4 cursor-pointer" 
-                                            fill={comment.liked ? 'hsl(var(--yellow-400))' : 'transparent'} 
-                                            stroke={comment.liked ? 'hsl(var(--yellow-400))' : 'currentColor'}
-                                            onClick={() => handleCommentLikeClick(activePostForComments.id, comment.id)}
-                                        />
-                                        <span className="text-xs text-muted-foreground">{comment.likes > 0 ? comment.likes : ''}</span>
-                                    </div>
-                                </div>
-                            ))
+                                ))}
+                            </div>
                         ) : (
                             <p className="text-center text-muted-foreground py-10">Henüz yorum yok. İlk yorumu sen yap!</p>
                         )}
@@ -960,6 +1016,12 @@ export default function ExplorePage() {
                             <Button size="icon" variant="destructive" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setCommentImage(null)}>
                                 <XIcon className="h-4 w-4"/>
                             </Button>
+                        </div>
+                    )}
+                    {replyingTo && (
+                        <div className="px-2 py-1 text-xs text-muted-foreground flex items-center justify-between">
+                            <span>Yanıtlanıyor: @{replyingTo.username}</span>
+                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setReplyingTo(null); setCommentInput(''); }}><XIcon className="w-3 h-3"/></Button>
                         </div>
                     )}
                     <div className="flex items-center gap-4 px-2 py-1">
@@ -978,7 +1040,7 @@ export default function ExplorePage() {
                             </Button>
                             <MentionTextarea 
                                 isInput={true}
-                                placeholder="Yorum ekle..." 
+                                placeholder={replyingTo ? `@${replyingTo.username} adlı kullanıcıya yanıt ver...` : "Yorum ekle..."}
                                 value={commentInput}
                                 setValue={setCommentInput}
                                 onEnterPress={handlePostComment}
