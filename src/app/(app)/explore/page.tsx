@@ -35,6 +35,7 @@ import { MentionTextarea } from '@/components/ui/mention-textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Textarea } from '@/components/ui/textarea';
 
 
 const formatRelativeTime = (date: Date) => {
@@ -100,6 +101,7 @@ type Comment = {
   createdAt: any; // Can be Timestamp or Date
   parentId?: string | null;
   replies?: Comment[];
+  isEdited?: boolean;
 };
 
 type Post = DocumentData & {
@@ -408,6 +410,7 @@ export default function ExplorePage() {
                 likes: 0,
                 createdAt: serverTimestamp(),
                 parentId: replyingTo?.id || null,
+                isEdited: false,
             };
 
             if (imageUrl) {
@@ -531,27 +534,6 @@ export default function ExplorePage() {
         }
     };
 
-
-    const handleCommentLikeClick = (postId: string, commentId: string) => {
-        if (!activePostForComments) return;
-        
-        const updatedComments = activePostForComments.comments.map(comment => {
-            if (comment.id === commentId) {
-                return {
-                    ...comment,
-                    liked: !comment.liked,
-                    likes: comment.liked ? comment.likes - 1 : comment.likes + 1
-                };
-            }
-            return comment;
-        });
-
-        setActivePostForComments({ ...activePostForComments, comments: updatedComments });
-
-        // This is an optimistic update. In a real app, you'd also update Firestore.
-    };
-    
-
     const handleAddEmoji = (emoji: string) => setCommentInput(prevInput => prevInput + emoji);
     
     const handleReply = (comment: Comment) => { 
@@ -672,50 +654,188 @@ export default function ExplorePage() {
     };
 
 
-  const CommentComponent = ({ comment, isReply }: { comment: Comment, isReply: boolean}) => (
-    <div className={cn("flex items-start gap-3", isReply && "mt-4")}>
-        <Link href={`/profile/${comment.user?.username}`}>
-            <Avatar className={isReply ? "w-6 h-6" : "w-8 h-8"}>
-                <AvatarImage src={comment.user?.avatarUrl} data-ai-hint={comment.user?.aiHint} />
-                <AvatarFallback>{comment.user?.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-        </Link>
-        <div className="flex-1 text-sm">
-            <div className="flex items-baseline gap-2">
-                <Link href={`/profile/${comment.user?.username}`} className="font-semibold flex items-center gap-1.5">
-                    {comment.user?.name}
-                    {comment.user?.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
-                </Link>
-                <span className="text-xs text-muted-foreground font-mono">{comment.createdAt ? formatRelativeTime(comment.createdAt) : ''}</span>
-            </div>
-            
-            {comment.imageUrl && (
-                <Image src={comment.imageUrl} alt="Yorum resmi" width={150} height={150} className="mt-2 rounded-lg object-cover" />
-            )}
-            {comment.text && <div className="mt-1"><HashtagAndMentionRenderer text={comment.text}/></div>}
-            <div className="flex gap-4 text-xs text-muted-foreground mt-2 items-center">
-                <button className="cursor-pointer hover:underline" onClick={() => handleReply(comment)}>Yanıtla</button>
-            </div>
+  const CommentComponent = ({ comment }: { comment: Comment }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [editText, setEditText] = useState(comment.text);
+    const [isExpanded, setIsExpanded] = useState(false);
+    const currentUser = auth.currentUser;
 
-             {comment.replies && comment.replies.length > 0 && (
-                <div className="pl-8 mt-4 space-y-4 border-l-2 ml-4">
-                    {comment.replies.map(reply => (
-                        <CommentComponent key={reply.id} comment={reply} isReply={true}/>
-                    ))}
+    const handleCommentLikeClick = (commentId: string) => {
+        if (!activePostForComments) return;
+        // This is an optimistic update. In a real app, you'd also update Firestore.
+    };
+
+    const handleDeleteComment = async () => {
+        if (!currentUser || !activePostForComments) return;
+        
+        try {
+            const commentRef = doc(db, 'posts', activePostForComments.id, 'comments', comment.id);
+            await deleteDoc(commentRef);
+
+            // Decrement comments count on post
+            const postRef = doc(db, 'posts', activePostForComments.id);
+            await updateDoc(postRef, { commentsCount: increment(-1) });
+
+            // Remove from UI
+             setActivePostForComments(prev => {
+                if (!prev) return null;
+                // Recursive function to remove comment from tree
+                const removeComment = (comments: Comment[], idToRemove: string): Comment[] => {
+                    return comments.filter(c => c.id !== idToRemove).map(c => {
+                        if (c.replies) {
+                           return {...c, replies: removeComment(c.replies, idToRemove)}
+                        }
+                        return c;
+                    })
+                }
+                const newComments = removeComment(prev.comments, comment.id);
+                return {...prev, comments: newComments, commentsCount: prev.commentsCount - 1}
+            });
+            setPosts(prev => prev.map(p => p.id === activePostForComments.id ? {...p, commentsCount: p.commentsCount - 1} : p));
+
+            toast({ title: "Yorum silindi." });
+        } catch (error) {
+            console.error("Error deleting comment:", error);
+            toast({ variant: 'destructive', title: "Yorum silinemedi." });
+        }
+    };
+    
+    const handleUpdateComment = async () => {
+        if (!currentUser || !activePostForComments || !editText.trim()) return;
+
+        try {
+            const commentRef = doc(db, 'posts', activePostForComments.id, 'comments', comment.id);
+            await updateDoc(commentRef, {
+                text: editText,
+                isEdited: true
+            });
+
+             // Update UI
+            setActivePostForComments(prev => {
+                if (!prev) return null;
+                const updateComment = (comments: Comment[]): Comment[] => {
+                    return comments.map(c => {
+                        if (c.id === comment.id) {
+                            return {...c, text: editText, isEdited: true};
+                        }
+                        if (c.replies) {
+                            return {...c, replies: updateComment(c.replies)};
+                        }
+                        return c;
+                    })
+                }
+                return {...prev, comments: updateComment(prev.comments)}
+            });
+
+            setIsEditing(false);
+            toast({ title: "Yorum güncellendi." });
+        } catch (error) {
+            console.error("Error updating comment:", error);
+            toast({ variant: 'destructive', title: "Yorum güncellenemedi." });
+        }
+    };
+
+
+    return (
+        <div className="flex items-start gap-3">
+            <Link href={`/profile/${comment.user?.username}`}>
+                <Avatar className="w-8 h-8">
+                    <AvatarImage src={comment.user?.avatarUrl} data-ai-hint={comment.user?.aiHint} />
+                    <AvatarFallback>{comment.user?.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+            </Link>
+            <div className="flex-1 text-sm">
+                <div className="flex items-baseline gap-2">
+                    <Link href={`/profile/${comment.user?.username}`} className="font-semibold flex items-center gap-1.5">
+                        {comment.user?.name}
+                        {comment.user?.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
+                    </Link>
+                    <span className="text-xs text-muted-foreground font-mono">{comment.createdAt ? formatRelativeTime(comment.createdAt) : ''}</span>
+                    {comment.isEdited && <span className="text-xs text-muted-foreground">(düzenlendi)</span>}
                 </div>
-            )}
+                
+                 {isEditing ? (
+                    <div className="mt-2 space-y-2">
+                        <Textarea value={editText} onChange={(e) => setEditText(e.target.value)} className="min-h-[60px]" />
+                        <div className="flex gap-2 justify-end">
+                            <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>İptal</Button>
+                            <Button size="sm" onClick={handleUpdateComment}>Kaydet</Button>
+                        </div>
+                    </div>
+                 ) : (
+                    <>
+                        {comment.imageUrl && <Image src={comment.imageUrl} alt="Yorum resmi" width={150} height={150} className="mt-2 rounded-lg object-cover" />}
+                        {comment.text && <div className="mt-1"><HashtagAndMentionRenderer text={comment.text}/></div>}
+                    </>
+                 )}
+
+                <div className="flex gap-4 text-xs text-muted-foreground mt-2 items-center">
+                    <button className="cursor-pointer hover:underline" onClick={() => handleReply(comment)}>Yanıtla</button>
+                    {currentUser?.uid === comment.authorId && !isEditing && (
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                 <button className="cursor-pointer hover:underline">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                 </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start">
+                                <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                                    <Pencil className="mr-2 h-4 w-4"/>
+                                    <span>Düzenle</span>
+                                </DropdownMenuItem>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                            <Trash2 className="mr-2 h-4 w-4"/>
+                                            <span>Sil</span>
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Yorumu Sil</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Bu yorumu kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>İptal</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleDeleteComment} className={cn(buttonVariants({variant: "destructive"}))}>
+                                                Evet, Sil
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
+                </div>
+
+                {comment.replies && comment.replies.length > 0 && (
+                    <div className="mt-4">
+                        {isExpanded ? (
+                             <div className="pl-4 space-y-4 border-l-2 ml-4">
+                                {comment.replies.map(reply => <CommentComponent key={reply.id} comment={reply} />)}
+                            </div>
+                        ) : (
+                             <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline">
+                                Diğer {comment.replies.length} yanıtı gör
+                            </button>
+                        )}
+                    </div>
+                )}
+            </div>
+            <div className="flex flex-col items-center gap-0.5">
+                <Star 
+                    className="w-4 h-4 cursor-pointer" 
+                    fill={comment.liked ? 'hsl(var(--yellow-400))' : 'transparent'} 
+                    stroke={comment.liked ? 'hsl(var(--yellow-400))' : 'currentColor'}
+                    onClick={() => handleCommentLikeClick(comment.id)}
+                />
+                <span className="text-xs text-muted-foreground">{comment.likes > 0 ? comment.likes : ''}</span>
+            </div>
         </div>
-        <div className="flex flex-col items-center gap-0.5">
-            <Star 
-                className="w-4 h-4 cursor-pointer" 
-                fill={comment.liked ? 'hsl(var(--yellow-400))' : 'transparent'} 
-                stroke={comment.liked ? 'hsl(var(--yellow-400))' : 'currentColor'}
-                onClick={() => handleCommentLikeClick(activePostForComments!.id, comment.id)}
-            />
-            <span className="text-xs text-muted-foreground">{comment.likes > 0 ? comment.likes : ''}</span>
-        </div>
-    </div>
-);
+    );
+  };
 
 
   return (
@@ -999,7 +1119,7 @@ export default function ExplorePage() {
                        ) : activePostForComments && activePostForComments.comments.length > 0 ? (
                             <div className="flex flex-col gap-4">
                                 {activePostForComments.comments.map(comment => (
-                                   <CommentComponent key={comment.id} comment={comment} isReply={false} />
+                                   <CommentComponent key={comment.id} comment={comment} />
                                 ))}
                             </div>
                         ) : (

@@ -968,6 +968,10 @@ img {
   min-height: 100svh;
 }
 
+.min-h-\[60px\] {
+  min-height: 60px;
+}
+
 .w-0 {
   width: 0;
 }
