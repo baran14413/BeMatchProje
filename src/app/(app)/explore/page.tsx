@@ -382,13 +382,22 @@ export default function ExplorePage() {
                 imageUrl = await getDownloadURL(uploadTask.ref);
             }
 
-            const newCommentData = {
+            const newCommentData: {
+                authorId: string;
+                text: string;
+                imageUrl?: string;
+                likes: number;
+                createdAt: any;
+            } = {
                 authorId: currentUser.uid,
                 text: commentInput.trim(),
-                imageUrl: imageUrl,
                 likes: 0,
                 createdAt: serverTimestamp(),
             };
+
+            if (imageUrl) {
+                newCommentData.imageUrl = imageUrl;
+            }
 
             const postRef = doc(db, 'posts', activePostForComments.id);
             const commentsRef = collection(postRef, 'comments');
