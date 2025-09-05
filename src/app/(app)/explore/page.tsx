@@ -696,6 +696,14 @@ export default function ExplorePage() {
             <div className="flex gap-4 text-xs text-muted-foreground mt-2 items-center">
                 <button className="cursor-pointer hover:underline" onClick={() => handleReply(comment)}>Yanıtla</button>
             </div>
+
+             {comment.replies && comment.replies.length > 0 && (
+                <div className="pl-8 mt-4 space-y-4 border-l-2 ml-4">
+                    {comment.replies.map(reply => (
+                        <CommentComponent key={reply.id} comment={reply} isReply={true}/>
+                    ))}
+                </div>
+            )}
         </div>
         <div className="flex flex-col items-center gap-0.5">
             <Star 
@@ -991,16 +999,7 @@ export default function ExplorePage() {
                        ) : activePostForComments && activePostForComments.comments.length > 0 ? (
                             <div className="flex flex-col gap-4">
                                 {activePostForComments.comments.map(comment => (
-                                    <div key={comment.id}>
-                                        <CommentComponent comment={comment} isReply={false}/>
-                                        {comment.replies && comment.replies.length > 0 && (
-                                            <div className="pl-8 mt-4 space-y-4 border-l-2 ml-4">
-                                                {comment.replies.map(reply => (
-                                                    <CommentComponent key={reply.id} comment={reply} isReply={true}/>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
+                                   <CommentComponent key={comment.id} comment={comment} isReply={false} />
                                 ))}
                             </div>
                         ) : (
