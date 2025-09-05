@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
@@ -541,7 +540,7 @@ export default function ExplorePage() {
     const handleReply = (comment: Comment) => { 
         if (!comment.user?.username) return;
         setReplyingTo({ id: comment.id, username: comment.user.username });
-        setCommentInput(prev => `@${comment.user!.username} ${prev}`);
+        setCommentInput(`@${comment.user.username} `);
     };
     
     const handleDeletePost = async (post: Post) => {
@@ -820,7 +819,9 @@ export default function ExplorePage() {
                             </button>
                         ) : (
                              <div className="pl-4 space-y-4 border-l-2 ml-4">
-                                {comment.replies.map(reply => <CommentComponent key={reply.id} comment={reply} />)}
+                                {(isExpanded ? comment.replies : comment.replies.slice(0,1)).map(reply => (
+                                     <CommentComponent key={reply.id} comment={reply} />
+                                ))}
                             </div>
                         )}
                     </div>
@@ -1216,4 +1217,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
