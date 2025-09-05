@@ -1945,22 +1945,20 @@ function ExplorePage() {
         if (!currentUser || !activePostForComments || !commentInput.trim() && !commentImage) return;
         setIsPostingComment(true);
         try {
-            let imageUrl = undefined;
-            if (commentImage) {
-                const storageRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$storage$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ref"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["storage"], `comment_images/${activePostForComments.id}/${Date.now()}`);
-                const uploadTask = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$storage$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["uploadString"])(storageRef, commentImage, 'data_url');
-                imageUrl = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$storage$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDownloadURL"])(uploadTask.ref);
-            }
             const newCommentData = {
                 authorId: currentUser.uid,
-                text: commentInput.trim(),
                 likes: 0,
                 createdAt: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["serverTimestamp"])(),
                 parentId: replyingTo?.id || null,
                 isEdited: false
             };
-            if (imageUrl) {
-                newCommentData.imageUrl = imageUrl;
+            if (commentImage) {
+                const storageRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$storage$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ref"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["storage"], `comment_images/${activePostForComments.id}/${Date.now()}`);
+                const uploadTask = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$storage$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["uploadString"])(storageRef, commentImage, 'data_url');
+                newCommentData.imageUrl = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$storage$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDownloadURL"])(uploadTask.ref);
+            }
+            if (commentInput.trim()) {
+                newCommentData.text = commentInput.trim();
             }
             const postRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'posts', activePostForComments.id);
             const commentsRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["collection"])(postRef, 'comments');
@@ -1979,7 +1977,7 @@ function ExplorePage() {
                     },
                     type: 'comment',
                     postId: activePostForComments.id,
-                    content: newCommentData.text.substring(0, 50),
+                    content: newCommentData.text ? newCommentData.text.substring(0, 50) : '[Resim]',
                     read: false,
                     createdAt: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["serverTimestamp"])()
                 });
@@ -2095,7 +2093,10 @@ function ExplorePage() {
             id: comment.id,
             username: comment.user.username
         });
-        setCommentInput(`@${comment.user.username} `);
+        // Only add the username if it's not already there to prevent duplicates
+        if (!commentInput.startsWith(`@${comment.user.username} `)) {
+            setCommentInput(`@${comment.user.username} `);
+        }
     };
     const handleDeletePost = async (post)=>{
         if (!currentUser || post.authorId !== currentUser.uid) return;
@@ -4178,7 +4179,7 @@ function ExplorePage() {
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
                                                     lineNumber: 1179,
-                                                    columnNumber: 29
+                                                    columnNumber: 30
                                                 }, this)
                                             ]
                                         }, void 0, true, {

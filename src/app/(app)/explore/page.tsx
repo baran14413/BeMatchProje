@@ -537,7 +537,6 @@ export default function ExplorePage() {
     const handleReply = (comment: Comment) => { 
         if (!comment.user?.username) return;
         setReplyingTo({ id: comment.id, username: comment.user.username });
-        // Only add the username if it's not already there to prevent duplicates
         if (!commentInput.startsWith(`@${comment.user.username} `)) {
             setCommentInput(`@${comment.user.username} `);
         }
@@ -820,7 +819,7 @@ export default function ExplorePage() {
                         ) : (
                              <div className="pl-4 space-y-4 border-l-2 ml-4">
                                 {(isExpanded ? comment.replies : comment.replies.slice(0,1)).map(reply => (
-                                     <CommentComponent key={reply.id} comment={reply} />
+                                     <CommentComponent key={comment.id + '-' + reply.id} comment={reply} />
                                 ))}
                             </div>
                         )}
@@ -1217,3 +1216,5 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    
