@@ -398,24 +398,21 @@ export default function ExplorePage() {
         setIsPostingComment(true);
 
         try {
-            let imageUrl: string | undefined = undefined;
-            if (commentImage) {
-                const storageRef = ref(storage, `comment_images/${activePostForComments.id}/${Date.now()}`);
-                const uploadTask = await uploadString(storageRef, commentImage, 'data_url');
-                imageUrl = await getDownloadURL(uploadTask.ref);
-            }
-
             const newCommentData: any = {
                 authorId: currentUser.uid,
-                text: commentInput.trim(),
                 likes: 0,
                 createdAt: serverTimestamp(),
                 parentId: replyingTo?.id || null,
                 isEdited: false,
             };
 
-            if (imageUrl) {
-                newCommentData.imageUrl = imageUrl;
+             if (commentImage) {
+                const storageRef = ref(storage, `comment_images/${activePostForComments.id}/${Date.now()}`);
+                const uploadTask = await uploadString(storageRef, commentImage, 'data_url');
+                newCommentData.imageUrl = await getDownloadURL(uploadTask.ref);
+            }
+            if (commentInput.trim()) {
+                newCommentData.text = commentInput.trim();
             }
 
             const postRef = doc(db, 'posts', activePostForComments.id);
@@ -435,7 +432,7 @@ export default function ExplorePage() {
                     },
                     type: 'comment',
                     postId: activePostForComments.id,
-                    content: newCommentData.text.substring(0, 50),
+                    content: newCommentData.text ? newCommentData.text.substring(0, 50) : '[Resim]',
                     read: false,
                     createdAt: serverTimestamp(),
                 });
@@ -540,7 +537,10 @@ export default function ExplorePage() {
     const handleReply = (comment: Comment) => { 
         if (!comment.user?.username) return;
         setReplyingTo({ id: comment.id, username: comment.user.username });
-        setCommentInput(`@${comment.user.username} `);
+        // Only add the username if it's not already there to prevent duplicates
+        if (!commentInput.startsWith(`@${comment.user.username} `)) {
+            setCommentInput(`@${comment.user.username} `);
+        }
     };
     
     const handleDeletePost = async (post: Post) => {
@@ -1176,7 +1176,7 @@ export default function ExplorePage() {
                                 disabled={isPostingComment}
                                 className="pl-10"
                             />
-                            <Button type="submit" size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" disabled={isPostingComment || (!commentInput.trim() && !commentImage)}>
+                             <Button type="submit" size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" disabled={isPostingComment || (!commentInput.trim() && !commentImage)}>
                                 {isPostingComment ? <Loader2 className="h-4 w-4 animate-spin"/> : <Send className="h-4 w-4" />}
                             </Button>
                         </div>
