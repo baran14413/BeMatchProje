@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
@@ -168,6 +169,7 @@ export default function ExplorePage() {
     const [showStarAnimation, setShowStarAnimation] = useState<string | null>(null);
 
     const [replyingTo, setReplyingTo] = useState<{ id: string; username: string } | null>(null);
+    const commentMaxLength = 250;
 
 
     // Create/Edit Post States
@@ -812,14 +814,14 @@ export default function ExplorePage() {
 
                 {comment.replies && comment.replies.length > 0 && (
                     <div className="mt-4">
-                        {isExpanded ? (
-                             <div className="pl-4 space-y-4 border-l-2 ml-4">
-                                {comment.replies.map(reply => <CommentComponent key={reply.id} comment={reply} />)}
-                            </div>
-                        ) : (
+                        {!isExpanded && comment.replies.length > 1 ? (
                              <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline">
                                 Diğer {comment.replies.length} yanıtı gör
                             </button>
+                        ) : (
+                             <div className="pl-4 space-y-4 border-l-2 ml-4">
+                                {comment.replies.map(reply => <CommentComponent key={reply.id} comment={reply} />)}
+                            </div>
                         )}
                     </div>
                 )}
@@ -1147,8 +1149,11 @@ export default function ExplorePage() {
                         {['❤️', '👏', '😂', '🔥', '😢'].map(emoji => (
                             <span key={emoji} className="text-2xl cursor-pointer" onClick={() => handleAddEmoji(emoji)}>{emoji}</span>
                         ))}
+                         <div className="ml-auto text-xs text-muted-foreground">
+                            {commentInput.length} / {commentMaxLength}
+                        </div>
                     </div>
-                    <form onSubmit={(e) => { e.preventDefault(); handlePostComment(); }} className="flex items-center gap-2 mt-2">
+                    <form onSubmit={(e) => { e.preventDefault(); handlePostComment(); }} className="flex items-center gap-2 mt-1">
                         <Avatar className="w-8 h-8">
                             <AvatarImage src={currentUser?.photoURL || "https://placehold.co/40x40.png"} data-ai-hint="current user portrait" />
                             <AvatarFallback>{currentUser?.displayName?.charAt(0) || 'B'}</AvatarFallback>
@@ -1161,7 +1166,11 @@ export default function ExplorePage() {
                                 isInput={true}
                                 placeholder={replyingTo ? `@${replyingTo.username} adlı kullanıcıya yanıt ver...` : "Yorum ekle..."}
                                 value={commentInput}
-                                setValue={setCommentInput}
+                                setValue={(v) => {
+                                    if (v.length <= commentMaxLength) {
+                                        setCommentInput(v);
+                                    }
+                                }}
                                 onEnterPress={handlePostComment}
                                 disabled={isPostingComment}
                                 className="pl-10"
@@ -1207,3 +1216,4 @@ export default function ExplorePage() {
     </div>
   );
 }
+
