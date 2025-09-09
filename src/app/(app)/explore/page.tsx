@@ -209,6 +209,7 @@ export default function ExplorePage() {
     const [showLocationInput, setShowLocationInput] = useState(false);
     const [postAudio, setPostAudio] = useState<string | null>(null);
     const [postEmojis, setPostEmojis] = useState(false);
+    const pollQuestionMaxLength = 150;
 
 
     useEffect(() => {
@@ -919,7 +920,7 @@ export default function ExplorePage() {
         const [editText, setEditText] = useState(comment.text);
         const [isExpanded, setIsExpanded] = useState(false);
         const currentUser = auth.currentUser;
-        const currentKey = parentKey + '-' + comment.id;
+        const currentKey = `${parentKey}-${comment.id}`;
 
     const handleCommentLikeClick = (commentId: string) => {
         // This is an optimistic update. In a real app, you'd also update Firestore.
@@ -1086,24 +1087,24 @@ export default function ExplorePage() {
             </div>
 
             {comment.replies && comment.replies.length > 0 && (
-                <div className="pl-5 mt-4 border-l-2 ml-4">
-                    {isExpanded ? (
-                        <>
-                            <div className="flex flex-col gap-4">
-                                {comment.replies.map(reply => (
-                                    <CommentComponent key={currentKey + '-' + reply.id} comment={reply} parentKey={currentKey} />
-                                ))}
-                            </div>
-                             <button onClick={() => setIsExpanded(false)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2 mt-4">
-                                Yanıtları gizle
-                            </button>
-                        </>
-                    ) : (
-                         <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2">
-                            <div className='w-8 h-px bg-border'/> Diğer {comment.replies.length} yanıtın tümünü gör
-                        </button>
-                    )}
-                </div>
+                 <div className="pl-5 mt-4 border-l-2 ml-4">
+                     {isExpanded ? (
+                         <>
+                             <div className="flex flex-col gap-4">
+                                 {comment.replies.map(reply => (
+                                     <CommentComponent key={`${currentKey}-${reply.id}`} comment={reply} parentKey={currentKey} />
+                                 ))}
+                             </div>
+                              <button onClick={() => setIsExpanded(false)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2 mt-4">
+                                 Yanıtları gizle
+                             </button>
+                         </>
+                     ) : (
+                          <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2">
+                             <div className='w-8 h-px bg-border'/> Diğer {comment.replies.length} yanıtın tümünü gör
+                         </button>
+                     )}
+                 </div>
              )}
         </div>
     );
@@ -1375,7 +1376,7 @@ export default function ExplorePage() {
 
         <Dialog open={isCreateModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
             <DialogContent className="max-w-lg w-full h-full sm:h-auto sm:max-h-[95vh] p-0 flex flex-col data-[state=open]:h-screen sm:data-[state=open]:h-auto sm:rounded-lg">
-                 <DialogHeader className="p-4 border-b shrink-0">
+                <DialogHeader className="p-4 border-b shrink-0">
                     <div className="flex items-center justify-between">
                          <Button variant="ghost" size="icon" onClick={resetCreateState}><XIcon/></Button>
                         <DialogTitle className='sr-only'>
@@ -1397,16 +1398,22 @@ export default function ExplorePage() {
                             <p className="font-semibold">{currentUser?.displayName}</p>
                             
                              {showPollCreator ? (
-                                <div className="mt-2 space-y-3">
-                                    <Input
-                                        placeholder="Anket sorunuzu yazın..."
-                                        value={pollQuestion}
-                                        onChange={(e) => setPollQuestion(e.target.value)}
-                                        className="w-full text-base font-semibold"
-                                    />
+                                <div className="mt-2 space-y-4 w-full">
+                                    <div className='space-y-2'>
+                                        <Label htmlFor='poll-question'>Anket Sorusu</Label>
+                                        <Textarea
+                                            id="poll-question"
+                                            placeholder="Anket sorunuzu yazın..."
+                                            value={pollQuestion}
+                                            maxLength={pollQuestionMaxLength}
+                                            onChange={(e) => setPollQuestion(e.target.value)}
+                                            className="w-full text-base font-semibold"
+                                        />
+                                        <p className='text-xs text-muted-foreground text-right'>{pollQuestion.length}/{pollQuestionMaxLength}</p>
+                                    </div>
                                     {pollImage && (
-                                        <div className="mt-2 relative">
-                                            <Image src={pollImage} alt="Anket önizlemesi" width={500} height={300} className="rounded-xl w-full h-auto object-contain" />
+                                        <div className="mt-2 relative w-full rounded-xl overflow-hidden aspect-video">
+                                            <Image src={pollImage} alt="Anket önizlemesi" layout="fill" className="object-cover" />
                                             <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7 rounded-full" onClick={() => setPollImage(null)}>
                                                 <Trash2 className="h-4 w-4" />
                                             </Button>
@@ -1432,7 +1439,7 @@ export default function ExplorePage() {
                                         {pollOptions.length < 4 && <Button variant="outline" size="sm" onClick={() => setPollOptions([...pollOptions, ''])}>Seçenek Ekle</Button>}
                                          <Button variant="outline" size="sm" onClick={() => pollImageInputRef.current?.click()}>
                                             <ImageIcon className="mr-2 h-4 w-4"/>
-                                            Anket için Resim Ekle
+                                            Resim Ekle
                                         </Button>
                                         <input type="file" ref={pollImageInputRef} onChange={onSelectPollImage} accept="image/*" className="hidden" />
                                     </div>
@@ -1488,19 +1495,14 @@ export default function ExplorePage() {
                     <div className="flex justify-between items-center w-full">
                         <div className="flex items-center">
                             <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => setPostEmojis(!postEmojis)}><Smile className="w-6 h-6"/></Button>
-                            <Button variant="ghost" size="icon" className="text-muted-foreground"><Mic className="w-6 h-6"/></Button>
                             <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => createFileInputRef.current?.click()}><ImageIcon className="w-6 h-6"/></Button>
                             <input type="file" ref={createFileInputRef} onChange={onSelectPhotoForPost} accept="image/*" className="hidden" />
                             <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => setShowPollCreator(!showPollCreator)}><ListCollapse className="w-6 h-6"/></Button>
-                            <Button variant="ghost" size="icon" className="text-muted-foreground" disabled><Music className="w-6 h-6"/></Button>
                             <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => setPostContent(p => p + ' #')}><Hash className="w-6 h-6"/></Button>
+                            <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => setShowLocationInput(!showLocationInput)}><MapPin className="w-6 h-6"/></Button>
                         </div>
                         <span className="text-sm text-muted-foreground">{postContent.length}/{postContentMaxLength}</span>
                     </div>
-                     <div className="flex items-center justify-between w-full mt-1">
-                        <Button variant="ghost" size="sm" className="text-muted-foreground h-auto p-1 px-2" onClick={() => setShowLocationInput(!showLocationInput)}><MapPin className="w-4 h-4 mr-2"/> Konum Ekle</Button>
-                        <Button variant="ghost" size="sm" className="text-muted-foreground h-auto p-1 px-2">Herkese açık <ChevronRight className="w-4 h-4 ml-1"/></Button>
-                     </div>
                 </div>
             </DialogContent>
         </Dialog>
