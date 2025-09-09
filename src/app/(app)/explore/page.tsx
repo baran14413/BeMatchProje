@@ -660,8 +660,9 @@ export default function ExplorePage() {
         setIsPostProcessing(true);
         
         try {
-            const hashtags = contentToCheck.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
-            const mentions = contentToCheck.match(/@\w+/g)?.map(m => m.substring(1)) || [];
+            const textContentForParsing = showPollCreator ? pollQuestion.trim() : postContent.trim();
+            const hashtags = textContentForParsing.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
+            const mentions = textContentForParsing.match(/@\w+/g)?.map(m => m.substring(1)) || [];
             
             let postData: any = {
                 authorId: currentUser.uid,
@@ -829,20 +830,31 @@ export default function ExplorePage() {
                 const voters = poll.voters || {};
                 const userVote = voters[currentUser.uid];
                 
-                // If user has voted before, undo their previous vote
                 if (userVote !== undefined) {
-                    if (poll.options[userVote]) {
-                        poll.options[userVote].votes = Math.max(0, poll.options[userVote].votes - 1);
-                    }
+                   return; // User has already voted
                 }
 
                 // Apply the new vote
                 voters[currentUser.uid] = optionIndex;
                 poll.options[optionIndex].votes += 1;
-                poll.totalVotes = Object.keys(voters).length;
+                poll.totalVotes = (poll.totalVotes || 0) + 1;
                 
                 transaction.update(postRef, { poll });
             });
+            
+             // Optimistically update UI
+            const updatedPosts = posts.map(p => {
+                if (p.id === post.id && p.poll) {
+                    const newPoll = { ...p.poll };
+                    newPoll.options[optionIndex].votes += 1;
+                    newPoll.totalVotes = (newPoll.totalVotes || 0) + 1;
+                    newPoll.voters = { ...newPoll.voters, [currentUser.uid]: optionIndex };
+                    return { ...p, poll: newPoll };
+                }
+                return p;
+            });
+            setPosts(updatedPosts);
+
         } catch (error) {
             console.error("Error voting on poll: ", error);
             toast({ variant: "destructive", title: "Oy kullanılamadı." });
@@ -1029,14 +1041,14 @@ export default function ExplorePage() {
                          </button>
                      ) : (
                          <>
-                             <button onClick={() => setIsExpanded(false)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2 mb-4">
-                                 Yanıtları gizle
-                             </button>
                              <div className="flex flex-col gap-4">
                                  {comment.replies.map(reply => (
                                      <CommentComponent key={currentKey + '-' + reply.id} comment={reply} parentKey={currentKey} />
                                  ))}
                              </div>
+                              <button onClick={() => setIsExpanded(false)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2 mt-4">
+                                 Yanıtları gizle
+                             </button>
                          </>
                      )}
                  </div>
@@ -1546,5 +1558,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-    
