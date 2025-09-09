@@ -19,8 +19,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
 import { DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { translateText } from '@/ai/flows/translate-text-flow';
-import { stylizeImage } from '@/ai/flows/stylize-image-flow';
+import { translateText, TranslateTextOutput } from '@/ai/flows/translate-text-flow';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
@@ -95,8 +94,9 @@ type Comment = {
   imageUrl?: string;
   originalText?: string;
   lang?: string;
-  isTranslating?: boolean;
-  isTranslated?: boolean;
+  translatedText?: string;
+  isTranslating: boolean;
+  isTranslated: boolean;
   likes: number;
   liked: boolean;
   createdAt: any; // Can be Timestamp or Date
@@ -116,8 +116,9 @@ type Post = DocumentData & {
   textContent?: string;
   originalTextContent?: string;
   lang?: string;
-  isTranslated?: boolean;
-  isTranslating?: boolean;
+  translatedText?: string;
+  isTranslated: boolean;
+  isTranslating: boolean;
   likes: number;
   recentLikers: User[];
   commentsCount: number;
@@ -187,7 +188,7 @@ export default function ExplorePage() {
             try {
                 const postsQuery = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
                 const querySnapshot = await getDocs(postsQuery);
-                const postsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
+                const postsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), isTranslated: false, isTranslating: false } as Post));
 
                 if (postsData.length === 0) {
                     setPosts([]);
@@ -363,7 +364,9 @@ export default function ExplorePage() {
                         id: doc.id,
                         ...data,
                         createdAt: data.createdAt?.toDate(),
-                        user: authorDetails[data.authorId]
+                        user: authorDetails[data.authorId],
+                        isTranslated: false,
+                        isTranslating: false,
                     } as Comment
                 });
 
@@ -655,9 +658,88 @@ export default function ExplorePage() {
             resetCreateState();
         }
     };
+    
+    const handleTranslate = useCallback(async (textToTranslate: string, updateFn: (result: TranslateTextOutput & { isTranslated: boolean }) => void) => {
+        updateFn({ isTranslating: true, isTranslated: false });
+        try {
+            const result = await translateText({ textToTranslate });
+            if (result.error) {
+                throw new Error(result.error);
+            }
+            updateFn({ ...result, isTranslating: false, isTranslated: true });
+        } catch (error: any) {
+            console.error("Translation error:", error);
+            toast({ variant: "destructive", title: "Çeviri Hatası", description: error.message });
+            updateFn({ isTranslating: false, isTranslated: false });
+        }
+    }, [toast]);
+    
+    const updatePostTranslation = useCallback((postId: string, data: Partial<Post>) => {
+        setPosts(prev => prev.map(p => p.id === postId ? { ...p, ...data } : p));
+    }, []);
+
+    const updateCommentTranslationState = useCallback((commentId: string, data: Partial<Comment>) => {
+         setActivePostForComments(prevPost => {
+            if (!prevPost) return null;
+
+            const updateCommentState = (comments: Comment[]): Comment[] => {
+                return comments.map(c => {
+                    if (c.id === commentId) {
+                        return { ...c, ...data };
+                    }
+                    if (c.replies) {
+                        return { ...c, replies: updateCommentState(c.replies) };
+                    }
+                    return c;
+                });
+            };
+
+            return { ...prevPost, comments: updateCommentState(prevPost.comments) };
+        });
+    }, []);
+
+    const togglePostTranslation = useCallback((post: Post) => {
+        if (post.isTranslated) {
+            // Switch back to original
+            updatePostTranslation(post.id, { isTranslated: false, textContent: post.originalTextContent });
+        } else {
+            // Translate if not already translated
+            if (post.translatedText) {
+                 updatePostTranslation(post.id, { isTranslated: true, textContent: post.translatedText });
+            } else {
+                 handleTranslate(post.textContent!, (result) => {
+                    updatePostTranslation(post.id, { 
+                        ...result, 
+                        isTranslated: true, 
+                        originalTextContent: post.textContent, 
+                        textContent: result.translatedText || post.textContent 
+                    });
+                });
+            }
+        }
+    }, [handleTranslate, updatePostTranslation]);
+    
+    const toggleCommentTranslation = useCallback((comment: Comment) => {
+        if (comment.isTranslated) {
+             updateCommentTranslationState(comment.id, { isTranslated: false, text: comment.originalText });
+        } else {
+             if (comment.translatedText) {
+                updateCommentTranslationState(comment.id, { isTranslated: true, text: comment.translatedText });
+             } else {
+                 handleTranslate(comment.text!, (result) => {
+                    updateCommentTranslationState(comment.id, { 
+                        ...result, 
+                        isTranslated: true,
+                        originalText: comment.text,
+                        text: result.translatedText || comment.text,
+                    });
+                });
+             }
+        }
+    }, [handleTranslate, updateCommentTranslationState]);
 
 
-  const CommentComponent = useCallback(({ comment, parentKey }: { comment: Comment; parentKey: string }) => {
+    const CommentComponent = useCallback(({ comment, parentKey }: { comment: Comment; parentKey: string }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editText, setEditText] = useState(comment.text);
     const [isExpanded, setIsExpanded] = useState(false);
@@ -769,6 +851,13 @@ export default function ExplorePage() {
 
                 <div className="flex gap-4 text-xs text-muted-foreground mt-2 items-center">
                     <button className="cursor-pointer hover:underline" onClick={() => handleReply(comment)}>Yanıtla</button>
+                    {comment.isTranslating ? (
+                         <span className="flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</span>
+                    ) : (comment.lang && comment.lang !== 'tr') && (
+                        <button className="cursor-pointer hover:underline" onClick={() => toggleCommentTranslation(comment)}>
+                            {comment.isTranslated ? 'Aslına bak' : 'Çevirisine bak'}
+                        </button>
+                    )}
                     {currentUser?.uid === comment.authorId && !isEditing && (
                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -808,20 +897,18 @@ export default function ExplorePage() {
                     )}
                 </div>
 
-                {comment.replies && comment.replies.length > 0 && (
-                     <div className="mt-4">
-                        {comment.replies.length > 1 && !isExpanded && (
-                             <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline">
-                                Diğer {comment.replies.length - 1} yanıtı gör
+                 {comment.replies && comment.replies.length > 0 && (
+                    <div className="mt-4">
+                        {!isExpanded && comment.replies.length > 1 && (
+                            <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline">
+                                Diğer {comment.replies.length -1} yanıtı gör
                             </button>
                         )}
-                        {(isExpanded ? comment.replies : comment.replies.slice(0, 1)).length > 0 && (
-                             <div className="flex flex-col gap-4 pl-4 mt-2 border-l-2 ml-4">
-                                {(isExpanded ? comment.replies : comment.replies.slice(0,1)).map(reply => (
-                                     <CommentComponent key={`${parentKey}-${reply.id}`} comment={reply} parentKey={`${parentKey}-${reply.id}`} />
-                                ))}
+                        {(isExpanded ? comment.replies : comment.replies.slice(0, 1)).map(reply => (
+                            <div className="flex flex-col gap-4 mt-2 pl-4 border-l-2 ml-4" key={parentKey + '-' + reply.id}>
+                                <CommentComponent comment={reply} parentKey={parentKey + '-' + reply.id} />
                             </div>
-                        )}
+                        ))}
                     </div>
                 )}
             </div>
@@ -836,7 +923,7 @@ export default function ExplorePage() {
             </div>
         </div>
     );
-  }, [activePostForComments, handleReply, toast]);
+  }, [activePostForComments, handleReply, toast, toggleCommentTranslation]);
 
 
   return (
@@ -977,8 +1064,8 @@ export default function ExplorePage() {
                                 <div className="whitespace-pre-wrap break-words"><HashtagAndMentionRenderer text={post.textContent || ''} /></div>
                             )}
 
-                            {((post.lang && post.lang !== 'tr') || post.isTranslated) && (
-                                <button className="text-xs text-muted-foreground hover:underline mt-2 flex items-center gap-1">
+                             {((post.lang && post.lang !== 'tr') || post.isTranslated) && (
+                                <button onClick={() => togglePostTranslation(post)} className="text-xs text-muted-foreground hover:underline mt-2 flex items-center gap-1">
                                     <Languages className="w-3 h-3"/>
                                     {post.isTranslated ? 'Aslına bak' : 'Çevirisine bak'}
                                 </button>
