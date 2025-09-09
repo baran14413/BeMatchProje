@@ -545,7 +545,11 @@ export default function ExplorePage() {
         if (!comment.user?.username) return;
         const mention = `@${comment.user.username} `;
         setReplyingTo({ id: comment.id, username: comment.user.username });
-        setCommentInput(prev => mention + prev.replace(/^@\w+\s/, ''));
+        // Set the new value and ensure no old mentions are kept
+        setCommentInput(prev => {
+            const withoutOldMention = prev.replace(/^@\w+\s/, '');
+            return mention + withoutOldMention;
+        });
     }, []);
     
     const handleDeletePost = async (post: Post) => {
@@ -817,113 +821,115 @@ export default function ExplorePage() {
 
 
     return (
-        <div className="flex items-start gap-3" key={parentKey}>
-            <Link href={`/profile/${comment.user?.username}`}>
-                <Avatar className="w-8 h-8">
-                    <AvatarImage src={comment.user?.avatarUrl} data-ai-hint={comment.user?.aiHint} />
-                    <AvatarFallback>{comment.user?.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-            </Link>
-            <div className="flex-1 text-sm">
-                <div className="flex items-baseline gap-2">
-                    <Link href={`/profile/${comment.user?.username}`} className="font-semibold flex items-center gap-1.5">
-                        {comment.user?.name}
-                        {comment.user?.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
-                    </Link>
-                    <span className="text-xs text-muted-foreground font-mono">{comment.createdAt ? formatRelativeTime(comment.createdAt) : ''}</span>
-                    {comment.isEdited && <span className="text-xs text-muted-foreground">(düzenlendi)</span>}
-                </div>
-                
-                 {isEditing ? (
-                    <div className="mt-2 space-y-2">
-                        <Textarea value={editText} onChange={(e) => setEditText(e.target.value)} className="min-h-[60px]" />
-                        <div className="flex gap-2 justify-end">
-                            <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>İptal</Button>
-                            <Button size="sm" onClick={handleUpdateComment}>Kaydet</Button>
-                        </div>
+        <div className="flex flex-col gap-4" key={parentKey}>
+            <div className="flex items-start gap-3">
+                <Link href={`/profile/${comment.user?.username}`}>
+                    <Avatar className="w-8 h-8">
+                        <AvatarImage src={comment.user?.avatarUrl} data-ai-hint={comment.user?.aiHint} />
+                        <AvatarFallback>{comment.user?.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                </Link>
+                <div className="flex-1 text-sm">
+                    <div className="flex items-baseline gap-2">
+                        <Link href={`/profile/${comment.user?.username}`} className="font-semibold flex items-center gap-1.5">
+                            {comment.user?.name}
+                            {comment.user?.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
+                        </Link>
+                        <span className="text-xs text-muted-foreground font-mono">{comment.createdAt ? formatRelativeTime(comment.createdAt) : ''}</span>
+                        {comment.isEdited && <span className="text-xs text-muted-foreground">(düzenlendi)</span>}
                     </div>
-                 ) : (
-                    <>
-                        {comment.imageUrl && <Image src={comment.imageUrl} alt="Yorum resmi" width={150} height={150} className="mt-2 rounded-lg object-cover" />}
-                        {comment.text && <div className="mt-1"><HashtagAndMentionRenderer text={comment.text}/></div>}
-                    </>
-                 )}
+                    
+                     {isEditing ? (
+                        <div className="mt-2 space-y-2">
+                            <Textarea value={editText} onChange={(e) => setEditText(e.target.value)} className="min-h-[60px]" />
+                            <div className="flex gap-2 justify-end">
+                                <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>İptal</Button>
+                                <Button size="sm" onClick={handleUpdateComment}>Kaydet</Button>
+                            </div>
+                        </div>
+                     ) : (
+                        <>
+                            {comment.imageUrl && <Image src={comment.imageUrl} alt="Yorum resmi" width={150} height={150} className="mt-2 rounded-lg object-cover" />}
+                            {comment.text && <div className="mt-1"><HashtagAndMentionRenderer text={comment.text}/></div>}
+                        </>
+                     )}
 
-                <div className="flex gap-4 text-xs text-muted-foreground mt-2 items-center">
-                    <button className="cursor-pointer hover:underline" onClick={() => handleReply(comment)}>Yanıtla</button>
-                    {comment.isTranslating ? (
-                         <span className="flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</span>
-                    ) : (comment.lang && comment.lang !== 'tr') && (
-                        <button className="cursor-pointer hover:underline" onClick={() => toggleCommentTranslation(comment)}>
-                            {comment.isTranslated ? 'Aslına bak' : 'Çevirisine bak'}
-                        </button>
-                    )}
-                    {currentUser?.uid === comment.authorId && !isEditing && (
-                         <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                 <button className="cursor-pointer hover:underline">
-                                    <MoreHorizontal className="w-4 h-4" />
-                                 </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start">
-                                <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                                    <Pencil className="mr-2 h-4 w-4"/>
-                                    <span>Düzenle</span>
-                                </DropdownMenuItem>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                            <Trash2 className="mr-2 h-4 w-4"/>
-                                            <span>Sil</span>
-                                        </DropdownMenuItem>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Yorumu Sil</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Bu yorumu kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>İptal</AlertDialogCancel>
-                                            <AlertDialogAction onClick={handleDeleteComment} className={cn(buttonVariants({variant: "destructive"}))}>
-                                                Evet, Sil
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    )}
-                </div>
-
-                 {comment.replies && comment.replies.length > 0 && (
-                    <div className="mt-4">
-                        {!isExpanded && comment.replies.length > 1 && (
-                            <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline">
-                                Diğer {comment.replies.length -1} yanıtı gör
+                    <div className="flex gap-4 text-xs text-muted-foreground mt-2 items-center">
+                        <button className="cursor-pointer hover:underline" onClick={() => handleReply(comment)}>Yanıtla</button>
+                        {comment.isTranslating ? (
+                             <span className="flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</span>
+                        ) : (comment.lang && comment.lang !== 'tr') && (
+                            <button className="cursor-pointer hover:underline" onClick={() => toggleCommentTranslation(comment)}>
+                                {comment.isTranslated ? 'Aslına bak' : 'Çevirisine bak'}
                             </button>
                         )}
-                        {(isExpanded ? comment.replies : comment.replies.slice(0, 1)).map(reply => (
-                            <div className="flex flex-col gap-4 mt-2 pl-4 border-l-2 ml-4" key={parentKey + '-' + reply.id}>
-                                <CommentComponent comment={reply} parentKey={parentKey + '-' + reply.id} />
-                            </div>
+                        {currentUser?.uid === comment.authorId && !isEditing && (
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                     <button className="cursor-pointer hover:underline">
+                                        <MoreHorizontal className="w-4 h-4" />
+                                     </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start">
+                                    <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                                        <Pencil className="mr-2 h-4 w-4"/>
+                                        <span>Düzenle</span>
+                                    </DropdownMenuItem>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                <Trash2 className="mr-2 h-4 w-4"/>
+                                                <span>Sil</span>
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Yorumu Sil</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Bu yorumu kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>İptal</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleDeleteComment} className={cn(buttonVariants({variant: "destructive"}))}>
+                                                    Evet, Sil
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
+                    </div>
+                </div>
+                <div className="flex flex-col items-center gap-0.5">
+                    <Star 
+                        className="w-4 h-4 cursor-pointer" 
+                        fill={comment.liked ? 'hsl(var(--yellow-400))' : 'transparent'} 
+                        stroke={comment.liked ? 'hsl(var(--yellow-400))' : 'currentColor'}
+                        onClick={() => handleCommentLikeClick(comment.id)}
+                    />
+                    <span className="text-xs text-muted-foreground">{comment.likes > 0 ? comment.likes : ''}</span>
+                </div>
+            </div>
+
+            {comment.replies && comment.replies.length > 0 && (
+                <div className="pl-4">
+                    {!isExpanded && comment.replies.length > 1 && (
+                        <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline">
+                            Diğer {comment.replies.length -1} yanıtı gör
+                        </button>
+                    )}
+                     <div className="pl-4 space-y-4 border-l-2 ml-4">
+                        {(isExpanded ? comment.replies : comment.replies.slice(0,1)).map(reply => (
+                             <CommentComponent key={comment.id + '-' + reply.id} comment={reply} parentKey={comment.id + '-' + reply.id}/>
                         ))}
                     </div>
-                )}
-            </div>
-            <div className="flex flex-col items-center gap-0.5">
-                <Star 
-                    className="w-4 h-4 cursor-pointer" 
-                    fill={comment.liked ? 'hsl(var(--yellow-400))' : 'transparent'} 
-                    stroke={comment.liked ? 'hsl(var(--yellow-400))' : 'currentColor'}
-                    onClick={() => handleCommentLikeClick(comment.id)}
-                />
-                <span className="text-xs text-muted-foreground">{comment.likes > 0 ? comment.likes : ''}</span>
-            </div>
+                </div>
+            )}
         </div>
     );
-  }, [activePostForComments, handleReply, toast, toggleCommentTranslation]);
+  }, [activePostForComments, handleReply, toast, toggleCommentTranslation, currentUser?.uid]);
 
 
   return (
@@ -1064,7 +1070,7 @@ export default function ExplorePage() {
                                 <div className="whitespace-pre-wrap break-words"><HashtagAndMentionRenderer text={post.textContent || ''} /></div>
                             )}
 
-                             {((post.lang && post.lang !== 'tr') || post.isTranslated) && (
+                             {((post.lang && post.lang !== 'tr') || post.isTranslated) && !post.isTranslating && (
                                 <button onClick={() => togglePostTranslation(post)} className="text-xs text-muted-foreground hover:underline mt-2 flex items-center gap-1">
                                     <Languages className="w-3 h-3"/>
                                     {post.isTranslated ? 'Aslına bak' : 'Çevirisine bak'}
@@ -1139,12 +1145,15 @@ export default function ExplorePage() {
 
        <Dialog open={isCreateModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
             <DialogContent className="max-w-lg w-full h-full sm:h-auto sm:max-h-[95vh] p-0 flex flex-col data-[state=open]:h-screen sm:data-[state=open]:h-auto sm:rounded-lg">
-                 <div className="flex items-center justify-between p-4 border-b shrink-0">
-                    <Button variant="ghost" size="icon" onClick={resetCreateState}><XIcon/></Button>
-                    <Button onClick={handleSharePost} disabled={isPostProcessing || (!postContent.trim() && !postImage)}>
-                        {isPostProcessing ? <Loader2 className="h-4 w-4 animate-spin"/> : "Gönder" }
-                    </Button>
-                </div>
+                <DialogHeader className='p-4 border-b shrink-0'>
+                    <DialogTitle className='sr-only'>Yeni Gönderi Oluştur</DialogTitle>
+                     <div className="flex items-center justify-between">
+                        <Button variant="ghost" size="icon" onClick={resetCreateState}><XIcon/></Button>
+                        <Button onClick={handleSharePost} disabled={isPostProcessing || (!postContent.trim() && !postImage)}>
+                            {isPostProcessing ? <Loader2 className="h-4 w-4 animate-spin"/> : "Gönder" }
+                        </Button>
+                    </div>
+                </DialogHeader>
                 
                 <div className='flex-1 p-4 overflow-y-auto'>
                     <div className='flex items-start gap-3'>
@@ -1205,7 +1214,7 @@ export default function ExplorePage() {
                        {isCommentsLoading ? (
                            <div className='flex justify-center items-center h-full'><Loader2 className="w-6 h-6 animate-spin"/></div>
                        ) : activePostForComments && activePostForComments.comments.length > 0 ? (
-                            <div className="flex flex-col gap-4">
+                            <div className="space-y-4">
                                 {activePostForComments.comments.map(comment => (
                                    <CommentComponent key={comment.id} comment={comment} parentKey={comment.id} />
                                 ))}
