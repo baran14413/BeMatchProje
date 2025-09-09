@@ -197,7 +197,7 @@ export default function ExplorePage() {
     const [editingPost, setEditingPost] = useState<Post | null>(null);
     const [postContent, setPostContent] = useState('');
     const [postImage, setPostImage] = useState<string | null>(null);
-    const [postLocation, setPostLocation] = useState('');
+    const [postLocation, setPostLocation] = useState<string | null>(null);
     const [isPostProcessing, setIsPostProcessing] = useState(false);
     const postContentMaxLength = 1000;
     
@@ -206,8 +206,6 @@ export default function ExplorePage() {
     const [pollQuestion, setPollQuestion] = useState('');
     const [pollOptions, setPollOptions] = useState(['', '']);
     const [pollImage, setPollImage] = useState<string | null>(null);
-    const [showLocationInput, setShowLocationInput] = useState(false);
-    const [postAudio, setPostAudio] = useState<string | null>(null);
     const [postEmojis, setPostEmojis] = useState(false);
     const pollQuestionMaxLength = 150;
 
@@ -649,7 +647,7 @@ export default function ExplorePage() {
     const resetCreateState = () => {
         setPostContent('');
         setPostImage(null);
-        setPostLocation('');
+        setPostLocation(null);
         setIsPostProcessing(false);
         setEditingPost(null);
         setIsCreateModalOpen(false);
@@ -657,8 +655,6 @@ export default function ExplorePage() {
         setPollQuestion('');
         setPollOptions(['', '']);
         setPollImage(null);
-        setShowLocationInput(false);
-        setPostAudio(null);
         setPostEmojis(false);
     };
 
@@ -686,6 +682,28 @@ export default function ExplorePage() {
             reader.readAsDataURL(e.target.files[0]);
         }
     };
+    
+    const handleAddLocation = () => {
+        if (postLocation) {
+            setPostLocation(null);
+            return;
+        }
+        
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                // In a real app, you'd use a reverse geocoding API. Here we mock it.
+                // This is a placeholder. You'd need to replace this with a real API call.
+                const mockLocation = "Ankara, Türkiye";
+                setPostLocation(mockLocation);
+                 toast({ title: "Konum Eklendi", description: mockLocation });
+            }, (error) => {
+                toast({ variant: "destructive", title: "Konum Alınamadı", description: "Lütfen tarayıcı izinlerinizi kontrol edin."});
+                console.error("Geolocation error:", error);
+            });
+        } else {
+             toast({ variant: "destructive", title: "Desteklenmiyor", description: "Tarayıcınız konum servisini desteklemiyor." });
+        }
+    };
 
     const handleSharePost = async () => {
         if (!currentUser) return;
@@ -695,7 +713,7 @@ export default function ExplorePage() {
             contentToCheck = pollQuestion.trim();
         }
 
-        if (!contentToCheck && !postImage && !postAudio && !showPollCreator) {
+        if (!contentToCheck && !postImage && !showPollCreator) {
             toast({ variant: "destructive", title: "Boş Gönderi", description: "Lütfen bir şeyler yazın veya bir içerik ekleyin." });
             return;
         }
@@ -727,8 +745,8 @@ export default function ExplorePage() {
                 isAiEdited: false,
             };
 
-            if (postLocation.trim()) {
-                postData.location = postLocation.trim();
+            if (postLocation) {
+                postData.location = postLocation;
             }
 
             if (showPollCreator) {
@@ -993,7 +1011,7 @@ export default function ExplorePage() {
 
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col" key={currentKey}>
             <div className="flex items-start gap-3">
                 <Link href={`/profile/${comment.user?.username}`}>
                     <Avatar className="w-8 h-8">
@@ -1091,7 +1109,7 @@ export default function ExplorePage() {
                          <>
                              <div className="flex flex-col gap-4">
                                  {comment.replies.map(reply => (
-                                     <CommentComponent key={currentKey + '-' + reply.id} comment={reply} parentKey={currentKey} />
+                                     <CommentComponent key={`${currentKey}-${reply.id}`} comment={reply} parentKey={currentKey} />
                                  ))}
                              </div>
                               <button onClick={() => setIsExpanded(false)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2 mt-4">
@@ -1207,7 +1225,7 @@ export default function ExplorePage() {
                         <div className='p-4 space-y-3' onDoubleClick={() => handleDoubleClickLike(post.id)}>
                             {post.poll.imageUrl && (
                                 <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-3">
-                                    <Image src={post.poll.imageUrl} alt="Anket Resmi" fill className="object-cover" />
+                                    <Image src={post.poll.imageUrl} alt="Anket Resmi" fill className="object-contain" />
                                 </div>
                             )}
                             <p className="font-semibold"><HashtagAndMentionRenderer text={post.poll.question} /></p>
@@ -1378,7 +1396,7 @@ export default function ExplorePage() {
                 <DialogHeader className="p-4 border-b shrink-0">
                     <div className="flex items-center justify-between">
                          <Button variant="ghost" size="icon" onClick={resetCreateState}><XIcon/></Button>
-                        <DialogTitle className='sr-only'>
+                         <DialogTitle className='sr-only'>
                             Yeni Gönderi Oluştur
                         </DialogTitle>
                          <Button onClick={handleSharePost} disabled={isPostProcessing}>
@@ -1398,26 +1416,28 @@ export default function ExplorePage() {
                             
                              {showPollCreator ? (
                                 <div className="mt-2 space-y-4 w-full">
-                                    <div className='space-y-2'>
-                                        <Label htmlFor='poll-question' className="sr-only">Anket Sorusu</Label>
-                                        <Textarea
-                                            id="poll-question"
-                                            placeholder="Anket sorunuzu yazın..."
-                                            value={pollQuestion}
-                                            maxLength={pollQuestionMaxLength}
-                                            onChange={(e) => setPollQuestion(e.target.value)}
-                                            className="w-full text-base font-semibold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                                        />
-                                        <p className='text-xs text-muted-foreground text-right'>{pollQuestion.length}/{pollQuestionMaxLength}</p>
-                                    </div>
-                                    {pollImage && (
-                                        <div className="mt-2 relative w-full rounded-xl overflow-hidden aspect-video">
-                                            <Image src={pollImage} alt="Anket önizlemesi" layout="fill" className="object-contain" />
-                                            <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7 rounded-full" onClick={() => setPollImage(null)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                    <div className="flex flex-col items-center justify-center">
+                                        {pollImage && (
+                                            <div className="mt-2 relative w-full rounded-xl overflow-hidden aspect-video">
+                                                <Image src={pollImage} alt="Anket önizlemesi" layout="fill" className="object-contain" />
+                                                <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7 rounded-full" onClick={() => setPollImage(null)}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        )}
+                                         <div className='space-y-2 w-full mt-4'>
+                                            <Label htmlFor='poll-question' className="sr-only">Anket Sorusu</Label>
+                                            <Textarea
+                                                id="poll-question"
+                                                placeholder="Anket sorunuzu yazın..."
+                                                value={pollQuestion}
+                                                maxLength={pollQuestionMaxLength}
+                                                onChange={(e) => setPollQuestion(e.target.value)}
+                                                className="w-full text-base font-semibold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-center"
+                                            />
+                                            <p className='text-xs text-muted-foreground text-right'>{pollQuestion.length}/{pollQuestionMaxLength}</p>
                                         </div>
-                                    )}
+                                    </div>
                                     <div className="space-y-2">
                                         {pollOptions.map((opt, index) => (
                                             <div key={index} className="flex items-center gap-2">
@@ -1461,16 +1481,14 @@ export default function ExplorePage() {
                                     )}
                                 </>
                              )}
-                              {showLocationInput && (
-                                <div className="relative mt-2">
-                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Konum ekle..."
-                                        value={postLocation}
-                                        onChange={(e) => setPostLocation(e.target.value)}
-                                        className="pl-9"
-                                    />
-                                </div>
+                            {postLocation && (
+                                <Badge variant="secondary" className="mt-2 w-fit">
+                                    <MapPin className="mr-2 h-3 w-3" />
+                                    {postLocation}
+                                     <button onClick={() => setPostLocation(null)} className="ml-2 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                        <XIcon className="h-3 w-3" />
+                                     </button>
+                                </Badge>
                             )}
                         </div>
                     </div>
@@ -1498,7 +1516,7 @@ export default function ExplorePage() {
                             <input type="file" ref={createFileInputRef} onChange={onSelectPhotoForPost} accept="image/*" className="hidden" />
                             <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => setShowPollCreator(!showPollCreator)}><ListCollapse className="w-6 h-6"/></Button>
                             <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => setPostContent(p => p + ' #')}><Hash className="w-6 h-6"/></Button>
-                            <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => setShowLocationInput(!showLocationInput)}><MapPin className="w-6 h-6"/></Button>
+                            <Button variant="ghost" size="icon" className={cn("text-muted-foreground", postLocation && "text-primary")} onClick={handleAddLocation}><MapPin className="w-6 h-6"/></Button>
                         </div>
                         <span className="text-sm text-muted-foreground">{postContent.length}/{postContentMaxLength}</span>
                     </div>
@@ -1658,3 +1676,4 @@ export default function ExplorePage() {
     </div>
   );
 }
+

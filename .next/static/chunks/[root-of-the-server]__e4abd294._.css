@@ -2037,6 +2037,10 @@ img {
   padding: 1px;
 }
 
+.p-0\.5 {
+  padding: .125rem;
+}
+
 .px-0 {
   padding-left: 0;
   padding-right: 0;
@@ -2877,6 +2881,10 @@ img {
 .hover\:bg-yellow-600:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(202 138 4 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:bg-muted-foreground\/20:hover {
+  background-color: hsl(var(--muted-foreground) / .2);
 }
 
 .hover\:text-accent-foreground:hover {
