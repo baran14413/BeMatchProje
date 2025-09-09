@@ -35,6 +35,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Label } from '@/components/ui/label';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 
 
 const formatRelativeTime = (date: Date) => {
@@ -558,8 +559,8 @@ export default function ExplorePage() {
         const mention = `@${comment.user.username} `;
         setReplyingTo({ id: comment.id, username: comment.user.username });
         setCommentInput((prev) => {
-          if (prev.includes(`@${comment.user?.username} `)) return prev;
-          return mention + prev;
+            if (prev.startsWith(mention)) return prev;
+            return mention + prev;
         });
       }, []);
     
@@ -949,8 +950,8 @@ export default function ExplorePage() {
             {comment.replies && comment.replies.length > 0 && (
                 <div className="pl-5 mt-4 border-l-2 ml-4">
                     {!isExpanded ? (
-                        <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2">
-                        <div className='w-8 h-px bg-border'/> Diğer {comment.replies.length} yanıtı gör
+                         <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2">
+                            <div className='w-8 h-px bg-border'/> Diğer {comment.replies.length} yanıtın tümünü gör
                         </button>
                     ) : (
                          <>
@@ -1184,7 +1185,7 @@ export default function ExplorePage() {
 
         <Dialog open={isCreateModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
             <DialogContent className="max-w-lg w-full h-full sm:h-auto sm:max-h-[95vh] p-0 flex flex-col data-[state=open]:h-screen sm:data-[state=open]:h-auto sm:rounded-lg">
-                <DialogHeader className='p-4 border-b shrink-0'>
+                 <DialogHeader className='p-4 border-b shrink-0'>
                     <div className="flex items-center justify-between">
                         <Button variant="ghost" size="icon" onClick={resetCreateState}><XIcon/></Button>
                         <DialogTitle>Yeni Gönderi</DialogTitle>
@@ -1393,3 +1394,4 @@ export default function ExplorePage() {
     </div>
   );
 }
+
