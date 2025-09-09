@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef, ChangeEvent, useCallback } from 'react';
@@ -656,7 +657,7 @@ export default function ExplorePage() {
     };
 
 
-  const CommentComponent = useCallback(({ comment, parentKey }: { comment: Comment, parentKey: string }) => {
+  const CommentComponent = useCallback(({ comment, parentKey }: { comment: Comment; parentKey: string }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editText, setEditText] = useState(comment.text);
     const [isExpanded, setIsExpanded] = useState(false);
@@ -734,7 +735,7 @@ export default function ExplorePage() {
 
 
     return (
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3" key={parentKey}>
             <Link href={`/profile/${comment.user?.username}`}>
                 <Avatar className="w-8 h-8">
                     <AvatarImage src={comment.user?.avatarUrl} data-ai-hint={comment.user?.aiHint} />
@@ -809,16 +810,18 @@ export default function ExplorePage() {
 
                 {comment.replies && comment.replies.length > 0 && (
                      <div className="mt-4">
-                        {!isExpanded && comment.replies.length > 1 ? (
+                        {comment.replies.length > 1 && !isExpanded && (
                              <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline">
                                 Diğer {comment.replies.length - 1} yanıtı gör
                             </button>
-                        ) : null}
-                         <div className="pl-4 space-y-4 border-l-2 ml-4 mt-2">
-                            {(isExpanded ? comment.replies : comment.replies.slice(0,1)).map(reply => (
-                                 <CommentComponent key={`${parentKey}-${reply.id}`} comment={reply} parentKey={`${parentKey}-${reply.id}`} />
-                            ))}
-                        </div>
+                        )}
+                        {(isExpanded ? comment.replies : comment.replies.slice(0, 1)).length > 0 && (
+                             <div className="flex flex-col gap-4 pl-4 mt-2 border-l-2 ml-4">
+                                {(isExpanded ? comment.replies : comment.replies.slice(0,1)).map(reply => (
+                                     <CommentComponent key={`${parentKey}-${reply.id}`} comment={reply} parentKey={`${parentKey}-${reply.id}`} />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
