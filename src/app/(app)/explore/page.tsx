@@ -131,6 +131,7 @@ type Post = DocumentData & {
   poll?: {
     question: string;
     options: { text: string, votes: number }[];
+    imageUrl?: string;
   }
 };
 
@@ -160,6 +161,7 @@ export default function ExplorePage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const createFileInputRef = useRef<HTMLInputElement>(null);
     const commentFileInputRef = useRef<HTMLInputElement>(null);
+    const pollImageInputRef = useRef<HTMLInputElement>(null);
     
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     
@@ -189,6 +191,7 @@ export default function ExplorePage() {
     const [showPollCreator, setShowPollCreator] = useState(false);
     const [pollQuestion, setPollQuestion] = useState('');
     const [pollOptions, setPollOptions] = useState(['', '']);
+    const [pollImage, setPollImage] = useState<string | null>(null);
     const [showLocationInput, setShowLocationInput] = useState(false);
     const [postAudio, setPostAudio] = useState<string | null>(null);
     const [postEmojis, setPostEmojis] = useState(false);
@@ -597,6 +600,7 @@ export default function ExplorePage() {
         setShowPollCreator(false);
         setPollQuestion('');
         setPollOptions(['', '']);
+        setPollImage(null);
         setShowLocationInput(false);
         setPostAudio(null);
         setPostEmojis(false);
@@ -617,6 +621,16 @@ export default function ExplorePage() {
         }
     };
 
+    const onSelectPollImage = (e: ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const reader = new FileReader();
+            reader.addEventListener('load', () => {
+                setPollImage(reader.result as string);
+            });
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    };
+
     const handleSharePost = async () => {
         if (!currentUser) return;
 
@@ -624,16 +638,21 @@ export default function ExplorePage() {
             toast({ variant: "destructive", title: "Boş Gönderi", description: "Lütfen bir şeyler yazın veya bir içerik ekleyin." });
             return;
         }
-        if (showPollCreator && (!pollQuestion.trim() || pollOptions.some(o => !o.trim()) || pollOptions.length < 2)) {
-            toast({ variant: "destructive", title: "Eksik Anket Bilgisi", description: "Lütfen anket sorusunu ve en az iki seçeneği doldurun." });
+        if (showPollCreator && !pollQuestion.trim() && pollOptions.some(o => !o.trim())) {
+             toast({ variant: "destructive", title: "Eksik Anket Bilgisi", description: "Lütfen anket sorusunu ve en az iki seçeneği doldurun." });
+             return;
+        }
+        if (showPollCreator && pollOptions.filter(o => o.trim()).length < 2) {
+             toast({ variant: "destructive", title: "Eksik Seçenek", description: "Anketler en az iki geçerli seçeneğe sahip olmalıdır." });
             return;
         }
 
         setIsPostProcessing(true);
         
         try {
-            const hashtags = postContent.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
-            const mentions = postContent.match(/@\w+/g)?.map(m => m.substring(1)) || [];
+            const finalContent = showPollCreator ? postContent : pollQuestion;
+            const hashtags = finalContent.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
+            const mentions = finalContent.match(/@\w+/g)?.map(m => m.substring(1)) || [];
             
             let postData: any = {
                 authorId: currentUser.uid,
@@ -646,7 +665,19 @@ export default function ExplorePage() {
                 isAiEdited: false,
             };
 
-            if (postImage) {
+            if (showPollCreator) {
+                postData.type = 'poll';
+                postData.poll = {
+                    question: pollQuestion.trim() || postContent.trim(),
+                    options: pollOptions.filter(o => o.trim()).map(o => ({ text: o, votes: 0 })),
+                    imageUrl: ''
+                };
+                if (pollImage) {
+                    const storageRef = ref(storage, `poll_images/${currentUser.uid}/${Date.now()}`);
+                    const uploadTask = await uploadString(storageRef, pollImage, 'data_url');
+                    postData.poll.imageUrl = await getDownloadURL(uploadTask.ref);
+                }
+            } else if (postImage) {
                 postData.type = 'photo';
                 const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}`);
                 const uploadTask = await uploadString(storageRef, postImage, 'data_url');
@@ -654,14 +685,6 @@ export default function ExplorePage() {
                 postData.caption = postContent.trim();
             } else if (postAudio) {
                 postData.type = 'audio';
-                // Audio upload logic here
-                postData.textContent = postContent.trim();
-            } else if (showPollCreator) {
-                postData.type = 'poll';
-                postData.poll = {
-                    question: pollQuestion.trim(),
-                    options: pollOptions.filter(o => o.trim()).map(o => ({ text: o, votes: 0 })),
-                };
                 postData.textContent = postContent.trim();
             } else {
                 postData.type = 'text';
@@ -776,12 +799,11 @@ export default function ExplorePage() {
     }, [handleTranslate, updateCommentTranslationState]);
 
 
-    const CommentComponent = useCallback(({ comment, parentKey }: { comment: Comment, parentKey: string }) => {
+    const CommentComponent = useCallback(({ comment }: { comment: Comment }) => {
         const [isEditing, setIsEditing] = useState(false);
         const [editText, setEditText] = useState(comment.text);
         const [isExpanded, setIsExpanded] = useState(false);
         const currentUser = auth.currentUser;
-        const currentKey = `${parentKey}-${comment.id}`;
 
     const handleCommentLikeClick = (commentId: string) => {
         // This is an optimistic update. In a real app, you'd also update Firestore.
@@ -855,7 +877,7 @@ export default function ExplorePage() {
 
 
     return (
-        <div className="flex flex-col" key={currentKey}>
+        <div className="flex flex-col">
             <div className="flex items-start gap-3">
                 <Link href={`/profile/${comment.user?.username}`}>
                     <Avatar className="w-8 h-8">
@@ -960,7 +982,7 @@ export default function ExplorePage() {
                             </button>
                             <div className="flex flex-col gap-4">
                                 {comment.replies.map(reply => (
-                                    <CommentComponent key={currentKey + '-' + reply.id} comment={reply} parentKey={currentKey} />
+                                    <CommentComponent key={reply.id} comment={reply} />
                                 ))}
                             </div>
                         </>
@@ -1185,10 +1207,12 @@ export default function ExplorePage() {
 
         <Dialog open={isCreateModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
             <DialogContent className="max-w-lg w-full h-full sm:h-auto sm:max-h-[95vh] p-0 flex flex-col data-[state=open]:h-screen sm:data-[state=open]:h-auto sm:rounded-lg">
-                 <DialogHeader className='p-4 border-b shrink-0'>
+                <DialogHeader className='p-4 border-b shrink-0'>
                     <div className="flex items-center justify-between">
                         <Button variant="ghost" size="icon" onClick={resetCreateState}><XIcon/></Button>
-                        <DialogTitle>Yeni Gönderi</DialogTitle>
+                        <DialogTitle>
+                            {showPollCreator ? "Anket Oluştur" : "Yeni Gönderi"}
+                        </DialogTitle>
                         <Button onClick={handleSharePost} disabled={isPostProcessing || (!postContent.trim() && !postImage && !postAudio && !showPollCreator)}>
                             {isPostProcessing ? <Loader2 className="h-4 w-4 animate-spin"/> : "Gönder" }
                         </Button>
@@ -1196,26 +1220,72 @@ export default function ExplorePage() {
                 </DialogHeader>
                 
                 <div className='flex-1 p-4 overflow-y-auto'>
-                    <div className='flex items-start gap-3'>
+                     <div className='flex items-start gap-3'>
                         <Avatar>
                             <AvatarImage src={currentUser?.photoURL || ''} />
                             <AvatarFallback>{currentUser?.displayName?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className='w-full'>
                             <p className="font-semibold">{currentUser?.displayName}</p>
-                            <MentionTextarea 
-                                placeholder="Ne düşünüyorsun?"
-                                value={postContent}
-                                setValue={setPostContent}
-                                className="min-h-[120px] w-full border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-lg"
-                            />
-                             {postImage && (
-                                <div className="mt-4 relative">
-                                    <Image src={postImage} alt="Gönderi önizlemesi" width={500} height={500} className="rounded-xl w-full h-auto object-contain" />
-                                    <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-8 w-8 rounded-full" onClick={() => setPostImage(null)}>
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                            
+                             {showPollCreator ? (
+                                <div className="mt-2 space-y-3">
+                                    <Textarea
+                                        placeholder="Anket sorunuzu yazın..."
+                                        value={pollQuestion}
+                                        onChange={(e) => setPollQuestion(e.target.value)}
+                                        className="min-h-[80px] w-full text-base"
+                                    />
+                                    {pollImage && (
+                                        <div className="mt-2 relative">
+                                            <Image src={pollImage} alt="Anket önizlemesi" width={500} height={300} className="rounded-xl w-full h-auto object-contain" />
+                                            <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7 rounded-full" onClick={() => setPollImage(null)}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    )}
+                                    <div className="space-y-2">
+                                        {pollOptions.map((opt, index) => (
+                                            <div key={index} className="flex items-center gap-2">
+                                                <Input
+                                                    placeholder={`Seçenek ${index + 1}`}
+                                                    value={opt}
+                                                    onChange={(e) => {
+                                                        const newOpts = [...pollOptions];
+                                                        newOpts[index] = e.target.value;
+                                                        setPollOptions(newOpts);
+                                                    }}
+                                                />
+                                                {pollOptions.length > 2 && <Button variant="ghost" size="icon" onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== index))}><XIcon className="w-4 h-4 text-destructive" /></Button>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {pollOptions.length < 4 && <Button variant="outline" size="sm" onClick={() => setPollOptions([...pollOptions, ''])}>Seçenek Ekle</Button>}
+                                         <Button variant="outline" size="sm" onClick={() => pollImageInputRef.current?.click()}>
+                                            <ImageIcon className="mr-2 h-4 w-4"/>
+                                            Anket için Resim Ekle
+                                        </Button>
+                                        <input type="file" ref={pollImageInputRef} onChange={onSelectPollImage} accept="image/*" className="hidden" />
+                                    </div>
                                 </div>
+                             ) : (
+                                <>
+                                    <MentionTextarea 
+                                        placeholder="Ne düşünüyorsun?"
+                                        value={postContent}
+                                        setValue={setPostContent}
+                                        className="min-h-[120px] w-full border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-lg"
+                                    />
+                                    {postImage && (
+                                        <div className="mt-4 relative">
+                                            <Image src={postImage} alt="Gönderi önizlemesi" width={500} height={500} className="rounded-xl w-full h-auto object-contain" />
+                                            <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-8 w-8 rounded-full" onClick={() => setPostImage(null)}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    )}
+                                </>
                              )}
                               {showLocationInput && (
                                 <div className="relative mt-2">
@@ -1226,26 +1296,6 @@ export default function ExplorePage() {
                                         onChange={(e) => setPostLocation(e.target.value)}
                                         className="pl-9"
                                     />
-                                </div>
-                            )}
-                             {showPollCreator && (
-                                <div className="mt-4 space-y-3 p-3 border rounded-lg">
-                                    <Input placeholder="Anket Sorusu" value={pollQuestion} onChange={(e) => setPollQuestion(e.target.value)} />
-                                    {pollOptions.map((opt, index) => (
-                                        <div key={index} className="flex items-center gap-2">
-                                            <Input
-                                                placeholder={`Seçenek ${index + 1}`}
-                                                value={opt}
-                                                onChange={(e) => {
-                                                    const newOpts = [...pollOptions];
-                                                    newOpts[index] = e.target.value;
-                                                    setPollOptions(newOpts);
-                                                }}
-                                            />
-                                            {pollOptions.length > 2 && <Button variant="ghost" size="icon" onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== index))}><XIcon className="w-4 h-4 text-destructive" /></Button>}
-                                        </div>
-                                    ))}
-                                    {pollOptions.length < 4 && <Button variant="outline" size="sm" onClick={() => setPollOptions([...pollOptions, ''])}>Seçenek Ekle</Button>}
                                 </div>
                             )}
                         </div>
@@ -1301,7 +1351,7 @@ export default function ExplorePage() {
                        ) : activePostForComments && activePostForComments.comments.length > 0 ? (
                             <div className="space-y-4">
                                 {activePostForComments.comments.map(comment => (
-                                   <CommentComponent key={comment.id} comment={comment} parentKey={activePostForComments.id} />
+                                   <CommentComponent key={comment.id} comment={comment} />
                                 ))}
                             </div>
                         ) : (
@@ -1394,4 +1444,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
