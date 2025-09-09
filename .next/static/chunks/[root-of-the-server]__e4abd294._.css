@@ -900,6 +900,10 @@ img {
   height: 100svh;
 }
 
+.h-\[70vh\] {
+  height: 70vh;
+}
+
 .max-h-60 {
   max-height: 15rem;
 }

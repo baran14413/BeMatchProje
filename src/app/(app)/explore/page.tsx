@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Star, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, X as XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin, ArrowLeft, Smile, Mic, ListCollapse, Music, Hash, Globe, ChevronRight, Paperclip, Crown } from 'lucide-react';
+import { Star, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, X as XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin, ArrowLeft, Smile, Mic, ListCollapse, Music, Hash, Globe, ChevronRight, Paperclip, Crown, List as ListIcon } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -138,6 +138,11 @@ type Post = DocumentData & {
   }
 };
 
+type VoterInfo = {
+    user: User;
+    votedOptionText: string;
+};
+
 const PostSkeleton = () => (
     <div className="w-full">
         <div className="p-0">
@@ -178,6 +183,12 @@ export default function ExplorePage() {
     const [likers, setLikers] = useState<User[]>([]);
     const [isLikersLoading, setIsLikersLoading] = useState(false);
     const [showStarAnimation, setShowStarAnimation] = useState<string | null>(null);
+    
+    // Voters list states
+    const [isVotersSheetOpen, setIsVotersSheetOpen] = useState(false);
+    const [voters, setVoters] = useState<VoterInfo[]>([]);
+    const [isVotersLoading, setIsVotersLoading] = useState(false);
+    const [activePoll, setActivePoll] = useState<Post | null>(null);
 
     const [replyingTo, setReplyingTo] = useState<{ id: string; username: string } | null>(null);
     const commentMaxLength = 250;
@@ -553,6 +564,47 @@ export default function ExplorePage() {
             setIsLikersLoading(false);
         }
     };
+    
+    const handleOpenVoters = async (post: Post) => {
+        if (!post.poll?.voters) return;
+        
+        setIsVotersSheetOpen(true);
+        setIsVotersLoading(true);
+        setActivePoll(post);
+        setVoters([]);
+
+        try {
+            const voterIds = Object.keys(post.poll.voters);
+            if (voterIds.length === 0) {
+                setIsVotersLoading(false);
+                return;
+            }
+            
+            const usersQuery = query(collection(db, 'users'), where(documentId(), 'in', voterIds));
+            const usersSnapshot = await getDocs(usersQuery);
+            const usersData: Record<string, User> = {};
+            usersSnapshot.forEach(doc => {
+                usersData[doc.id] = { uid: doc.id, ...doc.data() } as User;
+            });
+            
+            const votersInfo = voterIds.map(uid => {
+                const optionIndex = post.poll!.voters![uid];
+                return {
+                    user: usersData[uid],
+                    votedOptionText: post.poll!.options[optionIndex].text,
+                };
+            }).filter(v => v.user); // Filter out any cases where user data might be missing
+
+            setVoters(votersInfo);
+
+        } catch (error) {
+            console.error("Error fetching voters:", error);
+            toast({ variant: "destructive", title: "Oy verenler listesi alınamadı." });
+        } finally {
+            setIsVotersLoading(false);
+        }
+    };
+
 
     const handleAddEmoji = (emoji: string) => {
         if (commentInput.length + emoji.length <= commentMaxLength) {
@@ -1034,24 +1086,24 @@ export default function ExplorePage() {
             </div>
 
             {comment.replies && comment.replies.length > 0 && (
-                 <div className="pl-5 mt-4 border-l-2 ml-4">
-                     {!isExpanded ? (
+                <div className="pl-5 mt-4 border-l-2 ml-4">
+                    {isExpanded ? (
+                        <>
+                            <div className="flex flex-col gap-4">
+                                {comment.replies.map(reply => (
+                                    <CommentComponent key={currentKey + '-' + reply.id} comment={reply} parentKey={currentKey} />
+                                ))}
+                            </div>
+                             <button onClick={() => setIsExpanded(false)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2 mt-4">
+                                Yanıtları gizle
+                            </button>
+                        </>
+                    ) : (
                          <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2">
-                             <div className='w-8 h-px bg-border'/> Diğer {comment.replies.length} yanıtın tümünü gör
-                         </button>
-                     ) : (
-                         <>
-                             <div className="flex flex-col gap-4">
-                                 {comment.replies.map(reply => (
-                                     <CommentComponent key={currentKey + '-' + reply.id} comment={reply} parentKey={currentKey} />
-                                 ))}
-                             </div>
-                              <button onClick={() => setIsExpanded(false)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2 mt-4">
-                                 Yanıtları gizle
-                             </button>
-                         </>
-                     )}
-                 </div>
+                            <div className='w-8 h-px bg-border'/> Diğer {comment.replies.length} yanıtın tümünü gör
+                        </button>
+                    )}
+                </div>
              )}
         </div>
     );
@@ -1155,10 +1207,10 @@ export default function ExplorePage() {
                         <div className='p-4 space-y-3' onDoubleClick={() => handleDoubleClickLike(post.id)}>
                             {post.poll.imageUrl && (
                                 <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-3">
-                                    <Image src={post.poll.imageUrl} alt="Anket Resmi" layout="fill" className="object-cover" />
+                                    <Image src={post.poll.imageUrl} alt="Anket Resmi" fill className="object-cover" />
                                 </div>
                             )}
-                            <p className="font-semibold">{post.poll.question}</p>
+                            <p className="font-semibold"><HashtagAndMentionRenderer text={post.poll.question} /></p>
                             <div className="space-y-2">
                                 {post.poll.options.map((option, index) => {
                                     const userVote = post.poll.voters?.[currentUser?.uid || ''];
@@ -1173,7 +1225,7 @@ export default function ExplorePage() {
                                                 onClick={() => handleVote(post, index)}
                                                 disabled={userVote !== undefined}
                                             >
-                                                <div className="absolute top-0 left-0 h-full bg-primary/20" style={{ width: `${userVote !== undefined ? votePercentage : 0}%` }} />
+                                                <div className="absolute top-0 left-0 h-full bg-primary/20 transition-all duration-500" style={{ width: `${userVote !== undefined ? votePercentage : 0}%` }} />
                                                 <div className="relative flex items-center justify-between w-full px-4 py-2">
                                                     <div className='flex items-center gap-2'>
                                                         {userVote === index && <Check className="w-4 h-4 text-primary" />}
@@ -1188,7 +1240,9 @@ export default function ExplorePage() {
                                     );
                                 })}
                             </div>
-                             <p className="text-xs text-muted-foreground">{post.poll.totalVotes || 0} oy</p>
+                            <button className="text-xs text-muted-foreground hover:underline" onClick={() => handleOpenVoters(post)}>
+                                {post.poll.totalVotes || 0} oy
+                            </button>
                         </div>
                     )}
                     
@@ -1321,13 +1375,13 @@ export default function ExplorePage() {
 
         <Dialog open={isCreateModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
             <DialogContent className="max-w-lg w-full h-full sm:h-auto sm:max-h-[95vh] p-0 flex flex-col data-[state=open]:h-screen sm:data-[state=open]:h-auto sm:rounded-lg">
-                <DialogHeader className='p-4 border-b shrink-0'>
+                 <DialogHeader className="p-4 border-b shrink-0">
                     <div className="flex items-center justify-between">
-                        <Button variant="ghost" size="icon" onClick={resetCreateState}><XIcon/></Button>
-                        <DialogTitle>
-                            {showPollCreator ? "Anket Oluştur" : "Yeni Gönderi"}
+                         <Button variant="ghost" size="icon" onClick={resetCreateState}><XIcon/></Button>
+                        <DialogTitle className='sr-only'>
+                            Yeni Gönderi Oluştur
                         </DialogTitle>
-                        <Button onClick={handleSharePost} disabled={isPostProcessing}>
+                         <Button onClick={handleSharePost} disabled={isPostProcessing}>
                             {isPostProcessing ? <Loader2 className="h-4 w-4 animate-spin"/> : "Gönder" }
                         </Button>
                     </div>
@@ -1554,6 +1608,51 @@ export default function ExplorePage() {
                 </ScrollArea>
             </DialogContent>
         </Dialog>
+        
+        <Sheet open={isVotersSheetOpen} onOpenChange={setIsVotersSheetOpen}>
+            <SheetContent side="bottom" className="h-[70vh] flex flex-col p-0">
+                <SheetHeader className="text-center p-4 border-b shrink-0">
+                    <SheetTitle>
+                        Oy Verenler
+                        {activePoll && <span className="text-muted-foreground font-normal ml-2">({activePoll.poll?.totalVotes || 0})</span>}
+                    </SheetTitle>
+                    <SheetClose className="absolute left-4 top-1/2 -translate-y-1/2" />
+                </SheetHeader>
+                <ScrollArea className="flex-1">
+                    {isVotersLoading ? (
+                        <div className="flex justify-center items-center h-full">
+                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                        </div>
+                    ) : voters.length > 0 ? (
+                        <div className="divide-y">
+                            {voters.map(({ user, votedOptionText }) => (
+                                <div key={user.uid} className="flex items-center p-4 gap-4">
+                                    <Link href={`/profile/${user.username}`} className="flex items-center gap-4 flex-1" onClick={() => setIsVotersSheetOpen(false)}>
+                                        <Avatar className="w-10 h-10">
+                                            <AvatarImage src={user.avatarUrl} data-ai-hint={user.name} />
+                                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1 overflow-hidden">
+                                            <p className="font-semibold truncate">{user.name}</p>
+                                            <p className="text-sm text-muted-foreground truncate">@{user.username}</p>
+                                        </div>
+                                    </Link>
+                                    <Badge variant="outline" className="ml-auto shrink-0">
+                                        {votedOptionText}
+                                    </Badge>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center text-muted-foreground p-10 flex flex-col items-center">
+                            <ListIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+                            <p>Henüz kimse oy kullanmadı.</p>
+                        </div>
+                    )}
+                </ScrollArea>
+            </SheetContent>
+        </Sheet>
+
 
     </div>
   );
