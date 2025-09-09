@@ -107,7 +107,7 @@ type Comment = {
 
 type Post = DocumentData & {
   id: string;
-  type: 'photo' | 'text';
+  type: 'photo' | 'text' | 'audio' | 'poll';
   authorId: string;
   user?: User; 
   url?: string; 
@@ -127,6 +127,11 @@ type Post = DocumentData & {
   isGalleryLocked?: boolean; 
   isAiEdited?: boolean;
   location?: string;
+  audioUrl?: string;
+  poll?: {
+    question: string;
+    options: { text: string, votes: number }[];
+  }
 };
 
 const PostSkeleton = () => (
@@ -172,7 +177,6 @@ export default function ExplorePage() {
     const [replyingTo, setReplyingTo] = useState<{ id: string; username: string } | null>(null);
     const commentMaxLength = 250;
 
-
     // Create/Edit Post States
     const [editingPost, setEditingPost] = useState<Post | null>(null);
     const [postContent, setPostContent] = useState('');
@@ -180,6 +184,13 @@ export default function ExplorePage() {
     const [postLocation, setPostLocation] = useState('');
     const [isPostProcessing, setIsPostProcessing] = useState(false);
     const postContentMaxLength = 1000;
+    
+    // New states for advanced post creation
+    const [showPollCreator, setShowPollCreator] = useState(false);
+    const [pollQuestion, setPollQuestion] = useState('');
+    const [pollOptions, setPollOptions] = useState(['', '']);
+    const [showLocationInput, setShowLocationInput] = useState(false);
+    const [postAudio, setPostAudio] = useState<string | null>(null);
 
 
     useEffect(() => {
@@ -396,7 +407,8 @@ export default function ExplorePage() {
         }
     };
 
-    const handlePostComment = useCallback(async () => {
+    const handlePostComment = useCallback(async (e: React.FormEvent) => {
+        e.preventDefault();
         if (!currentUser || !activePostForComments || (!commentInput.trim() && !commentImage)) return;
 
         setIsPostingComment(true);
@@ -545,12 +557,11 @@ export default function ExplorePage() {
         if (!comment.user?.username) return;
         const mention = `@${comment.user.username} `;
         setReplyingTo({ id: comment.id, username: comment.user.username });
-        // Set the new value and ensure no old mentions are kept
-        setCommentInput(prev => {
-            const withoutOldMention = prev.replace(/^@\w+\s/, '');
-            return mention + withoutOldMention;
+        setCommentInput((prev) => {
+          const withoutOldMention = prev.replace(/^@\w+\s/, '');
+          return mention + withoutOldMention;
         });
-    }, []);
+      }, []);
     
     const handleDeletePost = async (post: Post) => {
         if (!currentUser || post.authorId !== currentUser.uid) return;
@@ -582,6 +593,11 @@ export default function ExplorePage() {
         setIsPostProcessing(false);
         setEditingPost(null);
         setIsCreateModalOpen(false);
+        setShowPollCreator(false);
+        setPollQuestion('');
+        setPollOptions(['', '']);
+        setShowLocationInput(false);
+        setPostAudio(null);
     };
 
     const handleCreatePost = () => {
@@ -602,8 +618,12 @@ export default function ExplorePage() {
     const handleSharePost = async () => {
         if (!currentUser) return;
 
-        if (!postContent.trim() && !postImage) {
-            toast({ variant: "destructive", title: "Boş Gönderi", description: "Lütfen bir şeyler yazın veya bir fotoğraf ekleyin." });
+        if (!postContent.trim() && !postImage && !postAudio && !showPollCreator) {
+            toast({ variant: "destructive", title: "Boş Gönderi", description: "Lütfen bir şeyler yazın veya bir içerik ekleyin." });
+            return;
+        }
+        if (showPollCreator && (!pollQuestion.trim() || pollOptions.some(o => !o.trim()) || pollOptions.length < 2)) {
+            toast({ variant: "destructive", title: "Eksik Anket Bilgisi", description: "Lütfen anket sorusunu ve en az iki seçeneği doldurun." });
             return;
         }
 
@@ -620,18 +640,29 @@ export default function ExplorePage() {
                 commentsCount: 0,
                 hashtags: hashtags,
                 mentions: mentions,
-                location: postLocation || '',
-                type: postImage ? 'photo' : 'text',
+                location: postLocation.trim() || '',
                 isAiEdited: false,
             };
 
             if (postImage) {
+                postData.type = 'photo';
                 const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}`);
                 const uploadTask = await uploadString(storageRef, postImage, 'data_url');
                 postData.url = await getDownloadURL(uploadTask.ref);
                 postData.caption = postContent.trim();
+            } else if (postAudio) {
+                postData.type = 'audio';
+                // Audio upload logic here
+                postData.textContent = postContent.trim();
+            } else if (showPollCreator) {
+                postData.type = 'poll';
+                postData.poll = {
+                    question: pollQuestion.trim(),
+                    options: pollOptions.filter(o => o.trim()).map(o => ({ text: o, votes: 0 })),
+                };
                 postData.textContent = postContent.trim();
             } else {
+                postData.type = 'text';
                 postData.textContent = postContent.trim();
             }
             
@@ -1143,13 +1174,13 @@ export default function ExplorePage() {
             <span className="sr-only">Yeni Gönderi Ekle</span>
        </Button>
 
-       <Dialog open={isCreateModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
+        <Dialog open={isCreateModalOpen} onOpenChange={(open) => !open && resetCreateState()}>
             <DialogContent className="max-w-lg w-full h-full sm:h-auto sm:max-h-[95vh] p-0 flex flex-col data-[state=open]:h-screen sm:data-[state=open]:h-auto sm:rounded-lg">
                 <DialogHeader className='p-4 border-b shrink-0'>
-                    <DialogTitle className='sr-only'>Yeni Gönderi Oluştur</DialogTitle>
-                     <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between">
                         <Button variant="ghost" size="icon" onClick={resetCreateState}><XIcon/></Button>
-                        <Button onClick={handleSharePost} disabled={isPostProcessing || (!postContent.trim() && !postImage)}>
+                        <DialogTitle className='absolute left-1/2 -translate-x-1/2'>Yeni Gönderi</DialogTitle>
+                        <Button onClick={handleSharePost} disabled={isPostProcessing || (!postContent.trim() && !postImage && !postAudio && !showPollCreator)}>
                             {isPostProcessing ? <Loader2 className="h-4 w-4 animate-spin"/> : "Gönder" }
                         </Button>
                     </div>
@@ -1177,6 +1208,37 @@ export default function ExplorePage() {
                                     </Button>
                                 </div>
                              )}
+                              {showLocationInput && (
+                                <div className="relative mt-2">
+                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Konum ekle..."
+                                        value={postLocation}
+                                        onChange={(e) => setPostLocation(e.target.value)}
+                                        className="pl-9"
+                                    />
+                                </div>
+                            )}
+                             {showPollCreator && (
+                                <div className="mt-4 space-y-3 p-3 border rounded-lg">
+                                    <Input placeholder="Anket Sorusu" value={pollQuestion} onChange={(e) => setPollQuestion(e.target.value)} />
+                                    {pollOptions.map((opt, index) => (
+                                        <div key={index} className="flex items-center gap-2">
+                                            <Input
+                                                placeholder={`Seçenek ${index + 1}`}
+                                                value={opt}
+                                                onChange={(e) => {
+                                                    const newOpts = [...pollOptions];
+                                                    newOpts[index] = e.target.value;
+                                                    setPollOptions(newOpts);
+                                                }}
+                                            />
+                                            {pollOptions.length > 2 && <Button variant="ghost" size="icon" onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== index))}><XIcon className="w-4 h-4 text-destructive" /></Button>}
+                                        </div>
+                                    ))}
+                                    {pollOptions.length < 4 && <Button variant="outline" size="sm" onClick={() => setPollOptions([...pollOptions, ''])}>Seçenek Ekle</Button>}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -1188,14 +1250,14 @@ export default function ExplorePage() {
                             <Button variant="ghost" size="icon" className="text-muted-foreground"><Mic className="w-6 h-6"/></Button>
                             <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => createFileInputRef.current?.click()}><ImageIcon className="w-6 h-6"/></Button>
                             <input type="file" ref={createFileInputRef} onChange={onSelectPhotoForPost} accept="image/*" className="hidden" />
-                            <Button variant="ghost" size="icon" className="text-muted-foreground"><ListCollapse className="w-6 h-6"/></Button>
-                            <Button variant="ghost" size="icon" className="text-muted-foreground"><Music className="w-6 h-6"/></Button>
-                            <Button variant="ghost" size="icon" className="text-muted-foreground"><Hash className="w-6 h-6"/></Button>
+                            <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => setShowPollCreator(!showPollCreator)}><ListCollapse className="w-6 h-6"/></Button>
+                            <Button variant="ghost" size="icon" className="text-muted-foreground" disabled><Music className="w-6 h-6"/></Button>
+                            <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => setPostContent(p => p + ' #')}><Hash className="w-6 h-6"/></Button>
                         </div>
                         <span className="text-sm text-muted-foreground">{postContent.length}/{postContentMaxLength}</span>
                     </div>
                      <div className="flex items-center justify-between w-full mt-1">
-                        <Button variant="ghost" size="sm" className="text-muted-foreground h-auto p-1 px-2"><MapPin className="w-4 h-4 mr-2"/> Konum Ekle</Button>
+                        <Button variant="ghost" size="sm" className="text-muted-foreground h-auto p-1 px-2" onClick={() => setShowLocationInput(!showLocationInput)}><MapPin className="w-4 h-4 mr-2"/> Konum Ekle</Button>
                         <Button variant="ghost" size="sm" className="text-muted-foreground h-auto p-1 px-2">Herkese açık <ChevronRight className="w-4 h-4 ml-1"/></Button>
                      </div>
                 </div>
@@ -1225,7 +1287,7 @@ export default function ExplorePage() {
                     </div>
                 </ScrollArea>
                 <div className="p-2 bg-background border-t shrink-0">
-                    <form onSubmit={(e) => { e.preventDefault(); handlePostComment(); }}>
+                    <form onSubmit={handlePostComment}>
                         <input type="file" ref={commentFileInputRef} onChange={onSelectCommentImage} accept="image/*" className="hidden" />
                         {commentImage && (
                             <div className="p-2 relative w-fit">
@@ -1263,7 +1325,7 @@ export default function ExplorePage() {
                                     placeholder={replyingTo ? `@${replyingTo.username} adlı kullanıcıya yanıt ver...` : "Yorum ekle..."}
                                     value={commentInput}
                                     setValue={setCommentInput}
-                                    onEnterPress={handlePostComment}
+                                    onEnterPress={(e) => { e.preventDefault(); handlePostComment(e as unknown as React.FormEvent); }}
                                     disabled={isPostingComment}
                                     className="pl-10"
                                 />
