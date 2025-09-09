@@ -532,13 +532,18 @@ export default function ExplorePage() {
         }
     };
 
-    const handleAddEmoji = (emoji: string) => setCommentInput(prevInput => prevInput + emoji);
+    const handleAddEmoji = (emoji: string) => {
+        if (commentInput.length + emoji.length <= commentMaxLength) {
+            setCommentInput(prevInput => prevInput + emoji);
+        }
+    };
     
-    const handleReply = (comment: Comment) => { 
+    const handleReply = (comment: Comment) => {
         if (!comment.user?.username) return;
-        setReplyingTo({ id: comment.id, username: comment.user.username });
-        if (!commentInput.startsWith(`@${comment.user.username} `)) {
-            setCommentInput(`@${comment.user.username} `);
+        const mention = `@${comment.user.username} `;
+        if (!commentInput.startsWith(mention)) {
+            setReplyingTo({ id: comment.id, username: comment.user.username });
+            setCommentInput(mention);
         }
     };
     
@@ -818,9 +823,7 @@ export default function ExplorePage() {
                             </button>
                         ) : (
                              <div className="pl-4 space-y-4 border-l-2 ml-4">
-                                {(isExpanded ? comment.replies : comment.replies.slice(0,1)).map(reply => (
-                                     <CommentComponent key={comment.id + '-' + reply.id} comment={reply} />
-                                ))}
+                                {(isExpanded ? comment.replies : comment.replies.slice(0,1)).map(reply => <CommentComponent key={comment.id + '-' + reply.id} comment={reply} />)}
                             </div>
                         )}
                     </div>
@@ -1166,11 +1169,7 @@ export default function ExplorePage() {
                                 isInput={true}
                                 placeholder={replyingTo ? `@${replyingTo.username} adlı kullanıcıya yanıt ver...` : "Yorum ekle..."}
                                 value={commentInput}
-                                setValue={(v) => {
-                                    if (v.length <= commentMaxLength) {
-                                        setCommentInput(v);
-                                    }
-                                }}
+                                setValue={setCommentInput}
                                 onEnterPress={handlePostComment}
                                 disabled={isPostingComment}
                                 className="pl-10"
@@ -1216,5 +1215,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-    
