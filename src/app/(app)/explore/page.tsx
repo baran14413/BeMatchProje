@@ -36,6 +36,7 @@ import { Label } from '@/components/ui/label';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 
 
 const formatRelativeTime = (date: Date) => {
@@ -131,6 +132,8 @@ type Post = DocumentData & {
   poll?: {
     question: string;
     options: { text: string, votes: number }[];
+    voters?: { [key: string]: number }; // userId: optionIndex
+    totalVotes: number;
     imageUrl?: string;
   }
 };
@@ -634,14 +637,21 @@ export default function ExplorePage() {
     const handleSharePost = async () => {
         if (!currentUser) return;
 
-        if (!postContent.trim() && !postImage && !postAudio && !showPollCreator) {
+        let contentToCheck = postContent.trim();
+        if (showPollCreator) {
+            contentToCheck = pollQuestion.trim();
+        }
+
+        if (!contentToCheck && !postImage && !postAudio && !showPollCreator) {
             toast({ variant: "destructive", title: "Boş Gönderi", description: "Lütfen bir şeyler yazın veya bir içerik ekleyin." });
             return;
         }
-        if (showPollCreator && !pollQuestion.trim() && pollOptions.some(o => !o.trim())) {
-             toast({ variant: "destructive", title: "Eksik Anket Bilgisi", description: "Lütfen anket sorusunu ve en az iki seçeneği doldurun." });
-             return;
+
+        if (showPollCreator && !pollQuestion.trim()) {
+            toast({ variant: "destructive", title: "Eksik Anket Bilgisi", description: "Lütfen anket sorusunu doldurun." });
+            return;
         }
+        
         if (showPollCreator && pollOptions.filter(o => o.trim()).length < 2) {
              toast({ variant: "destructive", title: "Eksik Seçenek", description: "Anketler en az iki geçerli seçeneğe sahip olmalıdır." });
             return;
@@ -650,9 +660,8 @@ export default function ExplorePage() {
         setIsPostProcessing(true);
         
         try {
-            const finalContent = showPollCreator ? postContent : pollQuestion;
-            const hashtags = finalContent.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
-            const mentions = finalContent.match(/@\w+/g)?.map(m => m.substring(1)) || [];
+            const hashtags = contentToCheck.match(/#\w+/g)?.map(h => h.substring(1).toLowerCase()) || [];
+            const mentions = contentToCheck.match(/@\w+/g)?.map(m => m.substring(1)) || [];
             
             let postData: any = {
                 authorId: currentUser.uid,
@@ -668,8 +677,10 @@ export default function ExplorePage() {
             if (showPollCreator) {
                 postData.type = 'poll';
                 postData.poll = {
-                    question: pollQuestion.trim() || postContent.trim(),
+                    question: pollQuestion.trim(),
                     options: pollOptions.filter(o => o.trim()).map(o => ({ text: o, votes: 0 })),
+                    voters: {},
+                    totalVotes: 0,
                     imageUrl: ''
                 };
                 if (pollImage) {
@@ -685,6 +696,7 @@ export default function ExplorePage() {
                 postData.caption = postContent.trim();
             } else if (postAudio) {
                 postData.type = 'audio';
+                postData.audioUrl = postAudio; // Assuming postAudio is the URL
                 postData.textContent = postContent.trim();
             } else {
                 postData.type = 'text';
@@ -797,13 +809,53 @@ export default function ExplorePage() {
              }
         }
     }, [handleTranslate, updateCommentTranslationState]);
+    
+     const handleVote = async (post: Post, optionIndex: number) => {
+        if (!currentUser || !post.poll) return;
+
+        const postRef = doc(db, "posts", post.id);
+
+        try {
+            await runTransaction(db, async (transaction) => {
+                const postDoc = await transaction.get(postRef);
+                if (!postDoc.exists()) {
+                    throw "Gönderi bulunamadı!";
+                }
+
+                const currentPost = postDoc.data() as Post;
+                const poll = currentPost.poll;
+                if (!poll) return;
+                
+                const voters = poll.voters || {};
+                const userVote = voters[currentUser.uid];
+                
+                // If user has voted before, undo their previous vote
+                if (userVote !== undefined) {
+                    if (poll.options[userVote]) {
+                        poll.options[userVote].votes = Math.max(0, poll.options[userVote].votes - 1);
+                    }
+                }
+
+                // Apply the new vote
+                voters[currentUser.uid] = optionIndex;
+                poll.options[optionIndex].votes += 1;
+                poll.totalVotes = Object.keys(voters).length;
+                
+                transaction.update(postRef, { poll });
+            });
+        } catch (error) {
+            console.error("Error voting on poll: ", error);
+            toast({ variant: "destructive", title: "Oy kullanılamadı." });
+        }
+    };
 
 
-    const CommentComponent = useCallback(({ comment }: { comment: Comment }) => {
+    const CommentComponent = useCallback(({ comment, parentKey }: { comment: Comment, parentKey: string }) => {
         const [isEditing, setIsEditing] = useState(false);
         const [editText, setEditText] = useState(comment.text);
         const [isExpanded, setIsExpanded] = useState(false);
         const currentUser = auth.currentUser;
+        const currentKey = parentKey + '-' + comment.id;
 
     const handleCommentLikeClick = (commentId: string) => {
         // This is an optimistic update. In a real app, you'd also update Firestore.
@@ -970,25 +1022,25 @@ export default function ExplorePage() {
             </div>
 
             {comment.replies && comment.replies.length > 0 && (
-                <div className="pl-5 mt-4 border-l-2 ml-4">
-                    {!isExpanded ? (
+                 <div className="pl-5 mt-4 border-l-2 ml-4">
+                     {!isExpanded ? (
                          <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2">
-                            <div className='w-8 h-px bg-border'/> Diğer {comment.replies.length} yanıtın tümünü gör
-                        </button>
-                    ) : (
+                             <div className='w-8 h-px bg-border'/> Diğer {comment.replies.length} yanıtın tümünü gör
+                         </button>
+                     ) : (
                          <>
-                            <button onClick={() => setIsExpanded(false)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2 mb-4">
-                                <div className='w-8 h-px bg-border'/> Yanıtları gizle
-                            </button>
-                            <div className="flex flex-col gap-4">
-                                {comment.replies.map(reply => (
-                                    <CommentComponent key={reply.id} comment={reply} />
-                                ))}
-                            </div>
-                        </>
-                    )}
-                </div>
-            )}
+                             <button onClick={() => setIsExpanded(false)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2 mb-4">
+                                 Yanıtları gizle
+                             </button>
+                             <div className="flex flex-col gap-4">
+                                 {comment.replies.map(reply => (
+                                     <CommentComponent key={currentKey + '-' + reply.id} comment={reply} parentKey={currentKey} />
+                                 ))}
+                             </div>
+                         </>
+                     )}
+                 </div>
+             )}
         </div>
     );
   }, [activePostForComments, handleReply, toast, toggleCommentTranslation, currentUser?.uid]);
@@ -1087,6 +1139,47 @@ export default function ExplorePage() {
                         </div>
                     </div>
 
+                    {post.type === 'poll' && post.poll && (
+                        <div className='p-4 space-y-3' onDoubleClick={() => handleDoubleClickLike(post.id)}>
+                            {post.poll.imageUrl && (
+                                <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-3">
+                                    <Image src={post.poll.imageUrl} alt="Anket Resmi" layout="fill" className="object-cover" />
+                                </div>
+                            )}
+                            <p className="font-semibold">{post.poll.question}</p>
+                            <div className="space-y-2">
+                                {post.poll.options.map((option, index) => {
+                                    const userVote = post.poll.voters?.[currentUser?.uid || ''];
+                                    const totalVotes = post.poll.totalVotes || 0;
+                                    const votePercentage = totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0;
+                                    
+                                    return (
+                                        <div key={index} className="relative w-full">
+                                            <Button
+                                                variant="outline"
+                                                className="w-full justify-start h-auto p-0 overflow-hidden"
+                                                onClick={() => handleVote(post, index)}
+                                                disabled={userVote !== undefined}
+                                            >
+                                                <div className="absolute top-0 left-0 h-full bg-primary/20" style={{ width: `${userVote !== undefined ? votePercentage : 0}%` }} />
+                                                <div className="relative flex items-center justify-between w-full px-4 py-2">
+                                                    <div className='flex items-center gap-2'>
+                                                        {userVote === index && <Check className="w-4 h-4 text-primary" />}
+                                                        <span>{option.text}</span>
+                                                    </div>
+                                                    {userVote !== undefined && (
+                                                        <span className="font-semibold">{votePercentage.toFixed(0)}%</span>
+                                                    )}
+                                                </div>
+                                            </Button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                             <p className="text-xs text-muted-foreground">{post.poll.totalVotes || 0} oy</p>
+                        </div>
+                    )}
+                    
                     {post.type === 'photo' && post.url && (
                         <div className="relative w-full aspect-square group" onDoubleClick={() => handleDoubleClickLike(post.id)}>
                             <Image
@@ -1140,6 +1233,10 @@ export default function ExplorePage() {
                             )}
                         </div>
                     )}
+                    
+                    {post.type === 'audio' && post.audioUrl && (
+                        <div>Audio Player Here</div>
+                    )}
 
                     <div className="flex items-center justify-between p-3">
                         <div className="flex items-center gap-4">
@@ -1189,6 +1286,11 @@ export default function ExplorePage() {
                                 {post.commentsCount} yorumun tümünü gör
                             </p>
                         )}
+                         {post.location && (
+                            <Link href={`/location/${post.location}`} className="text-xs text-muted-foreground mt-2 flex items-center gap-1 hover:underline">
+                                <MapPin className="w-3 h-3"/> {post.location}
+                            </Link>
+                         )}
                     </div>
                 </div>
             </div>
@@ -1213,7 +1315,7 @@ export default function ExplorePage() {
                         <DialogTitle>
                             {showPollCreator ? "Anket Oluştur" : "Yeni Gönderi"}
                         </DialogTitle>
-                        <Button onClick={handleSharePost} disabled={isPostProcessing || (!postContent.trim() && !postImage && !postAudio && !showPollCreator)}>
+                        <Button onClick={handleSharePost} disabled={isPostProcessing}>
                             {isPostProcessing ? <Loader2 className="h-4 w-4 animate-spin"/> : "Gönder" }
                         </Button>
                     </div>
@@ -1230,11 +1332,11 @@ export default function ExplorePage() {
                             
                              {showPollCreator ? (
                                 <div className="mt-2 space-y-3">
-                                    <Textarea
+                                    <Input
                                         placeholder="Anket sorunuzu yazın..."
                                         value={pollQuestion}
                                         onChange={(e) => setPollQuestion(e.target.value)}
-                                        className="min-h-[80px] w-full text-base"
+                                        className="w-full text-base font-semibold"
                                     />
                                     {pollImage && (
                                         <div className="mt-2 relative">
@@ -1351,7 +1453,7 @@ export default function ExplorePage() {
                        ) : activePostForComments && activePostForComments.comments.length > 0 ? (
                             <div className="space-y-4">
                                 {activePostForComments.comments.map(comment => (
-                                   <CommentComponent key={comment.id} comment={comment} />
+                                   <CommentComponent key={comment.id} comment={comment} parentKey={comment.id} />
                                 ))}
                             </div>
                         ) : (
@@ -1444,3 +1546,5 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    
