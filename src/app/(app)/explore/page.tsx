@@ -104,7 +104,11 @@ type Comment = {
   parentId?: string | null;
   replies?: Comment[];
   isEdited?: boolean;
+  // For flattened structure
+  depth?: number; 
+  replyCount?: number;
 };
+
 
 type Post = DocumentData & {
   id: string;
@@ -124,7 +128,7 @@ type Post = DocumentData & {
   recentLikers: User[];
   commentsCount: number;
   liked: boolean;
-  comments: Comment[];
+  comments: Comment[]; // This will now be a flat list
   isGalleryLocked?: boolean; 
   isAiEdited?: boolean;
   location?: string;
@@ -366,6 +370,24 @@ export default function ExplorePage() {
         setTimeout(() => setShowStarAnimation(null), 800);
     }
     
+    // Function to flatten the comment tree
+    const flattenComments = (comments: Comment[], parentId: string | null = null, depth = 0): Comment[] => {
+        const flatList: Comment[] = [];
+        
+        comments
+            .filter(c => c.parentId === parentId)
+            .forEach(comment => {
+                const replies = comments.filter(r => r.parentId === comment.id);
+                flatList.push({ ...comment, depth, replyCount: replies.length });
+                if (replies.length > 0) {
+                    flatList.push(...flattenComments(comments, comment.id, depth + 1));
+                }
+            });
+            
+        return flatList;
+    };
+
+
     const handleOpenComments = async (post: Post) => {
         if (!isCommentSheetOpen) {
             setActivePostForComments(post);
@@ -398,22 +420,9 @@ export default function ExplorePage() {
                     } as Comment
                 });
 
-                // Build the comment tree
-                const commentMap = new Map<string, Comment>();
-                const topLevelComments: Comment[] = [];
-                commentsData.forEach(comment => {
-                    comment.replies = [];
-                    commentMap.set(comment.id, comment);
-                });
-                commentsData.forEach(comment => {
-                    if (comment.parentId && commentMap.has(comment.parentId)) {
-                        commentMap.get(comment.parentId)!.replies!.push(comment);
-                    } else {
-                        topLevelComments.push(comment);
-                    }
-                });
+                const flattenedComments = flattenComments(commentsData);
 
-                setActivePostForComments(prevPost => prevPost ? { ...prevPost, comments: topLevelComments } : null);
+                setActivePostForComments(prevPost => prevPost ? { ...prevPost, comments: flattenedComments } : null);
                 
             } catch (error) {
                  console.error("Error fetching comments:", error);
@@ -478,29 +487,28 @@ export default function ExplorePage() {
                 createdAt: new Date(),
                 liked: false,
                 replies: [],
+                depth: replyingTo ? (activePostForComments.comments.find(c => c.id === replyingTo.id)?.depth || 0) + 1 : 0,
+                replyCount: 0,
             };
 
-            setActivePostForComments((prev) => {
+             setActivePostForComments((prev) => {
                 if (!prev) return null;
                 const newComments = [...prev.comments];
-                 if (newCommentForUI.parentId) {
-                    const findAndInsertReply = (comments: Comment[]): boolean => {
-                        for (const comment of comments) {
-                            if (comment.id === newCommentForUI.parentId) {
-                                comment.replies = [newCommentForUI, ...(comment.replies || [])];
-                                return true;
-                            }
-                            if (comment.replies && findAndInsertReply(comment.replies)) {
-                                return true;
-                            }
-                        }
-                        return false;
-                    };
-                    findAndInsertReply(newComments);
-                 } else {
+                if (replyingTo) {
+                    const parentIndex = newComments.findIndex(c => c.id === replyingTo.id);
+                    if (parentIndex !== -1) {
+                         // Insert reply right after the parent
+                        newComments.splice(parentIndex + 1, 0, newCommentForUI);
+                         // Update reply count on parent
+                        newComments[parentIndex].replyCount = (newComments[parentIndex].replyCount || 0) + 1;
+                    } else {
+                        // Fallback if parent not found, add to top level
+                         newComments.unshift(newCommentForUI);
+                    }
+                } else {
                     newComments.unshift(newCommentForUI);
-                 }
-                 return { ...prev, comments: newComments, commentsCount: prev.commentsCount + 1 };
+                }
+                return { ...prev, comments: newComments, commentsCount: prev.commentsCount + 1 };
             });
 
              setPosts((prevPosts) =>
@@ -932,12 +940,11 @@ export default function ExplorePage() {
     };
 
 
-    const CommentComponent = useCallback(({ comment, parentKey }: { comment: Comment, parentKey: string }) => {
+    const CommentComponent = useCallback(({ comment }: { comment: Comment }) => {
         const [isEditing, setIsEditing] = useState(false);
         const [editText, setEditText] = useState(comment.text);
-        const [isExpanded, setIsExpanded] = useState(false);
+        const [repliesVisible, setRepliesVisible] = useState(false);
         const currentUser = auth.currentUser;
-        const currentKey = `${parentKey}-${comment.id}`;
 
     const handleCommentLikeClick = (commentId: string) => {
         // This is an optimistic update. In a real app, you'd also update Firestore.
@@ -1011,7 +1018,7 @@ export default function ExplorePage() {
 
 
     return (
-        <div className="flex flex-col" key={currentKey}>
+        <div style={{ paddingLeft: `${(comment.depth || 0) * 20}px` }} className="flex flex-col">
             <div className="flex items-start gap-3">
                 <Link href={`/profile/${comment.user?.username}`}>
                     <Avatar className="w-8 h-8">
@@ -1103,26 +1110,17 @@ export default function ExplorePage() {
                 </div>
             </div>
 
-            {comment.replies && comment.replies.length > 0 && (
-                 <div className="pl-5 mt-4 border-l-2 ml-4">
-                     {isExpanded ? (
-                         <>
-                             <div className="flex flex-col gap-4">
-                                 {comment.replies.map(reply => (
-                                     <CommentComponent key={`${currentKey}-${reply.id}`} comment={reply} parentKey={currentKey} />
-                                 ))}
-                             </div>
-                              <button onClick={() => setIsExpanded(false)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2 mt-4">
-                                 Yanıtları gizle
-                             </button>
-                         </>
-                     ) : (
-                          <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2">
-                             <div className='w-8 h-px bg-border'/> Diğer {comment.replies.length} yanıtın tümünü gör
-                         </button>
-                     )}
-                 </div>
-             )}
+            {comment.replyCount && comment.replyCount > 0 ? (
+                <button onClick={() => setRepliesVisible(!repliesVisible)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2 mt-2 ml-12">
+                    <div className='w-8 h-px bg-border'/>
+                    {repliesVisible ? 'Yanıtları gizle' : `Diğer ${comment.replyCount} yanıtı gör`}
+                </button>
+            ) : null}
+            
+            {repliesVisible && activePostForComments && activePostForComments.comments
+                .filter(reply => reply.parentId === comment.id)
+                .map(reply => <CommentComponent key={reply.id} comment={reply} />)
+            }
         </div>
     );
   }, [activePostForComments, handleReply, toast, toggleCommentTranslation, currentUser?.uid]);
@@ -1415,7 +1413,7 @@ export default function ExplorePage() {
                             <p className="font-semibold">{currentUser?.displayName}</p>
                             
                              {showPollCreator ? (
-                                <div className="mt-2 space-y-4 w-full">
+                                <div className="mt-2 space-y-4 w-full text-center">
                                     <div className="flex flex-col items-center justify-center">
                                         {pollImage && (
                                             <div className="mt-2 relative w-full rounded-xl overflow-hidden aspect-video">
@@ -1433,7 +1431,7 @@ export default function ExplorePage() {
                                                 value={pollQuestion}
                                                 maxLength={pollQuestionMaxLength}
                                                 onChange={(e) => setPollQuestion(e.target.value)}
-                                                className="w-full text-base font-semibold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-center"
+                                                className="w-full text-lg font-semibold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-center resize-none"
                                             />
                                             <p className='text-xs text-muted-foreground text-right'>{pollQuestion.length}/{pollQuestionMaxLength}</p>
                                         </div>
@@ -1532,13 +1530,13 @@ export default function ExplorePage() {
                     <SheetClose className="absolute left-4 top-1/2 -translate-y-1/2" />
                 </DialogHeader>
                 <ScrollArea className="flex-1">
-                    <div className="p-4">
+                    <div className="p-4 space-y-4">
                        {isCommentsLoading ? (
                            <div className='flex justify-center items-center h-full'><Loader2 className="w-6 h-6 animate-spin"/></div>
                        ) : activePostForComments && activePostForComments.comments.length > 0 ? (
                             <div className="space-y-4">
                                 {activePostForComments.comments.map(comment => (
-                                   <CommentComponent key={comment.id} comment={comment} parentKey={comment.id} />
+                                   <CommentComponent key={comment.id} comment={comment} />
                                 ))}
                             </div>
                         ) : (
@@ -1676,4 +1674,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-

@@ -732,6 +732,10 @@ img {
   margin-bottom: .75rem;
 }
 
+.ml-12 {
+  margin-left: 3rem;
+}
+
 .line-clamp-3 {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
