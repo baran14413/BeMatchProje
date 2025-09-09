@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef, ChangeEvent, useCallback } from 'react';
@@ -558,12 +557,12 @@ export default function ExplorePage() {
         const mention = `@${comment.user.username} `;
         setReplyingTo({ id: comment.id, username: comment.user.username });
         setCommentInput((prev) => {
-          if(prev.startsWith(`@${replyingTo?.username} `)) {
-             return mention + prev.substring(replyingTo!.username.length + 2);
+          if (prev.startsWith(`@${replyingTo?.username} `)) {
+             return mention + prev.substring(replyingTo.username.length + 2);
           }
-          return mention + prev;
+          return mention;
         });
-      }, [replyingTo]);
+      }, [replyingTo?.username]);
     
     const handleDeletePost = async (post: Post) => {
         if (!currentUser || post.authorId !== currentUser.uid) return;
@@ -776,11 +775,12 @@ export default function ExplorePage() {
     }, [handleTranslate, updateCommentTranslationState]);
 
 
-    const CommentComponent = useCallback(({ comment }: { comment: Comment }) => {
-    const [isEditing, setIsEditing] = useState(false);
-    const [editText, setEditText] = useState(comment.text);
-    const [isExpanded, setIsExpanded] = useState(false);
-    const currentUser = auth.currentUser;
+    const CommentComponent = useCallback(({ comment, parentKey }: { comment: Comment, parentKey: string }) => {
+        const [isEditing, setIsEditing] = useState(false);
+        const [editText, setEditText] = useState(comment.text);
+        const [isExpanded, setIsExpanded] = useState(false);
+        const currentUser = auth.currentUser;
+        const currentKey = `${parentKey}-${comment.id}`;
 
     const handleCommentLikeClick = (commentId: string) => {
         // This is an optimistic update. In a real app, you'd also update Firestore.
@@ -854,7 +854,7 @@ export default function ExplorePage() {
 
 
     return (
-        <div className="flex flex-col gap-4" key={comment.id}>
+        <div className="flex flex-col" key={currentKey}>
             <div className="flex items-start gap-3">
                 <Link href={`/profile/${comment.user?.username}`}>
                     <Avatar className="w-8 h-8">
@@ -946,18 +946,20 @@ export default function ExplorePage() {
                 </div>
             </div>
 
-            {comment.replies && comment.replies.length > 0 && (
-                <div className="pl-5 mt-4 flex flex-col gap-4">
-                    {!isExpanded && comment.replies.length > 1 && (
+             {comment.replies && comment.replies.length > 0 && (
+                <div className="pl-5 mt-4">
+                    {!isExpanded && (
                         <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2">
-                           <div className='w-8 h-px bg-border'/> Diğer {comment.replies.length - 1} yanıtı gör
+                           <div className='w-8 h-px bg-border'/> Diğer {comment.replies.length} yanıtı gör
                         </button>
                     )}
-                     <div className="space-y-4">
-                        {(isExpanded ? comment.replies : comment.replies.slice(0,1)).map(reply => (
-                             <CommentComponent key={`${comment.id}-${reply.id}`} comment={reply}/>
-                        ))}
-                    </div>
+                    {isExpanded && (
+                        <div className="flex flex-col gap-4">
+                            {comment.replies.map(reply => (
+                                <CommentComponent key={currentKey + '-' + reply.id} comment={reply} parentKey={currentKey} />
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
         </div>
@@ -1270,7 +1272,7 @@ export default function ExplorePage() {
       <Sheet open={isCommentSheetOpen} onOpenChange={(open) => { if (!open) { setActivePostForComments(null); setCommentInput(''); setCommentImage(null); setReplyingTo(null); } setCommentSheetOpen(open); }}>
             <SheetContent side="bottom" className="rounded-t-xl h-[80vh] flex flex-col p-0">
                 <SheetHeader className="text-center p-4 border-b shrink-0">
-                    <SheetTitle>Yorumlar</SheetTitle>
+                    <DialogTitle>Yorumlar</DialogTitle>
                     <SheetClose className="absolute left-4 top-1/2 -translate-y-1/2" />
                 </SheetHeader>
                 <ScrollArea className="flex-1">
@@ -1280,7 +1282,7 @@ export default function ExplorePage() {
                        ) : activePostForComments && activePostForComments.comments.length > 0 ? (
                             <div className="space-y-4">
                                 {activePostForComments.comments.map(comment => (
-                                   <CommentComponent key={comment.id} comment={comment} />
+                                   <CommentComponent key={comment.id} comment={comment} parentKey={post.id} />
                                 ))}
                             </div>
                         ) : (
