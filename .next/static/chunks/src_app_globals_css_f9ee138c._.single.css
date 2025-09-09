@@ -2188,6 +2188,10 @@ img {
   padding-top: 1.5rem;
 }
 
+.pl-5 {
+  padding-left: 1.25rem;
+}
+
 .text-left {
   text-align: left;
 }

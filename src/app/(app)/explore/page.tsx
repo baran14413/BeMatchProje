@@ -558,10 +558,12 @@ export default function ExplorePage() {
         const mention = `@${comment.user.username} `;
         setReplyingTo({ id: comment.id, username: comment.user.username });
         setCommentInput((prev) => {
-          const withoutOldMention = prev.replace(/^@\w+\s/, '');
-          return mention + withoutOldMention;
+          if(prev.startsWith(`@${replyingTo?.username} `)) {
+             return mention + prev.substring(replyingTo!.username.length + 2);
+          }
+          return mention + prev;
         });
-      }, []);
+      }, [replyingTo]);
     
     const handleDeletePost = async (post: Post) => {
         if (!currentUser || post.authorId !== currentUser.uid) return;
@@ -774,7 +776,7 @@ export default function ExplorePage() {
     }, [handleTranslate, updateCommentTranslationState]);
 
 
-    const CommentComponent = useCallback(({ comment, parentKey }: { comment: Comment; parentKey: string }) => {
+    const CommentComponent = useCallback(({ comment }: { comment: Comment }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editText, setEditText] = useState(comment.text);
     const [isExpanded, setIsExpanded] = useState(false);
@@ -852,7 +854,7 @@ export default function ExplorePage() {
 
 
     return (
-        <div className="flex flex-col gap-4" key={parentKey}>
+        <div className="flex flex-col gap-4" key={comment.id}>
             <div className="flex items-start gap-3">
                 <Link href={`/profile/${comment.user?.username}`}>
                     <Avatar className="w-8 h-8">
@@ -945,15 +947,15 @@ export default function ExplorePage() {
             </div>
 
             {comment.replies && comment.replies.length > 0 && (
-                <div className="pl-4">
+                <div className="pl-5 mt-4 flex flex-col gap-4">
                     {!isExpanded && comment.replies.length > 1 && (
-                        <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline">
-                            Diğer {comment.replies.length -1} yanıtı gör
+                        <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2">
+                           <div className='w-8 h-px bg-border'/> Diğer {comment.replies.length - 1} yanıtı gör
                         </button>
                     )}
-                     <div className="pl-4 space-y-4 border-l-2 ml-4">
+                     <div className="space-y-4">
                         {(isExpanded ? comment.replies : comment.replies.slice(0,1)).map(reply => (
-                             <CommentComponent key={comment.id + '-' + reply.id} comment={reply} parentKey={comment.id + '-' + reply.id}/>
+                             <CommentComponent key={`${comment.id}-${reply.id}`} comment={reply}/>
                         ))}
                     </div>
                 </div>
@@ -1179,7 +1181,7 @@ export default function ExplorePage() {
                 <DialogHeader className='p-4 border-b shrink-0'>
                     <div className="flex items-center justify-between">
                         <Button variant="ghost" size="icon" onClick={resetCreateState}><XIcon/></Button>
-                        <DialogTitle className='absolute left-1/2 -translate-x-1/2'>Yeni Gönderi</DialogTitle>
+                        <DialogTitle>Yeni Gönderi</DialogTitle>
                         <Button onClick={handleSharePost} disabled={isPostProcessing || (!postContent.trim() && !postImage && !postAudio && !showPollCreator)}>
                             {isPostProcessing ? <Loader2 className="h-4 w-4 animate-spin"/> : "Gönder" }
                         </Button>
@@ -1278,7 +1280,7 @@ export default function ExplorePage() {
                        ) : activePostForComments && activePostForComments.comments.length > 0 ? (
                             <div className="space-y-4">
                                 {activePostForComments.comments.map(comment => (
-                                   <CommentComponent key={comment.id} comment={comment} parentKey={comment.id} />
+                                   <CommentComponent key={comment.id} comment={comment} />
                                 ))}
                             </div>
                         ) : (
@@ -1287,7 +1289,7 @@ export default function ExplorePage() {
                     </div>
                 </ScrollArea>
                 <div className="p-2 bg-background border-t shrink-0">
-                    <form onSubmit={handlePostComment}>
+                     <form onSubmit={handlePostComment}>
                         <input type="file" ref={commentFileInputRef} onChange={onSelectCommentImage} accept="image/*" className="hidden" />
                         {commentImage && (
                             <div className="p-2 relative w-fit">
@@ -1316,8 +1318,8 @@ export default function ExplorePage() {
                                 <AvatarImage src={currentUser?.photoURL || "https://placehold.co/40x40.png"} data-ai-hint="current user portrait" />
                                 <AvatarFallback>{currentUser?.displayName?.charAt(0) || 'B'}</AvatarFallback>
                             </Avatar>
-                            <div className="relative flex-1">
-                                <Button type="button" size="icon" variant="ghost" className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground" onClick={() => commentFileInputRef.current?.click()}>
+                             <div className="relative flex-1">
+                                 <Button type="button" size="icon" variant="ghost" className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground" onClick={() => commentFileInputRef.current?.click()}>
                                     <Paperclip className="h-5 w-5" />
                                 </Button>
                                 <MentionTextarea 
@@ -1325,7 +1327,7 @@ export default function ExplorePage() {
                                     placeholder={replyingTo ? `@${replyingTo.username} adlı kullanıcıya yanıt ver...` : "Yorum ekle..."}
                                     value={commentInput}
                                     setValue={setCommentInput}
-                                    onEnterPress={(e) => { e.preventDefault(); handlePostComment(e as unknown as React.FormEvent); }}
+                                    onEnterPress={() => handlePostComment}
                                     disabled={isPostingComment}
                                     className="pl-10"
                                 />
