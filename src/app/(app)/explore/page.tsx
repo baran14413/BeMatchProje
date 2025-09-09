@@ -724,9 +724,12 @@ export default function ExplorePage() {
                 commentsCount: 0,
                 hashtags: hashtags,
                 mentions: mentions,
-                location: postLocation.trim() || '',
                 isAiEdited: false,
             };
+
+            if (postLocation.trim()) {
+                postData.location = postLocation.trim();
+            }
 
             if (showPollCreator) {
                 postData.type = 'poll';
@@ -748,10 +751,6 @@ export default function ExplorePage() {
                 const uploadTask = await uploadString(storageRef, postImage, 'data_url');
                 postData.url = await getDownloadURL(uploadTask.ref);
                 postData.caption = postContent.trim();
-            } else if (postAudio) {
-                postData.type = 'audio';
-                postData.audioUrl = postAudio; // Assuming postAudio is the URL
-                postData.textContent = postContent.trim();
             } else {
                 postData.type = 'text';
                 postData.textContent = postContent.trim();
@@ -1092,7 +1091,7 @@ export default function ExplorePage() {
                          <>
                              <div className="flex flex-col gap-4">
                                  {comment.replies.map(reply => (
-                                     <CommentComponent key={`${currentKey}-${reply.id}`} comment={reply} parentKey={currentKey} />
+                                     <CommentComponent key={currentKey + '-' + reply.id} comment={reply} parentKey={currentKey} />
                                  ))}
                              </div>
                               <button onClick={() => setIsExpanded(false)} className="text-xs font-semibold text-muted-foreground hover:underline flex items-center gap-2 mt-4">
@@ -1400,20 +1399,20 @@ export default function ExplorePage() {
                              {showPollCreator ? (
                                 <div className="mt-2 space-y-4 w-full">
                                     <div className='space-y-2'>
-                                        <Label htmlFor='poll-question'>Anket Sorusu</Label>
+                                        <Label htmlFor='poll-question' className="sr-only">Anket Sorusu</Label>
                                         <Textarea
                                             id="poll-question"
                                             placeholder="Anket sorunuzu yazın..."
                                             value={pollQuestion}
                                             maxLength={pollQuestionMaxLength}
                                             onChange={(e) => setPollQuestion(e.target.value)}
-                                            className="w-full text-base font-semibold"
+                                            className="w-full text-base font-semibold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                                         />
                                         <p className='text-xs text-muted-foreground text-right'>{pollQuestion.length}/{pollQuestionMaxLength}</p>
                                     </div>
                                     {pollImage && (
                                         <div className="mt-2 relative w-full rounded-xl overflow-hidden aspect-video">
-                                            <Image src={pollImage} alt="Anket önizlemesi" layout="fill" className="object-cover" />
+                                            <Image src={pollImage} alt="Anket önizlemesi" layout="fill" className="object-contain" />
                                             <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7 rounded-full" onClick={() => setPollImage(null)}>
                                                 <Trash2 className="h-4 w-4" />
                                             </Button>
@@ -1568,7 +1567,7 @@ export default function ExplorePage() {
                                     placeholder={replyingTo ? `@${replyingTo.username} adlı kullanıcıya yanıt ver...` : "Yorum ekle..."}
                                     value={commentInput}
                                     setValue={setCommentInput}
-                                    onEnterPress={handlePostComment}
+                                    onEnterPress={() => handlePostComment}
                                     disabled={isPostingComment}
                                     className="pl-10"
                                 />
