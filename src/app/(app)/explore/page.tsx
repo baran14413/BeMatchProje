@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
+import React, { useState, useEffect, useRef, ChangeEvent, useCallback } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -392,7 +392,7 @@ export default function ExplorePage() {
         }
     };
 
-    const handlePostComment = async () => {
+    const handlePostComment = useCallback(async () => {
         if (!currentUser || !activePostForComments || (!commentInput.trim() && !commentImage)) return;
 
         setIsPostingComment(true);
@@ -406,7 +406,7 @@ export default function ExplorePage() {
                 isEdited: false,
             };
 
-             if (commentImage) {
+            if (commentImage) {
                 const storageRef = ref(storage, `comment_images/${activePostForComments.id}/${Date.now()}`);
                 const uploadTask = await uploadString(storageRef, commentImage, 'data_url');
                 newCommentData.imageUrl = await getDownloadURL(uploadTask.ref);
@@ -437,7 +437,6 @@ export default function ExplorePage() {
                     createdAt: serverTimestamp(),
                 });
             }
-
 
             const newCommentForUI: Comment = {
                 ...newCommentData,
@@ -489,7 +488,7 @@ export default function ExplorePage() {
         } finally {
             setIsPostingComment(false);
         }
-    };
+    }, [currentUser, activePostForComments, commentInput, commentImage, replyingTo, toast]);
     
     const onSelectCommentImage = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -538,14 +537,12 @@ export default function ExplorePage() {
         }
     };
     
-    const handleReply = (comment: Comment) => {
+    const handleReply = useCallback((comment: Comment) => {
         if (!comment.user?.username) return;
         const mention = `@${comment.user.username} `;
-        if (!commentInput.startsWith(mention)) {
-            setReplyingTo({ id: comment.id, username: comment.user.username });
-            setCommentInput(mention);
-        }
-    };
+        setReplyingTo({ id: comment.id, username: comment.user.username });
+        setCommentInput(prev => mention + prev.replace(/^@\w+\s/, ''));
+    }, []);
     
     const handleDeletePost = async (post: Post) => {
         if (!currentUser || post.authorId !== currentUser.uid) return;
@@ -659,14 +656,13 @@ export default function ExplorePage() {
     };
 
 
-  const CommentComponent = ({ comment }: { comment: Comment }) => {
+  const CommentComponent = useCallback(({ comment, parentKey }: { comment: Comment, parentKey: string }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editText, setEditText] = useState(comment.text);
     const [isExpanded, setIsExpanded] = useState(false);
     const currentUser = auth.currentUser;
 
     const handleCommentLikeClick = (commentId: string) => {
-        if (!activePostForComments) return;
         // This is an optimistic update. In a real app, you'd also update Firestore.
     };
 
@@ -677,14 +673,11 @@ export default function ExplorePage() {
             const commentRef = doc(db, 'posts', activePostForComments.id, 'comments', comment.id);
             await deleteDoc(commentRef);
 
-            // Decrement comments count on post
             const postRef = doc(db, 'posts', activePostForComments.id);
             await updateDoc(postRef, { commentsCount: increment(-1) });
 
-            // Remove from UI
              setActivePostForComments(prev => {
                 if (!prev) return null;
-                // Recursive function to remove comment from tree
                 const removeComment = (comments: Comment[], idToRemove: string): Comment[] => {
                     return comments.filter(c => c.id !== idToRemove).map(c => {
                         if (c.replies) {
@@ -715,7 +708,6 @@ export default function ExplorePage() {
                 isEdited: true
             });
 
-             // Update UI
             setActivePostForComments(prev => {
                 if (!prev) return null;
                 const updateComment = (comments: Comment[]): Comment[] => {
@@ -816,16 +808,17 @@ export default function ExplorePage() {
                 </div>
 
                 {comment.replies && comment.replies.length > 0 && (
-                    <div className="mt-4">
+                     <div className="mt-4">
                         {!isExpanded && comment.replies.length > 1 ? (
                              <button onClick={() => setIsExpanded(true)} className="text-xs font-semibold text-muted-foreground hover:underline">
-                                Diğer {comment.replies.length} yanıtı gör
+                                Diğer {comment.replies.length - 1} yanıtı gör
                             </button>
-                        ) : (
-                             <div className="pl-4 space-y-4 border-l-2 ml-4">
-                                {(isExpanded ? comment.replies : comment.replies.slice(0,1)).map(reply => <CommentComponent key={comment.id + '-' + reply.id} comment={reply} />)}
-                            </div>
-                        )}
+                        ) : null}
+                         <div className="pl-4 space-y-4 border-l-2 ml-4 mt-2">
+                            {(isExpanded ? comment.replies : comment.replies.slice(0,1)).map(reply => (
+                                 <CommentComponent key={`${parentKey}-${reply.id}`} comment={reply} parentKey={`${parentKey}-${reply.id}`} />
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>
@@ -840,7 +833,7 @@ export default function ExplorePage() {
             </div>
         </div>
     );
-  };
+  }, [activePostForComments, handleReply, toast]);
 
 
   return (
@@ -1124,7 +1117,7 @@ export default function ExplorePage() {
                        ) : activePostForComments && activePostForComments.comments.length > 0 ? (
                             <div className="flex flex-col gap-4">
                                 {activePostForComments.comments.map(comment => (
-                                   <CommentComponent key={comment.id} comment={comment} />
+                                   <CommentComponent key={comment.id} comment={comment} parentKey={comment.id} />
                                 ))}
                             </div>
                         ) : (
@@ -1133,50 +1126,52 @@ export default function ExplorePage() {
                     </div>
                 </ScrollArea>
                 <div className="p-2 bg-background border-t shrink-0">
-                    <input type="file" ref={commentFileInputRef} onChange={onSelectCommentImage} accept="image/*" className="hidden" />
-                    {commentImage && (
-                        <div className="p-2 relative w-fit">
-                            <Image src={commentImage} alt="Yorum resmi önizlemesi" width={60} height={60} className="rounded-md" />
-                            <Button size="icon" variant="destructive" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setCommentImage(null)}>
-                                <XIcon className="h-4 w-4"/>
-                            </Button>
+                    <form onSubmit={(e) => { e.preventDefault(); handlePostComment(); }}>
+                        <input type="file" ref={commentFileInputRef} onChange={onSelectCommentImage} accept="image/*" className="hidden" />
+                        {commentImage && (
+                            <div className="p-2 relative w-fit">
+                                <Image src={commentImage} alt="Yorum resmi önizlemesi" width={60} height={60} className="rounded-md" />
+                                <Button size="icon" variant="destructive" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setCommentImage(null)}>
+                                    <XIcon className="h-4 w-4"/>
+                                </Button>
+                            </div>
+                        )}
+                        {replyingTo && (
+                            <div className="px-2 py-1 text-xs text-muted-foreground flex items-center justify-between">
+                                <span>Yanıtlanıyor: @{replyingTo.username}</span>
+                                <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setReplyingTo(null); setCommentInput(''); }}><XIcon className="w-3 h-3"/></Button>
+                            </div>
+                        )}
+                        <div className="flex items-center gap-4 px-2 py-1">
+                            {['❤️', '👏', '😂', '🔥', '😢'].map(emoji => (
+                                <span key={emoji} className="text-2xl cursor-pointer" onClick={() => handleAddEmoji(emoji)}>{emoji}</span>
+                            ))}
+                            <div className="ml-auto text-xs text-muted-foreground">
+                                {commentInput.length} / {commentMaxLength}
+                            </div>
                         </div>
-                    )}
-                    {replyingTo && (
-                        <div className="px-2 py-1 text-xs text-muted-foreground flex items-center justify-between">
-                            <span>Yanıtlanıyor: @{replyingTo.username}</span>
-                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setReplyingTo(null); setCommentInput(''); }}><XIcon className="w-3 h-3"/></Button>
-                        </div>
-                    )}
-                    <div className="flex items-center gap-4 px-2 py-1">
-                        {['❤️', '👏', '😂', '🔥', '😢'].map(emoji => (
-                            <span key={emoji} className="text-2xl cursor-pointer" onClick={() => handleAddEmoji(emoji)}>{emoji}</span>
-                        ))}
-                         <div className="ml-auto text-xs text-muted-foreground">
-                            {commentInput.length} / {commentMaxLength}
-                        </div>
-                    </div>
-                    <form onSubmit={(e) => { e.preventDefault(); handlePostComment(); }} className="flex items-center gap-2 mt-1">
-                        <Avatar className="w-8 h-8">
-                            <AvatarImage src={currentUser?.photoURL || "https://placehold.co/40x40.png"} data-ai-hint="current user portrait" />
-                            <AvatarFallback>{currentUser?.displayName?.charAt(0) || 'B'}</AvatarFallback>
-                        </Avatar>
-                        <div className="relative flex-1">
-                             <Button type="button" size="icon" variant="ghost" className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground" onClick={() => commentFileInputRef.current?.click()}>
-                                <Paperclip className="h-5 w-5" />
-                            </Button>
-                            <MentionTextarea 
-                                isInput={true}
-                                placeholder={replyingTo ? `@${replyingTo.username} adlı kullanıcıya yanıt ver...` : "Yorum ekle..."}
-                                value={commentInput}
-                                setValue={setCommentInput}
-                                onEnterPress={handlePostComment}
-                                disabled={isPostingComment}
-                                className="pl-10"
-                            />
-                             <Button type="submit" size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" disabled={isPostingComment || (!commentInput.trim() && !commentImage)}>
-                                {isPostingComment ? <Loader2 className="h-4 w-4 animate-spin"/> : <Send className="h-4 w-4" />}
-                            </Button>
+                        <div className="flex items-center gap-2 mt-1">
+                            <Avatar className="w-8 h-8">
+                                <AvatarImage src={currentUser?.photoURL || "https://placehold.co/40x40.png"} data-ai-hint="current user portrait" />
+                                <AvatarFallback>{currentUser?.displayName?.charAt(0) || 'B'}</AvatarFallback>
+                            </Avatar>
+                            <div className="relative flex-1">
+                                <Button type="button" size="icon" variant="ghost" className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground" onClick={() => commentFileInputRef.current?.click()}>
+                                    <Paperclip className="h-5 w-5" />
+                                </Button>
+                                <MentionTextarea 
+                                    isInput={true}
+                                    placeholder={replyingTo ? `@${replyingTo.username} adlı kullanıcıya yanıt ver...` : "Yorum ekle..."}
+                                    value={commentInput}
+                                    setValue={setCommentInput}
+                                    onEnterPress={handlePostComment}
+                                    disabled={isPostingComment}
+                                    className="pl-10"
+                                />
+                                <Button type="submit" size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" disabled={isPostingComment || (!commentInput.trim() && !commentImage)}>
+                                    {isPostingComment ? <Loader2 className="h-4 w-4 animate-spin"/> : <Send className="h-4 w-4" />}
+                                </Button>
+                            </div>
                         </div>
                     </form>
                 </div>
