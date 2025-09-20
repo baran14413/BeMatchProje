@@ -133,44 +133,44 @@ export default function EditProfilePage() {
     };
 
     const accountItems = [
-        { icon: <User className="h-6 w-6" />, title: 'Profili Düzenle', href: '/profile/edit/personal' },
-        { icon: <Camera className="h-6 w-6" />, title: 'Profil Fotoğrafı Düzenle', href: '/profile/edit/picture' },
-        { icon: <ImageIcon className="h-6 w-6" />, title: 'Gönderilerini Yönet', href: '/profile/edit/photos' },
-        { icon: <Bookmark className="h-6 w-6" />, title: 'Kaydedilen Gönderiler', href: '/profile/edit/saved-posts' },
+        { icon: <User className="h-6 w-6 text-yellow-500" />, title: 'Profili Düzenle', href: '/profile/edit/personal' },
+        { icon: <Camera className="h-6 w-6 text-yellow-500" />, title: 'Profil Fotoğrafı Düzenle', href: '/profile/edit/picture' },
+        { icon: <ImageIcon className="h-6 w-6 text-yellow-500" />, title: 'Gönderilerini Yönet', href: '/profile/edit/photos' },
+        { icon: <Bookmark className="h-6 w-6 text-yellow-500" />, title: 'Kaydedilen Gönderiler', href: '/profile/edit/saved-posts' },
     ];
     
     const premiumItems = [
-        { icon: <Gem className="h-6 w-6" />, title: 'BeMatch Premium', href: '/premium' },
-        { icon: <Wallet className="h-6 w-6" />, title: 'Cüzdanım', href: '/profile/edit/wallet' },
+        { icon: <Gem className="h-6 w-6 text-purple-500" />, title: 'BeMatch Premium', href: '/premium' },
+        { icon: <Wallet className="h-6 w-6 text-purple-500" />, title: 'Cüzdanım', href: '/profile/edit/wallet' },
     ];
 
     const contentPreferenceItems = [
-        { icon: <Filter className="h-6 w-6" />, title: 'Ana Akış Ayarları', href: '/profile/edit/discovery' },
+        { icon: <Filter className="h-6 w-6 text-blue-500" />, title: 'Ana Akış Ayarları', href: '/profile/edit/discovery' },
     ];
 
     const privacyAndSecurityItems = [
-        { icon: <Fingerprint className="h-6 w-6" />, title: 'Uygulama Şifresi', href: '/profile/edit/app-lock'},
-        { icon: <Lock className="h-6 w-6" />, title: 'Hesap Gizliliği', href: '/profile/edit/privacy' },
-        { icon: <KeyRound className="h-6 w-6" />, title: 'E-posta & Şifre', href: '/profile/edit/security' },
-        { icon: <History className="h-6 w-6" />, title: 'Oturum Yönetimi', href: '/profile/edit/sessions' },
-        { icon: <Ban className="h-6 w-6" />, title: 'Engellenen Hesaplar', href: '/profile/edit/blocked' },
+        { icon: <Fingerprint className="h-6 w-6 text-green-500" />, title: 'Uygulama Şifresi', href: '/profile/edit/app-lock'},
+        { icon: <Lock className="h-6 w-6 text-green-500" />, title: 'Hesap Gizliliği', href: '/profile/edit/privacy' },
+        { icon: <KeyRound className="h-6 w-6 text-green-500" />, title: 'E-posta & Şifre', href: '/profile/edit/security' },
+        { icon: <History className="h-6 w-6 text-green-500" />, title: 'Oturum Yönetimi', href: '/profile/edit/sessions' },
+        { icon: <Ban className="h-6 w-6 text-green-500" />, title: 'Engellenen Hesaplar', href: '/profile/edit/blocked' },
     ];
     
     const applicationItems = [
-        { icon: <Bell className="h-6 w-6" />, title: 'Bildirim Ayarları', href: '/profile/edit/notifications' },
-        { icon: <Palette className="h-6 w-6" />, title: 'Görünüm', href: '/profile/edit/appearance' },
-        { icon: <Database className="h-6 w-6" />, title: 'Önbellek Yönetimi', href: '/profile/edit/cache' },
-        { icon: <Download className="h-6 w-6" />, title: 'Uygulamayı Yükle', onClick: handleInstallClick },
+        { icon: <Bell className="h-6 w-6 text-orange-500" />, title: 'Bildirim Ayarları', href: '/profile/edit/notifications' },
+        { icon: <Palette className="h-6 w-6 text-orange-500" />, title: 'Görünüm', href: '/profile/edit/appearance' },
+        { icon: <Database className="h-6 w-6 text-orange-500" />, title: 'Önbellek Yönetimi', href: '/profile/edit/cache' },
+        { icon: <Download className="h-6 w-6 text-orange-500" />, title: 'Uygulamayı Yükle', onClick: handleInstallClick },
     ];
     
     const aboutItems = [
-        { icon: <MessageSquareQuote className="h-6 w-6" />, title: 'Deneyimlerinizi Paylaşın', href: '/profile/edit/feedback' },
-        { icon: <HelpCircle className="h-6 w-6" />, title: 'Uygulama Kılavuzu', href: '/profile/edit/guide' },
+        { icon: <MessageSquareQuote className="h-6 w-6 text-teal-500" />, title: 'Deneyimlerinizi Paylaşın', href: '/profile/edit/feedback' },
+        { icon: <HelpCircle className="h-6 w-6 text-teal-500" />, title: 'Uygulama Kılavuzu', href: '/profile/edit/guide' },
     ]
 
     const otherItems = [
-        { icon: <Trash2 className="h-6 w-6" />, title: 'Hesabı Sil', href: '/profile/edit/delete' },
-        { icon: <LogOut className="h-6 w-6" />, title: 'Çıkış Yap', onClick: handleLogout },
+        { icon: <Trash2 className="h-6 w-6 text-red-500" />, title: 'Hesabı Sil', href: '/profile/edit/delete' },
+        { icon: <LogOut className="h-6 w-6 text-red-500" />, title: 'Çıkış Yap', onClick: handleLogout },
     ];
 
   return (
@@ -178,16 +178,14 @@ export default function EditProfilePage() {
         <div>
             <SectionTitle title="Hesap" />
             <Card>
-                <CardContent className="p-0">
-                    {accountItems.map((item, index) => (
-                        <React.Fragment key={item.title}>
-                            <SettingsItem 
-                                icon={item.icon} 
-                                title={item.title} 
-                                href={item.href}
-                            />
-                            {index < accountItems.length - 1 && <Separator />}
-                        </React.Fragment>
+                <CardContent className="p-0 divide-y">
+                    {accountItems.map((item) => (
+                        <SettingsItem 
+                            key={item.title}
+                            icon={item.icon} 
+                            title={item.title} 
+                            href={item.href}
+                        />
                     ))}
                 </CardContent>
             </Card>
@@ -195,16 +193,14 @@ export default function EditProfilePage() {
         <div>
             <SectionTitle title="Premium" />
             <Card>
-                <CardContent className="p-0">
-                    {premiumItems.map((item, index) => (
-                        <React.Fragment key={item.title}>
-                            <SettingsItem 
-                                icon={item.icon} 
-                                title={item.title} 
-                                href={item.href}
-                            />
-                            {index < premiumItems.length - 1 && <Separator />}
-                        </React.Fragment>
+                <CardContent className="p-0 divide-y">
+                    {premiumItems.map((item) => (
+                         <SettingsItem 
+                            key={item.title}
+                            icon={item.icon} 
+                            title={item.title} 
+                            href={item.href}
+                        />
                     ))}
                 </CardContent>
             </Card>
@@ -212,16 +208,14 @@ export default function EditProfilePage() {
         <div>
             <SectionTitle title="İçerik Tercihleri" />
             <Card>
-                <CardContent className="p-0">
-                    {contentPreferenceItems.map((item, index) => (
-                         <React.Fragment key={item.title}>
-                            <SettingsItem
-                                icon={item.icon}
-                                title={item.title}
-                                href={item.href}
-                            />
-                             {index < contentPreferenceItems.length - 1 && <Separator />}
-                        </React.Fragment>
+                <CardContent className="p-0 divide-y">
+                    {contentPreferenceItems.map((item) => (
+                        <SettingsItem
+                            key={item.title}
+                            icon={item.icon}
+                            title={item.title}
+                            href={item.href}
+                        />
                     ))}
                 </CardContent>
             </Card>
@@ -229,16 +223,14 @@ export default function EditProfilePage() {
         <div>
             <SectionTitle title="Gizlilik ve Güvenlik" />
             <Card>
-                <CardContent className="p-0">
-                    {privacyAndSecurityItems.map((item, index) => (
-                         <React.Fragment key={item.title}>
-                            <SettingsItem
-                                icon={item.icon}
-                                title={item.title}
-                                href={item.href}
-                            />
-                             {index < privacyAndSecurityItems.length - 1 && <Separator />}
-                        </React.Fragment>
+                <CardContent className="p-0 divide-y">
+                    {privacyAndSecurityItems.map((item) => (
+                        <SettingsItem
+                            key={item.title}
+                            icon={item.icon}
+                            title={item.title}
+                            href={item.href}
+                        />
                     ))}
                 </CardContent>
             </Card>
@@ -246,17 +238,15 @@ export default function EditProfilePage() {
         <div>
             <SectionTitle title="Uygulama Ayarları" />
             <Card>
-                <CardContent className="p-0">
-                     {applicationItems.map((item, index) => (
-                         <React.Fragment key={item.title}>
-                            <SettingsItem
-                                icon={item.icon}
-                                title={item.title}
-                                href={item.href}
-                                onClick={item.onClick}
-                            />
-                             {index < applicationItems.length - 1 && <Separator />}
-                        </React.Fragment>
+                <CardContent className="p-0 divide-y">
+                     {applicationItems.map((item) => (
+                        <SettingsItem
+                            key={item.title}
+                            icon={item.icon}
+                            title={item.title}
+                            href={item.href}
+                            onClick={item.onClick}
+                        />
                     ))}
                 </CardContent>
             </Card>
@@ -265,17 +255,15 @@ export default function EditProfilePage() {
          <div>
             <SectionTitle title="Hakkında ve Destek" />
             <Card>
-                <CardContent className="p-0">
-                    {aboutItems.map((item, index) => (
-                         <React.Fragment key={item.title}>
-                            <SettingsItem
-                                icon={item.icon}
-                                title={item.title}
-                                href={item.href}
-                                onClick={item.onClick}
-                            />
-                             {index < aboutItems.length - 1 && <Separator />}
-                        </React.Fragment>
+                <CardContent className="p-0 divide-y">
+                    {aboutItems.map((item) => (
+                        <SettingsItem
+                            key={item.title}
+                            icon={item.icon}
+                            title={item.title}
+                            href={item.href}
+                            onClick={item.onClick}
+                        />
                     ))}
                 </CardContent>
             </Card>
@@ -284,17 +272,15 @@ export default function EditProfilePage() {
         <div>
             <SectionTitle title="Diğer" />
             <Card>
-                <CardContent className="p-0">
-                    {otherItems.map((item, index) => (
-                         <React.Fragment key={item.title}>
-                            <SettingsItem
-                                icon={item.icon}
-                                title={item.title}
-                                href={item.href}
-                                onClick={item.onClick}
-                            />
-                             {index < otherItems.length - 1 && <Separator />}
-                        </React.Fragment>
+                <CardContent className="p-0 divide-y">
+                    {otherItems.map((item) => (
+                        <SettingsItem
+                            key={item.title}
+                            icon={item.icon}
+                            title={item.title}
+                            href={item.href}
+                            onClick={item.onClick}
+                        />
                     ))}
                 </CardContent>
             </Card>

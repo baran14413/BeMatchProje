@@ -5,55 +5,55 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 210 40% 98%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 210 40% 98%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221 83% 53%; /* New Blue */
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 94%; /* Lighter Accent */
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --background: 48 95% 98%; /* Very light banana cream */
+    --foreground: 30 50% 10%; /* Dark brown */
+    --card: 48 95% 98%;
+    --card-foreground: 30 50% 10%;
+    --popover: 48 95% 98%;
+    --popover-foreground: 30 50% 10%;
+    --primary: 48 96% 59%; /* Banana Yellow */
+    --primary-foreground: 30 50% 10%;
+    --secondary: 48 95% 94%;
+    --secondary-foreground: 30 50% 10%;
+    --muted: 48 95% 94%;
+    --muted-foreground: 30 50% 40%;
+    --accent: 48 95% 90%; 
+    --accent-foreground: 30 50% 10%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 215 27.9% 82.9%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221 83% 53%; /* Ring matches new primary */
+    --destructive-foreground: 0 0% 100%;
+    --border: 48 95% 88%;
+    --input: 48 95% 92%;
+    --ring: 48 96% 59%;
     --radius: 0.8rem;
     --header-height: 3.5rem;
     --bottom-nav-height: 3.5rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
+    --chart-1: 48 96% 59%;
+    --chart-2: 30 96% 59%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
   }
  
   .dark {
-    --background: 222 47% 11%; /* Darker Blue BG */
-    --foreground: 210 40% 98%;
-    --card: 222 47% 14%; /* Slightly lighter card */
-    --card-foreground: 210 40% 98%;
-    --popover: 224 71% 4%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217 91% 60%; /* Vibrant Blue for Dark Mode */
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 25.5%; /* Darker Accent */
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 32.6% 25.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 217 91% 60%; /* Ring matches new primary */
+    --background: 30 10% 10%; /* Very dark brown */
+    --foreground: 48 95% 94%; /* Light cream */
+    --card: 30 10% 12%; 
+    --card-foreground: 48 95% 94%;
+    --popover: 30 10% 8%;
+    --popover-foreground: 48 95% 94%;
+    --primary: 48 96% 59%; /* Banana Yellow */
+    --primary-foreground: 30 50% 10%;
+    --secondary: 30 10% 18%;
+    --secondary-foreground: 48 95% 94%;
+    --muted: 30 10% 18%;
+    --muted-foreground: 48 95% 70%;
+    --accent: 30 10% 22%;
+    --accent-foreground: 48 95% 94%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 48 95% 94%;
+    --border: 30 10% 22%;
+    --input: 30 10% 18%;
+    --ring: 48 96% 59%;
   }
 }
 

@@ -19,6 +19,7 @@ import { Eye, EyeOff, Loader2, Heart } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import AnimatedLogo from '@/components/ui/animated-logo';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -52,9 +53,10 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-sm mx-auto">
-        <div className="flex items-center gap-2 mb-8">
-            <Heart className="h-10 w-10 text-primary" />
+        <div className="flex flex-col items-center gap-2 mb-8 text-center">
+            <AnimatedLogo className="w-24 h-24" />
             <h1 className="text-4xl font-bold font-headline">BeMatch</h1>
+            <p className="text-muted-foreground">Hayatının aşkını bulmaya hazır mısın?</p>
         </div>
         <Card className="w-full">
             <form onSubmit={handleLogin}>

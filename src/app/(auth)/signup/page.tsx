@@ -31,6 +31,7 @@ import { auth, db, storage } from '@/lib/firebase';
 import { cities, districts } from '@/config/turkey-locations';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import AnimatedLogo from '@/components/ui/animated-logo';
 
 const HOBBIES = [
   'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi',
@@ -333,9 +334,10 @@ export default function SignupPage() {
 
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto">
-        <div className="flex items-center gap-2 mb-8">
-            <Heart className="h-10 w-10 text-primary" />
+        <div className="flex flex-col items-center gap-2 mb-8 text-center">
+            <AnimatedLogo className="w-24 h-24" />
             <h1 className="text-4xl font-bold font-headline">BeMatch</h1>
+            <p className="text-muted-foreground">Yeni bir başlangıç yap.</p>
         </div>
         <Card className="w-full">
         <CardHeader>
