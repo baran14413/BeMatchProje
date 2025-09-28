@@ -158,7 +158,6 @@ function SignUpComponent() {
         const usernameSnapshot = await getDocs(usernameQuery);
         if (!usernameSnapshot.empty) {
             const userWithSameUsername = usernameSnapshot.docs[0];
-            // If there's a user with this username, AND it's not the currently logged in user (in case of profile completion)
             if (!user || userWithSameUsername.id !== user.uid) {
                 toast({ variant: "destructive", title: "Kullanıcı Adı Alınmış", description: "Bu kullanıcı adı zaten alınmış. Lütfen geri giderek farklı bir kullanıcı adı seçin." });
                 throw new Error("Username taken");
@@ -328,7 +327,7 @@ function SignUpComponent() {
     nextStep();
   }
 
-  const progress = (step / (source === 'google' ? 5 : 6)) * 100;
+  const progress = (step / (source === 'google' ? 4 : 6)) * 100;
 
   const getPasswordStrengthColor = () => {
     switch (passwordStrength) {

@@ -10,6 +10,7 @@
   "/(app)/profile/edit/wallet/page": "app/(app)/profile/edit/wallet/page.js",
   "/(app)/profile/page": "app/(app)/profile/page.js",
   "/(app)/shuffle/page": "app/(app)/shuffle/page.js",
+  "/(app)/tag/[tag]/page": "app/(app)/tag/[tag]/page.js",
   "/(app)/tutorial/page": "app/(app)/tutorial/page.js",
   "/(auth)/login/page": "app/(auth)/login/page.js",
   "/(auth)/signup/page": "app/(auth)/signup/page.js",

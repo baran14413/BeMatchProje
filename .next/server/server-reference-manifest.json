@@ -46,6 +46,10 @@
           "moduleId": "[project]/.next-internal/server/app/(app)/shuffle/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
         },
+        "app/(app)/tag/[tag]/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/tag/[tag]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        },
         "app/(app)/tutorial/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/tutorial/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
@@ -63,6 +67,7 @@
         "app/(app)/profile/edit/wallet/page": "action-browser",
         "app/(app)/profile/page": "action-browser",
         "app/(app)/shuffle/page": "action-browser",
+        "app/(app)/tag/[tag]/page": "action-browser",
         "app/(app)/tutorial/page": "action-browser"
       }
     },

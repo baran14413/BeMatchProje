@@ -541,7 +541,7 @@ function LoginComponent() {
             if (userDocSnap.exists()) {
                 // Existing user, check if profile is complete
                 const userData = userDocSnap.data();
-                if (userData.city && userData.age && userData.hobbies?.length > 0) {
+                if (userData.username && userData.city && userData.age && userData.hobbies?.length > 0) {
                     toast({
                         title: `Tekrar Hoş Geldin, ${user.displayName?.split(' ')[0]}!`,
                         className: "bg-green-500 text-white"
@@ -560,7 +560,7 @@ function LoginComponent() {
                         photoURL: user.photoURL
                     };
                     sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
-                    router.push('/signup?step=2&source=google&reason=complete_profile');
+                    router.push('/signup?step=1&source=google&reason=complete_profile');
                 }
             } else {
                 // New user via Google, redirect to finish profile setup
@@ -575,7 +575,7 @@ function LoginComponent() {
                     photoURL: user.photoURL
                 };
                 sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
-                router.push('/signup?step=2&source=google');
+                router.push('/signup?step=1&source=google');
             }
         } catch (error) {
             console.error("Google sign-in error", error);
@@ -602,7 +602,7 @@ function LoginComponent() {
                         columnNumber: 13
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
-                        className: "text-4xl font-bold font-headline",
+                        className: "text-4xl font-bold font-headline text-foreground",
                         children: "BeMatch"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(auth)/login/page.tsx",
@@ -631,7 +631,7 @@ function LoginComponent() {
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardHeader"], {
                             className: "text-center",
                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardTitle"], {
-                                className: "text-2xl",
+                                className: "text-2xl text-foreground",
                                 children: "Hesabına Giriş Yap"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(auth)/login/page.tsx",
