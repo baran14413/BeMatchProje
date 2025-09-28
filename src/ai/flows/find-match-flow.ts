@@ -125,7 +125,10 @@ const findMatchFlow = ai.defineFlow(
                  return { conversationId: convoSnap.docs[0].id, isBotMatch: false };
               }
           }
-          return { conversationId: null, isBotMatch: false }; // Should not happen ideally
+          // This case should ideally not be hit if logic is correct,
+          // but it's a fallback. It means user was matched but convo couldn't be found.
+          // Returning null will show an error on the client.
+          return { conversationId: null, isBotMatch: false }; 
       }
 
       // 15 seconds passed and no one matched us. Delete from pool and create a bot match.
