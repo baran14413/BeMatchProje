@@ -92,18 +92,6 @@ export default {
             '0%': { transform: 'rotate(0deg)' },
             '100%': { transform: 'rotate(360deg)' },
         },
-         'pulse-heart-sm': {
-          '0%, 100%': { transform: 'scale(1)'},
-          '50%': { transform: 'scale(1.15)'},
-        },
-        beat: {
-          "0%, 100%": { transform: "scale(1)" },
-          "50%": { transform: "scale(1.05)" },
-        },
-        ripple: {
-          "0%": { transform: "scale(0.3)", opacity: "0.5" },
-          "100%": { transform: "scale(1.5)", opacity: "0" },
-        },
         'pulse-heart': {
             '0%, 100%': { transform: 'scale(1)', opacity: '1' },
             '50%': { transform: 'scale(1.2)', opacity: '0.7' },
@@ -114,7 +102,6 @@ export default {
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
         'pulse-heart': 'pulse-heart 1.5s ease-in-out infinite',
-        'pulse-heart-sm': 'pulse-heart-sm 1.5s ease-in-out infinite',
         beat: "beat 1.5s ease-out infinite",
         ripple: "ripple 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite",
         'loader-spin': 'loader-spin 1s linear infinite',
