@@ -628,10 +628,13 @@ const findMatchFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$ai$
                     };
                 }
             }
+            // This case should ideally not be hit if logic is correct,
+            // but it's a fallback. It means user was matched but convo couldn't be found.
+            // Returning null will show an error on the client.
             return {
                 conversationId: null,
                 isBotMatch: false
-            }; // Should not happen ideally
+            };
         }
         // 15 seconds passed and no one matched us. Delete from pool and create a bot match.
         await userWaitingDocRef.delete();

@@ -1,19 +1,18 @@
 
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Loader2, Zap, MessageSquare, Phone } from 'lucide-react';
+import { Loader2, Zap, MessageSquare, Phone, Timer } from 'lucide-react';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
-import { auth, db } from '@/lib/firebase';
-import { doc, getDoc, setDoc, runTransaction, increment, serverTimestamp, collection, addDoc, onSnapshot, deleteDoc } from 'firebase/firestore';
+import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { botNames, botOpenerMessages } from '@/config/bot-config';
 import { findMatch } from '@/ai/flows/find-match-flow';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function ShuffleContent() {
     const [api, setApi] = useState<CarouselApi>();
@@ -21,6 +20,9 @@ function ShuffleContent() {
     const [count, setCount] = useState(0);
     const [isSearching, setIsSearching] = useState(false);
     
+    const [timeLeft, setTimeLeft] = useState(15);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+
     const router = useRouter();
     const currentUser = auth.currentUser;
     const { toast } = useToast();
@@ -37,6 +39,27 @@ function ShuffleContent() {
             setCurrent(api.selectedScrollSnap());
         });
     }, [api]);
+
+    useEffect(() => {
+        if (isSearching) {
+            setTimeLeft(15);
+            timerRef.current = setInterval(() => {
+                setTimeLeft(prev => {
+                    if (prev <= 1) {
+                       if(timerRef.current) clearInterval(timerRef.current);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        } else {
+            if (timerRef.current) clearInterval(timerRef.current);
+        }
+
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
+    }, [isSearching]);
     
     const handleSearchClick = async () => {
         if (!currentUser) {
@@ -47,76 +70,57 @@ function ShuffleContent() {
         setIsSearching(true);
 
         try {
-            const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-            if (!userDoc.exists()) throw new Error("Kullanıcı bulunamadı.");
-
-            const userData = userDoc.data();
-            const today = new Date().toISOString().split('T')[0];
-
-            if (!userData.isPremium) {
-                if (userData.dailyMatch?.date === today && userData.dailyMatch?.count >= 3) {
-                     toast({
-                        title: "Günlük Limit Doldu",
-                        description: "3 ücretsiz hakkınızı kullandınız. Daha fazlası için premium'a geçin veya yarın tekrar deneyin.",
-                        variant: "destructive"
-                    });
-                    setIsSearching(false);
-                    return;
-                }
-            }
-
-            // Decrement match count immediately for non-premium users
-            if (!userData.isPremium) {
-                await runTransaction(db, async (transaction) => {
-                    const freshUserDoc = await transaction.get(doc(db, 'users', currentUser.uid));
-                    if (!freshUserDoc.exists()) throw "User does not exist!";
-                    
-                    const dailyMatch = freshUserDoc.data().dailyMatch || {};
-                    const newCount = dailyMatch.date === today ? (dailyMatch.count || 0) + 1 : 1;
-
-                    transaction.update(doc(db, 'users', currentUser.uid), {
-                        dailyMatch: {
-                            date: today,
-                            count: newCount
-                        }
-                    });
-                });
-            }
-
             const result = await findMatch({ userId: currentUser.uid });
             
             if (result && result.conversationId) {
+                 if (timerRef.current) clearInterval(timerRef.current);
                 toast({
-                    title: "Sana birini bulduk!",
-                    description: "Harika biriyle eşleştin. Sohbete yönlendiriliyorsun...",
+                    title: result.isBotMatch ? "Sana birini bulduk!" : "Harika biriyle eşleştin!",
+                    description: "Sohbete yönlendiriliyorsun...",
                 });
                 router.push(`/random-chat/${result.conversationId}`);
             } else {
-                 toast({
-                    title: "Eşleşme Bulunamadı",
-                    description: "Bir hata oluştu veya eşleşme bulunamadı. Lütfen tekrar deneyin.",
-                    variant: "destructive"
-                });
-                setIsSearching(false);
+                 throw new Error("Eşleşme bulunamadı veya bir hata oluştu.");
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error starting match search: ", error);
-            toast({ title: "Eşleşme ararken bir hata oluştu.", variant: "destructive" });
+            toast({ title: "Eşleşme ararken bir hata oluştu.", description: error.message, variant: "destructive" });
             setIsSearching(false);
         }
     };
     
     if (isSearching) {
         return (
-            <div className="flex flex-col items-center justify-center text-center p-8">
-                <Loader2 className="w-16 h-16 text-primary animate-spin mb-6" />
+            <div className="flex flex-col items-center justify-center text-center p-8 w-full max-w-md">
+                <div className="relative mb-6">
+                     <Timer className="w-16 h-16 text-primary" />
+                     <div 
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl font-bold text-primary"
+                        style={{fontVariantNumeric: 'tabular-nums'}}
+                     >
+                        {timeLeft}
+                     </div>
+                </div>
                 <h2 className="text-2xl font-bold">Sana Uygun Biri Aranıyor...</h2>
-                <p className="text-muted-foreground mt-2">Bu işlem genellikle 20 saniye sürer. Lütfen bekleyin.</p>
-                <Button variant="outline" className="mt-8" onClick={() => {
-                    setIsSearching(false);
-                    // We might need a flow to cancel the search on the backend in a real scenario
-                    }}>Aramayı İptal Et</Button>
+                <p className="text-muted-foreground mt-2 mb-6">Bu işlem en fazla 15 saniye sürer. Lütfen bekleyin.</p>
+                <div className="w-full flex items-center gap-1 h-2">
+                    {Array.from({length: 15}).map((_, i) => (
+                        <motion.div
+                            key={i}
+                            className="w-full h-full bg-primary/20 rounded-full"
+                            initial={{ scaleY: 0.5, opacity: 0.5 }}
+                            animate={{ 
+                                scaleY: (15 - timeLeft) > i ? 1 : 0.5, 
+                                opacity: (15 - timeLeft) > i ? 1 : 0.5,
+                            }}
+                            transition={{ duration: 0.3 }}
+                        />
+                    ))}
+                </div>
+                <Button variant="outline" className="mt-8" onClick={() => setIsSearching(false)}>
+                    Aramayı İptal Et
+                </Button>
             </div>
         )
     }

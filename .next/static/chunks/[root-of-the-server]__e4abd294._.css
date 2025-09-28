@@ -1925,6 +1925,10 @@ img {
   background-color: rgb(254 226 226 / var(--tw-bg-opacity, 1));
 }
 
+.bg-primary\/20 {
+  background-color: hsl(var(--primary) / .2);
+}
+
 .bg-gradient-to-br {
   background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
 }
