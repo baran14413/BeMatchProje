@@ -220,7 +220,6 @@ export default function ExplorePage() {
     const [postEmojis, setPostEmojis] = useState(false);
     const pollQuestionMaxLength = 150;
     
-    const [activeTab, setActiveTab] = useState<'foryou' | 'explore'>('foryou');
     
 
 
@@ -314,6 +313,11 @@ export default function ExplorePage() {
         const post = posts[postIndex];
         const newLikedState = !post.liked;
         const newLikesCount = newLikedState ? post.likes + 1 : post.likes - 1;
+
+        if (newLikedState) {
+            setShowLikeAnimation(postId);
+            setTimeout(() => setShowLikeAnimation(null), 1000);
+        }
 
         setPosts((prevPosts) => {
             const newPosts = [...prevPosts];
@@ -1125,35 +1129,8 @@ export default function ExplorePage() {
 
   return (
     <div className="w-full pb-20 md:pb-0">
-        <div className="sticky top-[calc(var(--header-height)_-_1px)] md:top-[var(--header-height)] bg-background/80 backdrop-blur-sm z-10">
-             <div className="flex justify-center items-center h-14 border-b">
-                 <div className="flex items-center space-x-8">
-                     <button 
-                        onClick={() => setActiveTab('foryou')}
-                        className={cn(
-                            "font-semibold transition-colors",
-                            activeTab === 'foryou' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-                        )}
-                     >
-                         Sizin İçin
-                     </button>
-                      <div className="h-4 w-px bg-border" />
-                     <button
-                        onClick={() => setActiveTab('explore')}
-                         className={cn(
-                            "font-semibold transition-colors",
-                            activeTab === 'explore' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-                        )}
-                     >
-                         Keşfet
-                     </button>
-                 </div>
-             </div>
-        </div>
-
-        <div className="container mx-auto max-w-2xl space-y-6 pt-4">
-        {activeTab === 'foryou' && (
-            loading ? (
+        <div className="container mx-auto max-w-lg space-y-6 pt-4">
+            {loading ? (
                 <>
                     <PostSkeleton />
                     <PostSkeleton />
@@ -1170,7 +1147,7 @@ export default function ExplorePage() {
                                 transition={{ duration: 0.4, ease: 'easeOut' }}
                                 className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
                             >
-                                <Heart className="w-24 h-24 text-white drop-shadow-lg" fill="white" />
+                                <Heart className="w-24 h-24 text-red-500 drop-shadow-lg animate-pulse-heart" fill="currentColor" />
                             </motion.div>
                         )}
                         </AnimatePresence>
@@ -1321,7 +1298,7 @@ export default function ExplorePage() {
                          {!post.isGalleryLocked && (
                             <CardFooter className="flex-col items-start gap-3 p-4">
                                 <div className="flex w-full justify-between items-center">
-                                    <div className='flex items-center gap-1'>
+                                    <div className='flex items-center'>
                                         <Button 
                                             variant="ghost" 
                                             className="h-10 px-3 flex items-center gap-2 rounded-full"
@@ -1383,14 +1360,6 @@ export default function ExplorePage() {
                     </div>
                 )
             )
-        )}
-
-        {activeTab === 'explore' && (
-            <div className="text-center text-muted-foreground py-20 col-span-full">
-                <Globe className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50"/>
-                 <p className="text-lg font-semibold">Keşfetmeye Hazır Ol!</p>
-                 <p className="text-sm">Burası yakında popüler gönderiler, etiketler ve daha fazlasıyla dolacak.</p>
-            </div>
         )}
         </div>
       

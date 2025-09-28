@@ -277,8 +277,12 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const isRandomChatPage = pathname.startsWith('/random-chat');
   const isCreatePage = pathname === '/create';
   const isAdminPage = isClientReady && pathname.startsWith('/admin');
+  const isExplorePage = pathname === '/explore';
   const showNavs = isClientReady && !isCreatePage && (!isChatPage || (isChatPage && !isChatViewOpen)) && !isAdminPage && !isRandomChatPage;
   const isFullScreen = isClientReady && ((isChatPage && isChatViewOpen) || isAdminPage || isRandomChatPage);
+  
+  const showHeader = showNavs && !isExplorePage;
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -335,22 +339,23 @@ function LayoutContent({ children }: { children: ReactNode }) {
         <div 
             className="flex min-h-screen flex-col bg-background text-foreground"
             style={{
-                paddingTop: showNavs ? 'var(--header-height)' : '0',
+                paddingTop: showHeader ? 'var(--header-height)' : '0',
                 paddingBottom: showNavs ? 'var(--bottom-nav-height)' : '0',
             } as React.CSSProperties}
         >
         <NetworkStatusBanner isOnline={isOnline} isPoorConnection={isPoorConnection} />
-        {showNavs && !isFullScreen && (
+        {showNavs && (
           <>
             <header className={cn(
                 "fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-background/80 px-4 backdrop-blur-sm transition-transform duration-300 md:px-6",
                 "h-[var(--header-height)]",
                 !isOnline || isPoorConnection ? 'top-10' : 'top-0', 
-                isScrolling && "-translate-y-full"
+                isScrolling && "-translate-y-full",
+                !showHeader && "hidden"
             )}>
                <div className="flex flex-1 items-center gap-2">
                    <Link href="/match" className="flex items-center gap-2">
-                        <Heart className="w-6 h-6 text-primary animate-pulse-heart" fill="hsl(var(--primary))"/>
+                         <Heart className="w-6 h-6 text-red-500 fill-red-500" />
                         <h1 className="text-2xl font-bold font-headline bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
                             BeMatch
                         </h1>
