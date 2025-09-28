@@ -83,9 +83,12 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$ai$2f$flows$2f$data$3
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/firebase.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/framer-motion/dist/es/render/components/motion/proxy.mjs [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$progress$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/progress.tsx [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$firestore$2f$dist$2f$esm$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/firestore/dist/esm/index.esm.js [app-client] (ecmascript) <module evaluation>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/firestore/dist/index.esm2017.js [app-client] (ecmascript)");
 ;
 var _s = __turbopack_context__.k.signature();
 'use client';
+;
 ;
 ;
 ;
@@ -120,7 +123,7 @@ function SearchAnimation({ onCancel, countdown }) {
                             className: "w-32 h-32 text-primary/20 animate-spin-slow"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 27,
+                            lineNumber: 28,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -128,18 +131,18 @@ function SearchAnimation({ onCancel, countdown }) {
                             children: countdown
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 28,
+                            lineNumber: 29,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                    lineNumber: 26,
+                    lineNumber: 27,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                lineNumber: 21,
+                lineNumber: 22,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -147,7 +150,7 @@ function SearchAnimation({ onCancel, countdown }) {
                 children: "Sana Uygun Biri Aranıyor..."
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                lineNumber: 33,
+                lineNumber: 34,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -159,7 +162,7 @@ function SearchAnimation({ onCancel, countdown }) {
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                lineNumber: 34,
+                lineNumber: 35,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -171,7 +174,7 @@ function SearchAnimation({ onCancel, countdown }) {
                         className: "h-2"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                        lineNumber: 39,
+                        lineNumber: 40,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -181,26 +184,26 @@ function SearchAnimation({ onCancel, countdown }) {
                                 children: "Gerçek kullanıcı aranıyor..."
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                                lineNumber: 41,
+                                lineNumber: 42,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                 children: "Bot eşleşmesi hazırlanıyor..."
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                                lineNumber: 42,
+                                lineNumber: 43,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                        lineNumber: 40,
+                        lineNumber: 41,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                lineNumber: 38,
+                lineNumber: 39,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -210,13 +213,13 @@ function SearchAnimation({ onCancel, countdown }) {
                 children: "İptal"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                lineNumber: 45,
+                lineNumber: 46,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-        lineNumber: 20,
+        lineNumber: 21,
         columnNumber: 5
     }, this);
 }
@@ -229,23 +232,37 @@ function ShuffleContent() {
     const currentUser = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["auth"].currentUser;
     const { toast } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useToast"])();
     const searchIntervalRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
-    const stopSearch = ()=>{
+    const isFindingMatch = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(false);
+    const stopSearch = async ()=>{
         setIsSearching(false);
         if (searchIntervalRef.current) {
             clearInterval(searchIntervalRef.current);
             searchIntervalRef.current = null;
         }
+        // As a cleanup, try to remove user from waiting pool if they cancel
+        if (currentUser) {
+            const userInPoolRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'waitingPool', currentUser.uid);
+            await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["deleteDoc"])(userInPoolRef).catch(()=>{});
+        }
+        isFindingMatch.current = false;
+    };
+    const startCountdown = ()=>{
+        setCountdown(SEARCH_TIMEOUT_SECONDS);
+        if (searchIntervalRef.current) clearInterval(searchIntervalRef.current);
+        searchIntervalRef.current = setInterval(()=>{
+            setCountdown((prev)=>prev - 1);
+        }, 1000);
     };
     const handleSearchClick = async ()=>{
-        if (!currentUser) {
-            toast({
+        if (!currentUser || isFindingMatch.current) {
+            if (!currentUser) toast({
                 title: 'Giriş yapmalısınız.',
                 variant: 'destructive'
             });
             return;
         }
-        setIsSearching(true);
-        setCountdown(SEARCH_TIMEOUT_SECONDS);
+        isFindingMatch.current = true;
+        setIsSearching(true); // Show searching UI immediately
         try {
             const result = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$ai$2f$flows$2f$data$3a$b2f31d__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$text$2f$javascript$3e$__["findMatch"])({
                 userId: currentUser.uid
@@ -257,12 +274,10 @@ function ShuffleContent() {
                 });
                 stopSearch();
                 router.push(`/random-chat/${result.conversationId}`);
-                return;
+            } else {
+                // If no immediate match, start the countdown.
+                startCountdown();
             }
-            // If no immediate match, start countdown
-            searchIntervalRef.current = setInterval(()=>{
-                setCountdown((prev)=>prev - 1);
-            }, 1000);
         } catch (error) {
             console.error('Error during initial match search: ', error);
             toast({
@@ -271,13 +286,20 @@ function ShuffleContent() {
                 variant: 'destructive'
             });
             stopSearch();
+        } finally{
+            // Don't set isFindingMatch.current to false here if we are waiting for countdown
+            if (!isSearching) {
+                isFindingMatch.current = false;
+            }
         }
     };
+    // This effect runs when the countdown finishes
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "ShuffleContent.useEffect": ()=>{
             const handleFinalSearch = {
                 "ShuffleContent.useEffect.handleFinalSearch": async ()=>{
                     if (!currentUser) return;
+                    isFindingMatch.current = true;
                     try {
                         const finalResult = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$ai$2f$flows$2f$data$3a$b2f31d__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$text$2f$javascript$3e$__["findMatch"])({
                             userId: currentUser.uid
@@ -322,17 +344,27 @@ function ShuffleContent() {
                     if (searchIntervalRef.current) {
                         clearInterval(searchIntervalRef.current);
                     }
+                    // If component unmounts while searching, try to remove from pool
+                    if (isSearching && currentUser) {
+                        const userInPoolRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'waitingPool', currentUser.uid);
+                        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["deleteDoc"])(userInPoolRef).catch({
+                            "ShuffleContent.useEffect": ()=>{}
+                        }["ShuffleContent.useEffect"]);
+                    }
                 }
             })["ShuffleContent.useEffect"];
         }
-    }["ShuffleContent.useEffect"], []);
+    }["ShuffleContent.useEffect"], [
+        isSearching,
+        currentUser
+    ]);
     if (isSearching) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(SearchAnimation, {
             onCancel: stopSearch,
             countdown: countdown
         }, void 0, false, {
             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-            lineNumber: 136,
+            lineNumber: 162,
             columnNumber: 12
         }, this);
     }
@@ -357,7 +389,7 @@ function ShuffleContent() {
                     children: "Rastgele Eşleşme"
                 }, void 0, false, {
                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                    lineNumber: 146,
+                    lineNumber: 172,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -365,7 +397,7 @@ function ShuffleContent() {
                     children: "Tek bir tıkla yeni biriyle tanış ve 3 dakikalık sürpriz bir sohbete başla."
                 }, void 0, false, {
                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                    lineNumber: 147,
+                    lineNumber: 173,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -375,7 +407,7 @@ function ShuffleContent() {
                             className: "w-12 h-12 text-primary mb-4"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 151,
+                            lineNumber: 177,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -383,7 +415,7 @@ function ShuffleContent() {
                             children: "Yazılı Eşleşme"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 152,
+                            lineNumber: 178,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -395,35 +427,35 @@ function ShuffleContent() {
                                     className: "mr-3 h-5 w-5"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                                    lineNumber: 158,
+                                    lineNumber: 184,
                                     columnNumber: 13
                                 }, this),
                                 "Eşleşme Bul"
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                            lineNumber: 153,
+                            lineNumber: 179,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                    lineNumber: 150,
+                    lineNumber: 176,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-            lineNumber: 141,
+            lineNumber: 167,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-        lineNumber: 140,
+        lineNumber: 166,
         columnNumber: 5
     }, this);
 }
-_s(ShuffleContent, "JeE+5pZ4Wa6vI3M0oMrEO/c0YFw=", false, function() {
+_s(ShuffleContent, "z/RywMTd+qhMKYB0EdJRM7DiIgw=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"],
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useToast"]
@@ -438,7 +470,7 @@ function ShufflePage() {
                 className: "absolute inset-0 bg-grid-pattern opacity-[0.03] dark:opacity-[0.05]"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                lineNumber: 170,
+                lineNumber: 196,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("style", {
@@ -453,7 +485,7 @@ function ShufflePage() {
         `
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                lineNumber: 171,
+                lineNumber: 197,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Suspense"], {
@@ -461,23 +493,23 @@ function ShufflePage() {
                     className: "w-12 h-12 text-primary animate-spin"
                 }, void 0, false, {
                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                    lineNumber: 182,
+                    lineNumber: 208,
                     columnNumber: 27
                 }, void 0),
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ShuffleContent, {}, void 0, false, {
                     fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                    lineNumber: 183,
+                    lineNumber: 209,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-                lineNumber: 182,
+                lineNumber: 208,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(app)/shuffle/page.tsx",
-        lineNumber: 169,
+        lineNumber: 195,
         columnNumber: 5
     }, this);
 }

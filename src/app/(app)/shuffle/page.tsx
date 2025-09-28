@@ -10,7 +10,7 @@ import { findMatch } from '@/ai/flows/find-match-flow';
 import { auth, db } from '@/lib/firebase';
 import { motion } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
-import { doc, onSnapshot, deleteDoc } from 'firebase/firestore';
+import { doc, deleteDoc } from 'firebase/firestore';
 
 const SEARCH_TIMEOUT_SECONDS = 15;
 
