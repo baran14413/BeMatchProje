@@ -1,0 +1,168 @@
+
+'use server';
+/**
+ * @fileOverview A Genkit flow for matching users for a random chat.
+ *
+ * This flow provides a robust, transaction-based matchmaking system.
+ * - findMatch: Tries to find a waiting user, otherwise adds the current user to the waiting pool.
+ */
+
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
+import { getFirestore, runTransaction, collection, query, where, orderBy, limit, getDocs, doc, setDoc, serverTimestamp, deleteDoc, addDoc } from 'firebase-admin/firestore';
+import { initializeApp, getApps } from 'firebase-admin/app';
+import { botNames, botOpenerMessages } from '@/config/bot-config';
+
+const FindMatchInputSchema = z.object({
+  userId: z.string().describe('The UID of the user searching for a match.'),
+});
+export type FindMatchInput = z.infer<typeof FindMatchInputSchema>;
+
+const FindMatchOutputSchema = z.object({
+  conversationId: z.string().nullable().describe('The ID of the conversation, or null if no match was found yet.'),
+  isBotMatch: z.boolean().describe('Whether the match is with a bot.'),
+});
+export type FindMatchOutput = z.infer<typeof FindMatchOutputSchema>;
+
+
+export async function findMatch(input: FindMatchInput): Promise<FindMatchOutput> {
+  return findMatchFlow(input);
+}
+
+const findMatchFlow = ai.defineFlow(
+  {
+    name: 'findMatchFlow',
+    inputSchema: FindMatchInputSchema,
+    outputSchema: FindMatchOutputSchema,
+  },
+  async ({ userId }) => {
+    if (!getApps().length) {
+      initializeApp();
+    }
+    const db = getFirestore();
+    const waitingPoolRef = collection(db, 'waitingPool');
+
+    try {
+      // Transaction to find and match a user atomically
+      const conversationId = await runTransaction(db, async (transaction) => {
+        const waitingQuery = query(
+          waitingPoolRef,
+          where('uid', '!=', userId),
+          orderBy('uid'), // Order by UID to avoid contention on the same document
+          orderBy('waitingSince', 'asc'),
+          limit(1)
+        );
+        const waitingSnapshot = await transaction.get(waitingQuery);
+
+        if (!waitingSnapshot.empty) {
+          // Found a waiting user, let's create a match!
+          const waitingUserDoc = waitingSnapshot.docs[0];
+          const waitingUserData = waitingUserDoc.data();
+
+          const currentUserDoc = await transaction.get(doc(db, 'users', userId));
+          if (!currentUserDoc.exists()) throw "Current user not found in database.";
+          const currentUserData = currentUserDoc.data();
+
+          // Create a new temporary conversation document
+          const newConvoRef = doc(collection(db, 'temporaryConversations'));
+          const expiresAt = new Date();
+          expiresAt.setMinutes(expiresAt.getMinutes() + 5);
+
+          transaction.set(newConvoRef, {
+            user1: { uid: waitingUserData.uid, name: waitingUserData.name, avatarUrl: waitingUserData.avatarUrl, heartClicked: false },
+            user2: { uid: currentUserData.uid, name: currentUserData.name, avatarUrl: currentUserData.avatarUrl, heartClicked: false },
+            isBotMatch: false,
+            createdAt: serverTimestamp(),
+            expiresAt: expiresAt,
+          });
+
+          // Remove the waiting user from the pool
+          transaction.delete(waitingUserDoc.ref);
+
+          return newConvoRef.id;
+        } else {
+          // No one is waiting, so add this user to the waiting pool
+          const userDoc = await getDoc(doc(db, 'users', userId));
+          if (!userDoc.exists()) throw "User document does not exist.";
+          
+          const newWaitingRef = doc(waitingPoolRef, userId);
+          transaction.set(newWaitingRef, {
+            uid: userId,
+            name: userDoc.data().name,
+            avatarUrl: userDoc.data().avatarUrl,
+            waitingSince: serverTimestamp(),
+          });
+
+          return null; // Return null to indicate the user is now waiting
+        }
+      });
+      
+      if (conversationId) {
+        // We successfully matched with another user
+        return { conversationId, isBotMatch: false };
+      }
+
+      // If we are here, it means we are now in the waiting pool.
+      // We will wait for 20 seconds. If nobody matches us, we create a bot match.
+      await new Promise(resolve => setTimeout(resolve, 20000));
+
+      const userWaitingRef = doc(waitingPoolRef, userId);
+      const finalCheck = await getDoc(userWaitingRef);
+
+      if (!finalCheck.exists()) {
+          // We were matched by another user during the wait.
+          // That user created the conversation. We need to find it.
+          // This is a tricky part. A better system might use Cloud Functions to write the convoId back to the waiting doc.
+          // For simplicity, we'll assume the client will be redirected by the other user's action.
+          // A more robust client would re-fetch its state. We will return null and let client handle.
+          // However, to make it work, let's find the convo.
+          const convosQuery = query(collection(db, 'temporaryConversations'), where('users', 'array-contains', userId), orderBy('createdAt', 'desc'), limit(1));
+          const convoSnap = await getDocs(convosQuery);
+          if (!convoSnap.empty) {
+              return { conversationId: convoSnap.docs[0].id, isBotMatch: false };
+          }
+          return { conversationId: null, isBotMatch: false }; // Should not happen ideally
+      }
+
+      // 20 seconds passed and no one matched us. Delete from pool and create a bot match.
+      await deleteDoc(userWaitingRef);
+      
+      const currentUserDoc = await getDoc(doc(db, 'users', userId));
+      if (!currentUserDoc.exists()) throw "Current user not found.";
+      const currentUserData = currentUserDoc.data();
+      
+      const botId = `bot_${Math.random().toString(36).substring(2, 9)}`;
+      const botName = botNames[Math.floor(Math.random() * botNames.length)];
+      const botAvatar = `https://avatar.iran.liara.run/public/girl?username=${botName.replace(/\s/g, '')}`;
+
+      const botConvoId = [userId, botId].sort().join('-');
+      const botConvoRef = doc(db, 'temporaryConversations', botConvoId);
+      
+      const expiresAt = new Date();
+      expiresAt.setMinutes(expiresAt.getMinutes() + 5);
+
+      await setDoc(botConvoRef, {
+          user1: { uid: currentUserData.uid, name: currentUserData.name, avatarUrl: currentUserData.avatarUrl, heartClicked: false },
+          user2: { uid: botId, name: botName, avatarUrl: botAvatar, heartClicked: false },
+          isBotMatch: true,
+          createdAt: serverTimestamp(),
+          expiresAt: expiresAt,
+      });
+
+      // Add a first message from the bot
+      await addDoc(collection(botConvoRef, 'messages'), {
+          text: botOpenerMessages[Math.floor(Math.random() * botOpenerMessages.length)],
+          senderId: botId,
+          timestamp: serverTimestamp()
+      });
+
+      return { conversationId: botConvoId, isBotMatch: true };
+
+    } catch (error: any) {
+      console.error('Matchmaking flow failed:', error);
+      // If the user was added to the pool but the flow failed, try to remove them
+      await deleteDoc(doc(waitingPoolRef, userId)).catch(() => {});
+      return { conversationId: null, isBotMatch: false };
+    }
+  }
+);

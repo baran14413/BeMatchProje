@@ -565,10 +565,10 @@ function ShuffleContent() {
             const matchTimer = setTimeout(async ()=>{
                 const entrySnap = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getDoc"])(newEntryRef);
                 if (!entrySnap.exists()) return; // Already matched
-                await deleteDoc(newEntryRef);
+                await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["deleteDoc"])(newEntryRef);
                 createBotMatch();
             }, 15000); // 15 seconds
-            const unsubscribe = onSnapshot(newEntryRef, (docSnap)=>{
+            const unsubscribe = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["onSnapshot"])(newEntryRef, (docSnap)=>{
                 if (!docSnap.exists()) {
                     clearTimeout(matchTimer);
                     unsubscribe(); // Stop listening

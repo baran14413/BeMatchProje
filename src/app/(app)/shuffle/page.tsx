@@ -13,6 +13,7 @@ import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, runTransaction, increment, serverTimestamp, collection, addDoc, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { botNames, botOpenerMessages } from '@/config/bot-config';
+import { findMatch } from '@/ai/flows/find-match-flow';
 
 function ShuffleContent() {
     const [api, setApi] = useState<CarouselApi>();
@@ -44,11 +45,9 @@ function ShuffleContent() {
         }
 
         setIsSearching(true);
-        const userDocRef = doc(db, 'users', currentUser.uid);
 
         try {
-            // Check user's match credits
-            const userDoc = await getDoc(userDocRef);
+            const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
             if (!userDoc.exists()) throw new Error("Kullanıcı bulunamadı.");
 
             const userData = userDoc.data();
@@ -66,40 +65,40 @@ function ShuffleContent() {
                 }
             }
 
-            // Find a waiting user or create a new waiting entry
-            const waitingPoolRef = collection(db, 'waitingPool');
-            const newEntryRef = await addDoc(waitingPoolRef, {
-                uid: currentUser.uid,
-                name: currentUser.displayName,
-                avatarUrl: currentUser.photoURL,
-                waitingSince: serverTimestamp(),
-            });
+            // Decrement match count immediately for non-premium users
+            if (!userData.isPremium) {
+                await runTransaction(db, async (transaction) => {
+                    const freshUserDoc = await transaction.get(doc(db, 'users', currentUser.uid));
+                    if (!freshUserDoc.exists()) throw "User does not exist!";
+                    
+                    const dailyMatch = freshUserDoc.data().dailyMatch || {};
+                    const newCount = dailyMatch.date === today ? (dailyMatch.count || 0) + 1 : 1;
 
-            // Start a 15-second timer to find a match or create a bot match
-            const matchTimer = setTimeout(async () => {
-                 const entrySnap = await getDoc(newEntryRef);
-                 if (!entrySnap.exists()) return; // Already matched
-                
-                 await deleteDoc(newEntryRef);
-                 createBotMatch();
+                    transaction.update(doc(db, 'users', currentUser.uid), {
+                        dailyMatch: {
+                            date: today,
+                            count: newCount
+                        }
+                    });
+                });
+            }
 
-            }, 15000); // 15 seconds
-
-             const unsubscribe = onSnapshot(newEntryRef, (docSnap) => {
-                if (!docSnap.exists()) { // This means we got matched
-                    clearTimeout(matchTimer);
-                    unsubscribe(); // Stop listening
-                    // The other user will create the convo and we'll be redirected
-                } else if (docSnap.data().matchedWith) {
-                    clearTimeout(matchTimer);
-                    unsubscribe();
-                    const conversationId = docSnap.data().conversationId;
-                    if(conversationId) {
-                         router.push(`/random-chat/${conversationId}`);
-                    }
-                }
-            });
-
+            const result = await findMatch({ userId: currentUser.uid });
+            
+            if (result && result.conversationId) {
+                toast({
+                    title: "Sana birini bulduk!",
+                    description: "Harika biriyle eşleştin. Sohbete yönlendiriliyorsun...",
+                });
+                router.push(`/random-chat/${result.conversationId}`);
+            } else {
+                 toast({
+                    title: "Eşleşme Bulunamadı",
+                    description: "Bir hata oluştu veya eşleşme bulunamadı. Lütfen tekrar deneyin.",
+                    variant: "destructive"
+                });
+                setIsSearching(false);
+            }
 
         } catch (error) {
             console.error("Error starting match search: ", error);
@@ -108,49 +107,16 @@ function ShuffleContent() {
         }
     };
     
-    const createBotMatch = async () => {
-        if (!currentUser) return;
-        
-        toast({
-            title: "Sana birini bulduk!",
-            description: "Harika biriyle eşleştin. Sohbete yönlendiriliyorsun...",
-        });
-
-        const botId = `bot_${Math.random().toString(36).substring(2, 9)}`;
-        const botName = botNames[Math.floor(Math.random() * botNames.length)];
-        const botAvatar = `https://avatar.iran.liara.run/public/girl?username=${botName}`;
-        
-        const conversationId = [currentUser.uid, botId].sort().join('-');
-        const convoRef = doc(db, 'temporaryConversations', conversationId);
-        
-        const expiresAt = new Date();
-        expiresAt.setMinutes(expiresAt.getMinutes() + 5);
-
-        await setDoc(convoRef, {
-            user1: { uid: currentUser.uid, name: currentUser.displayName, avatarUrl: currentUser.photoURL, heartClicked: false },
-            user2: { uid: botId, name: botName, avatarUrl: botAvatar, heartClicked: false },
-            isBotMatch: true,
-            createdAt: serverTimestamp(),
-            expiresAt: expiresAt,
-        });
-
-        const messagesRef = collection(convoRef, 'messages');
-        await addDoc(messagesRef, {
-            text: botOpenerMessages[Math.floor(Math.random() * botOpenerMessages.length)],
-            senderId: botId,
-            timestamp: serverTimestamp()
-        });
-
-        router.push(`/random-chat/${conversationId}`);
-    }
-
     if (isSearching) {
         return (
             <div className="flex flex-col items-center justify-center text-center p-8">
                 <Loader2 className="w-16 h-16 text-primary animate-spin mb-6" />
                 <h2 className="text-2xl font-bold">Sana Uygun Biri Aranıyor...</h2>
-                <p className="text-muted-foreground mt-2">Bu işlem genellikle 15 saniye sürer. Lütfen bekleyin.</p>
-                <Button variant="outline" className="mt-8" onClick={() => setIsSearching(false)}>Aramayı İptal Et</Button>
+                <p className="text-muted-foreground mt-2">Bu işlem genellikle 20 saniye sürer. Lütfen bekleyin.</p>
+                <Button variant="outline" className="mt-8" onClick={() => {
+                    setIsSearching(false);
+                    // We might need a flow to cancel the search on the backend in a real scenario
+                    }}>Aramayı İptal Et</Button>
             </div>
         )
     }
