@@ -22,7 +22,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { moderateImage, ModerateImageOutput } from '@/ai/flows/moderate-image-flow';
 import Image from 'next/image';
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { doc, setDoc, getDoc, query, collection, where, getDocs, serverTimestamp } from 'firebase/firestore';
@@ -39,7 +38,6 @@ const HOBBIES = [
 ];
 
 type PasswordStrength = 'yok' | 'zayıf' | 'orta' | 'güçlü';
-type ModerationStatus = 'idle' | 'checking' | 'safe' | 'unsafe';
 type VerificationStatus = 'idle' | 'checking' | 'verified' | 'failed';
 
 function SignUpComponent() {
@@ -76,13 +74,8 @@ function SignUpComponent() {
   const [showPassword, setShowPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>('yok');
 
-  const [moderationStatus, setModerationStatus] = useState<ModerationStatus>('idle');
-  const [moderationResult, setModerationResult] = useState<ModerateImageOutput | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('idle');
-  const videoRef = useRef<HTMLVideoElement>(null);
-
+  
   const bioMaxLength = 250;
 
   const nextStep = () => setStep((prev) => prev + 1);
@@ -110,7 +103,6 @@ function SignUpComponent() {
             setStep(parseInt(stepParam, 10));
         }
       } else {
-        // If we are supposed to be in a Google flow but have no info, redirect to login.
         router.push('/login');
       }
     } else {
@@ -120,66 +112,16 @@ function SignUpComponent() {
     }
   }, [searchParams, router]);
 
-  useEffect(() => {
-    if (step === 6) {
-      let stream: MediaStream | null = null;
-      const getCameraPermission = async () => {
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({ video: true });
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-            videoRef.current.onloadedmetadata = () => {
-              setVerificationStatus('verified');
-              // Stop the tracks once verification is confirmed
-              stream?.getTracks().forEach(track => track.stop());
-            };
-          }
-        } catch (error) {
-          console.error('Error accessing camera:', error);
-          setVerificationStatus('failed');
-        }
-      };
-      getCameraPermission();
-
-      return () => {
-        stream?.getTracks().forEach(track => track.stop());
-        if (videoRef.current) {
-          videoRef.current.srcObject = null;
-        }
-      };
-    }
-  }, [step]);
-
 
   const handleProfilePictureChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setModerationStatus('idle');
-      setModerationResult(null);
       const reader = new FileReader();
       reader.onload = (event) => {
         const dataUri = event.target?.result as string;
         setFormData((prev) => ({ ...prev, profilePicture: dataUri }));
       };
       reader.readAsDataURL(file);
-    }
-  };
-
-  const handleModerateImage = async () => {
-    if (!formData.profilePicture) return;
-    setModerationStatus('checking');
-    try {
-      const result = await moderateImage({ photoDataUri: formData.profilePicture });
-      setModerationResult(result);
-      setModerationStatus(result.isSafe ? 'safe' : 'unsafe');
-    } catch (error) {
-      console.error("Moderation failed", error);
-      toast({
-        variant: 'destructive',
-        title: 'Denetleme Başarısız',
-        description: 'Fotoğraf denetlenirken bir hata oluştu. Lütfen tekrar deneyin.'
-      });
-      setModerationStatus('idle');
     }
   };
 
@@ -203,7 +145,6 @@ function SignUpComponent() {
       try {
         const currentUser = auth.currentUser;
         
-        // Final validation before creating user
         if (source === 'email' && (!formData.email.trim() || !formData.password.trim())) {
              toast({ variant: "destructive", title: "Eksik Bilgi", description: "Lütfen e-posta ve şifre bilgilerinizi kontrol etmek için geri gidin." });
              throw new Error("Missing email or password");
@@ -213,7 +154,6 @@ function SignUpComponent() {
         const usernameSnapshot = await getDocs(usernameQuery);
         if (!usernameSnapshot.empty) {
              const userDoc = usernameSnapshot.docs[0];
-             // If the found user is the current user, it's not an error.
              if (!currentUser || userDoc.id !== currentUser.uid) {
                 toast({ variant: "destructive", title: "Kullanıcı Adı Alınmış", description: "Bu kullanıcı adı zaten alınmış. Lütfen geri giderek farklı bir kullanıcı adı seçin." });
                 throw new Error("Username taken");
@@ -231,7 +171,6 @@ function SignUpComponent() {
             const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
             user = userCredential.user;
         } else {
-             // User from Google should already be logged in
              if (!currentUser) throw new Error("Google kullanıcısı bulunamadı.");
              user = currentUser;
         }
@@ -240,7 +179,7 @@ function SignUpComponent() {
         if (formData.profilePicture && (formData.profilePicture !== user.photoURL)) {
             const storageRef = ref(storage, `profile_pictures/${user.uid}`);
             await uploadString(storageRef, formData.profilePicture, 'data_url');
-            photoURL = await getDownloadURL(storageRef);
+            photoURL = await getDownloadURL(uploadTask.ref);
         }
         
         await updateProfile(user, {
@@ -258,7 +197,7 @@ function SignUpComponent() {
             createdAt: serverTimestamp(),
             isPremium: false,
             stats: { followers: 0, following: 0 }
-        }, { merge: true }); // Use merge to update existing doc for Google users completing profile
+        }, { merge: true });
         
         sessionStorage.removeItem('googleSignUpInfo');
         
@@ -360,49 +299,29 @@ function SignUpComponent() {
 
   const isStep1Invalid = source === 'email' ? (!formData.firstName || !formData.lastName || !formData.username || !formData.email) : (!formData.username);
   const isStep2Invalid = !formData.age || !formData.gender || !formData.country || !formData.city || !formData.district || formData.hobbies.length < 3;
-  const isStep3Invalid = !formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf';
+  const isStep3Invalid = source === 'email' ? (!formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf') : false;
   const isStep4Invalid = !formData.bio;
-  const isStep5Invalid = false;
-  const isStep6Invalid = verificationStatus !== 'verified';
+  const isStep5Invalid = !termsAccepted;
+
 
   const isNextButtonDisabled = () => {
-    if (source === 'google') {
-        switch (step) {
-            case 1: return isStep1Invalid;
-            case 2: return isStep2Invalid;
-            case 3: return isStep4Invalid;
-            case 4: return isStep5Invalid;
-            default: return false;
-        }
+    let currentStepForGoogle = step;
+    if(source === 'google') {
+        if(step >= 3) currentStepForGoogle = step + 1; // map google step 3 to email step 4 etc.
     }
-    // email flow
-    switch (step) {
+    
+    switch (currentStepForGoogle) {
         case 1: return isStep1Invalid;
         case 2: return isStep2Invalid;
         case 3: return isStep3Invalid;
         case 4: return isStep4Invalid;
-        case 5: return isStep5Invalid;
         default: return false;
     }
   };
   
   const handlePhotoSkip = () => {
     setFormData(prev => ({...prev, profilePicture: null}));
-    setModerationStatus('idle');
-    setModerationResult(null);
     nextStep();
-  }
-  
-  const handleNextPhotoStep = () => {
-      if (moderationStatus === 'safe' && formData.profilePicture) {
-          nextStep();
-      } else {
-           toast({
-            variant: "destructive",
-            title: "Devam Edilemiyor",
-            description: "Lütfen devam etmeden önce geçerli bir fotoğrafı denetleyin."
-        });
-      }
   }
 
   const progress = (step / (source === 'google' ? 5 : 6)) * 100;
@@ -414,13 +333,6 @@ function SignUpComponent() {
         case 'güçlü': return 'bg-green-500';
         default: return 'bg-muted';
     }
-  };
-  
-  const getVerificationBorderColor = () => {
-      if (verificationStatus === 'verified') return 'border-green-500';
-      if (verificationStatus === 'failed') return 'border-red-500';
-      if (verificationStatus === 'checking') return 'border-yellow-500 animate-pulse';
-      return 'border-primary/50';
   };
 
   const handleBack = () => {
@@ -486,7 +398,9 @@ function SignUpComponent() {
         </div>
     </div>
   );
-
+  
+  const finalStep = source === 'google' ? 5 : 6;
+  
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto">
         <div className="flex flex-col items-center gap-2 mb-8 text-center">
@@ -519,7 +433,6 @@ function SignUpComponent() {
                             </Select>
                         </div>
                     </div>
-                    <p className="text-xs text-muted-foreground -mt-2 pl-1">Seçtiğiniz cinsiyet, bir sonraki adımda yüz doğrulaması ile teyit edilecektir.</p>
                     <div className="grid gap-2">
                         <Label htmlFor="country">Ülke</Label>
                         <Select onValueChange={(v) => handleSelectChange('country', v)} value={formData.country}>
@@ -607,102 +520,52 @@ function SignUpComponent() {
             )}
             {step === (source === 'google' ? 4 : 5) && (
                 <div className="flex flex-col items-center gap-4">
-                <p className="font-medium text-center">Lütfen profil fotoğrafınızı yükleyin.</p>
-                <div
-                    className="relative w-48 h-48 rounded-full bg-muted flex items-center justify-center overflow-hidden border-4 border-dashed border-primary/50 cursor-pointer"
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        className="hidden"
-                        accept="image/png, image/jpeg, image/webp"
-                        onChange={handleProfilePictureChange}
-                    />
-                    {formData.profilePicture ? (
-                        <Image src={formData.profilePicture} alt="Profil fotoğrafı önizlemesi" layout="fill" objectFit="cover" />
-                    ) : (
-                        <div className="text-center text-muted-foreground p-4 flex flex-col items-center">
-                            <Upload className="w-12 h-12 mb-2" />
-                            <p className="text-sm">Fotoğraf Yükle</p>
-                        </div>
-                    )}
-                </div>
-
-                {formData.profilePicture && (
-                    <Button onClick={handleModerateImage} disabled={moderationStatus === 'checking'}>
-                    {moderationStatus === 'checking' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {moderationStatus === 'checking' ? 'Denetleniyor...' : 'Fotoğrafı Denetle'}
-                    </Button>
-                )}
-
-                {moderationStatus === 'unsafe' && (
-                    <Alert variant="destructive" className="mt-4">
-                    <Ban className="h-4 h-4" />
-                    <AlertTitle>Uygunsuz İçerik Tespit Edildi</AlertTitle>
-                    <AlertDescription>
-                        {moderationResult?.reason || 'Lütfen kurallarımıza uygun başka bir fotoğraf yükleyin.'}
-                    </AlertDescription>
-                    </Alert>
-                )}
-                {moderationStatus === 'safe' && (
-                    <Alert variant="default" className="mt-4 border-green-500 text-green-700">
-                    <ShieldCheck className="h-4 w-4 text-green-500" />
-                    <AlertTitle>Fotoğraf Uygun</AlertTitle>
-                    <AlertDescription>
-                        Harika bir seçim! Devam etmek için ileri'ye tıkla.
-                    </AlertDescription>
-                    </Alert>
-                )}
-                </div>
-            )}
-            {step === (source === 'google' ? 5 : 6) && (
-                <div className="flex flex-col items-center gap-4">
-                <p className="font-medium text-center">Canlılık kontrolü için lütfen kameraya bakın.</p>
-                <div className={cn(
-                    "relative w-64 h-64 rounded-full bg-muted flex items-center justify-center overflow-hidden border-4 transition-colors",
-                    getVerificationBorderColor()
-                )}>
-                    {verificationStatus !== 'verified' ? (
-                        <video ref={videoRef} className="w-full h-full object-cover scale-x-[-1]" autoPlay muted playsInline />
-                    ) : (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted p-4">
-                             <UserCheck className="w-20 h-20 text-green-500"/>
-                        </div>
-                    )}
-                     {verificationStatus === 'checking' && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4">
-                            <Loader2 className="w-12 h-12 mb-2 animate-spin"/>
-                            <p>Doğrulanıyor...</p>
-                        </div>
-                    )}
-                </div>
-
-                    {verificationStatus === 'failed' && (
-                        <Alert variant="destructive" className="mt-4">
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertTitle>Doğrulama Başarısız</AlertTitle>
-                        <AlertDescription>
-                            Kamera erişimi sağlanamadı. Lütfen tarayıcı ayarlarından izin verin.
-                        </AlertDescription>
-                        </Alert>
-                    )}
-                    {verificationStatus === 'verified' && (
-                        <div className="flex flex-col items-center gap-4 mt-4">
-                            <Alert className="border-green-500 text-green-700 dark:text-green-400">
-                            <UserCheck className="h-4 w-4 text-green-500" />
-                            <AlertTitle>Doğrulama Başarılı!</AlertTitle>
-                            </Alert>
-                            <div className="flex items-center space-x-2 pt-4">
-                                <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(checked) => setTermsAccepted(checked as boolean)} />
-                                <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground">
-                                    Hesabını oluşturarak <Link href="#" className="underline">Kullanım Koşullarımızı</Link> ve <Link href="#" className="underline">Gizlilik Politikamızı</Link> kabul etmiş olursun.
-                                </Label>
+                    <p className="font-medium text-center">Lütfen profil fotoğrafınızı yükleyin.</p>
+                    <div
+                        className="relative w-48 h-48 rounded-full bg-muted flex items-center justify-center overflow-hidden border-4 border-dashed border-primary/50 cursor-pointer"
+                        onClick={() => fileInputRef.current?.click()}
+                    >
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept="image/png, image/jpeg, image/webp"
+                            onChange={handleProfilePictureChange}
+                        />
+                        {formData.profilePicture ? (
+                            <Image src={formData.profilePicture} alt="Profil fotoğrafı önizlemesi" layout="fill" objectFit="cover" />
+                        ) : (
+                            <div className="text-center text-muted-foreground p-4 flex flex-col items-center">
+                                <Upload className="w-12 h-12 mb-2" />
+                                <p className="text-sm">Fotoğraf Yükle</p>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
+                    <Alert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Topluluk Kuralları</AlertTitle>
+                        <AlertDescription>
+                          Yüklediğiniz fotoğrafın çıplaklık, argo, küfür, şiddet veya nefret söylemi içermediğinden emin olun.
+                        </AlertDescription>
+                    </Alert>
                 </div>
             )}
+            {step === finalStep && (
+                 <div className="flex flex-col items-center justify-center h-full text-center gap-6">
+                    <Heart className="w-20 h-20 text-primary animate-pulse-heart" />
+                    <h2 className="text-2xl font-bold">Neredeyse Bitti!</h2>
+                    <p className="text-muted-foreground">
+                        Hesabını oluşturmak için lütfen şartlarımızı ve koşullarımızı kabul et.
+                    </p>
+                    <div className="flex items-center space-x-2 pt-4">
+                        <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(checked) => setTermsAccepted(checked as boolean)} />
+                        <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground">
+                            Hesabını oluşturarak <Link href="#" className="underline">Kullanım Koşullarımızı</Link> ve <Link href="#" className="underline">Gizlilik Politikamızı</Link> kabul etmiş olursun.
+                        </Label>
+                    </div>
+                </div>
+            )}
+
         </CardContent>
         <CardFooter className="flex justify-between">
             {step > 1 || (source === 'google' && step ===1) ? (
@@ -716,19 +579,21 @@ function SignUpComponent() {
                 </p>
             )}
             
-            {(step < (source === 'google' ? 4 : 5)) ? (
-              <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>
-            ) : (step === (source === 'google' ? 4 : 5)) ? (
-                <div className="flex gap-2">
-                    <Button variant="secondary" onClick={handlePhotoSkip}>Bu Adımı Atla</Button>
-                    <Button onClick={handleNextPhotoStep} disabled={moderationStatus !== 'safe'}>İleri</Button>
-                </div>
-            ) : (step === (source === 'google' ? 5 : 6)) ? (
-                 <Button onClick={handleFinishSignup} disabled={isFinishing || !termsAccepted || verificationStatus !== 'verified'}>
+            {(step < finalStep) ? (
+                (step === (source === 'google' ? 4 : 5)) ? (
+                    <div className="flex gap-2">
+                        <Button variant="secondary" onClick={handlePhotoSkip}>Bu Adımı Atla</Button>
+                        <Button onClick={nextStep} disabled={!formData.profilePicture}>İleri</Button>
+                    </div>
+                ) : (
+                    <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>
+                )
+            ) : (
+                 <Button onClick={handleFinishSignup} disabled={isFinishing || isStep5Invalid}>
                     {isFinishing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Bitir ve Keşfet
                 </Button>
-            ) : null}
+            )}
 
         </CardFooter>
         </Card>

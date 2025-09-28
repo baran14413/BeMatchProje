@@ -1020,7 +1020,7 @@ function LayoutContent({ children }) {
                                     const profileData = userDocSnap.data();
                                     // Check for profile completeness if it's an existing user
                                     const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/tutorial');
-                                    if (!profileData.city || !profileData.age || !profileData.hobbies?.length) {
+                                    if (!profileData.username || !profileData.city || !profileData.age || !profileData.hobbies?.length) {
                                         if (!isAuthPage) {
                                             const googleInfo = {
                                                 email: user.email,
@@ -1029,7 +1029,7 @@ function LayoutContent({ children }) {
                                                 photoURL: user.photoURL
                                             };
                                             sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
-                                            router.push('/signup?step=2&source=google&reason=complete_profile');
+                                            router.push('/signup?step=1&source=google&reason=complete_profile');
                                             return;
                                         }
                                     }
@@ -1475,7 +1475,7 @@ function LayoutContent({ children }) {
                                             lineNumber: 437,
                                             columnNumber: 26
                                         }, this) : currentUser && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
-                                            href: currentUserProfile?.username ? `/profile/${currentUserProfile.username}` : `/profile/edit/personal`,
+                                            href: currentUserProfile?.username ? `/profile/${currentUserProfile.username}` : `/profile/edit`,
                                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                                 variant: "ghost",
                                                 size: "icon",
