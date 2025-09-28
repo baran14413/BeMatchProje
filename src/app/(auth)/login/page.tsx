@@ -41,7 +41,7 @@ function LoginComponent() {
         title: 'Giriş Başarılı!',
         className: 'bg-green-500 text-white',
       });
-      router.push('/match');
+      router.push('/explore');
     } catch (error: any) {
       console.error('Login error', error);
       toast({
@@ -71,7 +71,7 @@ function LoginComponent() {
                     title: `Tekrar Hoş Geldin, ${user.displayName?.split(' ')[0]}!`,
                     className: "bg-green-500 text-white",
                 });
-                router.push('/match');
+                router.push('/explore');
              } else {
                 // Profile is incomplete, redirect to finish setup
                 toast({

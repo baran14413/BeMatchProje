@@ -21,7 +21,7 @@ export default function Home() {
                 try {
                     const userDoc = await getDoc(doc(db, 'users', user.uid));
                     if (userDoc.exists() && userDoc.data().username) {
-                         router.replace('/match');
+                         router.replace('/explore');
                     } else {
                         // Profile is incomplete or doesn't exist, go to signup flow
                         router.replace('/signup?step=2&reason=complete_profile');
