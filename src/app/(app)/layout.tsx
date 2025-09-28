@@ -167,6 +167,26 @@ function LayoutContent({ children }: { children: ReactNode }) {
               const userDocSnap = await getDoc(userDocRef);
               if (userDocSnap.exists()) {
                 const profileData = userDocSnap.data();
+
+                 // Check for profile completeness if it's an existing user
+                if (!profileData.city || !profileData.age) {
+                  // Profile is incomplete, redirect to finish signup
+                  const googleInfo = {
+                      email: user.email,
+                      firstName: user.displayName?.split(' ')[0] || '',
+                      lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+                      photoURL: user.photoURL,
+                  };
+                  sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
+                  
+                  // Avoid redirect loop if already on signup page
+                  if (!pathname.startsWith('/signup')) {
+                     router.push('/signup?step=2&source=google&reason=complete_profile');
+                     return; // Stop further processing
+                  }
+                }
+
+
                 setCurrentUserProfile(profileData);
                 if (!sessionStorage.getItem('welcomeMessageShown')) {
                     const welcomeText = `Hoş geldin, ${profileData.name?.split(' ')[0]}! ❤️`;
@@ -192,6 +212,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                     }).catch(err => console.error("Could not fetch IP for logging:", err));
                 }
               } else {
+                 // This case is handled by the Google Sign-In logic, redirecting to signup
                  setCurrentUserProfile(null);
               }
             } catch (error) {
