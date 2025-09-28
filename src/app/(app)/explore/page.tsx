@@ -1124,7 +1124,7 @@ export default function ExplorePage() {
             }
         </div>
     );
-  }, [activePostForComments, handleReply, toast, toggleCommentTranslation, currentUser?.uid]);
+    }, [activePostForComments, handleReply, toast, toggleCommentTranslation, currentUser?.uid]);
 
 
   return (
@@ -1298,7 +1298,7 @@ export default function ExplorePage() {
                          {!post.isGalleryLocked && (
                             <CardFooter className="flex-col items-start gap-3 p-4">
                                 <div className="flex w-full justify-between items-center">
-                                    <div className='flex items-center'>
+                                    <div className="flex gap-2">
                                         <Button 
                                             variant="ghost" 
                                             className="h-10 px-3 flex items-center gap-2 rounded-full"
@@ -1359,8 +1359,7 @@ export default function ExplorePage() {
                         </Button>
                     </div>
                 )
-            )
-        )}
+            )}
         </div>
       
        <Button className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg md:hidden" size="icon" onClick={handleCreatePost}>
@@ -1651,5 +1650,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-    
