@@ -148,18 +148,8 @@ type VoterInfo = {
 };
 
 const PostSkeleton = () => (
-    <div className="w-full">
-        <div className="p-0">
-            <div className="flex items-center gap-3 p-3">
-                <Skeleton className="w-8 h-8 rounded-full" />
-                <Skeleton className="h-4 w-24" />
-            </div>
-            <Skeleton className="w-full aspect-square" />
-            <div className="p-3 space-y-2">
-                <Skeleton className="h-4 w-1/4" />
-                <Skeleton className="h-4 w-3/4" />
-            </div>
-        </div>
+    <div className="h-screen w-full flex items-center justify-center bg-muted">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
     </div>
 );
 
@@ -213,7 +203,6 @@ export default function ExplorePage() {
     const [postEmojis, setPostEmojis] = useState(false);
     const pollQuestionMaxLength = 150;
     
-    const [activeTab, setActiveTab] = useState('forYou');
 
 
     useEffect(() => {
@@ -1129,304 +1118,115 @@ export default function ExplorePage() {
 
 
   return (
-    <div className="container mx-auto max-w-2xl p-0 md:pb-20">
-       <div className="flex items-center justify-center p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10 md:relative md:top-auto md:z-auto md:bg-transparent md:border-none md:p-0 md:mb-4">
-            <div className="flex items-center gap-4 text-lg">
-                 <button 
-                    className={cn('font-semibold', activeTab === 'forYou' ? 'text-foreground' : 'text-muted-foreground')}
-                    onClick={() => setActiveTab('forYou')}
-                >
-                    Sizin İçin
-                </button>
-                <div className="h-6 w-px bg-border"/>
-                <button 
-                    className={cn('font-semibold', activeTab === 'explore' ? 'text-foreground' : 'text-muted-foreground')}
-                    onClick={() => setActiveTab('explore')}
-                >
-                    Keşfet
-                </button>
-            </div>
-        </div>
+    <div className="h-screen w-full bg-black">
+      <div className="h-full w-full snap-y snap-mandatory overflow-y-auto">
+        {loading ? (
+            <>
+                <PostSkeleton />
+            </>
+        ) : posts.length > 0 ? (
+            posts.map((post) => (
+                <div key={post.id} className="h-full w-full snap-start relative flex items-center justify-center">
+                    
+                    {post.type === 'photo' && post.url && (
+                        <Image
+                            src={post.url}
+                            alt={`Post by ${post.user?.name}`}
+                            fill
+                            className={cn("object-contain", post.isGalleryLocked && "blur-md")}
+                            data-ai-hint={post.aiHint}
+                            priority
+                        />
+                    )}
 
-      <div className="flex flex-col">
-        {activeTab === 'forYou' && (
-            loading ? (
-                <>
-                    <PostSkeleton />
-                    <PostSkeleton />
-                </>
-            ) : posts.length > 0 ? (
-                posts.map((post) => (
-                <div key={post.id} className="w-full border-b">
-                    <div className="p-0">
-                        <div className="flex items-center justify-between gap-3 p-3">
-                            <div className="flex items-center gap-3 flex-1 overflow-hidden">
-                                <Link href={`/profile/${post.user?.username}`}>
-                                    <Avatar className="w-10 h-10">
-                                        <AvatarImage src={post.user?.avatarUrl} data-ai-hint={post.user?.aiHint} />
-                                        <AvatarFallback>{post.user?.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                </Link>
-                                <div className="flex flex-col overflow-hidden">
-                                    <div className="flex items-center gap-2">
-                                        <Link href={`/profile/${post.user?.username}`} className="font-semibold text-sm truncate hover:underline">
-                                            {post.user?.name}
-                                        </Link>
-                                        {post.user?.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
-                                    </div>
-                                    <span className="text-xs text-muted-foreground truncate">@{post.user?.username}</span>
-                                </div>
-                            </div>
-                            <div className="ml-auto">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                            <MoreHorizontal className="w-5 h-5"/>
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        {post.authorId === currentUser?.uid ? (
-                                            <>
-                                                <DropdownMenuItem>
-                                                    <Pencil className="mr-2 h-4 w-4"/>
-                                                    <span>Düzenle</span>
-                                                </DropdownMenuItem>
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                                            <Trash2 className="mr-2 h-4 w-4"/>
-                                                            <span>Sil</span>
-                                                        </DropdownMenuItem>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                Bu işlem geri alınamaz. Bu gönderiyi kalıcı olarak silecektir.
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>İptal</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => handleDeletePost(post)} className={cn(buttonVariants({variant: "destructive"}))}>
-                                                                Sil
-                                                            </AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <DropdownMenuItem>
-                                                    <EyeOff className="mr-2 h-4 w-4"/>
-                                                    <span>Gönderiyi Gizle</span>
-                                                </DropdownMenuItem>
-                                                 <DropdownMenuItem>
-                                                    <EyeOff className="mr-2 h-4 w-4"/>
-                                                    <span>Bu Kullanıcıdan Gizle</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem className="text-destructive focus:text-destructive">
-                                                    <UserX className="mr-2 h-4 w-4"/>
-                                                    <span>Kullanıcıyı Engelle</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem>
-                                                    <Flag className="mr-2 h-4 w-4"/>
-                                                    <span>Gönderiyi Şikayet Et</span>
-                                                </DropdownMenuItem>
-                                            </>
-                                        )}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
+                    {post.type === 'text' && (
+                        <div className="p-8 text-white text-center">
+                             {post.isTranslating ? (
+                                <p className="text-lg italic flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin"/> Çevriliyor...</p>
+                            ) : (
+                                <div className="text-2xl font-semibold whitespace-pre-wrap break-words"><HashtagAndMentionRenderer text={post.textContent || ''} /></div>
+                            )}
                         </div>
+                    )}
+                    
+                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
 
-                        {post.type === 'poll' && post.poll && (
-                            <div className='p-4 space-y-3' onDoubleClick={() => handleDoubleClickLike(post.id)}>
-                                {post.poll.imageUrl && (
-                                    <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-3">
-                                        <Image src={post.poll.imageUrl} alt="Anket Resmi" fill className="object-contain" />
-                                    </div>
-                                )}
-                                <p className="font-semibold"><HashtagAndMentionRenderer text={post.poll.question} /></p>
-                                <div className="space-y-2">
-                                    {post.poll.options.map((option, index) => {
-                                        const userVote = post.poll.voters?.[currentUser?.uid || ''];
-                                        const totalVotes = post.poll.totalVotes || 0;
-                                        const votePercentage = totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0;
-                                        
-                                        return (
-                                            <div key={index} className="relative w-full">
-                                                <Button
-                                                    variant="outline"
-                                                    className="w-full justify-start h-auto p-0 overflow-hidden"
-                                                    onClick={() => handleVote(post, index)}
-                                                    disabled={userVote !== undefined}
-                                                >
-                                                    <div className="absolute top-0 left-0 h-full bg-primary/20 transition-all duration-500" style={{ width: `${userVote !== undefined ? votePercentage : 0}%` }} />
-                                                    <div className="relative flex items-center justify-between w-full px-4 py-2">
-                                                        <div className='flex items-center gap-2'>
-                                                            {userVote === index && <Check className="w-4 h-4 text-primary" />}
-                                                            <span>{option.text}</span>
-                                                        </div>
-                                                        {userVote !== undefined && (
-                                                            <span className="font-semibold">{votePercentage.toFixed(0)}%</span>
-                                                        )}
-                                                    </div>
-                                                </Button>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                                <button className="text-xs text-muted-foreground hover:underline" onClick={() => handleOpenVoters(post)}>
-                                    {post.poll.totalVotes || 0} oy
-                                </button>
-                            </div>
+                     {/* Like Animation */}
+                    <AnimatePresence>
+                        {showLikeAnimation === post.id && (
+                            <motion.div
+                                initial={{ scale: 0.5, opacity: 0 }}
+                                animate={{ scale: 1.2, opacity: 1 }}
+                                exit={{ scale: 1.5, opacity: 0 }}
+                                transition={{ duration: 0.4, ease: 'easeOut' }}
+                                className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                            >
+                                <Heart className="w-24 h-24 text-white drop-shadow-lg" fill="white" />
+                            </motion.div>
                         )}
-                        
-                        {post.type === 'photo' && post.url && (
-                            <div className="relative w-full aspect-square group" onDoubleClick={() => handleDoubleClickLike(post.id)}>
-                                <Image
-                                src={post.url}
-                                alt={`Post by ${post.user?.name}`}
-                                fill
-                                className={cn("object-cover", post.isGalleryLocked && "blur-md")}
-                                data-ai-hint={post.aiHint}
-                                priority
+                    </AnimatePresence>
+
+                    {/* Left Side - User Info & Caption */}
+                    <div className="absolute bottom-4 left-4 text-white max-w-[calc(100%-6rem)]">
+                        <Link href={`/profile/${post.user?.username}`} className="flex items-center gap-3 mb-2">
+                             <Avatar className="w-10 h-10 border-2">
+                                <AvatarImage src={post.user?.avatarUrl} data-ai-hint={post.user?.aiHint} />
+                                <AvatarFallback>{post.user?.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex items-center gap-2">
+                                <span className="font-bold text-sm truncate hover:underline">
+                                    {post.user?.name}
+                                </span>
+                                {post.user?.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
+                            </div>
+                        </Link>
+                         {post.caption && !post.isGalleryLocked && (
+                             <div className="mt-2 text-sm whitespace-pre-wrap break-words">
+                                <HashtagAndMentionRenderer text={post.caption} />
+                             </div>
+                        )}
+                    </div>
+                    
+                    {/* Right Side - Action Buttons */}
+                    <div className="absolute bottom-4 right-4 flex flex-col items-center gap-4 text-white">
+                        <div className="flex flex-col items-center gap-1">
+                             <Button
+                                variant="ghost"
+                                className="rounded-full h-12 w-12 p-0 text-white hover:bg-white/20 hover:text-white"
+                                onClick={() => handleLikeClick(post.id)}
+                            >
+                                <Heart
+                                    className={cn("w-8 h-8 transition-colors", post.liked && "text-primary fill-primary")}
                                 />
-                                {post.isGalleryLocked && (
-                                     <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center text-white p-4">
-                                        <Lock className="w-10 h-10 mb-4"/>
-                                        <h3 className="font-bold">Bu Galeri Gizli</h3>
-                                        <Link href={`/profile/${post.user?.username}`} className='mt-4'>
-                                            <Button variant="secondary">
-                                                Galeriyi görmek için izin iste
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                )}
-                                 <AnimatePresence>
-                                    {showLikeAnimation === post.id && (
-                                        <motion.div
-                                            initial={{ scale: 0.5, opacity: 0 }}
-                                            animate={{ scale: 1.2, opacity: 1 }}
-                                            exit={{ scale: 1.5, opacity: 0 }}
-                                            transition={{ duration: 0.4, ease: 'easeOut' }}
-                                            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                                        >
-                                            <Heart className="w-24 h-24 text-white drop-shadow-lg" fill="white" />
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        )}
-                        
-                        {post.type === 'text' && (
-                            <div className="px-4 py-2" onDoubleClick={() => handleDoubleClickLike(post.id)}>
-                                {post.isTranslating ? (
-                                    <p className="text-sm text-muted-foreground italic flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Çevriliyor...</p>
-                                ) : (
-                                    <div className="whitespace-pre-wrap break-words"><HashtagAndMentionRenderer text={post.textContent || ''} /></div>
-                                )}
-
-                                 {((post.lang && post.lang !== 'tr') || post.isTranslated) && !post.isTranslating && (
-                                    <button onClick={() => togglePostTranslation(post)} className="text-xs text-muted-foreground hover:underline mt-2 flex items-center gap-1">
-                                        <Languages className="w-3 h-3"/>
-                                        {post.isTranslated ? 'Aslına bak' : 'Çevirisine bak'}
-                                    </button>
-                                )}
-                            </div>
-                        )}
-                        
-                        {post.type === 'audio' && post.audioUrl && (
-                            <div>Audio Player Here</div>
-                        )}
-
-                        <div className="flex items-center justify-between px-3 py-2">
-                             <div className="flex items-center gap-1">
-                                <Button
-                                    variant="ghost"
-                                    className={cn(
-                                        "rounded-full flex gap-2 group h-auto px-4 py-2",
-                                        post.liked && "text-primary"
-                                    )}
-                                    onClick={() => handleLikeClick(post.id)}
-                                >
-                                    <Heart
-                                        className={cn(
-                                            "w-6 h-6 group-hover:text-red-500/90 transition-colors",
-                                            post.liked ? "fill-primary text-primary" : "text-foreground"
-                                        )}
-                                    />
-                                    <span className="font-semibold text-base">Beğen</span>
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    className="rounded-full flex gap-2 group h-auto px-4 py-2"
-                                    onClick={() => handleOpenComments(post)}
-                                >
-                                    <MessageCircle className="w-6 h-6 text-foreground" />
-                                    <span className="font-semibold text-base">Yorum</span>
-                                </Button>
-                            </div>
-                            <Button variant="ghost" size="icon" className="rounded-full">
-                                <Bookmark className="w-6 h-6" />
                             </Button>
+                            <span className="text-xs font-semibold">{post.likes.toLocaleString()}</span>
                         </div>
-
-                        <div className="px-3 pb-3 text-sm">
-                            {post.likes > 0 && (
-                                <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleOpenLikes(post.id)}>
-                                    <div className="flex -space-x-2">
-                                        {post.recentLikers.slice(0, 3).map((liker: User) => (
-                                            <Avatar key={liker.uid} className="w-5 h-5 border-2 border-background">
-                                                <AvatarImage src={liker.avatarUrl} />
-                                                <AvatarFallback>{liker.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                        ))}
-                                    </div>
-                                     <p className="text-muted-foreground">
-                                        <span className="font-semibold text-foreground">{post.likes.toLocaleString()}</span> beğeni
-                                    </p>
-                                </div>
-                            )}
-
-                            {post.type === 'photo' && post.caption && !post.isGalleryLocked && (
-                                 <div className="mt-2 whitespace-pre-wrap break-words">
-                                    <Link href={`/profile/${post.user?.username}`} className="font-semibold mr-1">{post.user?.name}</Link>
-                                    <HashtagAndMentionRenderer text={post.caption} />
-                                 </div>
-                            )}
-                            {post.commentsCount > 0 && (
-                                 <p className="text-muted-foreground mt-1 cursor-pointer hover:underline" onClick={() => handleOpenComments(post)}>
-                                    {post.commentsCount} yorumun tümünü gör
-                                </p>
-                            )}
-                             {post.location && (
-                                <Link href={`/location/${post.location}`} className="text-xs text-muted-foreground mt-2 flex items-center gap-1 hover:underline">
-                                    <MapPin className="w-3 h-3"/> {post.location}
-                                </Link>
-                             )}
+                         <div className="flex flex-col items-center gap-1">
+                            <Button
+                                variant="ghost"
+                                className="rounded-full h-12 w-12 p-0 text-white hover:bg-white/20 hover:text-white"
+                                onClick={() => handleOpenComments(post)}
+                            >
+                                <MessageCircle className="w-8 h-8" />
+                            </Button>
+                             <span className="text-xs font-semibold">{post.commentsCount.toLocaleString()}</span>
                         </div>
                     </div>
                 </div>
-            ))) : (
-                 <div className="text-center text-muted-foreground py-20 flex flex-col items-center justify-center">
-                    <p className="text-lg">Henüz hiç gönderi yok.</p>
-                    <p className="text-sm">İlk gönderiyi paylaşan sen ol!</p>
+            ))
+        ) : (
+            !loading && (
+                 <div className="h-full w-full snap-start relative flex items-center justify-center text-center text-muted-foreground p-4">
+                     <div>
+                        <p className="text-lg">Henüz hiç gönderi yok.</p>
+                        <p className="text-sm">İlk gönderiyi paylaşan sen ol!</p>
+                     </div>
                 </div>
             )
         )}
-         {activeTab === 'explore' && (
-             <div className="text-center text-muted-foreground py-20 flex flex-col items-center justify-center">
-                <Globe className="w-12 h-12 mb-4 text-muted-foreground/50"/>
-                <h3 className="text-xl font-bold">Keşfet</h3>
-                <p className="text-sm">Yeni ve popüler içerikleri burada bulacaksınız.</p>
-                <p className='text-xs'>(Bu özellik yakında aktif olacaktır.)</p>
-            </div>
-        )}
       </div>
       
-       <Button className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg" size="icon" onClick={handleCreatePost}>
+       <Button className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg md:bottom-6 md:right-6" size="icon" onClick={handleCreatePost}>
             <Plus className="h-8 w-8" />
             <span className="sr-only">Yeni Gönderi Ekle</span>
        </Button>
