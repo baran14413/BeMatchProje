@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -6,7 +5,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, Bookmark, Plus, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Crown, Trash2, Pencil, Users, Loader2 } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Crown, Trash2, Pencil, Users, Loader2, Home, Shuffle, User, Menu } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -124,12 +123,12 @@ const ClassicView = ({ posts, loading, handleLikeClick, handleOpenComments, hand
 
     return (
         <div className="w-full pb-20 md:pb-0">
-            <div className="container mx-auto max-w-lg space-y-6 pt-4">
+            <div className="mx-auto max-w-lg space-y-4">
                 {loading ? (
                     <PostSkeleton />
                 ) : posts.length > 0 ? (
                     posts.map((post) => (
-                        <Card key={post.id} className="w-full overflow-hidden shadow-sm border rounded-xl">
+                        <Card key={post.id} className="w-full overflow-hidden shadow-sm border-b md:rounded-xl md:border">
                             <CardContent className="p-0">
                                 <div className="flex items-center justify-between p-3">
                                     <Link href={`/profile/${post.user?.username}`} className="flex items-center gap-3">
@@ -187,6 +186,7 @@ const ClassicView = ({ posts, loading, handleLikeClick, handleOpenComments, hand
 const ImmersiveView = ({ posts, loading, handleLikeClick, handleOpenComments, handleDeletePost, showLikeAnimation }: { posts: Post[], loading: boolean, handleLikeClick: (postId: string) => void, handleOpenComments: (post:Post) => void, handleDeletePost: (post:Post) => void, showLikeAnimation: string | null }) => {
     const currentUser = auth.currentUser;
     const isMyProfile = (authorId: string) => currentUser?.uid === authorId;
+    const [showNav, setShowNav] = useState(false);
 
     if (loading) {
         return <div className="h-screen w-full flex items-center justify-center bg-black"><Loader2 className="w-12 h-12 text-primary animate-spin" /></div>;
@@ -194,6 +194,12 @@ const ImmersiveView = ({ posts, loading, handleLikeClick, handleOpenComments, ha
 
     return (
         <div className="w-full h-screen bg-black text-white snap-y snap-mandatory overflow-y-scroll overflow-x-hidden">
+             {/* --- Navigation Toggle Button --- */}
+            <div className="absolute top-4 left-4 z-30">
+                <Button size="icon" variant="ghost" className="bg-black/40 text-white hover:bg-white/20 hover:text-white rounded-full" onClick={() => setShowNav(!showNav)}>
+                    <Menu className="w-6 h-6"/>
+                </Button>
+            </div>
             {posts.length > 0 ? (
                 posts.map((post) => (
                     <div key={post.id} className="h-screen w-full relative snap-center flex items-center justify-center">
@@ -215,7 +221,7 @@ const ImmersiveView = ({ posts, loading, handleLikeClick, handleOpenComments, ha
                             </div>
                         ) : null}
 
-                        <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 pointer-events-none bg-gradient-to-t from-black/60 via-transparent to-black/40">
+                        <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 pointer-events-none bg-gradient-to-t from-black/60 via-transparent to-black/40" onClick={() => showNav && setShowNav(false)}>
                             <header className="flex justify-between items-start pointer-events-auto">
                                 <div className="flex items-center gap-3">
                                     <Link href={`/profile/${post.user?.username}`}>
@@ -237,8 +243,8 @@ const ImmersiveView = ({ posts, loading, handleLikeClick, handleOpenComments, ha
 
                             <footer className="flex justify-between items-end pointer-events-auto">
                                 <div className="flex-1 space-y-2 text-shadow-lg pr-12">
-                                    {post.caption && <p className="text-sm"><HashtagAndMentionRenderer text={post.caption} className="text-white" /></p>}
-                                    {post.type === 'text' && post.textContent && <p className="text-sm"><HashtagAndMentionRenderer text={post.textContent} className="text-white" /></p>}
+                                     {post.caption && <p className="text-sm"><HashtagAndMentionRenderer text={post.caption} className="text-white" /></p>}
+                                     {post.type === 'text' && post.textContent && <p className="text-sm"><HashtagAndMentionRenderer text={post.textContent} className="text-white" /></p>}
                                 </div>
                                 <div className="flex flex-col items-center space-y-5">
                                     <button className="flex flex-col items-center" onClick={() => handleLikeClick(post.id)}>
@@ -276,6 +282,25 @@ const ImmersiveView = ({ posts, loading, handleLikeClick, handleOpenComments, ha
                     <p className="text-sm">Takip ettiğiniz kişiler veya sizin için önerilenler burada görünecek.</p>
                 </div>
             )}
+             {/* --- Navigation Overlay --- */}
+             <AnimatePresence>
+                {showNav && (
+                     <motion.div
+                        initial={{ y: "100%" }}
+                        animate={{ y: 0 }}
+                        exit={{ y: "100%" }}
+                        transition={{ type: "tween", ease: "circOut", duration: 0.3 }}
+                        className="fixed bottom-0 left-0 right-0 z-20 p-2 pointer-events-auto"
+                    >
+                         <div className="bg-black/50 backdrop-blur-sm border border-white/20 rounded-full h-14 flex items-center justify-around text-white">
+                            <Link href="/explore" className="flex flex-col items-center text-primary"><Home className="w-6 h-6"/><span className="text-xs">Akış</span></Link>
+                            <Link href="/shuffle" className="flex flex-col items-center"><Shuffle className="w-6 h-6"/><span className="text-xs">Eşleş</span></Link>
+                            <Link href="/chat" className="flex flex-col items-center"><MessageCircle className="w-6 h-6"/><span className="text-xs">Sohbet</span></Link>
+                             <Link href={currentUser ? `/profile/${currentUser.displayName}` : '/login'} className="flex flex-col items-center"><User className="w-6 h-6"/><span className="text-xs">Profil</span></Link>
+                         </div>
+                     </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

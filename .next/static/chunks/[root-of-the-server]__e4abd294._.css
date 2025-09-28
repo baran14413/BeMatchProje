@@ -1796,6 +1796,10 @@ img {
   border-color: rgb(255 255 255 / var(--tw-border-opacity, 1));
 }
 
+.border-white\/20 {
+  border-color: #fff3;
+}
+
 .border-l-transparent {
   border-left-color: #0000;
 }
@@ -3895,6 +3899,10 @@ img {
 
   .md\:rounded-xl {
     border-radius: .75rem;
+  }
+
+  .md\:border {
+    border-width: 1px;
   }
 
   .md\:border-b {
