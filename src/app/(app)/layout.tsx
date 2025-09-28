@@ -278,8 +278,17 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const isCreatePage = pathname === '/create';
   const isAdminPage = isClientReady && pathname.startsWith('/admin');
   const isExplorePage = pathname === '/explore';
-  const showNavs = isClientReady && !isCreatePage && (!isChatPage || (isChatPage && !isChatViewOpen)) && !isAdminPage && !isRandomChatPage && !isExplorePage;
-  const isFullScreen = isClientReady && ((isChatPage && isChatViewOpen) || isAdminPage || isRandomChatPage || isExplorePage);
+  const isMatchPage = pathname === '/match';
+
+  // Determine if the full screen layout should be shown (no nav bars)
+  const isFullScreen = isClientReady && (
+      (isChatPage && isChatViewOpen) || 
+      isAdminPage || 
+      isRandomChatPage
+  );
+
+  // Show navs on most pages, but hide for full screen views
+  const showNavs = isClientReady && !isFullScreen;
   
   const showHeader = showNavs;
 
@@ -443,5 +452,3 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
-
-    

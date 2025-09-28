@@ -1161,33 +1161,39 @@ export default function ExplorePage() {
                     {/* Overlay UI */}
                     <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 pointer-events-none bg-gradient-to-t from-black/50 via-transparent to-black/30">
                         {/* Top: Header Info */}
-                        <div></div>
+                        <div className="flex justify-between items-start pointer-events-auto">
+                            <div className="flex items-center gap-3">
+                                <Link href={`/profile/${post.user?.username}`}>
+                                    <Avatar className="w-12 h-12 border-2 border-white">
+                                        <AvatarImage src={post.user?.avatarUrl} />
+                                        <AvatarFallback>{post.user?.name?.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                </Link>
+                                <div>
+                                    <Link href={`/profile/${post.user?.username}`} className="font-bold text-base flex items-center gap-2">
+                                        {post.user?.name}
+                                        {post.user?.isPremium && <Crown className="w-4 h-4 text-yellow-400 fill-yellow-400" />}
+                                    </Link>
+                                    <p className="text-sm text-white/80">{formatRelativeTime(post.createdAt?.toDate())}</p>
+                                </div>
+                                {!isMyProfile(post.authorId) && (
+                                    <Button size="sm" variant="secondary" className="ml-2">Takip Et</Button>
+                                )}
+                            </div>
+                        </div>
 
                         {/* Bottom: Info and Actions */}
                         <div className="flex justify-between items-end pointer-events-auto">
                             {/* Left Side: Text Info */}
                             <div className="flex-1 space-y-2 text-shadow-lg">
-                                <div className="flex items-center gap-3">
-                                    <Link href={`/profile/${post.user?.username}`}>
-                                        <Avatar className="w-12 h-12 border-2 border-white">
-                                            <AvatarImage src={post.user?.avatarUrl} />
-                                            <AvatarFallback>{post.user?.name?.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                    </Link>
-                                    <div>
-                                        <Link href={`/profile/${post.user?.username}`} className="font-bold text-base flex items-center gap-2">
-                                            {post.user?.name}
-                                            {post.user?.isPremium && <Crown className="w-4 h-4 text-yellow-400 fill-yellow-400" />}
-                                        </Link>
-                                        <p className="text-sm text-white/80">{formatRelativeTime(post.createdAt?.toDate())}</p>
-                                    </div>
-                                    {!isMyProfile(post.authorId) && (
-                                        <Button size="sm" variant="secondary" className="ml-2">Takip Et</Button>
-                                    )}
-                                </div>
-                                {(post.caption || post.textContent) && (
+                                {post.caption && (
                                     <p className="text-sm max-w-md">
-                                        <HashtagAndMentionRenderer text={post.caption || post.textContent || ''}/>
+                                        <HashtagAndMentionRenderer text={post.caption}/>
+                                    </p>
+                                )}
+                                {post.type === 'text' && post.textContent && (
+                                    <p className="text-sm max-w-md">
+                                        <HashtagAndMentionRenderer text={post.textContent}/>
                                     </p>
                                 )}
                                 <div className="flex items-center gap-2 text-sm">
@@ -1547,5 +1553,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-    
