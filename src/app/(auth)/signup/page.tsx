@@ -143,43 +143,42 @@ function SignUpComponent() {
   const handleFinishSignup = async () => {
       setIsFinishing(true);
       try {
-        const currentUser = auth.currentUser;
+        let user = auth.currentUser;
         
-        if (source === 'email' && (!formData.email.trim() || !formData.password.trim())) {
-             toast({ variant: "destructive", title: "Eksik Bilgi", description: "Lütfen e-posta ve şifre bilgilerinizi kontrol etmek için geri gidin." });
-             throw new Error("Missing email or password");
+        if (source === 'email' && !user) {
+          const emailQuery = query(collection(db, 'users'), where('email', '==', formData.email));
+          const emailSnapshot = await getDocs(emailQuery);
+          if (!emailSnapshot.empty) {
+              toast({ variant: "destructive", title: "E-posta Kullanımda", description: "Bu e-posta adresi zaten kullanılıyor. Lütfen farklı bir e-posta ile deneyin veya giriş yapın." });
+              throw new Error("Email in use");
+          }
         }
-
+        
         const usernameQuery = query(collection(db, 'users'), where('username', '==', formData.username));
         const usernameSnapshot = await getDocs(usernameQuery);
         if (!usernameSnapshot.empty) {
-             const userDoc = usernameSnapshot.docs[0];
-             if (!currentUser || userDoc.id !== currentUser.uid) {
+            const userWithSameUsername = usernameSnapshot.docs[0];
+            // If there's a user with this username, AND it's not the currently logged in user (in case of profile completion)
+            if (!user || userWithSameUsername.id !== user.uid) {
                 toast({ variant: "destructive", title: "Kullanıcı Adı Alınmış", description: "Bu kullanıcı adı zaten alınmış. Lütfen geri giderek farklı bir kullanıcı adı seçin." });
                 throw new Error("Username taken");
-             }
-        }
-        
-        let user;
-        if (source === 'email') {
-            const emailQuery = query(collection(db, 'users'), where('email', '==', formData.email));
-            const emailSnapshot = await getDocs(emailQuery);
-            if (!emailSnapshot.empty) {
-                toast({ variant: "destructive", title: "E-posta Kullanımda", description: "Bu e-posta adresi zaten kullanılıyor. Lütfen farklı bir e-posta ile deneyin veya giriş yapın." });
-                throw new Error("Email in use");
             }
-            const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-            user = userCredential.user;
-        } else {
-             if (!currentUser) throw new Error("Google kullanıcısı bulunamadı.");
-             user = currentUser;
         }
 
+        if (source === 'email' && !user) {
+            const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+            user = userCredential.user;
+        }
+
+        if (!user) {
+             throw new Error("User authentication failed.");
+        }
+        
         let photoURL = formData.profilePicture || user.photoURL || '';
         if (formData.profilePicture && (formData.profilePicture !== user.photoURL)) {
             const storageRef = ref(storage, `profile_pictures/${user.uid}`);
             await uploadString(storageRef, formData.profilePicture, 'data_url');
-            photoURL = await getDownloadURL(uploadTask.ref);
+            photoURL = await getDownloadURL(storageRef);
         }
         
         await updateProfile(user, {
@@ -210,11 +209,11 @@ function SignUpComponent() {
 
       } catch (error: any) {
         console.error("Signup error: ", error);
-        if (error.code !== 'auth/email-already-in-use' && error.message !== "Username taken" && error.message !== "Email in use") {
-            toast({
+        if (error.message !== "Username taken" && error.message !== "Email in use") {
+             toast({
                 variant: "destructive",
                 title: "Kayıt Başarısız",
-                description: "Bir hata oluştu, lütfen bilgilerinizi kontrol edip tekrar deneyin.",
+                description: error.message || "Bir hata oluştu, lütfen bilgilerinizi kontrol edip tekrar deneyin.",
             });
         }
       } finally {
@@ -246,7 +245,12 @@ function SignUpComponent() {
                 photoURL: user.photoURL,
             };
             sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
-            router.push('/signup?step=1&source=google');
+            setSource('google');
+            setFormData(prev => ({
+                ...prev,
+                ...googleInfo
+            }));
+            nextStep(); // Move to the username selection step
         }
 
     } catch (error: any) {
@@ -307,7 +311,7 @@ function SignUpComponent() {
   const isNextButtonDisabled = () => {
     let currentStepForGoogle = step;
     if(source === 'google') {
-        if(step >= 3) currentStepForGoogle = step + 1; // map google step 3 to email step 4 etc.
+        if(step >= 3) currentStepForGoogle = step + 1;
     }
     
     switch (currentStepForGoogle) {

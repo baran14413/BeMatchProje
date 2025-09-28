@@ -31,17 +31,6 @@
         "app/(app)/tutorial/page": "action-browser"
       }
     },
-    "4027a3c2514dea80f0671fd996b6b9be4c1afd6550": {
-      "workers": {
-        "app/(auth)/signup/page": {
-          "moduleId": "[project]/.next-internal/server/app/(auth)/signup/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/moderate-image-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false
-        }
-      },
-      "layer": {
-        "app/(auth)/signup/page": "action-browser"
-      }
-    },
     "406029a3f7f6235cc11d614e16894446b7b1dc86a5": {
       "workers": {
         "app/(app)/explore/page": {
