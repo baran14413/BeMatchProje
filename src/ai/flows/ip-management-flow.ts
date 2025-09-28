@@ -9,7 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getFirestore, serverTimestamp, doc, setDoc, deleteDoc } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { initializeApp, getApps } from 'firebase-admin/app';
 
 // Input schema for blocking an IP
@@ -56,10 +56,10 @@ const blockIpFlow = ai.defineFlow(
     const db = getFirestore();
 
     try {
-        const blockRef = doc(db, 'blocked-ips', ipAddress);
-        await setDoc(blockRef, {
+        const blockRef = db.collection('blocked-ips').doc(ipAddress);
+        await blockRef.set({
             reason: reason || 'Neden belirtilmedi',
-            blockedAt: serverTimestamp(),
+            blockedAt: Timestamp.now(),
         });
         return { success: true };
     } catch (error: any) {
@@ -83,8 +83,8 @@ const unblockIpFlow = ai.defineFlow(
     const db = getFirestore();
 
     try {
-        const blockRef = doc(db, 'blocked-ips', ipAddress);
-        await deleteDoc(blockRef);
+        const blockRef = db.collection('blocked-ips').doc(ipAddress);
+        await blockRef.delete();
         return { success: true };
     } catch (error: any) {
         console.error(`Failed to unblock IP ${ipAddress}:`, error);

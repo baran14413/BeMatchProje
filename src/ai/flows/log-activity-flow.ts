@@ -10,7 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getFirestore, serverTimestamp, addDoc, collection } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { initializeApp, getApps } from 'firebase-admin/app';
 
 const LogActivityInputSchema = z.object({
@@ -46,7 +46,7 @@ const logActivityFlow = ai.defineFlow(
     const db = getFirestore();
 
     try {
-        await addDoc(collection(db, 'activityLogs'), {
+        await db.collection('activityLogs').add({
             user: {
                 uid: input.userId,
                 name: input.userName,
@@ -55,7 +55,7 @@ const logActivityFlow = ai.defineFlow(
             activity: input.activity,
             ipAddress: input.ipAddress,
             userAgent: input.userAgent,
-            timestamp: serverTimestamp(),
+            timestamp: Timestamp.now(),
         });
         return { success: true };
     } catch (error: any) {

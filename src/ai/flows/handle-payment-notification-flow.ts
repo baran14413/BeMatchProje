@@ -10,7 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getFirestore, serverTimestamp, addDoc, collection } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import { initializeApp, getApps } from 'firebase-admin/app';
 
@@ -70,7 +70,7 @@ const handlePaymentNotificationFlow = ai.defineFlow(
           }).then(urls => urls[0]);
       }
         
-      await addDoc(collection(db, 'paymentNotifications'), {
+      await db.collection('paymentNotifications').add({
         userId: input.userId,
         userName: input.userName,
         userEmail: input.userEmail,
@@ -78,7 +78,7 @@ const handlePaymentNotificationFlow = ai.defineFlow(
         packagePrice: input.packagePrice,
         receiptUrl: receiptUrl,
         isCompleted: false, 
-        createdAt: serverTimestamp(),
+        createdAt: Timestamp.now(),
       });
       return { success: true };
     } catch (error: any) {

@@ -43,7 +43,7 @@
           "async": true
         },
         "app/(app)/shuffle/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/shuffle/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "moduleId": "[project]/.next-internal/server/app/(app)/shuffle/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/find-match-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
         },
         "app/(app)/tag/[tag]/page": {
@@ -64,6 +64,17 @@
         "app/(app)/random-chat/[id]/page": "action-browser",
         "app/(app)/shuffle/page": "action-browser",
         "app/(app)/tag/[tag]/page": "action-browser"
+      }
+    },
+    "40c9ddf5781f5eb5d9a310a7670a600ff2610332d9": {
+      "workers": {
+        "app/(app)/shuffle/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/shuffle/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/find-match-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/(app)/shuffle/page": "action-browser"
       }
     },
     "40b255bfd8b59a95f5e0235c9886029314b563b0c9": {

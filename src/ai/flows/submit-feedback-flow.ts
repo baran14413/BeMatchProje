@@ -10,7 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getFirestore, serverTimestamp, addDoc, collection } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { initializeApp, getApps } from 'firebase-admin/app';
 
 const SubmitFeedbackInputSchema = z.object({
@@ -45,7 +45,7 @@ const submitFeedbackFlow = ai.defineFlow(
     const db = getFirestore();
 
     try {
-      await addDoc(collection(db, 'feedback'), {
+      await db.collection('feedback').add({
         user: {
           uid: input.userId,
           name: input.userName,
@@ -53,7 +53,7 @@ const submitFeedbackFlow = ai.defineFlow(
         },
         rating: input.rating,
         comment: input.comment || '',
-        createdAt: serverTimestamp(),
+        createdAt: Timestamp.now(),
       });
       return { success: true };
     } catch (error: any) {

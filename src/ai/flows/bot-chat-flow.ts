@@ -9,7 +9,7 @@
  */
 
 import { z } from 'zod';
-import { getFirestore, serverTimestamp, addDoc, collection, doc, getDoc } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { initializeApp, getApps } from 'firebase-admin/app';
 import { botReplies } from '@/config/bot-config';
 
@@ -40,14 +40,14 @@ export async function botChatFlow(input: BotChatInput): Promise<BotChatOutput> {
     const db = getFirestore();
 
     try {
-        const convoRef = doc(db, 'temporaryConversations', conversationId);
-        const convoSnap = await getDoc(convoRef);
+        const convoRef = db.collection('temporaryConversations').doc(conversationId);
+        const convoSnap = await convoRef.get();
 
-        if (!convoSnap.exists()) {
+        if (!convoSnap.exists) {
             return { success: false, error: 'Conversation not found.' };
         }
 
-        const conversation = convoSnap.data();
+        const conversation = convoSnap.data()!;
         const usersInConvo = [conversation.user1.uid, conversation.user2.uid];
         
         // Find the bot's ID by finding the user that is NOT the current user
@@ -62,11 +62,11 @@ export async function botChatFlow(input: BotChatInput): Promise<BotChatOutput> {
         const reply = botReplies[Math.floor(Math.random() * botReplies.length)];
 
         // Add bot's message to the subcollection
-        const messagesRef = collection(convoRef, 'messages');
-        await addDoc(messagesRef, {
+        const messagesRef = convoRef.collection('messages');
+        await messagesRef.add({
             text: reply,
             senderId: botId,
-            timestamp: serverTimestamp(),
+            timestamp: Timestamp.now(),
         });
         
         return { success: true };
