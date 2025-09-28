@@ -9,5 +9,6 @@
   "/(app)/shuffle/page": "app/(app)/shuffle/page.js",
   "/(app)/tutorial/page": "app/(app)/tutorial/page.js",
   "/(auth)/login/page": "app/(auth)/login/page.js",
+  "/(auth)/signup/page": "app/(auth)/signup/page.js",
   "/page": "app/page.js"
 }
