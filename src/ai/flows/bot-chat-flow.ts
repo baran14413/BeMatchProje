@@ -48,12 +48,13 @@ export async function botChatFlow(input: BotChatInput): Promise<BotChatOutput> {
         }
 
         const conversation = convoSnap.data();
-        const users = conversation.users as string[];
+        const usersInConvo = [conversation.user1.uid, conversation.user2.uid];
         
         // Find the bot's ID by finding the user that is NOT the current user
-        const botId = users.find(uid => uid !== currentUserId && uid.startsWith('bot_'));
+        const botId = usersInConvo.find(uid => uid !== currentUserId && uid.startsWith('bot_'));
 
         if (!botId) {
+            // This could happen if the conversation is with a real user, which is fine.
             return { success: false, error: 'This is not a bot conversation or bot could not be identified.' };
         }
 

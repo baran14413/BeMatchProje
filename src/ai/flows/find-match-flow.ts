@@ -66,7 +66,7 @@ const findMatchFlow = ai.defineFlow(
           // Create a new temporary conversation document
           const newConvoRef = doc(collection(db, 'temporaryConversations'));
           const expiresAt = new Date();
-          expiresAt.setMinutes(expiresAt.getMinutes() + 5);
+          expiresAt.setMinutes(expiresAt.getMinutes() + 3); // 3 MINUTE LIMIT
 
           transaction.set(newConvoRef, {
             user1: { uid: waitingUserData.uid, name: waitingUserData.name, avatarUrl: waitingUserData.avatarUrl, heartClicked: false },
@@ -103,8 +103,8 @@ const findMatchFlow = ai.defineFlow(
       }
 
       // If we are here, it means we are now in the waiting pool.
-      // We will wait for 20 seconds. If nobody matches us, we create a bot match.
-      await new Promise(resolve => setTimeout(resolve, 20000));
+      // We will wait for 15 seconds. If nobody matches us, we create a bot match.
+      await new Promise(resolve => setTimeout(resolve, 15000));
 
       const userWaitingRef = doc(waitingPoolRef, userId);
       const finalCheck = await getDoc(userWaitingRef);
@@ -112,19 +112,19 @@ const findMatchFlow = ai.defineFlow(
       if (!finalCheck.exists()) {
           // We were matched by another user during the wait.
           // That user created the conversation. We need to find it.
-          // This is a tricky part. A better system might use Cloud Functions to write the convoId back to the waiting doc.
-          // For simplicity, we'll assume the client will be redirected by the other user's action.
-          // A more robust client would re-fetch its state. We will return null and let client handle.
-          // However, to make it work, let's find the convo.
           const convosQuery = query(collection(db, 'temporaryConversations'), where('users', 'array-contains', userId), orderBy('createdAt', 'desc'), limit(1));
           const convoSnap = await getDocs(convosQuery);
           if (!convoSnap.empty) {
-              return { conversationId: convoSnap.docs[0].id, isBotMatch: false };
+              const convoData = convoSnap.docs[0].data();
+              // Check if the conversation is valid and includes the user
+              if(convoData.user1.uid === userId || convoData.user2.uid === userId) {
+                 return { conversationId: convoSnap.docs[0].id, isBotMatch: false };
+              }
           }
           return { conversationId: null, isBotMatch: false }; // Should not happen ideally
       }
 
-      // 20 seconds passed and no one matched us. Delete from pool and create a bot match.
+      // 15 seconds passed and no one matched us. Delete from pool and create a bot match.
       await deleteDoc(userWaitingRef);
       
       const currentUserDoc = await getDoc(doc(db, 'users', userId));
@@ -134,12 +134,12 @@ const findMatchFlow = ai.defineFlow(
       const botId = `bot_${Math.random().toString(36).substring(2, 9)}`;
       const botName = botNames[Math.floor(Math.random() * botNames.length)];
       const botAvatar = `https://avatar.iran.liara.run/public/girl?username=${botName.replace(/\s/g, '')}`;
-
+      
       const botConvoId = [userId, botId].sort().join('-');
       const botConvoRef = doc(db, 'temporaryConversations', botConvoId);
       
       const expiresAt = new Date();
-      expiresAt.setMinutes(expiresAt.getMinutes() + 5);
+      expiresAt.setMinutes(expiresAt.getMinutes() + 3); // 3 MINUTE LIMIT
 
       await setDoc(botConvoRef, {
           user1: { uid: currentUserData.uid, name: currentUserData.name, avatarUrl: currentUserData.avatarUrl, heartClicked: false },

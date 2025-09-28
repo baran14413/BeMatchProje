@@ -48,36 +48,6 @@ export default function RandomChatPage() {
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
-    
-    const handleNoMatchFound = useCallback(async () => {
-        if (!currentUser) return;
-        toast({
-            title: "Süre Doldu!",
-            description: "Görünüşe göre şu an herkesin eli dolu! Daha sonra tekrar dene, şansını kaybetmedin.",
-            duration: 5000,
-        });
-
-        // Refund match credit
-        const userDocRef = doc(db, 'users', currentUser.uid);
-        try {
-            await runTransaction(db, async (transaction) => {
-                const userDoc = await transaction.get(userDocRef);
-                if (!userDoc.exists()) return;
-                const userData = userDoc.data();
-                const today = new Date().toISOString().split('T')[0];
-                if (!userData.isPremium && userData.dailyMatch?.date === today && userData.dailyMatch.count > 0) {
-                     transaction.update(userDocRef, { 'dailyMatch.count': increment(-1) });
-                }
-            });
-             toast({
-                title: "Hakkınız iade edildi!",
-                description: "Bir eşleşme hakkın hesabına geri yüklendi.",
-            });
-        } catch (error) {
-            console.error("Failed to refund match credit:", error);
-        }
-    }, [currentUser, toast]);
-
 
     // Fetch and listen to the temporary conversation
     useEffect(() => {
@@ -87,11 +57,7 @@ export default function RandomChatPage() {
 
         const unsubscribe = onSnapshot(convoRef, async (docSnap) => {
             if (!docSnap.exists()) {
-                // If convo is deleted and it hasn't become a permanent match, handle exit.
                 if (!isMatchPermanent) {
-                   // Avoid showing this if the user initiated the exit.
-                   // The handleExit function will navigate them away.
-                   // This primarily handles the case where the other user leaves or time runs out.
                    router.push('/shuffle?feedback=true');
                 }
                 return;
@@ -105,12 +71,10 @@ export default function RandomChatPage() {
                 setOtherUser(other);
             }
             
-            // Check for permanent match (not possible with bot)
             if (!data.isBotMatch && data.user1.heartClicked && data.user2.heartClicked && !isMatchPermanent) {
                 setIsMatchPermanent(true);
                 setShowMatchModal(true);
 
-                // Create permanent conversation
                 const permanentConversationId = [data.user1.uid, data.user2.uid].sort().join('-');
                 const permanentConvoRef = doc(db, 'conversations', permanentConversationId);
                 const permConvoSnap = await getDoc(permanentConvoRef);
@@ -122,13 +86,11 @@ export default function RandomChatPage() {
                     });
                 }
                 
-                // Optional: Delete temporary conversation after a short delay to allow UI to update
                 setTimeout(() => {
                    deleteDoc(convoRef);
                 }, 5000);
             }
 
-            // Countdown timer
             if (data.expiresAt && !isMatchPermanent) {
                  if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
                  timerIntervalRef.current = setInterval(() => {
@@ -140,8 +102,7 @@ export default function RandomChatPage() {
                     } else {
                         setTimeLeft(0);
                         if(timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-                        // Only delete if it's not a bot match and not permanent
-                        if (!data.isBotMatch && !isMatchPermanent) {
+                        if (!isMatchPermanent) {
                            deleteDoc(docSnap.ref); 
                         }
                     }
@@ -153,7 +114,6 @@ export default function RandomChatPage() {
             router.push('/shuffle');
         });
 
-        // Fetch messages
         const messagesQuery = onSnapshot(query(collection(db, 'temporaryConversations', conversationId, 'messages'), orderBy('timestamp', 'asc')), (snapshot) => {
             const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Message[];
             setMessages(msgs);
@@ -185,9 +145,7 @@ export default function RandomChatPage() {
             timestamp: serverTimestamp(),
         });
         
-        // If it's a bot match, trigger the bot's response
         if (conversation.isBotMatch) {
-            // Add a small delay to make it feel more natural
             setTimeout(() => {
                 botChatFlow({ conversationId, currentUserId: currentUser.uid });
             }, 1000 + Math.random() * 1500);
@@ -195,7 +153,7 @@ export default function RandomChatPage() {
     };
 
     const handleHeartClick = async () => {
-        if (!currentUser || !conversation || conversation.isBotMatch) return;
+        if (!currentUser || !conversation || conversation.isBotMatch || myHeartClicked) return;
         
         const userKey = conversation.user1.uid === currentUser.uid ? 'user1' : 'user2';
         
@@ -208,13 +166,12 @@ export default function RandomChatPage() {
     };
     
      const handleExit = () => {
-        // Just navigate away. The onSnapshot listener or timer will handle cleanup.
         router.push('/shuffle');
     };
 
     const formatTimeLeft = (seconds: number | null) => {
         if (seconds === null) return '...';
-        if (seconds < 0) return '0:00';
+        if (seconds <= 0) return '0:00';
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
         return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
@@ -277,32 +234,48 @@ export default function RandomChatPage() {
             </ScrollArea>
 
             <footer className="p-4 border-t bg-card shrink-0">
-                <div className="flex items-center gap-2">
-                    <Button
-                        size="icon"
-                        className={cn("rounded-full w-14 h-14", myHeartClicked ? "bg-green-500 hover:bg-green-600" : "bg-pink-500 hover:bg-pink-600")}
-                        onClick={handleHeartClick}
-                        disabled={myHeartClicked || isMatchPermanent || conversation.isBotMatch}
-                    >
-                        <Heart className="w-8 h-8 fill-white" />
-                    </Button>
-                    <Input
-                        placeholder="Bir mesaj yaz..."
-                        className="flex-1 h-14"
-                        value={messageInput}
-                        onChange={(e) => setMessageInput(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSendMessage();
-                            }
-                        }}
-                        disabled={isMatchPermanent}
-                    />
-                    <Button size="icon" className="rounded-full w-14 h-14" onClick={handleSendMessage} disabled={isMatchPermanent}>
-                        <SendHorizonal className="h-6 w-6" />
-                    </Button>
-                </div>
+                 {timeLeft === 0 && !isMatchPermanent && (
+                     <div className="flex flex-col items-center justify-center h-full gap-4">
+                        <p className="font-semibold">Süre doldu! Eşleşmeyi kalıcı hale getirmek ister misin?</p>
+                         <Button
+                            size="lg"
+                            className={cn("rounded-full w-48 h-16", myHeartClicked ? "bg-green-500 hover:bg-green-600" : "bg-pink-500 hover:bg-pink-600")}
+                            onClick={handleHeartClick}
+                            disabled={myHeartClicked || isMatchPermanent || conversation.isBotMatch}
+                        >
+                            <Heart className="w-8 h-8 fill-white mr-4" />
+                            Beğen
+                        </Button>
+                    </div>
+                )}
+                {timeLeft !== 0 && !isMatchPermanent && (
+                     <div className="flex items-center gap-2">
+                        <Button
+                            size="icon"
+                            className={cn("rounded-full w-14 h-14", myHeartClicked ? "bg-green-500 hover:bg-green-600" : "bg-pink-500 hover:bg-pink-600")}
+                            onClick={handleHeartClick}
+                            disabled={myHeartClicked || isMatchPermanent || conversation.isBotMatch}
+                        >
+                            <Heart className="w-8 h-8 fill-white" />
+                        </Button>
+                        <Input
+                            placeholder="Bir mesaj yaz..."
+                            className="flex-1 h-14"
+                            value={messageInput}
+                            onChange={(e) => setMessageInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSendMessage();
+                                }
+                            }}
+                            disabled={isMatchPermanent}
+                        />
+                        <Button size="icon" className="rounded-full w-14 h-14" onClick={handleSendMessage} disabled={isMatchPermanent}>
+                            <SendHorizonal className="h-6 w-6" />
+                        </Button>
+                    </div>
+                )}
             </footer>
              <AlertDialog open={showMatchModal}>
                 <AlertDialogContent>
