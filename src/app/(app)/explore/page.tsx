@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Heart, MessageCircle, Bookmark, Plus, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Crown, Trash2, Pencil, Users, Loader2, Home, Shuffle, User, Menu, Share2, Send } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Crown, Trash2, Pencil, Users, Loader2, Home, Shuffle, User, Menu, Share2, Send, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -129,9 +129,9 @@ const PostSkeleton = () => (
 const ClassicView = ({ posts, handleLikeClick, handleOpenComments, handleShare, handleDeletePost }: { posts: Post[], handleLikeClick: (postId: string) => void, handleOpenComments: (post: Post) => void, handleShare: (post: Post) => void, handleDeletePost: (post: Post) => void }) => {
     const currentUser = auth.currentUser;
     return (
-        <div className="mx-auto max-w-lg">
+        <div className="mx-auto max-w-lg space-y-4">
             {posts.map((post) => (
-                <Card key={post.id} className="w-full overflow-hidden rounded-none md:rounded-xl shadow-none border-0 mb-4">
+                <Card key={post.id} className="w-full overflow-hidden rounded-none md:rounded-xl shadow-none border-0">
                     <CardContent className="p-0">
                         <div className="flex items-center justify-between p-3">
                             <Link href={`/profile/${post.user?.username}`} className="flex items-center gap-3">
@@ -272,12 +272,13 @@ export default function ExplorePage() {
                 });
             }
             
-            const likesPromises = commentsSnapshot.docs.map(doc => 
-                getDoc(collection(db, 'posts', post.id, 'comments', doc.id, 'likes'), currentUser?.uid)
-            );
-            // This is incorrect. should be `doc(collection(db, 'posts', post.id, 'comments', doc.id, 'likes'), currentUser?.uid)`
-            const likesSnapshot = await Promise.all(likesPromises.map(p => p.catch(e => e)));
-
+            const likesPromises = commentsSnapshot.docs.map(doc => {
+                if(currentUser){
+                    return getDoc(doc.ref.collection('likes').doc(currentUser.uid))
+                }
+                return Promise.resolve(null);
+            });
+            const likesSnapshot = await Promise.all(likesPromises);
 
             const fetchedComments: Comment[] = commentsSnapshot.docs.map((doc, index) => {
                 const data = doc.data();
@@ -287,20 +288,20 @@ export default function ExplorePage() {
                     user: authorsData[data.authorId],
                     isTranslating: false,
                     isTranslated: false,
-                    liked: likesSnapshot[index].exists(),
+                    liked: likesSnapshot[index]?.exists() || false,
                     likes: data.likes || 0,
                 } as Comment;
             });
             
             // Basic nesting for replies
-            const commentMap = new Map(fetchedComments.map(c => [c.id, {...c, replies: []}]));
+            const commentMap = new Map(fetchedComments.map(c => [c.id, {...c, replies: [] as Comment[]} ] as [string, Comment]));
             const nestedComments: Comment[] = [];
             for(const comment of fetchedComments) {
                 if(comment.parentId && commentMap.has(comment.parentId)) {
                     const parent = commentMap.get(comment.parentId);
-                    parent?.replies?.push(comment);
+                    parent?.replies?.push(comment as Comment);
                 } else {
-                    nestedComments.push(comment);
+                    nestedComments.push(comment as Comment);
                 }
             }
             setComments(nestedComments);
@@ -395,7 +396,7 @@ export default function ExplorePage() {
         }
     };
 
-    const handleLikeComment = async (commentId: string, parentId?: string | null) => {
+    const handleLikeComment = async (commentId: string) => {
          if (!activePostForComments || !currentUser) return;
 
          const commentRef = doc(db, 'posts', activePostForComments.id, 'comments', commentId);
@@ -432,7 +433,7 @@ export default function ExplorePage() {
         }
     };
 
-    const CommentItem = ({ comment, onReply, onDelete, onLike }: { comment: Comment, onReply: (c: Comment) => void, onDelete: (id: string, parentId?: string | null) => void, onLike: (id: string, parentId?: string | null) => void}) => (
+    const CommentItem = ({ comment, onReply, onDelete, onLike }: { comment: Comment, onReply: (c: Comment) => void, onDelete: (id: string, parentId?: string | null) => void, onLike: (id: string) => void}) => (
         <div className="flex items-start gap-3">
             <Link href={`/profile/${comment.user?.username}`}><Avatar className="w-8 h-8"><AvatarImage src={comment.user?.avatarUrl} /><AvatarFallback>{comment.user?.name?.charAt(0)}</AvatarFallback></Avatar></Link>
             <div className="flex-1">
@@ -447,7 +448,7 @@ export default function ExplorePage() {
                 </div>
             </div>
             <div className='flex items-center'>
-                 <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => onLike(comment.id, comment.parentId)}>
+                 <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => onLike(comment.id)}>
                     <Heart className={cn("w-4 h-4", comment.liked && "text-red-500 fill-current")} />
                 </Button>
                 {(isMyProfile(comment.authorId) || (activePostForComments && isMyProfile(activePostForComments.authorId))) && (
@@ -658,3 +659,4 @@ export default function ExplorePage() {
         </Suspense>
     );
 }
+
