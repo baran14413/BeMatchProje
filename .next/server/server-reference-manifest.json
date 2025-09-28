@@ -2,6 +2,10 @@
   "node": {
     "4089b26089702b1e5adfebade7e2643cec0eef947b": {
       "workers": {
+        "app/(app)/create-post/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/create-post/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        },
         "app/(app)/explore/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/explore/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
@@ -36,6 +40,7 @@
         }
       },
       "layer": {
+        "app/(app)/create-post/page": "action-browser",
         "app/(app)/explore/page": "action-browser",
         "app/(app)/kesfet/page": "action-browser",
         "app/(app)/profile/[username]/page": "action-browser",

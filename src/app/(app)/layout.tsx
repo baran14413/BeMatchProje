@@ -245,7 +245,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
         >
         <NetworkStatusBanner isOnline={isOnline} isPoorConnection={isPoorConnection} />
         {showNavs && (
-            <header className={cn("fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-background/80 px-4 backdrop-blur-sm transition-transform duration-300 md:px-6", "h-[var(--header-height)]", !isOnline || isPoorConnection ? 'top-10' : 'top-0', isScrolling && "-translate-y-full")}>
+            <header className={cn("fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-background/70 px-4 backdrop-blur-sm transition-transform duration-300 md:px-6", "h-[var(--header-height)]", !isOnline || isPoorConnection ? 'top-10' : 'top-0', isScrolling && "-translate-y-full")}>
                <div className="flex flex-1 items-center gap-2">
                     <Link href="/explore" className="flex items-center gap-2">
                          <h1 className="text-2xl font-bold font-headline bg-gradient-to-r from-red-500 to-purple-500 bg-clip-text text-transparent">BeMatch</h1>
@@ -288,7 +288,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
         </main>
 
         {showNavs && (
-            <nav className={cn("fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/80 backdrop-blur-sm transition-transform duration-300 md:hidden", "h-[var(--bottom-nav-height)]", isScrolling && "translate-y-full")}>
+            <nav className={cn("fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/70 backdrop-blur-sm transition-transform duration-300 md:hidden", "h-[var(--bottom-nav-height)]", isScrolling && "translate-y-full")}>
                 <div className="grid h-full grid-cols-5">
                     <NavButton href="/explore" icon={<Home />} srText="Ana Sayfa" isActive={pathname === '/explore'} />
                     <NavButton href="/kesfet" icon={<Globe />} srText="Keşfet" isActive={pathname === '/kesfet'} />

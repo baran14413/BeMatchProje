@@ -120,7 +120,7 @@ export default function CreatePostPage() {
                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="text"><FileText className="mr-2 h-4 w-4" />Metin</TabsTrigger>
-                        <TabsTrigger value="photo"><ImageIcon className="mr-2 h-4 w-4" />Fotoğraf</TabsTrigger>
+                        <TabsTrigger value="photo"><ImageIcon className="mr-2 h-4 w-4" />Galeri</TabsTrigger>
                     </TabsList>
                     <TabsContent value="text" className="mt-4">
                         <Card>
@@ -155,7 +155,7 @@ export default function CreatePostPage() {
                                     ) : (
                                         <div className="text-center text-muted-foreground">
                                             <Upload className="mx-auto h-12 w-12" />
-                                            <p>Fotoğraf Seç</p>
+                                            <p>Fotoğraf Yükle</p>
                                         </div>
                                     )}
                                 </div>
