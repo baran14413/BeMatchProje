@@ -9,10 +9,11 @@ import { Loader2, Zap, MessageSquare, Phone, Timer } from 'lucide-react';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { findMatch } from '@/ai/flows/find-match-flow';
 import { motion, AnimatePresence } from 'framer-motion';
+import { deleteDoc, doc } from 'firebase/firestore';
 
 function ShuffleContent() {
     const [api, setApi] = useState<CarouselApi>();
@@ -22,6 +23,7 @@ function ShuffleContent() {
     
     const [timeLeft, setTimeLeft] = useState(15);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const searchCancelledRef = useRef(false);
 
     const router = useRouter();
     const currentUser = auth.currentUser;
@@ -39,27 +41,19 @@ function ShuffleContent() {
             setCurrent(api.selectedScrollSnap());
         });
     }, [api]);
-
-    useEffect(() => {
-        if (isSearching) {
-            setTimeLeft(15);
-            timerRef.current = setInterval(() => {
-                setTimeLeft(prev => {
-                    if (prev <= 1) {
-                       if(timerRef.current) clearInterval(timerRef.current);
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-        } else {
-            if (timerRef.current) clearInterval(timerRef.current);
+    
+    const stopSearch = async (showToast = true) => {
+        searchCancelledRef.current = true;
+        setIsSearching(false);
+        if (timerRef.current) clearInterval(timerRef.current);
+        if (currentUser) {
+            // Clean up user from waiting pool if they cancel
+            await deleteDoc(doc(db, 'waitingPool', currentUser.uid)).catch(e => console.warn("Could not clean up waiting pool:", e));
         }
-
-        return () => {
-            if (timerRef.current) clearInterval(timerRef.current);
-        };
-    }, [isSearching]);
+        if(showToast) {
+            toast({ title: "Arama iptal edildi." });
+        }
+    };
     
     const handleSearchClick = async () => {
         if (!currentUser) {
@@ -68,20 +62,51 @@ function ShuffleContent() {
         }
 
         setIsSearching(true);
+        searchCancelledRef.current = false;
+        setTimeLeft(15);
 
         try {
-            const result = await findMatch({ userId: currentUser.uid });
+            // First attempt: try to find a match or enter the pool
+            const initialResult = await findMatch({ userId: currentUser.uid });
             
-            if (result && result.conversationId) {
-                 if (timerRef.current) clearInterval(timerRef.current);
-                toast({
-                    title: result.isBotMatch ? "Sana birini bulduk!" : "Harika biriyle eşleştin!",
+            if (searchCancelledRef.current) return;
+
+            if (initialResult && initialResult.conversationId) {
+                // Matched instantly!
+                 toast({
+                    title: "Harika biriyle eşleştin!",
                     description: "Sohbete yönlendiriliyorsun...",
                 });
-                router.push(`/random-chat/${result.conversationId}`);
-            } else {
-                 throw new Error("Eşleşme bulunamadı veya bir hata oluştu.");
+                router.push(`/random-chat/${initialResult.conversationId}`);
+                setIsSearching(false);
+                return;
             }
+
+            // If not matched instantly, we are in the pool. Start the countdown.
+            timerRef.current = setInterval(() => {
+                setTimeLeft(prev => {
+                    if (prev <= 1) {
+                       if(timerRef.current) clearInterval(timerRef.current);
+                        // Time's up, call findMatch again to get a bot
+                        findMatch({ userId: currentUser.uid }).then(botResult => {
+                           if (searchCancelledRef.current) return;
+                           if (botResult && botResult.conversationId) {
+                               toast({ title: "Sana birini bulduk!", description: "Sohbete yönlendiriliyorsun..."});
+                               router.push(`/random-chat/${botResult.conversationId}`);
+                           } else {
+                               stopSearch(false);
+                               toast({ title: "Eşleşme bulunamadı.", description: "Lütfen tekrar deneyin.", variant: "destructive"});
+                           }
+                        }).catch(e => {
+                            stopSearch(false);
+                            toast({ title: "Bir hata oluştu.", variant: "destructive"});
+                        });
+
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
 
         } catch (error: any) {
             console.error("Error starting match search: ", error);
@@ -118,7 +143,7 @@ function ShuffleContent() {
                         />
                     ))}
                 </div>
-                <Button variant="outline" className="mt-8" onClick={() => setIsSearching(false)}>
+                <Button variant="outline" className="mt-8" onClick={() => stopSearch()}>
                     Aramayı İptal Et
                 </Button>
             </div>
