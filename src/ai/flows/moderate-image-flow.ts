@@ -33,7 +33,7 @@ const prompt = ai.definePrompt({
   name: 'moderateImagePrompt',
   input: {schema: ModerateImageInputSchema},
   output: {schema: ModerateImageOutputSchema},
-  model: 'googleai/gemini-1.5-flash',
+  model: 'googleai/gemini-1.5-flash-preview',
   system: `You are an expert image moderator for a dating application.
 You need to determine if the provided image is appropriate for a user's profile picture.
 
