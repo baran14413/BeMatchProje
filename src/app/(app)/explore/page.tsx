@@ -111,12 +111,76 @@ const HashtagAndMentionRenderer = ({ text, className }: { text: string, classNam
 };
 
 const PostSkeleton = () => (
-    <div className="space-y-4">
-        <Card><CardContent className="p-4"><div className="flex items-center gap-4"><Skeleton className="h-12 w-12 rounded-full" /><div className="space-y-2"><Skeleton className="h-4 w-[250px]" /><Skeleton className="h-4 w-[200px]" /></div></div></CardContent></Card>
-        <Card><CardContent className="p-4"><div className="flex items-center gap-4"><Skeleton className="h-12 w-12 rounded-full" /><div className="space-y-2"><Skeleton className="h-4 w-[250px]" /><Skeleton className="h-4 w-[200px]" /></div></div></CardContent></Card>
-    </div>
+    <Card className="w-full rounded-none md:rounded-xl shadow-none border-b-0 md:border-b mb-4">
+        <CardContent className="p-0">
+            <div className="flex items-center gap-4 p-3">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-[250px]" />
+                    <Skeleton className="h-4 w-[200px]" />
+                </div>
+            </div>
+            <Skeleton className="aspect-square w-full" />
+        </CardContent>
+    </Card>
 );
 
+const ClassicView = ({ posts, handleLikeClick, handleOpenComments, handleShare }: { posts: Post[], handleLikeClick: (postId: string) => void, handleOpenComments: (post: Post) => void, handleShare: (post: Post) => void }) => {
+    return (
+        <div className="mx-auto max-w-lg space-y-4">
+            {posts.map((post) => (
+                <Card key={post.id} className="w-full overflow-hidden rounded-none md:rounded-xl shadow-none border-0 md:border">
+                    <CardContent className="p-0">
+                        <div className="flex items-center justify-between p-3">
+                            <Link href={`/profile/${post.user?.username}`} className="flex items-center gap-3">
+                                <Avatar className="w-10 h-10 border-2 border-primary/20">
+                                    <AvatarImage src={post.user?.avatarUrl} />
+                                    <AvatarFallback>{post.user?.name?.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p className="font-semibold text-sm flex items-center gap-1.5">{post.user?.name} {post.user?.isPremium && <Crown className="w-4 h-4 text-yellow-400 fill-yellow-400"/>}</p>
+                                    <p className="text-xs text-muted-foreground">{formatRelativeTime(post.createdAt?.toDate())}</p>
+                                </div>
+                            </Link>
+                        </div>
+                        {post.type === 'photo' && post.url && (
+                            <div className="relative w-full aspect-square bg-muted">
+                                <Image src={post.url} alt={post.caption || `Post by ${post.user?.name}`} fill className="object-cover" priority />
+                            </div>
+                        )}
+                        {post.type === 'text' && post.textContent && (
+                            <div className="px-4 py-6 bg-muted/20">
+                                <p className="text-base whitespace-pre-wrap break-words">
+                                    <HashtagAndMentionRenderer text={post.textContent} />
+                                </p>
+                            </div>
+                        )}
+                        <div className="p-4 space-y-2">
+                             {(post.caption && post.type === 'photo') && (
+                                <p className="text-sm"><HashtagAndMentionRenderer text={post.caption} /></p>
+                            )}
+                            <div className='flex items-center gap-2 pt-2'>
+                                <Button size="sm" className={cn("h-8 gap-1.5 rounded-full", post.liked && "text-red-500")} variant="secondary" onClick={() => handleLikeClick(post.id)}>
+                                    <Heart className={cn("w-4 h-4", post.liked && "fill-current")} />
+                                    <span className='font-semibold'>{post.likes}</span>
+                                </Button>
+                                <Button size="sm" variant="secondary" className="h-8 gap-1.5 rounded-full" onClick={() => handleOpenComments(post)}>
+                                    <MessageCircle className="w-4 h-4" />
+                                    <span className='font-semibold'>{post.commentsCount > 0 ? post.commentsCount : ''}</span>
+                                </Button>
+                                <Button size="sm" variant="secondary" className="h-8 gap-1.5 rounded-full" onClick={() => handleShare(post)}>
+                                    <Share2 className="w-4 h-4" />
+                                </Button>
+                                <div className='flex-1' />
+                                <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full"><Bookmark /></Button>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+    );
+};
 
 // --- MAIN PAGE COMPONENT ---
 export default function ExplorePage() {
@@ -127,15 +191,177 @@ export default function ExplorePage() {
     const [isCommentSheetOpen, setCommentSheetOpen] = useState(false);
     const [activePostForComments, setActivePostForComments] = useState<Post | null>(null);
     const [isCommentsLoading, setIsCommentsLoading] = useState(false);
-    
+    const [commentText, setCommentText] = useState('');
+    const [isPostingComment, setIsPostingComment] = useState(false);
+    const [comments, setComments] = useState<Comment[]>([]);
 
-    const handleOpenComments = (post: Post) => {
-        if (!isCommentSheetOpen) {
-            setActivePostForComments(post);
-            setCommentSheetOpen(true);
-            // Fetching logic would go here
+    const isMyProfile = (authorId: string) => currentUser?.uid === authorId;
+
+    const handleOpenComments = async (post: Post) => {
+        if (isCommentSheetOpen) return;
+        setActivePostForComments(post);
+        setCommentSheetOpen(true);
+        setIsCommentsLoading(true);
+        setComments([]);
+        try {
+            const commentsQuery = query(collection(db, 'posts', post.id, 'comments'), orderBy('createdAt', 'desc'));
+            const commentsSnapshot = await getDocs(commentsQuery);
+            if (commentsSnapshot.empty) {
+                 setIsCommentsLoading(false);
+                 return;
+            }
+
+            const authorIds = [...new Set(commentsSnapshot.docs.map(doc => doc.data().authorId))];
+            const authorsData: Record<string, User> = {};
+            if(authorIds.length > 0) {
+                 const authorsQuery = query(collection(db, 'users'), where(documentId(), 'in', authorIds));
+                const authorsSnapshot = await getDocs(authorsQuery);
+                authorsSnapshot.forEach(doc => {
+                    authorsData[doc.id] = { ...doc.data(), uid: doc.id } as User;
+                });
+            }
+
+            const fetchedComments = commentsSnapshot.docs.map(doc => {
+                const data = doc.data();
+                return { 
+                    id: doc.id,
+                    ...data,
+                    user: authorsData[data.authorId],
+                    isTranslating: false,
+                    isTranslated: false
+                } as Comment;
+            });
+            setComments(fetchedComments);
+
+        } catch (error) {
+            console.error("Error fetching comments:", error);
+            toast({ variant: 'destructive', title: 'Yorumlar yüklenemedi.' });
+        } finally {
+            setIsCommentsLoading(false);
         }
     };
+    
+    const handlePostComment = async () => {
+        if (!commentText.trim() || !currentUser || !activePostForComments) return;
+        setIsPostingComment(true);
+
+        try {
+            const postRef = doc(db, 'posts', activePostForComments.id);
+            const commentsRef = collection(postRef, 'comments');
+            
+            const newCommentData = {
+                authorId: currentUser.uid,
+                text: commentText,
+                createdAt: serverTimestamp(),
+                likes: 0
+            };
+            
+            const newCommentDocRef = await addDoc(commentsRef, newCommentData);
+            
+            await runTransaction(db, async (transaction) => {
+                transaction.update(postRef, { commentsCount: increment(1) });
+            });
+            
+            // Optimistic UI update
+            const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+            const newCommentForUI: Comment = {
+                ...newCommentData,
+                id: newCommentDocRef.id,
+                user: userDoc.data() as User,
+                isTranslating: false,
+                isTranslated: false,
+                liked: false
+            };
+            setComments(prev => [newCommentForUI, ...prev]);
+            setActivePostForComments(prev => prev ? { ...prev, commentsCount: prev.commentsCount + 1 } : null);
+            setPosts(prev => prev.map(p => p.id === activePostForComments.id ? { ...p, commentsCount: p.commentsCount + 1 } : p));
+            setCommentText('');
+
+        } catch(error) {
+            console.error("Error posting comment:", error);
+            toast({ variant: 'destructive', title: 'Yorum gönderilemedi.' });
+        } finally {
+            setIsPostingComment(false);
+        }
+    };
+
+    const handleTranslateComment = async (commentId: string) => {
+        setComments(prev => prev.map(c => c.id === commentId ? { ...c, isTranslating: true } : c));
+        try {
+            const comment = comments.find(c => c.id === commentId);
+            if (!comment?.text) return;
+            
+            const result = await translateText({ textToTranslate: comment.text });
+            if (result.translatedText) {
+                 setComments(prev => prev.map(c => c.id === commentId ? { ...c, text: result.translatedText, originalText: c.text, isTranslated: true, lang: result.sourceLanguage, isTranslating: false } : c));
+            } else if (result.sourceLanguage === 'tr') {
+                toast({ title: 'Bu yorum zaten Türkçe.' });
+                 setComments(prev => prev.map(c => c.id === commentId ? { ...c, isTranslating: false } : c));
+            } else {
+                 throw new Error(result.error || 'Çeviri başarısız.');
+            }
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Çeviri hatası', description: error.message });
+            setComments(prev => prev.map(c => c.id === commentId ? { ...c, isTranslating: false } : c));
+        }
+    };
+    
+    const revertTranslation = (commentId: string) => {
+        setComments(prev => prev.map(c => c.id === commentId && c.originalText ? { ...c, text: c.originalText, originalText: undefined, isTranslated: false, lang: undefined } : c));
+    };
+
+    const CommentSheetContent = () => (
+        <>
+            <SheetHeader className="text-center p-4 border-b shrink-0">
+                <SheetTitle>Yorumlar</SheetTitle>
+                <SheetClose className="absolute left-4 top-1/2 -translate-y-1/2" />
+            </SheetHeader>
+            <ScrollArea className="flex-1">
+                {isCommentsLoading ? (
+                    <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin" /></div>
+                ) : comments.length > 0 ? (
+                    <div className='p-4 space-y-4'>
+                        {comments.map(comment => (
+                            <div key={comment.id} className="flex items-start gap-3">
+                                <Link href={`/profile/${comment.user?.username}`}><Avatar className="w-8 h-8"><AvatarImage src={comment.user?.avatarUrl} /><AvatarFallback>{comment.user?.name?.charAt(0)}</AvatarFallback></Avatar></Link>
+                                <div className="flex-1">
+                                    <p className="text-sm">
+                                        <Link href={`/profile/${comment.user?.username}`} className="font-semibold">{comment.user?.name}</Link>{' '}
+                                        <HashtagAndMentionRenderer text={comment.text} />
+                                    </p>
+                                    <div className="text-xs text-muted-foreground flex items-center gap-3 mt-1">
+                                        <span>{formatRelativeTime(comment.createdAt?.toDate())}</span>
+                                        <button className="font-semibold" disabled={comment.isTranslating}>
+                                            {comment.isTranslating ? 'Çevriliyor...' : !comment.isTranslated ? 'Çevir' : 'Orijinali Gör'}
+                                        </button>
+                                    </div>
+                                </div>
+                                <Button variant="ghost" size="icon" className="w-8 h-8"><Heart className="w-4 h-4"/></Button>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p className='text-center text-muted-foreground p-10'>Henüz yorum yok. İlk yorumu sen yap!</p>
+                )}
+            </ScrollArea>
+             <div className="p-4 border-t shrink-0 bg-background">
+                <div className="flex items-center gap-2">
+                     {currentUser && <Avatar className="w-9 h-9"><AvatarImage src={currentUser.photoURL || ''} /><AvatarFallback>{currentUser.displayName?.charAt(0)}</AvatarFallback></Avatar>}
+                    <MentionTextarea 
+                        value={commentText}
+                        setValue={setCommentText}
+                        placeholder="Yorum ekle..."
+                        isInput
+                        onEnterPress={handlePostComment}
+                    />
+                    <Button onClick={handlePostComment} disabled={!commentText.trim() || isPostingComment}>
+                        {isPostingComment ? <Loader2 className="w-4 h-4 animate-spin"/> : 'Paylaş'}
+                    </Button>
+                </div>
+            </div>
+        </>
+    );
+
     const handleDeletePost = (post: Post) => { /* ... */ };
     
     const handleLikeClick = async (postId: string) => {
@@ -251,80 +477,29 @@ export default function ExplorePage() {
 
     return (
         <Suspense fallback={<div className="flex h-screen w-full items-center justify-center"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>}>
-             <div className="w-full pb-20 md:pb-0">
-                <div className="mx-auto max-w-lg space-y-4">
-                    {loading ? (
-                        <PostSkeleton />
-                    ) : posts.length > 0 ? (
-                        posts.map((post) => (
-                            <Card key={post.id} className="w-full overflow-hidden rounded-none md:rounded-xl">
-                                <CardContent className="p-0">
-                                    <div className="flex items-center justify-between p-3">
-                                        <Link href={`/profile/${post.user?.username}`} className="flex items-center gap-3">
-                                            <Avatar className="w-10 h-10 border-2 border-primary/20">
-                                                <AvatarImage src={post.user?.avatarUrl} />
-                                                <AvatarFallback>{post.user?.name?.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="font-semibold text-sm flex items-center gap-1.5">{post.user?.name} {post.user?.isPremium && <Crown className="w-4 h-4 text-yellow-400 fill-yellow-400"/>}</p>
-                                                <p className="text-xs text-muted-foreground">{formatRelativeTime(post.createdAt?.toDate())}</p>
-                                            </div>
-                                        </Link>
-                                    </div>
-                                    {post.type === 'photo' && post.url && (
-                                        <div className="relative w-full aspect-square bg-muted">
-                                            <Image src={post.url} alt={post.caption || `Post by ${post.user?.name}`} fill className="object-cover" priority />
-                                        </div>
-                                    )}
-                                    {post.type === 'text' && post.textContent && (
-                                        <div className="px-4 py-6 bg-muted/20">
-                                            <p className="text-base whitespace-pre-wrap break-words">
-                                                <HashtagAndMentionRenderer text={post.textContent} />
-                                            </p>
-                                        </div>
-                                    )}
-                                    <div className="p-4 space-y-2">
-                                        {post.caption && post.type === 'photo' && (
-                                            <p className="text-sm"><HashtagAndMentionRenderer text={post.caption} /></p>
-                                        )}
-                                        <div className='flex items-center gap-2 pt-2'>
-                                            <Button size="sm" className={cn("h-8 gap-1.5 rounded-full", post.liked && "text-red-500")} variant="secondary" onClick={() => handleLikeClick(post.id)}>
-                                                <Heart className={cn("w-4 h-4", post.liked && "fill-current")} />
-                                                <span className='font-semibold'>Beğen</span>
-                                            </Button>
-                                            <Button size="sm" variant="secondary" className="h-8 gap-1.5 rounded-full" onClick={() => handleOpenComments(post)}>
-                                                <MessageCircle className="w-4 h-4" />
-                                                <span className='font-semibold'>Yorum</span>
-                                            </Button>
-                                            <Button size="sm" variant="secondary" className="h-8 gap-1.5 rounded-full" onClick={() => handleShare(post)}>
-                                                <Share2 className="w-4 h-4" />
-                                                <span className="font-semibold">Paylaş</span>
-                                            </Button>
-                                            <div className='flex-1' />
-                                            <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full"><Bookmark /></Button>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                                <CardFooter className="p-4 border-t text-sm text-muted-foreground">
-                                    <p><strong className="text-foreground">{post.likes.toLocaleString()}</strong> beğeni</p>
-                                </CardFooter>
-                            </Card>
-                        ))
-                    ) : (
-                        <div className="text-center text-muted-foreground py-20 flex flex-col items-center">
-                            <Users className="w-16 h-16 mb-4 text-muted-foreground/50"/>
-                            <p className="text-lg font-semibold">Henüz hiç gönderi yok.</p>
-                            <p className="text-sm">Takip ettiğiniz kişiler veya sizin için önerilenler burada görünecek.</p>
-                        </div>
-                    )}
-                </div>
+            <div className="w-full pb-20 md:pb-0">
+                {loading ? (
+                    <PostSkeleton />
+                ) : posts.length > 0 ? (
+                    <ClassicView posts={posts} handleLikeClick={handleLikeClick} handleOpenComments={handleOpenComments} handleShare={handleShare} />
+                ) : (
+                    <div className="text-center text-muted-foreground py-20 flex flex-col items-center">
+                        <Users className="w-16 h-16 mb-4 text-muted-foreground/50"/>
+                        <p className="text-lg font-semibold">Henüz hiç gönderi yok.</p>
+                        <p className="text-sm">Takip ettiğiniz kişiler veya sizin için önerilenler burada görünecek.</p>
+                    </div>
+                )}
             </div>
             
              <Sheet open={isCommentSheetOpen} onOpenChange={setCommentSheetOpen}>
-                <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0"><SheetHeader className="text-center p-4 border-b shrink-0"><SheetTitle>Yorumlar</SheetTitle><SheetClose className="absolute left-4 top-1/2 -translate-y-1/2" /></SheetHeader><ScrollArea className="flex-1"></ScrollArea></SheetContent>
+                <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0">
+                    <CommentSheetContent />
+                </SheetContent>
             </Sheet>
         </Suspense>
     );
 }
+
+    
 
     

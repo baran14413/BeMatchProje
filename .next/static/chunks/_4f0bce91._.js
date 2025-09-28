@@ -255,14 +255,56 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
+const ThemePreviewCard = ({ themeName, isSelected, children })=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+        className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])('p-1 rounded-lg border-2 flex flex-col items-center justify-center gap-4 transition-colors', isSelected ? 'border-primary bg-primary/10' : 'border-muted hover:border-primary/50'),
+        children: [
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "aspect-video w-full rounded-md p-2 overflow-hidden bg-background",
+                children: children
+            }, void 0, false, {
+                fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                lineNumber: 16,
+                columnNumber: 9
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "flex items-center gap-2 w-full justify-center pb-2",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                        className: "font-medium text-sm",
+                        children: themeName
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                        lineNumber: 20,
+                        columnNumber: 13
+                    }, this),
+                    isSelected && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Check$3e$__["Check"], {
+                        className: "w-4 h-4 text-primary"
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                        lineNumber: 21,
+                        columnNumber: 28
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                lineNumber: 19,
+                columnNumber: 9
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+        lineNumber: 15,
+        columnNumber: 5
+    }, this);
+_c = ThemePreviewCard;
 function AppearancePage() {
     _s();
     const { theme, setTheme } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2d$themes$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useTheme"])();
     const [animationsDisabled, setAnimationsDisabled] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "AppearancePage.useEffect": ()=>{
-            const storedPreference = localStorage.getItem('disableAnimations');
-            if (storedPreference === 'true') {
+            const storedAnimationPref = localStorage.getItem('disableAnimations');
+            if (storedAnimationPref === 'true') {
                 setAnimationsDisabled(true);
             }
         }
@@ -270,9 +312,7 @@ function AppearancePage() {
     const handleAnimationToggle = (checked)=>{
         setAnimationsDisabled(checked);
         localStorage.setItem('disableAnimations', String(checked));
-        // Optional: Dispatch a custom event to notify other components immediately
         window.dispatchEvent(new CustomEvent('animation-preference-changed'));
-        // Reload to apply changes immediately across the layout
         window.location.reload();
     };
     const themes = [
@@ -283,8 +323,38 @@ function AppearancePage() {
                 className: "w-6 h-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                lineNumber: 34,
+                lineNumber: 45,
                 columnNumber: 49
+            }, this),
+            preview: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "w-full h-full rounded bg-white flex flex-col gap-1 p-1",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "h-2 w-1/3 rounded-sm bg-gray-300"
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                        lineNumber: 48,
+                        columnNumber: 19
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "h-2 w-2/3 rounded-sm bg-gray-200"
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                        lineNumber: 49,
+                        columnNumber: 19
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "flex-1 rounded-sm bg-gray-100 mt-1"
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                        lineNumber: 50,
+                        columnNumber: 19
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                lineNumber: 47,
+                columnNumber: 15
             }, this)
         },
         {
@@ -294,8 +364,38 @@ function AppearancePage() {
                 className: "w-6 h-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                lineNumber: 35,
+                lineNumber: 54,
                 columnNumber: 46
+            }, this),
+            preview: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "w-full h-full rounded bg-gray-900 flex flex-col gap-1 p-1",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "h-2 w-1/3 rounded-sm bg-gray-600"
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                        lineNumber: 57,
+                        columnNumber: 19
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "h-2 w-2/3 rounded-sm bg-gray-700"
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                        lineNumber: 58,
+                        columnNumber: 19
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "flex-1 rounded-sm bg-gray-800 mt-1"
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                        lineNumber: 59,
+                        columnNumber: 19
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                lineNumber: 56,
+                columnNumber: 15
             }, this)
         },
         {
@@ -305,8 +405,63 @@ function AppearancePage() {
                 className: "w-6 h-6"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                lineNumber: 36,
+                lineNumber: 63,
                 columnNumber: 50
+            }, this),
+            preview: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "w-full h-full rounded flex",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "w-1/2 h-full bg-white flex flex-col gap-1 p-1 rounded-l",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "h-2 w-1/3 rounded-sm bg-gray-300"
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                                lineNumber: 67,
+                                columnNumber: 21
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "h-2 w-2/3 rounded-sm bg-gray-200"
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                                lineNumber: 68,
+                                columnNumber: 21
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                        lineNumber: 66,
+                        columnNumber: 17
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "w-1/2 h-full bg-gray-900 flex flex-col gap-1 p-1 rounded-r",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "h-2 w-1/3 rounded-sm bg-gray-600"
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                                lineNumber: 71,
+                                columnNumber: 21
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "h-2 w-2/3 rounded-sm bg-gray-700"
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                                lineNumber: 72,
+                                columnNumber: 21
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                        lineNumber: 70,
+                        columnNumber: 17
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                lineNumber: 65,
+                columnNumber: 14
             }, this)
         }
     ];
@@ -318,20 +473,20 @@ function AppearancePage() {
                         children: "Görünüm"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                        lineNumber: 42,
+                        lineNumber: 82,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
                         children: "Uygulamanın arayüz temasını ve animasyonlarını kişiselleştirin."
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                        lineNumber: 43,
+                        lineNumber: 83,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                lineNumber: 41,
+                lineNumber: 81,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -344,67 +499,42 @@ function AppearancePage() {
                                 children: "Tema"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                                lineNumber: 49,
+                                lineNumber: 89,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "grid grid-cols-1 md:grid-cols-3 gap-4 mt-2",
                                 children: themes.map((t)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])('p-4 rounded-lg border-2 cursor-pointer flex flex-col items-center justify-center gap-4 transition-colors', theme === t.value ? 'border-primary bg-primary/10' : 'border-muted hover:border-primary/50'),
                                         onClick: ()=>setTheme(t.value),
-                                        children: [
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "flex-1 flex items-center justify-center",
-                                                children: t.icon
-                                            }, void 0, false, {
-                                                fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                                                lineNumber: 62,
-                                                columnNumber: 33
-                                            }, this),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "flex items-center gap-2 w-full justify-center",
-                                                children: [
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                        className: "font-medium text-sm",
-                                                        children: t.name
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                                                        lineNumber: 66,
-                                                        columnNumber: 37
-                                                    }, this),
-                                                    theme === t.value && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Check$3e$__["Check"], {
-                                                        className: "w-4 h-4 text-primary"
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                                                        lineNumber: 67,
-                                                        columnNumber: 59
-                                                    }, this)
-                                                ]
-                                            }, void 0, true, {
-                                                fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                                                lineNumber: 65,
-                                                columnNumber: 33
-                                            }, this)
-                                        ]
-                                    }, t.value, true, {
+                                        className: "cursor-pointer",
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ThemePreviewCard, {
+                                            themeName: t.name,
+                                            isSelected: theme === t.value,
+                                            children: t.preview
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
+                                            lineNumber: 93,
+                                            columnNumber: 33
+                                        }, this)
+                                    }, t.value, false, {
                                         fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                                        lineNumber: 52,
-                                        columnNumber: 29
+                                        lineNumber: 92,
+                                        columnNumber: 30
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                                lineNumber: 50,
+                                lineNumber: 90,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                        lineNumber: 48,
+                        lineNumber: 88,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$separator$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Separator"], {}, void 0, false, {
                         fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                        lineNumber: 74,
+                        lineNumber: 101,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -414,7 +544,7 @@ function AppearancePage() {
                                 children: "Erişilebilirlik"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                                lineNumber: 77,
+                                lineNumber: 104,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -431,34 +561,34 @@ function AppearancePage() {
                                                         className: "h-5 w-5 text-primary"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                                                        lineNumber: 81,
+                                                        lineNumber: 108,
                                                         columnNumber: 33
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                         children: "Animasyonları Devre Dışı Bırak"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                                                        lineNumber: 82,
+                                                        lineNumber: 109,
                                                         columnNumber: 33
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                                                lineNumber: 80,
+                                                lineNumber: 107,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                 className: "text-sm text-muted-foreground",
-                                                children: "Gezinme çubuklarının kaybolma animasyonunu kapatır."
+                                                children: "Navigasyon çubuklarının kaybolma animasyonunu kapatır."
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                                                lineNumber: 84,
+                                                lineNumber: 111,
                                                 columnNumber: 29
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                                        lineNumber: 79,
+                                        lineNumber: 106,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$switch$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Switch"], {
@@ -467,31 +597,31 @@ function AppearancePage() {
                                         onCheckedChange: handleAnimationToggle
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                                        lineNumber: 88,
+                                        lineNumber: 115,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                                lineNumber: 78,
+                                lineNumber: 105,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                        lineNumber: 76,
+                        lineNumber: 103,
                         columnNumber: 18
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-                lineNumber: 47,
+                lineNumber: 87,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(app)/profile/edit/appearance/page.tsx",
-        lineNumber: 40,
+        lineNumber: 80,
         columnNumber: 9
     }, this);
 }
@@ -500,9 +630,10 @@ _s(AppearancePage, "vgagijHCZNvSx286cdEOiEuEfXA=", false, function() {
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2d$themes$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useTheme"]
     ];
 });
-_c = AppearancePage;
-var _c;
-__turbopack_context__.k.register(_c, "AppearancePage");
+_c1 = AppearancePage;
+var _c, _c1;
+__turbopack_context__.k.register(_c, "ThemePreviewCard");
+__turbopack_context__.k.register(_c1, "AppearancePage");
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(module, globalThis.$RefreshHelpers$);
 }
