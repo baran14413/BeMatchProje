@@ -17,8 +17,19 @@ export default function Home() {
             await new Promise(resolve => setTimeout(resolve, 100));
             
             if (user) {
-                // User is logged in, redirect to the main app experience
-                router.replace('/match');
+                // User is logged in, check for profile completion
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists() && userDoc.data().username) {
+                         router.replace('/match');
+                    } else {
+                        // Profile is incomplete or doesn't exist, go to signup flow
+                        router.replace('/signup?step=2&reason=complete_profile');
+                    }
+                } catch (error) {
+                    console.error("Error checking user profile, redirecting to login", error);
+                    router.replace('/login');
+                }
             } else {
                 // User is not logged in, redirect to the login page
                 router.replace('/login');

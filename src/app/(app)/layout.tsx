@@ -170,10 +170,8 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 const profileData = userDocSnap.data();
 
                  // Check for profile completeness if it's an existing user
+                const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/tutorial');
                 if (!profileData.city || !profileData.age || !profileData.hobbies?.length) {
-                  // Profile is incomplete, redirect to finish signup
-                  // Avoid redirect loop if already on a public/auth page
-                  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/tutorial');
                   if (!isAuthPage) {
                      const googleInfo = {
                           email: user.email,
@@ -183,7 +181,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                       };
                       sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
                      router.push('/signup?step=2&source=google&reason=complete_profile');
-                     return; // Stop further processing to allow for redirect
+                     return; 
                   }
                 }
 
@@ -440,7 +438,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                            <Loader2 className="h-5 w-5 animate-spin" />
                          </Button>
                     ) : currentUser && (
-                       <Link href={currentUserProfile?.username ? `/profile/${currentUserProfile.username}` : '/profile'}>
+                       <Link href={currentUserProfile?.username ? `/profile/${currentUserProfile.username}` : `/profile/edit/personal`}>
                          <Button variant="ghost" size="icon" className="relative rounded-full h-9 w-9">
                               <Avatar className='h-8 w-8'>
                                   {currentUserProfile?.avatarUrl && <AvatarImage src={currentUserProfile.avatarUrl}/>}
