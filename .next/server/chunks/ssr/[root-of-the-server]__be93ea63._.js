@@ -587,19 +587,22 @@ async function findMatch(input) {
     try {
         const transactionResult = await db.runTransaction(async (transaction)=>{
             const userInPoolDoc = await transaction.get(userInPoolRef);
-            // Check if user has been waiting for more than the timeout
+            // If user is already in pool, check if timeout has passed.
             if (userInPoolDoc.exists) {
                 const waitingSince = userInPoolDoc.data().waitingSince.toDate();
                 const now = new Date();
                 if (now.getTime() - waitingSince.getTime() > MATCH_TIMEOUT_SECONDS * 1000) {
                     transaction.delete(userInPoolRef);
                     return {
-                        shouldCreateBotMatch: true
-                    };
+                        createBotMatch: true
+                    }; // Signal to create a bot match outside transaction
                 }
             }
-            const waitingQuery = waitingPoolCollection.where(__TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["FieldPath"].documentId(), '!=', userId).orderBy(__TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["FieldPath"].documentId()).orderBy('waitingSince').limit(1);
+            // Look for another user in the pool.
+            const waitingQuery = waitingPoolCollection.where(db.app.options.projectId ? '__name__' : 'uid', '!=', userId) // Firestore-Admin-SDK uses __name__
+            .orderBy(db.app.options.projectId ? '__name__' : 'uid').orderBy('waitingSince').limit(1);
             const waitingSnapshot = await transaction.get(waitingQuery);
+            // If no one is waiting, add the current user to the pool.
             if (waitingSnapshot.empty) {
                 if (!userInPoolDoc.exists) {
                     transaction.set(userInPoolRef, {
@@ -609,9 +612,11 @@ async function findMatch(input) {
                 }
                 return {
                     conversationId: null,
-                    isBotMatch: false
+                    isBotMatch: false,
+                    createBotMatch: false
                 };
             }
+            // Found a match!
             const otherUserDoc = waitingSnapshot.docs[0];
             const otherUserData = otherUserDoc.data();
             const [user1Doc, user2Doc] = await Promise.all([
@@ -619,6 +624,9 @@ async function findMatch(input) {
                 transaction.get(db.doc(`users/${otherUserData.uid}`))
             ]);
             if (!user1Doc.exists || !user2Doc.exists) {
+                // If for some reason user docs don't exist, remove from pool and retry.
+                if (userInPoolDoc.exists) transaction.delete(userInPoolRef);
+                if (otherUserDoc.exists) transaction.delete(otherUserDoc.ref);
                 throw new Error("One or both users not found in the 'users' collection during match.");
             }
             const user1Data = user1Doc.data();
@@ -647,23 +655,24 @@ async function findMatch(input) {
                     user2Data.uid
                 ]
             });
-            transaction.delete(userInPoolRef);
+            // Clean up both users from the waiting pool
+            if (userInPoolDoc.exists) transaction.delete(userInPoolRef);
             transaction.delete(otherUserDoc.ref);
             return {
                 conversationId: newConvoRef.id,
                 isBotMatch: false,
-                shouldCreateBotMatch: false
+                createBotMatch: false
             };
         });
-        if (transactionResult.shouldCreateBotMatch) {
+        // If transaction signaled to create a bot match, do it now.
+        if (transactionResult.createBotMatch) {
             return await createBotMatch(userId);
         }
         return transactionResult;
     } catch (error) {
         console.error('Matchmaking flow failed:', error);
-        // Ensure user is removed from pool on error.
+        // Fallback to bot match on any critical failure to prevent user from being stuck.
         await userInPoolRef.delete().catch(()=>{});
-        // Fallback to bot match on critical failure
         return await createBotMatch(userId);
     }
 }

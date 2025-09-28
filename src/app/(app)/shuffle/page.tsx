@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Zap, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { findMatch } from '@/ai/flows/find-match-flow';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { motion } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
+import { doc, onSnapshot, deleteDoc } from 'firebase/firestore';
 
 const SEARCH_TIMEOUT_SECONDS = 15;
 
@@ -57,48 +58,68 @@ function ShuffleContent() {
   const currentUser = auth.currentUser;
   const { toast } = useToast();
   const searchIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isFindingMatch = useRef(false);
 
-  const stopSearch = () => {
+  const stopSearch = async () => {
     setIsSearching(false);
     if (searchIntervalRef.current) {
       clearInterval(searchIntervalRef.current);
       searchIntervalRef.current = null;
     }
+    // As a cleanup, try to remove user from waiting pool if they cancel
+    if (currentUser) {
+        const userInPoolRef = doc(db, 'waitingPool', currentUser.uid);
+        await deleteDoc(userInPoolRef).catch(() => {});
+    }
+    isFindingMatch.current = false;
   };
 
+  const startCountdown = () => {
+    setCountdown(SEARCH_TIMEOUT_SECONDS);
+    if (searchIntervalRef.current) clearInterval(searchIntervalRef.current);
+    searchIntervalRef.current = setInterval(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+  };
+  
   const handleSearchClick = async () => {
-    if (!currentUser) {
-      toast({ title: 'Giriş yapmalısınız.', variant: 'destructive' });
+    if (!currentUser || isFindingMatch.current) {
+      if (!currentUser) toast({ title: 'Giriş yapmalısınız.', variant: 'destructive' });
       return;
     }
 
-    setIsSearching(true);
-    setCountdown(SEARCH_TIMEOUT_SECONDS);
+    isFindingMatch.current = true;
+    setIsSearching(true); // Show searching UI immediately
 
     try {
       const result = await findMatch({ userId: currentUser.uid });
+      
       if (result.conversationId) {
         toast({ title: 'Harika biriyle eşleştin!', description: 'Sohbete yönlendiriliyorsun...' });
         stopSearch();
         router.push(`/random-chat/${result.conversationId}`);
-        return;
+      } else {
+        // If no immediate match, start the countdown.
+        startCountdown();
       }
-      
-      // If no immediate match, start countdown
-      searchIntervalRef.current = setInterval(() => {
-        setCountdown((prev) => prev - 1);
-      }, 1000);
 
     } catch (error: any) {
       console.error('Error during initial match search: ', error);
       toast({ title: 'Eşleşme ararken bir hata oluştu.', description: error.message, variant: 'destructive' });
       stopSearch();
+    } finally {
+      // Don't set isFindingMatch.current to false here if we are waiting for countdown
+      if (!isSearching) {
+          isFindingMatch.current = false;
+      }
     }
   };
 
+  // This effect runs when the countdown finishes
   useEffect(() => {
     const handleFinalSearch = async () => {
         if (!currentUser) return;
+        isFindingMatch.current = true;
         try {
             const finalResult = await findMatch({ userId: currentUser.uid });
             if (finalResult.conversationId) {
@@ -129,8 +150,13 @@ function ShuffleContent() {
       if (searchIntervalRef.current) {
         clearInterval(searchIntervalRef.current);
       }
+      // If component unmounts while searching, try to remove from pool
+      if (isSearching && currentUser) {
+          const userInPoolRef = doc(db, 'waitingPool', currentUser.uid);
+          deleteDoc(userInPoolRef).catch(() => {});
+      }
     };
-  }, []);
+  }, [isSearching, currentUser]);
 
   if (isSearching) {
     return <SearchAnimation onCancel={stopSearch} countdown={countdown} />;
