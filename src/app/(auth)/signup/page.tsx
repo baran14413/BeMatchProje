@@ -30,7 +30,6 @@ import { auth, db, storage } from '@/lib/firebase';
 import { cities, districts } from '@/config/turkey-locations';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import AnimatedLogo from '@/components/ui/animated-logo';
 
 const HOBBIES = [
   'Müzik', 'Spor', 'Seyahat', 'Kitap Okumak', 'Film/Dizi',
@@ -157,9 +156,12 @@ function SignUpComponent() {
         const usernameQuery = query(collection(db, 'users'), where('username', '==', formData.username));
         const usernameSnapshot = await getDocs(usernameQuery);
         if (!usernameSnapshot.empty) {
-            const userWithSameUsername = usernameSnapshot.docs[0];
-            if (!user || userWithSameUsername.id !== user.uid) {
-                toast({ variant: "destructive", title: "Kullanıcı Adı Alınmış", description: "Bu kullanıcı adı zaten alınmış. Lütfen geri giderek farklı bir kullanıcı adı seçin." });
+            const userDoc = usernameSnapshot.docs[0];
+            // If it's a google user completing their profile, the username might exist on their own doc
+             if (source === 'google' && user && userDoc.id === user.uid) {
+                // This is fine, it's the same user.
+            } else {
+                 toast({ variant: "destructive", title: "Kullanıcı Adı Alınmış", description: "Bu kullanıcı adı zaten alınmış. Lütfen geri giderek farklı bir kullanıcı adı seçin." });
                 throw new Error("Username taken");
             }
         }
@@ -402,12 +404,12 @@ function SignUpComponent() {
     </div>
   );
   
-  const finalStep = source === 'google' ? 5 : 6;
+  const finalStep = source === 'google' ? 4 : 5;
   
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto">
         <div className="flex flex-col items-center gap-2 mb-8 text-center">
-            <AnimatedLogo className="w-24 h-24" />
+            <Heart className="w-20 h-20 text-primary animate-pulse-heart" />
             <h1 className="text-4xl font-bold font-headline text-foreground">BeMatch</h1>
             <p className="text-muted-foreground">Yeni bir başlangıç yap.</p>
         </div>

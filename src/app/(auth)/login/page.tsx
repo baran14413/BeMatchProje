@@ -19,7 +19,6 @@ import { Eye, EyeOff, Loader2, Heart } from 'lucide-react';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, UserCredential } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
-import AnimatedLogo from '@/components/ui/animated-logo';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 function LoginComponent() {
@@ -120,7 +119,7 @@ function LoginComponent() {
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-sm mx-auto">
         <div className="flex flex-col items-center gap-2 mb-8 text-center">
-            <AnimatedLogo className="w-24 h-24" />
+            <Heart className="w-20 h-20 text-primary animate-pulse-heart" />
             <h1 className="text-4xl font-bold font-headline text-foreground">BeMatch</h1>
             <p className="text-muted-foreground">Hayatının aşkını bulmaya hazır mısın?</p>
         </div>
