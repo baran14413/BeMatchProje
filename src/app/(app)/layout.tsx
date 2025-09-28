@@ -4,7 +4,7 @@
 import React, { type ReactNode, useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe, Loader2, LogOut, Settings, Sparkles, X, Users2 } from 'lucide-react';
+import { Home, MessageCircle, User, Heart, Search, Shuffle, Bell, Globe, Loader2, LogOut, Settings, Sparkles, X, Users2, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useNetworkStatus } from '@/hooks/use-network-status';
@@ -220,7 +220,8 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
   // Determine if the full screen layout should be shown (no nav bars)
   const isImmersiveExplore = pathname === '/explore' && exploreViewMode === 'immersive';
-  const isFullScreen = isClientReady && (isChatViewOpen || isAdminPage || isRandomChatPage || isImmersiveExplore);
+  const isCreatePostPage = pathname === '/create-post';
+  const isFullScreen = isClientReady && (isChatViewOpen || isAdminPage || isRandomChatPage || isImmersiveExplore || isCreatePostPage);
 
   // Show navs on most pages, but hide for full screen views
   const showNavs = isClientReady && !isFullScreen;
@@ -269,7 +270,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
               </div>
 
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" asChild><Link href="/search"><Search className="h-5 w-5" /></Link></Button>
+                    <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" asChild><Link href="/create-post"><Plus className="h-5 w-5" /></Link></Button>
                     <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" asChild><Link href="/notifications"><Bell className="h-5 w-5" /></Link></Button>
                     <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" asChild>
                        <Link href="/chat">
@@ -296,10 +297,16 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
         {showNavs && (
             <nav className={cn("fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/80 backdrop-blur-sm transition-transform duration-300 md:hidden", "h-[var(--bottom-nav-height)]", isScrolling && "translate-y-full")}>
-                <div className="grid h-full grid-cols-3">
-                    <NavButton href="/shuffle" icon={<Shuffle />} srText="Rastgele" isActive={pathname === '/shuffle'} />
+                <div className="grid h-full grid-cols-5">
                     <NavButton href="/explore" icon={<Home />} srText="Ana Sayfa" isActive={pathname === '/explore'} />
-                    <NavButton href="/explore" icon={<Globe />} srText="Keşfet" isActive={pathname === '/explore'} />
+                    <NavButton href="/kesfet" icon={<Globe />} srText="Keşfet" isActive={pathname === '/kesfet'} />
+                     <Link href="/create-post" className="flex items-center justify-center -mt-4">
+                        <div className="bg-primary text-primary-foreground rounded-full h-14 w-14 flex items-center justify-center shadow-lg border-4 border-background">
+                            <Plus className="h-7 w-7" strokeWidth={2.5}/>
+                        </div>
+                    </Link>
+                    <NavButton href="/shuffle" icon={<Shuffle />} srText="Eşleş" isActive={pathname === '/shuffle'} />
+                    <NavButton href={currentUserProfile?.username ? `/profile/${currentUserProfile.username}` : '/profile/edit'} icon={<User />} srText="Profil" isActive={pathname.startsWith('/profile')} />
                 </div>
             </nav>
         )}
