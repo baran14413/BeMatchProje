@@ -1668,6 +1668,10 @@ img {
   border-color: #3b82f680;
 }
 
+.border-border\/20 {
+  border-color: hsl(var(--border) / .2);
+}
+
 .border-border\/50 {
   border-color: hsl(var(--border) / .5);
 }
@@ -1748,10 +1752,6 @@ img {
   border-color: rgb(234 179 8 / var(--tw-border-opacity, 1));
 }
 
-.border-border\/20 {
-  border-color: hsl(var(--border) / .2);
-}
-
 .border-l-transparent {
   border-left-color: #0000;
 }
@@ -1812,6 +1812,10 @@ img {
 
 .bg-card {
   background-color: hsl(var(--card));
+}
+
+.bg-card\/80 {
+  background-color: hsl(var(--card) / .8);
 }
 
 .bg-destructive {
@@ -1917,10 +1921,6 @@ img {
 .bg-yellow-500 {
   --tw-bg-opacity: 1;
   background-color: rgb(234 179 8 / var(--tw-bg-opacity, 1));
-}
-
-.bg-card\/80 {
-  background-color: hsl(var(--card) / .8);
 }
 
 .bg-gradient-to-br {

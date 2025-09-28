@@ -64,7 +64,14 @@ export default function LoginPage() {
         const userDocRef = doc(db, 'users', user.uid);
         const userDocSnap = await getDoc(userDocRef);
 
-        if (!userDocSnap.exists()) {
+        if (userDocSnap.exists()) {
+             // Existing user, log them in and redirect
+             toast({
+                title: `Tekrar Hoş Geldin, ${user.displayName?.split(' ')[0]}!`,
+                className: "bg-green-500 text-white",
+            });
+            router.push('/match');
+        } else {
              // New user via Google, redirect to finish profile setup
             toast({
                 title: "Aramıza Hoş Geldin!",
@@ -79,14 +86,6 @@ export default function LoginPage() {
             };
             sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
             router.push('/signup?step=2&source=google');
-
-        } else {
-             // Existing user
-             toast({
-                title: `Tekrar Hoş Geldin, ${user.displayName?.split(' ')[0]}!`,
-                className: "bg-green-500 text-white",
-            });
-            router.push('/match');
         }
 
     } catch (error: any) {

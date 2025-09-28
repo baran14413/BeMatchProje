@@ -211,8 +211,12 @@ function SignUpComponent() {
         const usernameQuery = query(collection(db, 'users'), where('username', '==', formData.username));
         const usernameSnapshot = await getDocs(usernameQuery);
         if (!usernameSnapshot.empty) {
-             toast({ variant: "destructive", title: "Kullanıcı Adı Alınmış", description: "Bu kullanıcı adı zaten alınmış. Lütfen geri giderek farklı bir kullanıcı adı seçin." });
-             throw new Error("Username taken");
+             const userDoc = usernameSnapshot.docs[0];
+             // If the found user is the current user, it's not an error.
+             if (!currentUser || userDoc.id !== currentUser.uid) {
+                toast({ variant: "destructive", title: "Kullanıcı Adı Alınmış", description: "Bu kullanıcı adı zaten alınmış. Lütfen geri giderek farklı bir kullanıcı adı seçin." });
+                throw new Error("Username taken");
+             }
         }
         
         let user;
@@ -253,7 +257,7 @@ function SignUpComponent() {
             createdAt: serverTimestamp(),
             isPremium: false,
             stats: { followers: 0, following: 0 }
-        });
+        }, { merge: true }); // Use merge to update existing doc for Google users completing profile
         
         sessionStorage.removeItem('googleSignUpInfo');
         
@@ -287,8 +291,15 @@ function SignUpComponent() {
         const userDocRef = doc(db, 'users', user.uid);
         const userDocSnap = await getDoc(userDocRef);
 
-        if (!userDocSnap.exists()) {
-            const googleInfo = {
+        if (userDocSnap.exists()) {
+             toast({
+                title: `Tekrar Hoş Geldin, ${user.displayName?.split(' ')[0]}!`,
+                description: 'Bu hesapla zaten kayıtlısınız.',
+                className: "bg-green-500 text-white",
+            });
+            router.push('/match');
+        } else {
+             const googleInfo = {
                 email: user.email,
                 firstName: user.displayName?.split(' ')[0] || '',
                 lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
@@ -296,13 +307,6 @@ function SignUpComponent() {
             };
             sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
             router.push('/signup?step=2&source=google');
-        } else {
-             toast({
-                title: `Tekrar Hoş Geldin, ${user.displayName?.split(' ')[0]}!`,
-                description: 'Bu hesapla zaten kayıtlısınız.',
-                className: "bg-green-500 text-white",
-            });
-            router.push('/match');
         }
 
     } catch (error: any) {
