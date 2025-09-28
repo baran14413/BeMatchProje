@@ -746,12 +746,13 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/navigation.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$house$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Home$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/house.js [app-client] (ecmascript) <export default as Home>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$message$2d$circle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__MessageCircle$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/message-circle.js [app-client] (ecmascript) <export default as MessageCircle>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$user$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__User$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/user.js [app-client] (ecmascript) <export default as User>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$heart$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Heart$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/heart.js [app-client] (ecmascript) <export default as Heart>");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$search$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Search$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/search.js [app-client] (ecmascript) <export default as Search>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$shuffle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Shuffle$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/shuffle.js [app-client] (ecmascript) <export default as Shuffle>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$bell$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Bell$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/bell.js [app-client] (ecmascript) <export default as Bell>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$globe$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Globe$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/globe.js [app-client] (ecmascript) <export default as Globe>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/loader-circle.js [app-client] (ecmascript) <export default as Loader2>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$plus$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Plus$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/plus.js [app-client] (ecmascript) <export default as Plus>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/utils.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/button.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$network$2d$status$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/hooks/use-network-status.tsx [app-client] (ecmascript)");
@@ -1050,7 +1051,8 @@ function LayoutContent({ children }) {
     const isAdminPage = isClientReady && pathname.startsWith('/admin');
     // Determine if the full screen layout should be shown (no nav bars)
     const isImmersiveExplore = pathname === '/explore' && exploreViewMode === 'immersive';
-    const isFullScreen = isClientReady && (isChatViewOpen || isAdminPage || isRandomChatPage || isImmersiveExplore);
+    const isCreatePostPage = pathname === '/create-post';
+    const isFullScreen = isClientReady && (isChatViewOpen || isAdminPage || isRandomChatPage || isImmersiveExplore || isCreatePostPage);
     // Show navs on most pages, but hide for full screen views
     const showNavs = isClientReady && !isFullScreen;
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
@@ -1099,12 +1101,12 @@ function LayoutContent({ children }) {
                 className: "h-12 w-12 animate-spin text-primary"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/layout.tsx",
-                lineNumber: 241,
+                lineNumber: 242,
                 columnNumber: 80
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/app/(app)/layout.tsx",
-            lineNumber: 241,
+            lineNumber: 242,
             columnNumber: 14
         }, this);
     }
@@ -1113,7 +1115,7 @@ function LayoutContent({ children }) {
             onUnlock: ()=>setIsLocked(false)
         }, void 0, false, {
             fileName: "[project]/src/app/(app)/layout.tsx",
-            lineNumber: 244,
+            lineNumber: 245,
             columnNumber: 14
         }, this);
     }
@@ -1130,7 +1132,7 @@ function LayoutContent({ children }) {
                     isPoorConnection: isPoorConnection
                 }, void 0, false, {
                     fileName: "[project]/src/app/(app)/layout.tsx",
-                    lineNumber: 253,
+                    lineNumber: 254,
                     columnNumber: 9
                 }, this),
                 showNavs && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("header", {
@@ -1148,7 +1150,7 @@ function LayoutContent({ children }) {
                                             children: "BeMatch"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/layout.tsx",
-                                            lineNumber: 258,
+                                            lineNumber: 259,
                                             columnNumber: 26
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$heart$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Heart$3e$__["Heart"], {
@@ -1156,13 +1158,13 @@ function LayoutContent({ children }) {
                                             fill: "currentColor"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/layout.tsx",
-                                            lineNumber: 259,
+                                            lineNumber: 260,
                                             columnNumber: 25
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(app)/layout.tsx",
-                                    lineNumber: 257,
+                                    lineNumber: 258,
                                     columnNumber: 21
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$components$2f$AnimatePresence$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AnimatePresence"], {
@@ -1191,7 +1193,7 @@ function LayoutContent({ children }) {
                                                 className: "h-5 w-5 text-primary"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/layout.tsx",
-                                                lineNumber: 264,
+                                                lineNumber: 265,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1201,28 +1203,28 @@ function LayoutContent({ children }) {
                                                 }
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/layout.tsx",
-                                                lineNumber: 265,
+                                                lineNumber: 266,
                                                 columnNumber: 29
                                             }, this)
                                         ]
                                     }, lastNotification.id, true, {
                                         fileName: "[project]/src/app/(app)/layout.tsx",
-                                        lineNumber: 263,
+                                        lineNumber: 264,
                                         columnNumber: 27
                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {}, void 0, false, {
                                         fileName: "[project]/src/app/(app)/layout.tsx",
-                                        lineNumber: 267,
+                                        lineNumber: 268,
                                         columnNumber: 28
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/layout.tsx",
-                                    lineNumber: 261,
+                                    lineNumber: 262,
                                     columnNumber: 19
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/layout.tsx",
-                            lineNumber: 256,
+                            lineNumber: 257,
                             columnNumber: 16
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1234,37 +1236,13 @@ function LayoutContent({ children }) {
                                     className: "relative rounded-full h-8 w-8",
                                     asChild: true,
                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
-                                        href: "/search",
-                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$search$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Search$3e$__["Search"], {
-                                            className: "h-5 w-5"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/app/(app)/layout.tsx",
-                                            lineNumber: 272,
-                                            columnNumber: 128
-                                        }, this)
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/app/(app)/layout.tsx",
-                                        lineNumber: 272,
-                                        columnNumber: 107
-                                    }, this)
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/(app)/layout.tsx",
-                                    lineNumber: 272,
-                                    columnNumber: 21
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
-                                    variant: "ghost",
-                                    size: "icon",
-                                    className: "relative rounded-full h-8 w-8",
-                                    asChild: true,
-                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
-                                        href: "/notifications",
-                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$bell$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Bell$3e$__["Bell"], {
+                                        href: "/create-post",
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$plus$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Plus$3e$__["Plus"], {
                                             className: "h-5 w-5"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/layout.tsx",
                                             lineNumber: 273,
-                                            columnNumber: 135
+                                            columnNumber: 133
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/layout.tsx",
@@ -1282,31 +1260,55 @@ function LayoutContent({ children }) {
                                     className: "relative rounded-full h-8 w-8",
                                     asChild: true,
                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                                        href: "/notifications",
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$bell$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Bell$3e$__["Bell"], {
+                                            className: "h-5 w-5"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/app/(app)/layout.tsx",
+                                            lineNumber: 274,
+                                            columnNumber: 135
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/(app)/layout.tsx",
+                                        lineNumber: 274,
+                                        columnNumber: 107
+                                    }, this)
+                                }, void 0, false, {
+                                    fileName: "[project]/src/app/(app)/layout.tsx",
+                                    lineNumber: 274,
+                                    columnNumber: 21
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                    variant: "ghost",
+                                    size: "icon",
+                                    className: "relative rounded-full h-8 w-8",
+                                    asChild: true,
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                                         href: "/chat",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$message$2d$circle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__MessageCircle$3e$__["MessageCircle"], {
                                                 className: "h-5 w-5"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/layout.tsx",
-                                                lineNumber: 276,
+                                                lineNumber: 277,
                                                 columnNumber: 26
                                             }, this),
                                             hasUnreadMessages && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 className: "absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full border-2 border-background bg-red-500 animate-pulse-heart"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/layout.tsx",
-                                                lineNumber: 277,
+                                                lineNumber: 278,
                                                 columnNumber: 48
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/layout.tsx",
-                                        lineNumber: 275,
+                                        lineNumber: 276,
                                         columnNumber: 24
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/layout.tsx",
-                                    lineNumber: 274,
+                                    lineNumber: 275,
                                     columnNumber: 21
                                 }, this),
                                 loadingProfile ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -1318,12 +1320,12 @@ function LayoutContent({ children }) {
                                         className: "h-5 w-5 animate-spin"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/layout.tsx",
-                                        lineNumber: 281,
+                                        lineNumber: 282,
                                         columnNumber: 113
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/layout.tsx",
-                                    lineNumber: 281,
+                                    lineNumber: 282,
                                     columnNumber: 26
                                 }, this) : currentUser && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                                     href: currentUserProfile?.username ? `/profile/${currentUserProfile.username}` : `/profile/edit`,
@@ -1338,42 +1340,42 @@ function LayoutContent({ children }) {
                                                     src: currentUserProfile.avatarUrl
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/layout.tsx",
-                                                    lineNumber: 285,
+                                                    lineNumber: 286,
                                                     columnNumber: 93
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AvatarFallback"], {
                                                     children: currentUserProfile?.name?.charAt(0) || 'U'
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/layout.tsx",
-                                                    lineNumber: 285,
+                                                    lineNumber: 286,
                                                     columnNumber: 143
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/layout.tsx",
-                                            lineNumber: 285,
+                                            lineNumber: 286,
                                             columnNumber: 31
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/layout.tsx",
-                                        lineNumber: 284,
+                                        lineNumber: 285,
                                         columnNumber: 26
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/layout.tsx",
-                                    lineNumber: 283,
+                                    lineNumber: 284,
                                     columnNumber: 24
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/layout.tsx",
-                            lineNumber: 271,
+                            lineNumber: 272,
                             columnNumber: 17
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/layout.tsx",
-                    lineNumber: 255,
+                    lineNumber: 256,
                     columnNumber: 13
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -1381,28 +1383,14 @@ function LayoutContent({ children }) {
                     children: children
                 }, void 0, false, {
                     fileName: "[project]/src/app/(app)/layout.tsx",
-                    lineNumber: 293,
+                    lineNumber: 294,
                     columnNumber: 9
                 }, this),
                 showNavs && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
                     className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/80 backdrop-blur-sm transition-transform duration-300 md:hidden", "h-[var(--bottom-nav-height)]", isScrolling && "translate-y-full"),
                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "grid h-full grid-cols-3",
+                        className: "grid h-full grid-cols-5",
                         children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(NavButton, {
-                                href: "/shuffle",
-                                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$shuffle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Shuffle$3e$__["Shuffle"], {}, void 0, false, {
-                                    fileName: "[project]/src/app/(app)/layout.tsx",
-                                    lineNumber: 300,
-                                    columnNumber: 54
-                                }, void 0),
-                                srText: "Rastgele",
-                                isActive: pathname === '/shuffle'
-                            }, void 0, false, {
-                                fileName: "[project]/src/app/(app)/layout.tsx",
-                                lineNumber: 300,
-                                columnNumber: 21
-                            }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(NavButton, {
                                 href: "/explore",
                                 icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$house$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Home$3e$__["Home"], {}, void 0, false, {
@@ -1418,34 +1406,85 @@ function LayoutContent({ children }) {
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(NavButton, {
-                                href: "/explore",
+                                href: "/kesfet",
                                 icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$globe$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Globe$3e$__["Globe"], {}, void 0, false, {
                                     fileName: "[project]/src/app/(app)/layout.tsx",
                                     lineNumber: 302,
-                                    columnNumber: 54
+                                    columnNumber: 53
                                 }, void 0),
                                 srText: "Keşfet",
-                                isActive: pathname === '/explore'
+                                isActive: pathname === '/kesfet'
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/layout.tsx",
                                 lineNumber: 302,
+                                columnNumber: 21
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                                href: "/create-post",
+                                className: "flex items-center justify-center -mt-4",
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "bg-primary text-primary-foreground rounded-full h-14 w-14 flex items-center justify-center shadow-lg border-4 border-background",
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$plus$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Plus$3e$__["Plus"], {
+                                        className: "h-7 w-7",
+                                        strokeWidth: 2.5
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/(app)/layout.tsx",
+                                        lineNumber: 305,
+                                        columnNumber: 29
+                                    }, this)
+                                }, void 0, false, {
+                                    fileName: "[project]/src/app/(app)/layout.tsx",
+                                    lineNumber: 304,
+                                    columnNumber: 25
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/(app)/layout.tsx",
+                                lineNumber: 303,
+                                columnNumber: 22
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(NavButton, {
+                                href: "/shuffle",
+                                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$shuffle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Shuffle$3e$__["Shuffle"], {}, void 0, false, {
+                                    fileName: "[project]/src/app/(app)/layout.tsx",
+                                    lineNumber: 308,
+                                    columnNumber: 54
+                                }, void 0),
+                                srText: "Eşleş",
+                                isActive: pathname === '/shuffle'
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/(app)/layout.tsx",
+                                lineNumber: 308,
+                                columnNumber: 21
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(NavButton, {
+                                href: currentUserProfile?.username ? `/profile/${currentUserProfile.username}` : '/profile/edit',
+                                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$user$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__User$3e$__["User"], {}, void 0, false, {
+                                    fileName: "[project]/src/app/(app)/layout.tsx",
+                                    lineNumber: 309,
+                                    columnNumber: 136
+                                }, void 0),
+                                srText: "Profil",
+                                isActive: pathname.startsWith('/profile')
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/(app)/layout.tsx",
+                                lineNumber: 309,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(app)/layout.tsx",
-                        lineNumber: 299,
+                        lineNumber: 300,
                         columnNumber: 17
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/(app)/layout.tsx",
-                    lineNumber: 298,
+                    lineNumber: 299,
                     columnNumber: 13
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/(app)/layout.tsx",
-            lineNumber: 249,
+            lineNumber: 250,
             columnNumber: 9
         }, this)
     }, void 0, false);
@@ -1466,19 +1505,19 @@ function AppLayout({ children }) {
             children: "Yükleniyor..."
         }, void 0, false, {
             fileName: "[project]/src/app/(app)/layout.tsx",
-            lineNumber: 314,
+            lineNumber: 321,
             columnNumber: 29
         }, void 0),
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(LayoutContent, {
             children: children
         }, void 0, false, {
             fileName: "[project]/src/app/(app)/layout.tsx",
-            lineNumber: 315,
+            lineNumber: 322,
             columnNumber: 13
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/app/(app)/layout.tsx",
-        lineNumber: 314,
+        lineNumber: 321,
         columnNumber: 9
     }, this);
 }

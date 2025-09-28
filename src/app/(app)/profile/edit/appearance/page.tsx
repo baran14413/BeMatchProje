@@ -13,16 +13,11 @@ import { useState, useEffect } from 'react';
 export default function AppearancePage() {
     const { theme, setTheme } = useTheme();
     const [animationsDisabled, setAnimationsDisabled] = useState(false);
-    const [viewMode, setViewMode] = useState('classic');
-
+    
     useEffect(() => {
         const storedAnimationPref = localStorage.getItem('disableAnimations');
         if (storedAnimationPref === 'true') {
             setAnimationsDisabled(true);
-        }
-        const savedViewMode = localStorage.getItem('exploreViewMode');
-        if (savedViewMode) {
-            setViewMode(savedViewMode);
         }
     }, []);
 
@@ -33,25 +28,12 @@ export default function AppearancePage() {
         window.location.reload();
     };
     
-    const handleViewModeChange = (mode: string) => {
-        setViewMode(mode);
-        localStorage.setItem('exploreViewMode', mode);
-        window.dispatchEvent(new CustomEvent('view-mode-changed'));
-        // Optional: reload if needed, but dynamic component should handle it
-        // window.location.reload();
-    }
-
     const themes = [
         { name: 'Gündüz', value: 'light', icon: <Sun className="w-6 h-6" /> },
         { name: 'Gece', value: 'dark', icon: <Moon className="w-6 h-6" /> },
         { name: 'Sistem', value: 'system', icon: <Laptop className="w-6 h-6" /> },
     ];
     
-    const viewModes = [
-        { name: 'Klasik Akış', value: 'classic', icon: <List className="w-6 h-6" /> },
-        { name: 'Modern Akış', value: 'immersive', icon: <Columns3 className="w-6 h-6" /> },
-    ]
-
     return (
         <Card>
             <CardHeader>
@@ -61,28 +43,6 @@ export default function AppearancePage() {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                <div>
-                    <Label className="text-base font-medium">Akış Görünümü</Label>
-                     <p className="text-sm text-muted-foreground mb-2">Ana sayfadaki gönderilerin nasıl görüneceğini seçin.</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                        {viewModes.map((v) => (
-                            <div
-                                key={v.value}
-                                className={cn('p-4 rounded-lg border-2 cursor-pointer flex flex-col items-center justify-center gap-4 transition-colors', viewMode === v.value ? 'border-primary bg-primary/10' : 'border-muted hover:border-primary/50')}
-                                onClick={() => handleViewModeChange(v.value)}
-                            >
-                                <div className="flex-1 flex items-center justify-center">{v.icon}</div>
-                                <div className="flex items-center gap-2 w-full justify-center">
-                                    <span className="font-medium text-sm">{v.name}</span>
-                                    {viewMode === v.value && <Check className="w-4 h-4 text-primary" />}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <Separator />
-                
                 <div>
                     <Label className="text-base font-medium">Tema</Label>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">

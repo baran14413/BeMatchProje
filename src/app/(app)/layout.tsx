@@ -68,8 +68,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const [isClientReady, setIsClientReady] = useState(false);
   const [isLocked, setIsLocked] = useState<boolean | null>(null);
 
-  const [exploreViewMode, setExploreViewMode] = useState<'classic' | 'immersive'>('classic');
-
    useEffect(() => {
     const lockConfig = localStorage.getItem('app-lock-config');
     if (lockConfig) {
@@ -77,11 +75,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
       setIsLocked(isEnabled);
     } else {
       setIsLocked(false);
-    }
-
-    const savedViewMode = localStorage.getItem('exploreViewMode') as 'classic' | 'immersive';
-    if (savedViewMode) {
-        setExploreViewMode(savedViewMode);
     }
 
     // Disable right-click context menu and dev tools
@@ -217,11 +210,10 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const isChatViewOpen = isChatPage && (searchParams.has('userId') || searchParams.has('conversationId'));
   const isRandomChatPage = pathname.startsWith('/random-chat');
   const isAdminPage = isClientReady && pathname.startsWith('/admin');
+  const isCreatePostPage = pathname === '/create-post';
 
   // Determine if the full screen layout should be shown (no nav bars)
-  const isImmersiveExplore = pathname === '/explore' && exploreViewMode === 'immersive';
-  const isCreatePostPage = pathname === '/create-post';
-  const isFullScreen = isClientReady && (isChatViewOpen || isAdminPage || isRandomChatPage || isImmersiveExplore || isCreatePostPage);
+  const isFullScreen = isClientReady && (isChatViewOpen || isAdminPage || isRandomChatPage || isCreatePostPage);
 
   // Show navs on most pages, but hide for full screen views
   const showNavs = isClientReady && !isFullScreen;
