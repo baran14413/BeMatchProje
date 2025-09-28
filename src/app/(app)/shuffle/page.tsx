@@ -10,7 +10,7 @@ import { Card, CardDescription, CardFooter, CardHeader, CardTitle, CardContent }
 import { cn } from '@/lib/utils';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 import { auth, db } from '@/lib/firebase';
-import { doc, getDoc, setDoc, runTransaction, increment, serverTimestamp, collection, addDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, runTransaction, increment, serverTimestamp, collection, addDoc, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { botNames, botOpenerMessages } from '@/config/bot-config';
 
