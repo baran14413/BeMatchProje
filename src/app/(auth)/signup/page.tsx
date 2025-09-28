@@ -191,7 +191,7 @@ function SignUpComponent() {
     }
 
     if (id === 'username') {
-      value = value.toLowerCase().replace(/[^a-z0-9]/g, '');
+      value = value.toLowerCase().replace(/[^a-z0-9_.]/g, '');
     }
     
     setFormData((prev) => ({ ...prev, [id]: value }));
@@ -307,7 +307,7 @@ function SignUpComponent() {
                 photoURL: user.photoURL,
             };
             sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
-            router.push('/signup?step=2&source=google');
+            router.push('/signup?step=1&source=google');
         }
 
     } catch (error: any) {
@@ -358,7 +358,7 @@ function SignUpComponent() {
     });
   };
 
-  const isStep1Invalid = !formData.firstName || !formData.lastName || !formData.username || !formData.email;
+  const isStep1Invalid = source === 'email' ? (!formData.firstName || !formData.lastName || !formData.username || !formData.email) : (!formData.username);
   const isStep2Invalid = !formData.age || !formData.gender || !formData.country || !formData.city || !formData.district || formData.hobbies.length < 3;
   const isStep3Invalid = !formData.password || formData.password !== formData.confirmPassword || passwordStrength === 'zayıf';
   const isStep4Invalid = !formData.bio;
@@ -368,9 +368,10 @@ function SignUpComponent() {
   const isNextButtonDisabled = () => {
     if (source === 'google') {
         switch (step) {
+            case 1: return isStep1Invalid;
             case 2: return isStep2Invalid;
-            case 4: return isStep4Invalid;
-            case 5: return isStep5Invalid;
+            case 3: return isStep4Invalid;
+            case 4: return isStep5Invalid;
             default: return false;
         }
     }
@@ -423,67 +424,83 @@ function SignUpComponent() {
   };
 
   const handleBack = () => {
-      if (source === 'google' && step === 2) {
+      if (source === 'google' && step === 1) {
           router.push('/login');
       } else {
           prevStep();
       }
   }
 
+  const renderEmailFlowStep1 = () => (
+    <div className="grid gap-4">
+          <Button variant="outline" type="button" onClick={handleGoogleSignIn} disabled={isFinishing || isGoogleLoading}>
+            {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 111.8 512 0 400.2 0 261.8 0 123.8 111.8 12.8 244 12.8c70.3 0 129.8 27.8 174.9 71.9l-63.5 61.9C325 110.8 287.1 89.6 244 89.6c-94.8 0-172.2 77.4-172.2 172.2s77.4 172.2 172.2 172.2c99.3 0 148.9-72.3 155.8-109.9H244V261.8h244z"></path></svg>}
+            Google ile Kayıt Ol
+        </Button>
+        <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
+                Veya e-posta ile
+                </span>
+            </div>
+        </div>
+        <div className='grid grid-cols-2 gap-4'>
+            <div className="grid gap-2">
+                <Label htmlFor="firstName">Ad</Label>
+                <Input id="firstName" placeholder="Can" value={formData.firstName} onChange={handleChange} required />
+            </div>
+            <div className="grid gap-2">
+                <Label htmlFor="lastName">Soyad</Label>
+                <Input id="lastName" placeholder="Yılmaz" value={formData.lastName} onChange={handleChange} required />
+            </div>
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="username">Kullanıcı Adı</Label>
+          <div className="relative">
+              <Input id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required />
+          </div>
+          <p className="text-xs text-muted-foreground pl-1">Sadece küçük harfler, rakamlar, '.' ve '_' kullanılabilir.</p>
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="email">E-posta</Label>
+          <div className="relative">
+              <Input id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required />
+          </div>
+        </div>
+    </div>
+  );
+
+  const renderGoogleFlowStep1 = () => (
+    <div className="grid gap-4">
+        <div className="grid gap-2">
+          <Label htmlFor="username">Kullanıcı Adı</Label>
+          <Input id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required />
+          <p className="text-xs text-muted-foreground pl-1">Sadece küçük harfler, rakamlar, '.' ve '_' kullanılabilir.</p>
+        </div>
+        <div className="grid gap-2">
+            <Label htmlFor="email">E-posta</Label>
+            <Input id="email" type="email" value={formData.email} disabled />
+        </div>
+    </div>
+  );
+
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto">
         <div className="flex flex-col items-center gap-2 mb-8 text-center">
             <AnimatedLogo className="w-24 h-24" />
-            <h1 className="text-4xl font-bold font-headline">BeMatch</h1>
+            <h1 className="text-4xl font-bold font-headline text-foreground">BeMatch</h1>
             <p className="text-muted-foreground">Yeni bir başlangıç yap.</p>
         </div>
         <Card className="w-full bg-card/80 backdrop-blur-sm border-border/20 shadow-xl">
         <CardHeader>
-            <CardTitle className="text-2xl font-headline">Hesap Oluştur</CardTitle>
+            <CardTitle className="text-2xl font-headline text-foreground">Hesap Oluştur</CardTitle>
             <Progress value={progress} className="w-full mt-2" />
         </CardHeader>
         <CardContent className="min-h-[400px]">
-            {step === 1 && (
-            <div className="grid gap-4">
-                 <Button variant="outline" type="button" onClick={handleGoogleSignIn} disabled={isFinishing || isGoogleLoading}>
-                    {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 111.8 512 0 400.2 0 261.8 0 123.8 111.8 12.8 244 12.8c70.3 0 129.8 27.8 174.9 71.9l-63.5 61.9C325 110.8 287.1 89.6 244 89.6c-94.8 0-172.2 77.4-172.2 172.2s77.4 172.2 172.2 172.2c99.3 0 148.9-72.3 155.8-109.9H244V261.8h244z"></path></svg>}
-                    Google ile Kayıt Ol
-                </Button>
-                <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-card px-2 text-muted-foreground">
-                        Veya e-posta ile
-                        </span>
-                    </div>
-                </div>
-                <div className='grid grid-cols-2 gap-4'>
-                    <div className="grid gap-2">
-                        <Label htmlFor="firstName">Ad</Label>
-                        <Input id="firstName" placeholder="Can" value={formData.firstName} onChange={handleChange} required />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="lastName">Soyad</Label>
-                        <Input id="lastName" placeholder="Yılmaz" value={formData.lastName} onChange={handleChange} required />
-                    </div>
-                </div>
-                <div className="grid gap-2">
-                <Label htmlFor="username">Kullanıcı Adı</Label>
-                <div className="relative">
-                    <Input id="username" placeholder="canyilmaz" value={formData.username} onChange={handleChange} required />
-                </div>
-                <p className="text-xs text-muted-foreground pl-1">Sadece küçük harfler ve rakamlar kullanılabilir.</p>
-                </div>
-                <div className="grid gap-2">
-                <Label htmlFor="email">E-posta</Label>
-                <div className="relative">
-                    <Input id="email" type="email" placeholder="ornek@mail.com" value={formData.email} onChange={handleChange} required />
-                </div>
-                </div>
-            </div>
-            )}
+            {step === 1 && (source === 'email' ? renderEmailFlowStep1() : renderGoogleFlowStep1())}
             {step === 2 && (
                 <div className="grid gap-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -542,7 +559,7 @@ function SignUpComponent() {
                     </div>
                 </div>
             )}
-            {step === 3 && (
+            {step === 3 && source === 'email' && (
                 <div className="grid gap-4">
                     <div className="grid gap-2 relative">
                         <Label htmlFor="password">Şifre</Label>
@@ -570,7 +587,7 @@ function SignUpComponent() {
                     {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (<p className="text-sm text-destructive">Şifreler eşleşmiyor.</p>)}
                 </div>
             )}
-            {step === 4 && (
+            {step === (source === 'google' ? 3 : 4) && (
                 <div className="space-y-2">
                     <div className="flex justify-between items-baseline">
                         <Label htmlFor="bio">Hakkımda</Label>
@@ -588,7 +605,7 @@ function SignUpComponent() {
                     />
                 </div>
             )}
-            {step === 5 && (
+            {step === (source === 'google' ? 4 : 5) && (
                 <div className="flex flex-col items-center gap-4">
                 <p className="font-medium text-center">Lütfen profil fotoğrafınızı yükleyin.</p>
                 <div
@@ -639,7 +656,7 @@ function SignUpComponent() {
                 )}
                 </div>
             )}
-            {step === 6 && (
+            {step === (source === 'google' ? 5 : 6) && (
                 <div className="flex flex-col items-center gap-4">
                 <p className="font-medium text-center">Canlılık kontrolü için lütfen kameraya bakın.</p>
                 <div className={cn(
@@ -688,7 +705,7 @@ function SignUpComponent() {
             )}
         </CardContent>
         <CardFooter className="flex justify-between">
-            {step > 1 ? (
+            {step > 1 || (source === 'google' && step ===1) ? (
             <Button variant="outline" onClick={handleBack} disabled={isFinishing}>Geri</Button>
             ) : (
                 <p className="text-sm text-muted-foreground">
@@ -698,19 +715,21 @@ function SignUpComponent() {
                     </Link>
                 </p>
             )}
-            {step < 5 ? (
-            <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>
-            ) : step === 5 ? (
-            <div className="flex gap-2">
+            
+            {(step < (source === 'google' ? 4 : 5)) ? (
+              <Button onClick={nextStep} disabled={isNextButtonDisabled()}>İleri</Button>
+            ) : (step === (source === 'google' ? 4 : 5)) ? (
+                <div className="flex gap-2">
                     <Button variant="secondary" onClick={handlePhotoSkip}>Bu Adımı Atla</Button>
                     <Button onClick={handleNextPhotoStep} disabled={moderationStatus !== 'safe'}>İleri</Button>
                 </div>
-            ) : step === 6 ? (
-                <Button onClick={handleFinishSignup} disabled={isFinishing || !termsAccepted || verificationStatus !== 'verified'}>
+            ) : (step === (source === 'google' ? 5 : 6)) ? (
+                 <Button onClick={handleFinishSignup} disabled={isFinishing || !termsAccepted || verificationStatus !== 'verified'}>
                     {isFinishing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Bitir ve Keşfet
                 </Button>
             ) : null}
+
         </CardFooter>
         </Card>
     </div>

@@ -67,7 +67,7 @@ function LoginComponent() {
         if (userDocSnap.exists()) {
              // Existing user, check if profile is complete
              const userData = userDocSnap.data();
-             if (userData.city && userData.age && userData.hobbies?.length > 0) {
+             if (userData.username && userData.city && userData.age && userData.hobbies?.length > 0) {
                  toast({
                     title: `Tekrar Hoş Geldin, ${user.displayName?.split(' ')[0]}!`,
                     className: "bg-green-500 text-white",
@@ -86,7 +86,7 @@ function LoginComponent() {
                     photoURL: user.photoURL,
                 };
                 sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
-                router.push('/signup?step=2&source=google&reason=complete_profile');
+                router.push('/signup?step=1&source=google&reason=complete_profile');
              }
         } else {
              // New user via Google, redirect to finish profile setup
@@ -101,7 +101,7 @@ function LoginComponent() {
                 photoURL: user.photoURL,
             };
             sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
-            router.push('/signup?step=2&source=google');
+            router.push('/signup?step=1&source=google');
         }
 
     } catch (error: any) {
@@ -121,13 +121,13 @@ function LoginComponent() {
     <div className="flex flex-col items-center justify-center w-full max-w-sm mx-auto">
         <div className="flex flex-col items-center gap-2 mb-8 text-center">
             <AnimatedLogo className="w-24 h-24" />
-            <h1 className="text-4xl font-bold font-headline">BeMatch</h1>
+            <h1 className="text-4xl font-bold font-headline text-foreground">BeMatch</h1>
             <p className="text-muted-foreground">Hayatının aşkını bulmaya hazır mısın?</p>
         </div>
         <Card className="w-full bg-card/80 backdrop-blur-sm border-border/20 shadow-xl">
             <form onSubmit={handleLogin}>
                 <CardHeader className="text-center">
-                <CardTitle className="text-2xl">Hesabına Giriş Yap</CardTitle>
+                <CardTitle className="text-2xl text-foreground">Hesabına Giriş Yap</CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-4">
                  <Button variant="outline" type="button" onClick={handleGoogleSignIn} disabled={isLoading || isGoogleLoading}>

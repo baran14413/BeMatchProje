@@ -271,7 +271,7 @@ const prompt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$ai$2f$genk
     output: {
         schema: ModerateImageOutputSchema
     },
-    model: 'googleai/gemini-1.5-flash',
+    model: 'googleai/gemini-1.5-flash-preview',
     system: `You are an expert image moderator for a dating application.
 You need to determine if the provided image is appropriate for a user's profile picture.
 

@@ -171,7 +171,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
                  // Check for profile completeness if it's an existing user
                 const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/tutorial');
-                if (!profileData.city || !profileData.age || !profileData.hobbies?.length) {
+                if (!profileData.username || !profileData.city || !profileData.age || !profileData.hobbies?.length) {
                   if (!isAuthPage) {
                      const googleInfo = {
                           email: user.email,
@@ -180,7 +180,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                           photoURL: user.photoURL,
                       };
                       sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
-                     router.push('/signup?step=2&source=google&reason=complete_profile');
+                     router.push('/signup?step=1&source=google&reason=complete_profile');
                      return; 
                   }
                 }
@@ -438,7 +438,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                            <Loader2 className="h-5 w-5 animate-spin" />
                          </Button>
                     ) : currentUser && (
-                       <Link href={currentUserProfile?.username ? `/profile/${currentUserProfile.username}` : `/profile/edit/personal`}>
+                       <Link href={currentUserProfile?.username ? `/profile/${currentUserProfile.username}` : `/profile/edit`}>
                          <Button variant="ghost" size="icon" className="relative rounded-full h-9 w-9">
                               <Avatar className='h-8 w-8'>
                                   {currentUserProfile?.avatarUrl && <AvatarImage src={currentUserProfile.avatarUrl}/>}
