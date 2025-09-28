@@ -75,8 +75,9 @@ if ("TURBOPACK compile-time truthy", 1) {
 }
 const clearCache = async ()=>{
     try {
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["terminate"])(db);
         // Delete the firebase app to release all resources
-        await __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2d$compat$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].app().delete();
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__["deleteApp"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__["getApp"])());
         // Unregister all service workers
         if ('serviceWorker' in navigator) {
             const registrations = await navigator.serviceWorker.getRegistrations();
@@ -88,7 +89,7 @@ const clearCache = async ()=>{
         const keys = await caches.keys();
         await Promise.all(keys.map((key)=>caches.delete(key)));
         // Clear IndexedDB for Firestore
-        const dbName = `firebase-indexeddb-main-` + firebaseConfig.appId;
+        const dbName = `firebase-indexeddb-main-` + firebaseConfig.projectId;
         const deleteRequest = indexedDB.deleteDatabase(dbName);
         return new Promise((resolve, reject)=>{
             deleteRequest.onsuccess = ()=>{

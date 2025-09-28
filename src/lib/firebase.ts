@@ -55,8 +55,9 @@ if (typeof window !== 'undefined') {
 
 export const clearCache = async () => {
     try {
+        await terminate(db);
         // Delete the firebase app to release all resources
-        await firebase.app().delete();
+        await deleteApp(getApp());
         
         // Unregister all service workers
         if ('serviceWorker' in navigator) {
@@ -71,7 +72,7 @@ export const clearCache = async () => {
         await Promise.all(keys.map(key => caches.delete(key)));
         
         // Clear IndexedDB for Firestore
-        const dbName = `firebase-indexeddb-main-` + firebaseConfig.appId;
+        const dbName = `firebase-indexeddb-main-` + firebaseConfig.projectId;
         const deleteRequest = indexedDB.deleteDatabase(dbName);
 
         return new Promise<void>((resolve, reject) => {

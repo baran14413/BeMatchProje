@@ -8,7 +8,7 @@
   "static/chunks/node_modules_@firebase_database_dist_index_esm2017_5cb37f30.js",
   "static/chunks/node_modules_framer-motion_dist_es_fa5608cd._.js",
   "static/chunks/node_modules_lottie-web_build_player_lottie_78554e39.js",
-  "static/chunks/node_modules_f028a08a._.js"
+  "static/chunks/node_modules_0056436c._.js"
 ],
     source: "dynamic"
 });
