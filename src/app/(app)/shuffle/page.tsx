@@ -2,18 +2,18 @@
 'use client';
 
 import React, { useState, useEffect, Suspense, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Loader2, Zap, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { findMatch } from '@/ai/flows/find-match-flow';
 import { auth } from '@/lib/firebase';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
 
 const SEARCH_TIMEOUT = 15; // seconds
 
-function SearchAnimation() {
+function SearchAnimation({ onCancel }: { onCancel: () => void }) {
     const [countdown, setCountdown] = useState(SEARCH_TIMEOUT);
     const [progress, setProgress] = useState(0);
 
@@ -24,10 +24,10 @@ function SearchAnimation() {
 
         const progressInterval = setInterval(() => {
             setProgress(prev => {
-                const newProgress = prev + (100 / SEARCH_TIMEOUT / 10);
+                const newProgress = prev + (100 / SEARCH_TIMEOUT);
                 return newProgress > 100 ? 100 : newProgress;
             });
-        }, 100);
+        }, 1000);
 
         return () => {
             clearInterval(timer);
@@ -59,6 +59,9 @@ function SearchAnimation() {
                     <span>Bot eşleşmesi hazırlanıyor...</span>
                  </div>
             </div>
+            <Button variant="outline" className="mt-8" onClick={onCancel}>
+                İptal
+            </Button>
         </div>
     );
 }
@@ -70,8 +73,12 @@ function ShuffleContent() {
     const currentUser = auth.currentUser;
     const { toast } = useToast();
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isSearchingRef = useRef(false);
 
-    // Cleanup timeout on component unmount
+    useEffect(() => {
+        isSearchingRef.current = isSearching;
+    }, [isSearching]);
+
     useEffect(() => {
         return () => {
             if (searchTimeoutRef.current) {
@@ -89,44 +96,37 @@ function ShuffleContent() {
         setIsSearching(true);
         
         try {
-            // First attempt: try to find an immediate match or get into the pool
             const immediateResult = await findMatch({ userId: currentUser.uid });
 
             if (immediateResult && immediateResult.conversationId) {
-                // Immediate match found!
-                toast({
-                    title: "Harika biriyle eşleştin!",
-                    description: "Sohbete yönlendiriliyorsun...",
-                });
+                toast({ title: "Harika biriyle eşleştin!", description: "Sohbete yönlendiriliyorsun..." });
                 setIsSearching(false);
                 router.push(`/random-chat/${immediateResult.conversationId}`);
                 return;
             }
-            
-            // No immediate match, now we wait for the timeout
+
+            // If no immediate match, start the timer for the bot match check.
             searchTimeoutRef.current = setTimeout(async () => {
-                 if (!isSearching) return; // Search was cancelled
-                
-                 try {
-                     // Second attempt: after timeout, this will either find a match that occurred during the wait, or create a bot match
+                if (!isSearchingRef.current) return;
+
+                try {
                     const finalResult = await findMatch({ userId: currentUser.uid });
-                    
                     if (finalResult && finalResult.conversationId) {
-                         toast({
+                        toast({
                             title: finalResult.isBotMatch ? "Sana birini bulduk!" : "Harika biriyle eşleştin!",
                             description: "Sohbete yönlendiriliyorsun...",
                         });
                         router.push(`/random-chat/${finalResult.conversationId}`);
                     } else {
-                        // This case should ideally not be reached with the new logic, but as a fallback:
-                        throw new Error("Eşleştirme sunucusundan bir yanıt alınamadı.");
+                        // This might happen if the user got matched exactly as the timer fired.
+                        // We can add a small retry or just inform the user.
+                        throw new Error("Eşleştirme sunucusundan bir yanıt alınamadı. Lütfen tekrar deneyin.");
                     }
-                 } catch (e: any) {
-                     toast({ title: "Eşleşme ararken bir hata oluştu.", description: e.message, variant: "destructive" });
-                 } finally {
-                     setIsSearching(false);
-                 }
-                 
+                } catch (e: any) {
+                    toast({ title: "Eşleşme ararken bir hata oluştu.", description: e.message, variant: "destructive" });
+                } finally {
+                    setIsSearching(false);
+                }
             }, SEARCH_TIMEOUT * 1000);
 
         } catch (error: any) {
@@ -141,18 +141,10 @@ function ShuffleContent() {
         if (searchTimeoutRef.current) {
             clearTimeout(searchTimeoutRef.current);
         }
-        // We might want to remove the user from the waiting pool here, but for simplicity, we'll let it expire or get matched.
     }
 
     if (isSearching) {
-        return (
-            <>
-                <SearchAnimation />
-                <Button variant="outline" className="mt-8" onClick={cancelSearch}>
-                    İptal
-                </Button>
-            </>
-        );
+        return <SearchAnimation onCancel={cancelSearch} />;
     }
 
     return (

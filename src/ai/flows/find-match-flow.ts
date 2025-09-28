@@ -9,7 +9,7 @@
  */
 
 import { z } from 'zod';
-import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp, FieldValue, FieldPath } from 'firebase-admin/firestore';
 import { initializeApp, getApps } from 'firebase-admin/app';
 import { botNames, botOpenerMessages } from '@/config/bot-config';
 
@@ -40,7 +40,6 @@ async function createBotMatch(userId: string): Promise<FindMatchOutput> {
     const botName = botNames[Math.floor(Math.random() * botNames.length)];
     const botAvatar = `https://avatar.iran.liara.run/public/girl?username=${botName.replace(/\s/g, '')}`;
     
-    // Use a unique ID for bot conversations that isn't dependent on sorting
     const botConvoRef = db.collection('temporaryConversations').doc();
     
     const expiresAt = new Date();
@@ -52,11 +51,9 @@ async function createBotMatch(userId: string): Promise<FindMatchOutput> {
         isBotMatch: true,
         createdAt: Timestamp.now(),
         expiresAt: Timestamp.fromDate(expiresAt),
-        // Add a users array for potential queries, although less critical for bot matches
         users: [currentUserData.uid, botId]
     });
     
-    // Add bot's opener message
     await botConvoRef.collection('messages').add({
         text: botOpenerMessages[Math.floor(Math.random() * botOpenerMessages.length)],
         senderId: botId,
@@ -73,7 +70,7 @@ export async function findMatch(input: FindMatchInput): Promise<FindMatchOutput>
     const userInPoolRef = waitingPoolCollection.doc(userId);
 
     try {
-        const matchOutput = await db.runTransaction(async (transaction) => {
+        const transactionResult = await db.runTransaction(async (transaction) => {
             const userInPoolDoc = await transaction.get(userInPoolRef);
             
             // Check if user has been waiting for more than the timeout
@@ -82,12 +79,10 @@ export async function findMatch(input: FindMatchInput): Promise<FindMatchOutput>
                 const now = new Date();
                 if (now.getTime() - waitingSince.getTime() > MATCH_TIMEOUT_SECONDS * 1000) {
                      transaction.delete(userInPoolRef);
-                     // The 'true' signals that we will create a bot match outside the transaction
-                     return { createBotMatch: true };
+                     return { shouldCreateBotMatch: true };
                 }
             }
             
-            // Look for another user to match with
             const waitingQuery = waitingPoolCollection
                 .where(FieldPath.documentId(), '!=', userId)
                 .orderBy(FieldPath.documentId())
@@ -97,18 +92,15 @@ export async function findMatch(input: FindMatchInput): Promise<FindMatchOutput>
             const waitingSnapshot = await transaction.get(waitingQuery);
 
             if (waitingSnapshot.empty) {
-                // No one is waiting. Add/update current user's entry in the pool.
                 if (!userInPoolDoc.exists) {
                      transaction.set(userInPoolRef, {
                         uid: userId,
                         waitingSince: Timestamp.now(),
                     });
                 }
-                // Return null to indicate the user is now waiting
                 return { conversationId: null, isBotMatch: false }; 
             }
             
-            // Found a waiting user. Create a real match.
             const otherUserDoc = waitingSnapshot.docs[0];
             const otherUserData = otherUserDoc.data();
 
@@ -118,7 +110,7 @@ export async function findMatch(input: FindMatchInput): Promise<FindMatchOutput>
             ]);
             
             if (!user1Doc.exists || !user2Doc.exists) {
-                throw new Error("One or both users not found in the 'users' collection.");
+                throw new Error("One or both users not found in the 'users' collection during match.");
             }
             const user1Data = user1Doc.data()!;
             const user2Data = user2Doc.data()!;
@@ -136,26 +128,23 @@ export async function findMatch(input: FindMatchInput): Promise<FindMatchOutput>
                 users: [user1Data.uid, user2Data.uid]
             });
             
-            // Remove both users from the pool
             transaction.delete(userInPoolRef);
             transaction.delete(otherUserDoc.ref);
 
-            return { conversationId: newConvoRef.id, isBotMatch: false };
+            return { conversationId: newConvoRef.id, isBotMatch: false, shouldCreateBotMatch: false };
         });
         
-        // If the transaction flagged to create a bot match, do it now.
-        if (matchOutput && (matchOutput as any).createBotMatch) {
+        if (transactionResult.shouldCreateBotMatch) {
             return await createBotMatch(userId);
         }
 
-        // Otherwise, return the result of the transaction (either a match or null)
-        return matchOutput as FindMatchOutput;
+        return transactionResult as FindMatchOutput;
 
     } catch (error: any) {
         console.error('Matchmaking flow failed:', error);
-        // Clean up user from pool just in case of an unexpected error.
+        // Ensure user is removed from pool on error.
         await userInPoolRef.delete().catch(() => {});
-        // As a last resort, give them a bot match.
-        return createBotMatch(userId);
+        // Fallback to bot match on critical failure
+        return await createBotMatch(userId);
     }
 }
