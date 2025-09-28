@@ -1320,22 +1320,18 @@ export default function ExplorePage() {
                         <div>Audio Player Here</div>
                     )}
 
-                    <div className="flex items-center justify-between p-3">
-                        <div className="flex items-center gap-4">
-                            <div className="flex flex-col items-center">
-                                <Button variant="ghost" size="icon" onClick={() => handleLikeClick(post.id)}>
-                                    <Heart className="w-6 h-6" fill={post.liked ? 'hsl(var(--primary))' : 'transparent'} stroke={post.liked ? 'hsl(var(--primary))' : 'currentColor'}/>
-                                </Button>
-                                <span className="text-xs text-muted-foreground">Beğen</span>
-                            </div>
-                             <div className="flex flex-col items-center">
-                                <Button variant="ghost" size="icon" onClick={() => handleOpenComments(post)}>
-                                    <MessageCircle className="w-6 h-6" />
-                                </Button>
-                                <span className="text-xs text-muted-foreground">Yorum</span>
-                            </div>
+                    <div className="flex items-center justify-between px-1 py-2">
+                        <div className="flex items-center">
+                            <Button variant="ghost" className={cn("rounded-full flex gap-2 group", post.liked && "text-primary")} onClick={() => handleLikeClick(post.id)}>
+                                <Heart className={cn("w-6 h-6 group-hover:fill-red-500/80 group-hover:text-red-500/80 transition-colors", post.liked && "fill-primary text-primary")} />
+                                <span className="font-semibold text-base">Beğen</span>
+                            </Button>
+                            <Button variant="ghost" className="rounded-full flex gap-2 group" onClick={() => handleOpenComments(post)}>
+                                <MessageCircle className="w-6 h-6" />
+                                <span className="font-semibold text-base">Yorum</span>
+                            </Button>
                         </div>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" className="rounded-full">
                             <Bookmark className="w-6 h-6" />
                         </Button>
                     </div>

@@ -3957,38 +3957,29 @@ function ExplorePage() {
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "flex items-center justify-between p-3",
+                                    className: "flex items-center justify-between px-1 py-2",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "flex items-center gap-4",
+                                            className: "flex items-center",
                                             children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    className: "flex flex-col items-center",
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                                    variant: "ghost",
+                                                    className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("rounded-full flex gap-2 group", post.liked && "text-primary"),
+                                                    onClick: ()=>handleLikeClick(post.id),
                                                     children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
-                                                            variant: "ghost",
-                                                            size: "icon",
-                                                            onClick: ()=>handleLikeClick(post.id),
-                                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$heart$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Heart$3e$__["Heart"], {
-                                                                className: "w-6 h-6",
-                                                                fill: post.liked ? 'hsl(var(--primary))' : 'transparent',
-                                                                stroke: post.liked ? 'hsl(var(--primary))' : 'currentColor'
-                                                            }, void 0, false, {
-                                                                fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                lineNumber: 1327,
-                                                                columnNumber: 37
-                                                            }, this)
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$heart$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Heart$3e$__["Heart"], {
+                                                            className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("w-6 h-6 group-hover:fill-red-500/80 group-hover:text-red-500/80 transition-colors", post.liked && "fill-primary text-primary")
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
                                                             lineNumber: 1326,
                                                             columnNumber: 33
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                            className: "text-xs text-muted-foreground",
+                                                            className: "font-semibold text-base",
                                                             children: "Beğen"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                            lineNumber: 1329,
+                                                            lineNumber: 1327,
                                                             columnNumber: 33
                                                         }, this)
                                                     ]
@@ -3997,38 +3988,31 @@ function ExplorePage() {
                                                     lineNumber: 1325,
                                                     columnNumber: 29
                                                 }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    className: "flex flex-col items-center",
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                                    variant: "ghost",
+                                                    className: "rounded-full flex gap-2 group",
+                                                    onClick: ()=>handleOpenComments(post),
                                                     children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
-                                                            variant: "ghost",
-                                                            size: "icon",
-                                                            onClick: ()=>handleOpenComments(post),
-                                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$message$2d$circle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__MessageCircle$3e$__["MessageCircle"], {
-                                                                className: "w-6 h-6"
-                                                            }, void 0, false, {
-                                                                fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                lineNumber: 1333,
-                                                                columnNumber: 37
-                                                            }, this)
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$message$2d$circle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__MessageCircle$3e$__["MessageCircle"], {
+                                                            className: "w-6 h-6"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                            lineNumber: 1332,
+                                                            lineNumber: 1330,
                                                             columnNumber: 33
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                            className: "text-xs text-muted-foreground",
+                                                            className: "font-semibold text-base",
                                                             children: "Yorum"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                            lineNumber: 1335,
+                                                            lineNumber: 1331,
                                                             columnNumber: 33
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1331,
-                                                    columnNumber: 30
+                                                    lineNumber: 1329,
+                                                    columnNumber: 29
                                                 }, this)
                                             ]
                                         }, void 0, true, {
@@ -4039,16 +4023,17 @@ function ExplorePage() {
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                             variant: "ghost",
                                             size: "icon",
+                                            className: "rounded-full",
                                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$bookmark$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Bookmark$3e$__["Bookmark"], {
                                                 className: "w-6 h-6"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                lineNumber: 1339,
+                                                lineNumber: 1335,
                                                 columnNumber: 29
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                            lineNumber: 1338,
+                                            lineNumber: 1334,
                                             columnNumber: 25
                                         }, this)
                                     ]
@@ -4073,25 +4058,25 @@ function ExplorePage() {
                                                                     src: liker.avatarUrl
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                    lineNumber: 1349,
+                                                                    lineNumber: 1345,
                                                                     columnNumber: 45
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AvatarFallback"], {
                                                                     children: liker.name.charAt(0)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                    lineNumber: 1350,
+                                                                    lineNumber: 1346,
                                                                     columnNumber: 45
                                                                 }, this)
                                                             ]
                                                         }, liker.uid, true, {
                                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                            lineNumber: 1348,
+                                                            lineNumber: 1344,
                                                             columnNumber: 41
                                                         }, this))
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1346,
+                                                    lineNumber: 1342,
                                                     columnNumber: 33
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4102,20 +4087,20 @@ function ExplorePage() {
                                                             children: post.likes.toLocaleString()
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                            lineNumber: 1355,
+                                                            lineNumber: 1351,
                                                             columnNumber: 37
                                                         }, this),
                                                         " beğeni"
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1354,
+                                                    lineNumber: 1350,
                                                     columnNumber: 34
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                            lineNumber: 1345,
+                                            lineNumber: 1341,
                                             columnNumber: 29
                                         }, this),
                                         post.type === 'photo' && post.caption && !post.isGalleryLocked && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4127,20 +4112,20 @@ function ExplorePage() {
                                                     children: post.user?.name
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1362,
+                                                    lineNumber: 1358,
                                                     columnNumber: 33
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(HashtagAndMentionRenderer, {
                                                     text: post.caption
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1363,
+                                                    lineNumber: 1359,
                                                     columnNumber: 33
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                            lineNumber: 1361,
+                                            lineNumber: 1357,
                                             columnNumber: 30
                                         }, this),
                                         post.commentsCount > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4152,7 +4137,7 @@ function ExplorePage() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                            lineNumber: 1367,
+                                            lineNumber: 1363,
                                             columnNumber: 30
                                         }, this),
                                         post.location && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -4163,7 +4148,7 @@ function ExplorePage() {
                                                     className: "w-3 h-3"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1373,
+                                                    lineNumber: 1369,
                                                     columnNumber: 33
                                                 }, this),
                                                 " ",
@@ -4171,13 +4156,13 @@ function ExplorePage() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                            lineNumber: 1372,
+                                            lineNumber: 1368,
                                             columnNumber: 29
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                    lineNumber: 1343,
+                                    lineNumber: 1339,
                                     columnNumber: 21
                                 }, this)
                             ]
@@ -4198,7 +4183,7 @@ function ExplorePage() {
                             children: "Henüz hiç gönderi yok."
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                            lineNumber: 1381,
+                            lineNumber: 1377,
                             columnNumber: 17
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4206,13 +4191,13 @@ function ExplorePage() {
                             children: "İlk gönderiyi paylaşan sen ol!"
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                            lineNumber: 1382,
+                            lineNumber: 1378,
                             columnNumber: 17
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                    lineNumber: 1380,
+                    lineNumber: 1376,
                     columnNumber: 14
                 }, this)
             }, void 0, false, {
@@ -4229,7 +4214,7 @@ function ExplorePage() {
                         className: "h-8 w-8"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                        lineNumber: 1388,
+                        lineNumber: 1384,
                         columnNumber: 13
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -4237,13 +4222,13 @@ function ExplorePage() {
                         children: "Yeni Gönderi Ekle"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                        lineNumber: 1389,
+                        lineNumber: 1385,
                         columnNumber: 13
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                lineNumber: 1387,
+                lineNumber: 1383,
                 columnNumber: 8
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Dialog"], {
@@ -4263,12 +4248,12 @@ function ExplorePage() {
                                         onClick: resetCreateState,
                                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$x$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__X$3e$__["X"], {}, void 0, false, {
                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                            lineNumber: 1396,
+                                            lineNumber: 1392,
                                             columnNumber: 89
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                        lineNumber: 1396,
+                                        lineNumber: 1392,
                                         columnNumber: 26
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogTitle"], {
@@ -4276,7 +4261,7 @@ function ExplorePage() {
                                         children: "Yeni Gönderi Oluştur"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                        lineNumber: 1397,
+                                        lineNumber: 1393,
                                         columnNumber: 26
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -4286,23 +4271,23 @@ function ExplorePage() {
                                             className: "h-4 w-4 animate-spin"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                            lineNumber: 1401,
+                                            lineNumber: 1397,
                                             columnNumber: 49
                                         }, this) : "Gönder"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                        lineNumber: 1400,
+                                        lineNumber: 1396,
                                         columnNumber: 26
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                lineNumber: 1395,
+                                lineNumber: 1391,
                                 columnNumber: 21
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                            lineNumber: 1394,
+                            lineNumber: 1390,
                             columnNumber: 17
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4316,20 +4301,20 @@ function ExplorePage() {
                                                 src: currentUser?.photoURL || ''
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                lineNumber: 1409,
+                                                lineNumber: 1405,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AvatarFallback"], {
                                                 children: currentUser?.displayName?.charAt(0)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                lineNumber: 1410,
+                                                lineNumber: 1406,
                                                 columnNumber: 29
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                        lineNumber: 1408,
+                                        lineNumber: 1404,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4340,7 +4325,7 @@ function ExplorePage() {
                                                 children: currentUser?.displayName
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                lineNumber: 1413,
+                                                lineNumber: 1409,
                                                 columnNumber: 29
                                             }, this),
                                             showPollCreator ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4359,7 +4344,7 @@ function ExplorePage() {
                                                                         className: "object-contain"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                        lineNumber: 1420,
+                                                                        lineNumber: 1416,
                                                                         columnNumber: 49
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -4371,18 +4356,18 @@ function ExplorePage() {
                                                                             className: "h-4 w-4"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                            lineNumber: 1422,
+                                                                            lineNumber: 1418,
                                                                             columnNumber: 53
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                        lineNumber: 1421,
+                                                                        lineNumber: 1417,
                                                                         columnNumber: 49
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                lineNumber: 1419,
+                                                                lineNumber: 1415,
                                                                 columnNumber: 45
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4394,7 +4379,7 @@ function ExplorePage() {
                                                                         children: "Anket Sorusu"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                        lineNumber: 1427,
+                                                                        lineNumber: 1423,
                                                                         columnNumber: 45
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$textarea$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Textarea"], {
@@ -4406,7 +4391,7 @@ function ExplorePage() {
                                                                         className: "w-full text-lg font-semibold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-center resize-none"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                        lineNumber: 1428,
+                                                                        lineNumber: 1424,
                                                                         columnNumber: 45
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4418,19 +4403,19 @@ function ExplorePage() {
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                        lineNumber: 1436,
+                                                                        lineNumber: 1432,
                                                                         columnNumber: 45
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                lineNumber: 1426,
+                                                                lineNumber: 1422,
                                                                 columnNumber: 42
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1417,
+                                                        lineNumber: 1413,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4450,7 +4435,7 @@ function ExplorePage() {
                                                                         }
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                        lineNumber: 1442,
+                                                                        lineNumber: 1438,
                                                                         columnNumber: 49
                                                                     }, this),
                                                                     pollOptions.length > 2 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -4461,23 +4446,23 @@ function ExplorePage() {
                                                                             className: "w-4 h-4 text-destructive"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                            lineNumber: 1451,
+                                                                            lineNumber: 1447,
                                                                             columnNumber: 186
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                        lineNumber: 1451,
+                                                                        lineNumber: 1447,
                                                                         columnNumber: 76
                                                                     }, this)
                                                                 ]
                                                             }, index, true, {
                                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                lineNumber: 1441,
+                                                                lineNumber: 1437,
                                                                 columnNumber: 45
                                                             }, this))
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1439,
+                                                        lineNumber: 1435,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4493,7 +4478,7 @@ function ExplorePage() {
                                                                 children: "Seçenek Ekle"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                lineNumber: 1456,
+                                                                lineNumber: 1452,
                                                                 columnNumber: 68
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -4505,14 +4490,14 @@ function ExplorePage() {
                                                                         className: "mr-2 h-4 w-4"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                        lineNumber: 1458,
+                                                                        lineNumber: 1454,
                                                                         columnNumber: 45
                                                                     }, this),
                                                                     "Resim Ekle"
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                lineNumber: 1457,
+                                                                lineNumber: 1453,
                                                                 columnNumber: 42
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -4523,19 +4508,19 @@ function ExplorePage() {
                                                                 className: "hidden"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                lineNumber: 1461,
+                                                                lineNumber: 1457,
                                                                 columnNumber: 41
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1455,
+                                                        lineNumber: 1451,
                                                         columnNumber: 37
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                lineNumber: 1416,
+                                                lineNumber: 1412,
                                                 columnNumber: 33
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
                                                 children: [
@@ -4546,7 +4531,7 @@ function ExplorePage() {
                                                         className: "min-h-[120px] w-full border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-lg"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1466,
+                                                        lineNumber: 1462,
                                                         columnNumber: 37
                                                     }, this),
                                                     postImage && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4560,7 +4545,7 @@ function ExplorePage() {
                                                                 className: "rounded-xl w-full h-auto object-contain"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                lineNumber: 1474,
+                                                                lineNumber: 1470,
                                                                 columnNumber: 45
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -4572,18 +4557,18 @@ function ExplorePage() {
                                                                     className: "h-4 w-4"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                    lineNumber: 1476,
+                                                                    lineNumber: 1472,
                                                                     columnNumber: 49
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                lineNumber: 1475,
+                                                                lineNumber: 1471,
                                                                 columnNumber: 45
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1473,
+                                                        lineNumber: 1469,
                                                         columnNumber: 41
                                                     }, this)
                                                 ]
@@ -4596,7 +4581,7 @@ function ExplorePage() {
                                                         className: "mr-2 h-3 w-3"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1484,
+                                                        lineNumber: 1480,
                                                         columnNumber: 37
                                                     }, this),
                                                     postLocation,
@@ -4607,35 +4592,35 @@ function ExplorePage() {
                                                             className: "h-3 w-3"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                            lineNumber: 1487,
+                                                            lineNumber: 1483,
                                                             columnNumber: 41
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1486,
+                                                        lineNumber: 1482,
                                                         columnNumber: 38
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                lineNumber: 1483,
+                                                lineNumber: 1479,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                        lineNumber: 1412,
+                                        lineNumber: 1408,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                lineNumber: 1407,
+                                lineNumber: 1403,
                                 columnNumber: 22
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                            lineNumber: 1406,
+                            lineNumber: 1402,
                             columnNumber: 17
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4670,17 +4655,17 @@ function ExplorePage() {
                                                 children: emoji
                                             }, emoji, false, {
                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                lineNumber: 1505,
+                                                lineNumber: 1501,
                                                 columnNumber: 33
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                        lineNumber: 1498,
+                                        lineNumber: 1494,
                                         columnNumber: 25
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                    lineNumber: 1496,
+                                    lineNumber: 1492,
                                     columnNumber: 21
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4698,12 +4683,12 @@ function ExplorePage() {
                                                         className: "w-6 h-6"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1512,
+                                                        lineNumber: 1508,
                                                         columnNumber: 142
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1512,
+                                                    lineNumber: 1508,
                                                     columnNumber: 29
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -4715,12 +4700,12 @@ function ExplorePage() {
                                                         className: "w-6 h-6"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1513,
+                                                        lineNumber: 1509,
                                                         columnNumber: 151
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1513,
+                                                    lineNumber: 1509,
                                                     columnNumber: 29
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -4731,7 +4716,7 @@ function ExplorePage() {
                                                     className: "hidden"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1514,
+                                                    lineNumber: 1510,
                                                     columnNumber: 29
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -4743,12 +4728,12 @@ function ExplorePage() {
                                                         className: "w-6 h-6"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1515,
+                                                        lineNumber: 1511,
                                                         columnNumber: 152
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1515,
+                                                    lineNumber: 1511,
                                                     columnNumber: 29
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -4760,12 +4745,12 @@ function ExplorePage() {
                                                         className: "w-6 h-6"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1516,
+                                                        lineNumber: 1512,
                                                         columnNumber: 145
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1516,
+                                                    lineNumber: 1512,
                                                     columnNumber: 29
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -4777,18 +4762,18 @@ function ExplorePage() {
                                                         className: "w-6 h-6"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1517,
+                                                        lineNumber: 1513,
                                                         columnNumber: 165
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1517,
+                                                    lineNumber: 1513,
                                                     columnNumber: 29
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                            lineNumber: 1511,
+                                            lineNumber: 1507,
                                             columnNumber: 25
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -4800,30 +4785,30 @@ function ExplorePage() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                            lineNumber: 1519,
+                                            lineNumber: 1515,
                                             columnNumber: 25
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                    lineNumber: 1510,
+                                    lineNumber: 1506,
                                     columnNumber: 21
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                            lineNumber: 1495,
+                            lineNumber: 1491,
                             columnNumber: 17
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                    lineNumber: 1393,
+                    lineNumber: 1389,
                     columnNumber: 13
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                lineNumber: 1392,
+                lineNumber: 1388,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Sheet"], {
@@ -4848,20 +4833,20 @@ function ExplorePage() {
                                     children: "Yorumlar"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                    lineNumber: 1529,
+                                    lineNumber: 1525,
                                     columnNumber: 21
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SheetClose"], {
                                     className: "absolute left-4 top-1/2 -translate-y-1/2"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                    lineNumber: 1530,
+                                    lineNumber: 1526,
                                     columnNumber: 21
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                            lineNumber: 1528,
+                            lineNumber: 1524,
                             columnNumber: 17
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$scroll$2d$area$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ScrollArea"], {
@@ -4874,12 +4859,12 @@ function ExplorePage() {
                                         className: "w-6 h-6 animate-spin"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                        lineNumber: 1535,
+                                        lineNumber: 1531,
                                         columnNumber: 85
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                    lineNumber: 1535,
+                                    lineNumber: 1531,
                                     columnNumber: 28
                                 }, this) : activePostForComments && activePostForComments.comments.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "space-y-4",
@@ -4887,29 +4872,29 @@ function ExplorePage() {
                                             comment: comment
                                         }, comment.id, false, {
                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                            lineNumber: 1539,
+                                            lineNumber: 1535,
                                             columnNumber: 36
                                         }, this))
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                    lineNumber: 1537,
+                                    lineNumber: 1533,
                                     columnNumber: 29
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                     className: "text-center text-muted-foreground py-10",
                                     children: "Henüz yorum yok. İlk yorumu sen yap!"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                    lineNumber: 1543,
+                                    lineNumber: 1539,
                                     columnNumber: 29
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                lineNumber: 1533,
+                                lineNumber: 1529,
                                 columnNumber: 21
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                            lineNumber: 1532,
+                            lineNumber: 1528,
                             columnNumber: 17
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4925,7 +4910,7 @@ function ExplorePage() {
                                         className: "hidden"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                        lineNumber: 1549,
+                                        lineNumber: 1545,
                                         columnNumber: 25
                                     }, this),
                                     commentImage && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4939,7 +4924,7 @@ function ExplorePage() {
                                                 className: "rounded-md"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                lineNumber: 1552,
+                                                lineNumber: 1548,
                                                 columnNumber: 33
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -4951,18 +4936,18 @@ function ExplorePage() {
                                                     className: "h-4 w-4"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1554,
+                                                    lineNumber: 1550,
                                                     columnNumber: 37
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                lineNumber: 1553,
+                                                lineNumber: 1549,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                        lineNumber: 1551,
+                                        lineNumber: 1547,
                                         columnNumber: 29
                                     }, this),
                                     replyingTo && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4975,7 +4960,7 @@ function ExplorePage() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                lineNumber: 1560,
+                                                lineNumber: 1556,
                                                 columnNumber: 33
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -4990,18 +4975,18 @@ function ExplorePage() {
                                                     className: "w-3 h-3"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1561,
+                                                    lineNumber: 1557,
                                                     columnNumber: 151
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                lineNumber: 1561,
+                                                lineNumber: 1557,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                        lineNumber: 1559,
+                                        lineNumber: 1555,
                                         columnNumber: 29
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5019,7 +5004,7 @@ function ExplorePage() {
                                                     children: emoji
                                                 }, emoji, false, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1566,
+                                                    lineNumber: 1562,
                                                     columnNumber: 33
                                                 }, this)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5031,13 +5016,13 @@ function ExplorePage() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                lineNumber: 1568,
+                                                lineNumber: 1564,
                                                 columnNumber: 29
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                        lineNumber: 1564,
+                                        lineNumber: 1560,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5051,20 +5036,20 @@ function ExplorePage() {
                                                         "data-ai-hint": "current user portrait"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1574,
+                                                        lineNumber: 1570,
                                                         columnNumber: 33
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AvatarFallback"], {
                                                         children: currentUser?.displayName?.charAt(0) || 'B'
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1575,
+                                                        lineNumber: 1571,
                                                         columnNumber: 33
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                lineNumber: 1573,
+                                                lineNumber: 1569,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5080,12 +5065,12 @@ function ExplorePage() {
                                                             className: "h-5 w-5"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                            lineNumber: 1579,
+                                                            lineNumber: 1575,
                                                             columnNumber: 37
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1578,
+                                                        lineNumber: 1574,
                                                         columnNumber: 34
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$mention$2d$textarea$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MentionTextarea"], {
@@ -5098,7 +5083,7 @@ function ExplorePage() {
                                                         className: "pl-10"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1581,
+                                                        lineNumber: 1577,
                                                         columnNumber: 33
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -5111,52 +5096,52 @@ function ExplorePage() {
                                                             className: "h-4 w-4 animate-spin"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                            lineNumber: 1591,
+                                                            lineNumber: 1587,
                                                             columnNumber: 57
                                                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$send$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Send$3e$__["Send"], {
                                                             className: "h-4 w-4"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                            lineNumber: 1591,
+                                                            lineNumber: 1587,
                                                             columnNumber: 103
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1590,
+                                                        lineNumber: 1586,
                                                         columnNumber: 33
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                lineNumber: 1577,
+                                                lineNumber: 1573,
                                                 columnNumber: 30
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                        lineNumber: 1572,
+                                        lineNumber: 1568,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                lineNumber: 1548,
+                                lineNumber: 1544,
                                 columnNumber: 22
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                            lineNumber: 1547,
+                            lineNumber: 1543,
                             columnNumber: 17
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                    lineNumber: 1527,
+                    lineNumber: 1523,
                     columnNumber: 13
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                lineNumber: 1526,
+                lineNumber: 1522,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Dialog"], {
@@ -5170,12 +5155,12 @@ function ExplorePage() {
                                 children: "Beğenenler"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                lineNumber: 1603,
+                                lineNumber: 1599,
                                 columnNumber: 21
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                            lineNumber: 1602,
+                            lineNumber: 1598,
                             columnNumber: 17
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$scroll$2d$area$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ScrollArea"], {
@@ -5188,12 +5173,12 @@ function ExplorePage() {
                                         className: "w-8 h-8 animate-spin"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                        lineNumber: 1608,
+                                        lineNumber: 1604,
                                         columnNumber: 81
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                    lineNumber: 1608,
+                                    lineNumber: 1604,
                                     columnNumber: 25
                                 }, this) : likers.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "space-y-4",
@@ -5209,20 +5194,20 @@ function ExplorePage() {
                                                             "data-ai-hint": user.name
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                            lineNumber: 1614,
+                                                            lineNumber: 1610,
                                                             columnNumber: 41
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AvatarFallback"], {
                                                             children: user.name?.charAt(0)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                            lineNumber: 1615,
+                                                            lineNumber: 1611,
                                                             columnNumber: 41
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1613,
+                                                    lineNumber: 1609,
                                                     columnNumber: 37
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -5230,46 +5215,46 @@ function ExplorePage() {
                                                     children: user.name
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                    lineNumber: 1617,
+                                                    lineNumber: 1613,
                                                     columnNumber: 37
                                                 }, this)
                                             ]
                                         }, user.uid, true, {
                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                            lineNumber: 1612,
+                                            lineNumber: 1608,
                                             columnNumber: 33
                                         }, this))
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                    lineNumber: 1610,
+                                    lineNumber: 1606,
                                     columnNumber: 25
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                     className: "text-center text-muted-foreground py-10",
                                     children: "Henüz kimse beğenmedi."
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                    lineNumber: 1622,
+                                    lineNumber: 1618,
                                     columnNumber: 25
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                lineNumber: 1606,
+                                lineNumber: 1602,
                                 columnNumber: 20
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                            lineNumber: 1605,
+                            lineNumber: 1601,
                             columnNumber: 17
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                    lineNumber: 1601,
+                    lineNumber: 1597,
                     columnNumber: 13
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                lineNumber: 1600,
+                lineNumber: 1596,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Sheet"], {
@@ -5294,26 +5279,26 @@ function ExplorePage() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                            lineNumber: 1634,
+                                            lineNumber: 1630,
                                             columnNumber: 40
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                    lineNumber: 1632,
+                                    lineNumber: 1628,
                                     columnNumber: 21
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SheetClose"], {
                                     className: "absolute left-4 top-1/2 -translate-y-1/2"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                    lineNumber: 1636,
+                                    lineNumber: 1632,
                                     columnNumber: 21
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                            lineNumber: 1631,
+                            lineNumber: 1627,
                             columnNumber: 17
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$scroll$2d$area$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ScrollArea"], {
@@ -5324,12 +5309,12 @@ function ExplorePage() {
                                     className: "w-8 h-8 animate-spin text-primary"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                    lineNumber: 1641,
+                                    lineNumber: 1637,
                                     columnNumber: 29
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                lineNumber: 1640,
+                                lineNumber: 1636,
                                 columnNumber: 25
                             }, this) : voters.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "divide-y",
@@ -5349,20 +5334,20 @@ function ExplorePage() {
                                                                 "data-ai-hint": user.name
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                lineNumber: 1649,
+                                                                lineNumber: 1645,
                                                                 columnNumber: 45
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AvatarFallback"], {
                                                                 children: user.name.charAt(0)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                lineNumber: 1650,
+                                                                lineNumber: 1646,
                                                                 columnNumber: 45
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1648,
+                                                        lineNumber: 1644,
                                                         columnNumber: 41
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5373,7 +5358,7 @@ function ExplorePage() {
                                                                 children: user.name
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                lineNumber: 1653,
+                                                                lineNumber: 1649,
                                                                 columnNumber: 45
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -5384,19 +5369,19 @@ function ExplorePage() {
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                                lineNumber: 1654,
+                                                                lineNumber: 1650,
                                                                 columnNumber: 45
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                        lineNumber: 1652,
+                                                        lineNumber: 1648,
                                                         columnNumber: 41
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                lineNumber: 1647,
+                                                lineNumber: 1643,
                                                 columnNumber: 37
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$badge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Badge"], {
@@ -5405,18 +5390,18 @@ function ExplorePage() {
                                                 children: votedOptionText
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                                lineNumber: 1657,
+                                                lineNumber: 1653,
                                                 columnNumber: 37
                                             }, this)
                                         ]
                                     }, user.uid, true, {
                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                        lineNumber: 1646,
+                                        lineNumber: 1642,
                                         columnNumber: 33
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                lineNumber: 1644,
+                                lineNumber: 1640,
                                 columnNumber: 25
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "text-center text-muted-foreground p-10 flex flex-col items-center",
@@ -5425,36 +5410,36 @@ function ExplorePage() {
                                         className: "w-12 h-12 mx-auto mb-4 text-muted-foreground/50"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                        lineNumber: 1665,
+                                        lineNumber: 1661,
                                         columnNumber: 29
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                         children: "Henüz kimse oy kullanmadı."
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                        lineNumber: 1666,
+                                        lineNumber: 1662,
                                         columnNumber: 29
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                                lineNumber: 1664,
+                                lineNumber: 1660,
                                 columnNumber: 25
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/explore/page.tsx",
-                            lineNumber: 1638,
+                            lineNumber: 1634,
                             columnNumber: 17
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/explore/page.tsx",
-                    lineNumber: 1630,
+                    lineNumber: 1626,
                     columnNumber: 13
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/explore/page.tsx",
-                lineNumber: 1629,
+                lineNumber: 1625,
                 columnNumber: 9
             }, this)
         ]
