@@ -42,12 +42,23 @@ function ShuffleContent() {
         });
     }, [api]);
     
+    // Cleanup function to run when the component unmounts or the user navigates away
+    useEffect(() => {
+        return () => {
+            if (currentUser && isSearching) {
+                deleteDoc(doc(db, 'waitingPool', currentUser.uid));
+            }
+             if (timerRef.current) {
+                clearInterval(timerRef.current);
+            }
+        };
+    }, [currentUser, isSearching]);
+
     const stopSearch = async (showToast = true) => {
         searchCancelledRef.current = true;
         setIsSearching(false);
         if (timerRef.current) clearInterval(timerRef.current);
         if (currentUser) {
-            // Clean up user from waiting pool if they cancel
             await deleteDoc(doc(db, 'waitingPool', currentUser.uid)).catch(e => console.warn("Could not clean up waiting pool:", e));
         }
         if(showToast) {
@@ -63,8 +74,7 @@ function ShuffleContent() {
 
         setIsSearching(true);
         searchCancelledRef.current = false;
-        setTimeLeft(15);
-
+        
         try {
             // First attempt: try to find a match or enter the pool
             const initialResult = await findMatch({ userId: currentUser.uid });
@@ -83,6 +93,7 @@ function ShuffleContent() {
             }
 
             // If not matched instantly, we are in the pool. Start the countdown.
+            setTimeLeft(15);
             timerRef.current = setInterval(() => {
                 setTimeLeft(prev => {
                     if (prev <= 1) {
