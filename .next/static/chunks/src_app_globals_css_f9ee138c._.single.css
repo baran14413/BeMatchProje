@@ -246,55 +246,55 @@ img, video {
 }
 
 :root {
-  --background: 48 95% 98%;
-  --foreground: 30 50% 10%;
-  --card: 48 95% 98%;
-  --card-foreground: 30 50% 10%;
-  --popover: 48 95% 98%;
-  --popover-foreground: 30 50% 10%;
-  --primary: 48 96% 59%;
-  --primary-foreground: 30 50% 10%;
-  --secondary: 48 95% 94%;
-  --secondary-foreground: 30 50% 10%;
-  --muted: 48 95% 94%;
-  --muted-foreground: 30 50% 40%;
-  --accent: 48 95% 90%;
-  --accent-foreground: 30 50% 10%;
+  --background: 0 0% 100%;
+  --foreground: 0 0% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --primary: 0 84.2% 60.2%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 96.1%;
+  --secondary-foreground: 0 0% 9%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
+  --accent: 0 0% 96.1%;
+  --accent-foreground: 0 0% 9%;
   --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 48 95% 88%;
-  --input: 48 95% 92%;
-  --ring: 48 96% 59%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 89.8%;
+  --input: 0 0% 89.8%;
+  --ring: 0 84.2% 60.2%;
   --radius: .8rem;
   --header-height: 3.5rem;
   --bottom-nav-height: 3.5rem;
-  --chart-1: 48 96% 59%;
-  --chart-2: 30 96% 59%;
+  --chart-1: 0 72% 51%;
+  --chart-2: 0 84% 60%;
   --chart-3: 197 37% 24%;
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
 }
 
 .dark {
-  --background: 30 10% 10%;
-  --foreground: 48 95% 94%;
-  --card: 30 10% 12%;
-  --card-foreground: 48 95% 94%;
-  --popover: 30 10% 8%;
-  --popover-foreground: 48 95% 94%;
-  --primary: 48 96% 59%;
-  --primary-foreground: 30 50% 10%;
-  --secondary: 30 10% 18%;
-  --secondary-foreground: 48 95% 94%;
-  --muted: 30 10% 18%;
-  --muted-foreground: 48 95% 70%;
-  --accent: 30 10% 22%;
-  --accent-foreground: 48 95% 94%;
-  --destructive: 0 63% 31%;
-  --destructive-foreground: 48 95% 94%;
-  --border: 30 10% 22%;
-  --input: 30 10% 18%;
-  --ring: 48 96% 59%;
+  --background: 0 0% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 0 0% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --popover: 0 0% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 0 72.2% 50.6%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 14.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 0 0% 14.9%;
+  --muted-foreground: 0 0% 63.9%;
+  --accent: 0 0% 14.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 14.9%;
+  --input: 0 0% 14.9%;
+  --ring: 0 72.2% 50.6%;
 }
 
 * {
@@ -632,10 +632,6 @@ img {
   margin-left: -1rem;
 }
 
-.-mt-2 {
-  margin-top: -.5rem;
-}
-
 .-mt-4 {
   margin-top: -1rem;
 }
@@ -834,10 +830,6 @@ img {
 
 .h-6 {
   height: 1.5rem;
-}
-
-.h-64 {
-  height: 16rem;
 }
 
 .h-7 {
@@ -1684,11 +1676,6 @@ img {
   border-color: hsl(var(--destructive) / .5);
 }
 
-.border-green-500 {
-  --tw-border-opacity: 1;
-  border-color: rgb(34 197 94 / var(--tw-border-opacity, 1));
-}
-
 .border-input {
   border-color: hsl(var(--input));
 }
@@ -1733,11 +1720,6 @@ img {
   border-color: rgb(192 132 252 / var(--tw-border-opacity, 1));
 }
 
-.border-red-500 {
-  --tw-border-opacity: 1;
-  border-color: rgb(239 68 68 / var(--tw-border-opacity, 1));
-}
-
 .border-transparent {
   border-color: #0000;
 }
@@ -1745,11 +1727,6 @@ img {
 .border-yellow-300 {
   --tw-border-opacity: 1;
   border-color: rgb(253 224 71 / var(--tw-border-opacity, 1));
-}
-
-.border-yellow-500 {
-  --tw-border-opacity: 1;
-  border-color: rgb(234 179 8 / var(--tw-border-opacity, 1));
 }
 
 .border-l-transparent {
@@ -2383,11 +2360,6 @@ img {
 .text-green-600 {
   --tw-text-opacity: 1;
   color: rgb(22 163 74 / var(--tw-text-opacity, 1));
-}
-
-.text-green-700 {
-  --tw-text-opacity: 1;
-  color: rgb(21 128 61 / var(--tw-text-opacity, 1));
 }
 
 .text-muted-foreground {
@@ -3540,11 +3512,6 @@ img {
 
 .dark\:to-blue-900\/20:is(.dark *) {
   --tw-gradient-to: #1e3a8a33 var(--tw-gradient-to-position);
-}
-
-.dark\:text-green-400:is(.dark *) {
-  --tw-text-opacity: 1;
-  color: rgb(74 222 128 / var(--tw-text-opacity, 1));
 }
 
 .dark\:opacity-\[0\.05\]:is(.dark *) {
