@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, Bookmark, Plus, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Crown, Trash2, Pencil, Users, Loader2, Home, Shuffle, User, Menu } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Crown, Trash2, Pencil, Users, Loader2, Home, Shuffle, User, Menu, Share2, Send } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -148,8 +148,8 @@ const ClassicView = ({ posts, loading, handleLikeClick, handleOpenComments, hand
                                     </div>
                                 )}
                                 <div className="p-4 space-y-2">
-                                    {post.type === 'text' && post.textContent && <p className="text-sm"><HashtagAndMentionRenderer text={post.textContent} /></p>}
-                                    {post.caption && <p className="text-sm"><HashtagAndMentionRenderer text={post.caption} /></p>}
+                                     {post.type === 'text' && post.textContent && <p className="text-sm"><HashtagAndMentionRenderer text={post.textContent} /></p>}
+                                     {post.caption && <p className="text-sm"><HashtagAndMentionRenderer text={post.caption} /></p>}
                                     <div className='flex items-center gap-2 pt-2'>
                                         <Button size="sm" className={cn("h-8 gap-1.5 rounded-full", post.liked && "text-red-500")} variant="secondary" onClick={() => handleLikeClick(post.id)}>
                                             <Heart className={cn("w-4 h-4", post.liked && "fill-current")} />
@@ -158,6 +158,10 @@ const ClassicView = ({ posts, loading, handleLikeClick, handleOpenComments, hand
                                         <Button size="sm" variant="secondary" className="h-8 gap-1.5 rounded-full" onClick={() => handleOpenComments(post)}>
                                             <MessageCircle className="w-4 h-4" />
                                             <span className='font-semibold'>Yorum</span>
+                                        </Button>
+                                        <Button size="sm" variant="secondary" className="h-8 gap-1.5 rounded-full">
+                                            <Share2 className="w-4 h-4" />
+                                            <span className="font-semibold">Paylaş</span>
                                         </Button>
                                         <div className='flex-1' />
                                         <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full"><Bookmark /></Button>
@@ -255,7 +259,7 @@ const ImmersiveView = ({ posts, loading, handleLikeClick, handleOpenComments, ha
                                         <div className="bg-black/40 p-3 rounded-full"><MessageCircle className="w-7 h-7" /></div>
                                         <span className="text-xs font-bold mt-1">{post.commentsCount || 0}</span>
                                     </button>
-                                    <button className="flex flex-col items-center"><div className="bg-black/40 p-3 rounded-full"><Bookmark className="w-7 h-7" /></div><span className="text-xs font-bold mt-1">Kaydet</span></button>
+                                    <button className="flex flex-col items-center"><div className="bg-black/40 p-3 rounded-full"><Send className="w-7 h-7" /></div><span className="text-xs font-bold mt-1">Paylaş</span></button>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild><button className="flex flex-col items-center"><div className="bg-black/40 p-3 rounded-full"><MoreHorizontal className="w-7 h-7" /></div></button></DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
@@ -320,8 +324,9 @@ export default function ExplorePage() {
     const [viewMode, setViewMode] = useState<'classic' | 'immersive' | null>(null);
 
      useEffect(() => {
+        // This effect runs only on the client
         const savedViewMode = localStorage.getItem('exploreViewMode') as 'classic' | 'immersive' | null;
-        setViewMode(savedViewMode || 'classic'); // Default to classic
+        setViewMode(savedViewMode || 'classic'); // Default to classic if nothing is saved
     }, []);
 
     const handleOpenComments = (post: Post) => {
@@ -390,7 +395,7 @@ export default function ExplorePage() {
     }
 
     return (
-        <>
+        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>}>
             {viewMode === 'immersive' ? (
                 <ImmersiveView posts={posts} loading={loading} handleLikeClick={handleLikeClick} handleOpenComments={handleOpenComments} handleDeletePost={handleDeletePost} showLikeAnimation={showLikeAnimation} />
             ) : (
@@ -400,6 +405,6 @@ export default function ExplorePage() {
              <Sheet open={isCommentSheetOpen} onOpenChange={setCommentSheetOpen}>
                 <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0"><SheetHeader className="text-center p-4 border-b shrink-0"><SheetTitle>Yorumlar</SheetTitle><SheetClose className="absolute left-4 top-1/2 -translate-y-1/2" /></SheetHeader><ScrollArea className="flex-1"></ScrollArea></SheetContent>
             </Sheet>
-        </>
+        </Suspense>
     );
 }
