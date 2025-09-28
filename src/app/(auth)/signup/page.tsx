@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useRef, ChangeEvent, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useRef, ChangeEvent, useEffect, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -42,10 +42,13 @@ type PasswordStrength = 'yok' | 'zayıf' | 'orta' | 'güçlü';
 type ModerationStatus = 'idle' | 'checking' | 'safe' | 'unsafe';
 type VerificationStatus = 'idle' | 'checking' | 'verified' | 'failed';
 
-export default function SignupPage() {
+function SignUpComponent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
+  
   const [step, setStep] = useState(1);
+  const [source, setSource] = useState<'email' | 'google'>('email');
 
   const [isFinishing, setIsFinishing] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -86,6 +89,35 @@ export default function SignupPage() {
   const prevStep = () => setStep((prev) => prev - 1);
   
   const googleProvider = new GoogleAuthProvider();
+
+  useEffect(() => {
+    const stepParam = searchParams.get('step');
+    const sourceParam = searchParams.get('source');
+    
+    if (sourceParam === 'google') {
+      const googleInfoStr = sessionStorage.getItem('googleSignUpInfo');
+      if (googleInfoStr) {
+        const googleInfo = JSON.parse(googleInfoStr);
+        setFormData(prev => ({
+          ...prev,
+          email: googleInfo.email,
+          firstName: googleInfo.firstName,
+          lastName: googleInfo.lastName,
+          profilePicture: googleInfo.photoURL,
+        }));
+        setSource('google');
+        if (stepParam) {
+            setStep(parseInt(stepParam, 10));
+        }
+      } else {
+        router.push('/login'); // No info, can't continue
+      }
+    } else {
+       if (stepParam) {
+            setStep(parseInt(stepParam, 10));
+        }
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     if (step === 6) {
@@ -168,33 +200,39 @@ export default function SignupPage() {
   const handleFinishSignup = async () => {
       setIsFinishing(true);
       try {
-        if (!formData.email.trim() || !formData.password.trim()) {
-            toast({ variant: "destructive", title: "Eksik Bilgi", description: "Lütfen geri giderek bilgileri doldurun." });
-            setIsFinishing(false);
-            return;
+        const currentUser = auth.currentUser;
+        
+        // Final validation before creating user
+        if (source === 'email' && (!formData.email.trim() || !formData.password.trim())) {
+             toast({ variant: "destructive", title: "Eksik Bilgi", description: "Lütfen e-posta ve şifre bilgilerinizi kontrol etmek için geri gidin." });
+             throw new Error("Missing email or password");
         }
 
         const usernameQuery = query(collection(db, 'users'), where('username', '==', formData.username));
         const usernameSnapshot = await getDocs(usernameQuery);
         if (!usernameSnapshot.empty) {
-            toast({ variant: "destructive", title: "Kullanıcı Adı Alınmış", description: "Bu kullanıcı adı zaten alınmış. Lütfen geri giderek farklı bir kullanıcı adı seçin." });
-            setIsFinishing(false);
-            return;
+             toast({ variant: "destructive", title: "Kullanıcı Adı Alınmış", description: "Bu kullanıcı adı zaten alınmış. Lütfen geri giderek farklı bir kullanıcı adı seçin." });
+             throw new Error("Username taken");
+        }
+        
+        let user;
+        if (source === 'email') {
+            const emailQuery = query(collection(db, 'users'), where('email', '==', formData.email));
+            const emailSnapshot = await getDocs(emailQuery);
+            if (!emailSnapshot.empty) {
+                toast({ variant: "destructive", title: "E-posta Kullanımda", description: "Bu e-posta adresi zaten kullanılıyor. Lütfen farklı bir e-posta ile deneyin veya giriş yapın." });
+                throw new Error("Email in use");
+            }
+            const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+            user = userCredential.user;
+        } else {
+             // User from Google should already be logged in
+             if (!currentUser) throw new Error("Google kullanıcısı bulunamadı.");
+             user = currentUser;
         }
 
-        const emailQuery = query(collection(db, 'users'), where('email', '==', formData.email));
-        const emailSnapshot = await getDocs(emailQuery);
-        if (!emailSnapshot.empty) {
-             toast({ variant: "destructive", title: "E-posta Kullanımda", description: "Bu e-posta adresi zaten kullanılıyor. Lütfen geri giderek farklı bir e-posta adresi seçin." });
-            setIsFinishing(false);
-            return;
-        }
-       
-        const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-        const user = userCredential.user;
-
-        let photoURL = '';
-        if (formData.profilePicture) {
+        let photoURL = formData.profilePicture || user.photoURL || '';
+        if (formData.profilePicture && (formData.profilePicture !== user.photoURL)) {
             const storageRef = ref(storage, `profile_pictures/${user.uid}`);
             await uploadString(storageRef, formData.profilePicture, 'data_url');
             photoURL = await getDownloadURL(storageRef);
@@ -217,6 +255,8 @@ export default function SignupPage() {
             stats: { followers: 0, following: 0 }
         });
         
+        sessionStorage.removeItem('googleSignUpInfo');
+        
         toast({
             title: "Hesap Oluşturuldu!",
             description: "Harika, aramıza hoş geldin! Uygulama turuna yönlendiriliyorsun...",
@@ -226,18 +266,13 @@ export default function SignupPage() {
 
       } catch (error: any) {
         console.error("Signup error: ", error);
-        let description = "Bir hata oluştu, lütfen bilgilerinizi kontrol edip tekrar deneyin.";
-        if (error.code === 'auth/email-already-in-use') {
-            description = "Bu e-posta adresi zaten kullanımda. Lütfen geri giderek farklı bir e-posta deneyin veya giriş yapın.";
+        if (error.code !== 'auth/email-already-in-use' && error.message !== "Username taken" && error.message !== "Email in use") {
+            toast({
+                variant: "destructive",
+                title: "Kayıt Başarısız",
+                description: "Bir hata oluştu, lütfen bilgilerinizi kontrol edip tekrar deneyin.",
+            });
         }
-        if (error.code === 'auth/invalid-email') {
-            description = "Geçersiz bir e-posta adresi girdiniz. Lütfen geri giderek düzeltin.";
-        }
-        toast({
-            variant: "destructive",
-            title: "Kayıt Başarısız",
-            description: description,
-        });
       } finally {
         setIsFinishing(false);
       }
@@ -253,34 +288,18 @@ export default function SignupPage() {
         const userDocSnap = await getDoc(userDocRef);
 
         if (!userDocSnap.exists()) {
-            // New user via Google, create a document in Firestore
-            const username = user.email?.split('@')[0].replace(/[^a-z0-9]/g, '') || `user${Date.now()}`;
-            
-            await setDoc(userDocRef, {
-                uid: user.uid,
-                name: user.displayName,
-                username: username,
+            const googleInfo = {
                 email: user.email,
-                avatarUrl: user.photoURL,
-                createdAt: serverTimestamp(),
-                isPremium: false,
-                stats: { followers: 0, following: 0 }
-                // Note: Other details like age, city etc. will be missing. 
-                // A better flow would redirect them to a "complete-profile" page.
-                // For now, we'll let them through.
-            });
-
-            toast({
-                title: "Aramıza Hoş Geldin!",
-                description: "Hesabın başarıyla oluşturuldu.",
-                className: "bg-green-500 text-white",
-            });
-            router.push('/tutorial');
-
+                firstName: user.displayName?.split(' ')[0] || '',
+                lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+                photoURL: user.photoURL,
+            };
+            sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
+            router.push('/signup?step=2&source=google');
         } else {
-             // Existing user, just log them in
              toast({
                 title: `Tekrar Hoş Geldin, ${user.displayName?.split(' ')[0]}!`,
+                description: 'Bu hesapla zaten kayıtlısınız.',
                 className: "bg-green-500 text-white",
             });
             router.push('/match');
@@ -342,6 +361,15 @@ export default function SignupPage() {
   const isStep6Invalid = verificationStatus !== 'verified';
 
   const isNextButtonDisabled = () => {
+    if (source === 'google') {
+        switch (step) {
+            case 2: return isStep2Invalid;
+            case 4: return isStep4Invalid;
+            case 5: return isStep5Invalid;
+            default: return false;
+        }
+    }
+    // email flow
     switch (step) {
         case 1: return isStep1Invalid;
         case 2: return isStep2Invalid;
@@ -371,7 +399,7 @@ export default function SignupPage() {
       }
   }
 
-  const progress = (step / 6) * 100;
+  const progress = (step / (source === 'google' ? 5 : 6)) * 100;
 
   const getPasswordStrengthColor = () => {
     switch (passwordStrength) {
@@ -389,6 +417,14 @@ export default function SignupPage() {
       return 'border-primary/50';
   };
 
+  const handleBack = () => {
+      if (source === 'google' && step === 2) {
+          router.push('/login');
+      } else {
+          prevStep();
+      }
+  }
+
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto">
         <div className="flex flex-col items-center gap-2 mb-8 text-center">
@@ -396,7 +432,7 @@ export default function SignupPage() {
             <h1 className="text-4xl font-bold font-headline">BeMatch</h1>
             <p className="text-muted-foreground">Yeni bir başlangıç yap.</p>
         </div>
-        <Card className="w-full">
+        <Card className="w-full bg-card/80 backdrop-blur-sm border-border/20 shadow-xl">
         <CardHeader>
             <CardTitle className="text-2xl font-headline">Hesap Oluştur</CardTitle>
             <Progress value={progress} className="w-full mt-2" />
@@ -413,7 +449,7 @@ export default function SignupPage() {
                         <span className="w-full border-t" />
                     </div>
                     <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground">
+                        <span className="bg-card px-2 text-muted-foreground">
                         Veya e-posta ile
                         </span>
                     </div>
@@ -648,7 +684,7 @@ export default function SignupPage() {
         </CardContent>
         <CardFooter className="flex justify-between">
             {step > 1 ? (
-            <Button variant="outline" onClick={prevStep} disabled={isFinishing}>Geri</Button>
+            <Button variant="outline" onClick={handleBack} disabled={isFinishing}>Geri</Button>
             ) : (
                 <p className="text-sm text-muted-foreground">
                     Zaten bir hesabın var mı?{' '}
@@ -674,4 +710,13 @@ export default function SignupPage() {
         </Card>
     </div>
   );
+}
+
+
+export default function SignupPage() {
+    return (
+        <Suspense fallback={<div>Yükleniyor...</div>}>
+            <SignUpComponent />
+        </Suspense>
+    )
 }

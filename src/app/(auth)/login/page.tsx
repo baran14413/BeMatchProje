@@ -65,26 +65,20 @@ export default function LoginPage() {
         const userDocSnap = await getDoc(userDocRef);
 
         if (!userDocSnap.exists()) {
-            // New user, create a document in Firestore
-            const username = user.email?.split('@')[0].replace(/[^a-z0-9]/g, '') || `user${Date.now()}`;
-            
-            await setDoc(userDocRef, {
-                uid: user.uid,
-                name: user.displayName,
-                username: username,
-                email: user.email,
-                avatarUrl: user.photoURL,
-                createdAt: serverTimestamp(),
-                isPremium: false,
-                stats: { followers: 0, following: 0 }
-            });
-
+             // New user via Google, redirect to finish profile setup
             toast({
                 title: "Aramıza Hoş Geldin!",
-                description: "Hesabın başarıyla oluşturuldu.",
-                className: "bg-green-500 text-white",
+                description: "Kaydını tamamlamak için lütfen birkaç adım daha...",
             });
-            router.push('/tutorial');
+            // Store google user info to pass to signup page
+            const googleInfo = {
+                email: user.email,
+                firstName: user.displayName?.split(' ')[0] || '',
+                lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+                photoURL: user.photoURL,
+            };
+            sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
+            router.push('/signup?step=2&source=google');
 
         } else {
              // Existing user
@@ -115,7 +109,7 @@ export default function LoginPage() {
             <h1 className="text-4xl font-bold font-headline">BeMatch</h1>
             <p className="text-muted-foreground">Hayatının aşkını bulmaya hazır mısın?</p>
         </div>
-        <Card className="w-full">
+        <Card className="w-full bg-card/80 backdrop-blur-sm border-border/20 shadow-xl">
             <form onSubmit={handleLogin}>
                 <CardHeader className="text-center">
                 <CardTitle className="text-2xl">Hesabına Giriş Yap</CardTitle>
@@ -130,7 +124,7 @@ export default function LoginPage() {
                         <span className="w-full border-t" />
                     </div>
                     <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground">
+                        <span className="bg-card px-2 text-muted-foreground">
                         Veya e-posta ile devam et
                         </span>
                     </div>
