@@ -16,10 +16,11 @@ import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Loader2, Heart } from 'lucide-react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, UserCredential } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import AnimatedLogo from '@/components/ui/animated-logo';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,7 +28,10 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  const googleProvider = new GoogleAuthProvider();
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -50,6 +54,59 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+  
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (!userDocSnap.exists()) {
+            // New user, create a document in Firestore
+            const username = user.email?.split('@')[0].replace(/[^a-z0-9]/g, '') || `user${Date.now()}`;
+            
+            await setDoc(userDocRef, {
+                uid: user.uid,
+                name: user.displayName,
+                username: username,
+                email: user.email,
+                avatarUrl: user.photoURL,
+                createdAt: serverTimestamp(),
+                isPremium: false,
+                stats: { followers: 0, following: 0 }
+            });
+
+            toast({
+                title: "Aramıza Hoş Geldin!",
+                description: "Hesabın başarıyla oluşturuldu.",
+                className: "bg-green-500 text-white",
+            });
+            router.push('/tutorial');
+
+        } else {
+             // Existing user
+             toast({
+                title: `Tekrar Hoş Geldin, ${user.displayName?.split(' ')[0]}!`,
+                className: "bg-green-500 text-white",
+            });
+            router.push('/match');
+        }
+
+    } catch (error: any) {
+        console.error("Google sign-in error", error);
+        toast({
+            variant: "destructive",
+            title: "Google ile Giriş Başarısız",
+            description: "Giriş yapılırken bir hata oluştu. Lütfen tekrar deneyin."
+        });
+    } finally {
+        setIsGoogleLoading(false);
+    }
+  };
+
 
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-sm mx-auto">
@@ -64,6 +121,20 @@ export default function LoginPage() {
                 <CardTitle className="text-2xl">Hesabına Giriş Yap</CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-4">
+                 <Button variant="outline" type="button" onClick={handleGoogleSignIn} disabled={isLoading || isGoogleLoading}>
+                    {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 111.8 512 0 400.2 0 261.8 0 123.8 111.8 12.8 244 12.8c70.3 0 129.8 27.8 174.9 71.9l-63.5 61.9C325 110.8 287.1 89.6 244 89.6c-94.8 0-172.2 77.4-172.2 172.2s77.4 172.2 172.2 172.2c99.3 0 148.9-72.3 155.8-109.9H244V261.8h244z"></path></svg>}
+                    Google ile Devam Et
+                </Button>
+                <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">
+                        Veya e-posta ile devam et
+                        </span>
+                    </div>
+                </div>
                 <div className="grid gap-2">
                     <Label htmlFor="email">E-posta</Label>
                     <Input
@@ -73,7 +144,7 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading}
+                    disabled={isLoading || isGoogleLoading}
                     />
                 </div>
                 <div className="grid gap-2">
@@ -90,7 +161,7 @@ export default function LoginPage() {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        disabled={isLoading}
+                        disabled={isLoading || isGoogleLoading}
                         />
                         <Button
                         type="button"
@@ -98,7 +169,7 @@ export default function LoginPage() {
                         size="icon"
                         className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
                         onClick={() => setShowPassword(!showPassword)}
-                        disabled={isLoading}
+                        disabled={isLoading || isGoogleLoading}
                         >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         <span className="sr-only">{showPassword ? "Şifreyi gizle" : "Şifreyi göster"}</span>
@@ -107,7 +178,7 @@ export default function LoginPage() {
                 </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
-                <Button className="w-full" type="submit" disabled={isLoading}>
+                <Button className="w-full" type="submit" disabled={isLoading || isGoogleLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Giriş Yap
                 </Button>

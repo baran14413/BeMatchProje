@@ -24,7 +24,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { moderateImage, ModerateImageOutput } from '@/ai/flows/moderate-image-flow';
 import Image from 'next/image';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { doc, setDoc, getDoc, query, collection, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { auth, db, storage } from '@/lib/firebase';
@@ -48,6 +48,7 @@ export default function SignupPage() {
   const [step, setStep] = useState(1);
 
   const [isFinishing, setIsFinishing] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -84,6 +85,7 @@ export default function SignupPage() {
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
   
+  const googleProvider = new GoogleAuthProvider();
 
   useEffect(() => {
     if (step === 6) {
@@ -241,6 +243,61 @@ export default function SignupPage() {
       }
   };
 
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (!userDocSnap.exists()) {
+            // New user via Google, create a document in Firestore
+            const username = user.email?.split('@')[0].replace(/[^a-z0-9]/g, '') || `user${Date.now()}`;
+            
+            await setDoc(userDocRef, {
+                uid: user.uid,
+                name: user.displayName,
+                username: username,
+                email: user.email,
+                avatarUrl: user.photoURL,
+                createdAt: serverTimestamp(),
+                isPremium: false,
+                stats: { followers: 0, following: 0 }
+                // Note: Other details like age, city etc. will be missing. 
+                // A better flow would redirect them to a "complete-profile" page.
+                // For now, we'll let them through.
+            });
+
+            toast({
+                title: "Aramıza Hoş Geldin!",
+                description: "Hesabın başarıyla oluşturuldu.",
+                className: "bg-green-500 text-white",
+            });
+            router.push('/tutorial');
+
+        } else {
+             // Existing user, just log them in
+             toast({
+                title: `Tekrar Hoş Geldin, ${user.displayName?.split(' ')[0]}!`,
+                className: "bg-green-500 text-white",
+            });
+            router.push('/match');
+        }
+
+    } catch (error: any) {
+        console.error("Google sign-in error", error);
+        toast({
+            variant: "destructive",
+            title: "Google ile Giriş Başarısız",
+            description: "Giriş yapılırken bir hata oluştu. Lütfen tekrar deneyin."
+        });
+    } finally {
+        setIsGoogleLoading(false);
+    }
+  };
+
   const checkPasswordStrength = (password: string) => {
     let score = 0;
     if (password.length > 8) score++;
@@ -347,6 +404,20 @@ export default function SignupPage() {
         <CardContent className="min-h-[400px]">
             {step === 1 && (
             <div className="grid gap-4">
+                 <Button variant="outline" type="button" onClick={handleGoogleSignIn} disabled={isFinishing || isGoogleLoading}>
+                    {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 111.8 512 0 400.2 0 261.8 0 123.8 111.8 12.8 244 12.8c70.3 0 129.8 27.8 174.9 71.9l-63.5 61.9C325 110.8 287.1 89.6 244 89.6c-94.8 0-172.2 77.4-172.2 172.2s77.4 172.2 172.2 172.2c99.3 0 148.9-72.3 155.8-109.9H244V261.8h244z"></path></svg>}
+                    Google ile Kayıt Ol
+                </Button>
+                <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">
+                        Veya e-posta ile
+                        </span>
+                    </div>
+                </div>
                 <div className='grid grid-cols-2 gap-4'>
                     <div className="grid gap-2">
                         <Label htmlFor="firstName">Ad</Label>

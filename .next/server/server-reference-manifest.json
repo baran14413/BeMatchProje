@@ -13,12 +13,17 @@
         "app/(app)/profile/[username]/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/profile/[username]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
+        },
+        "app/(app)/shuffle/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/shuffle/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
         }
       },
       "layer": {
         "app/(app)/explore/page": "action-browser",
         "app/(app)/match/page": "action-browser",
-        "app/(app)/profile/[username]/page": "action-browser"
+        "app/(app)/profile/[username]/page": "action-browser",
+        "app/(app)/shuffle/page": "action-browser"
       }
     },
     "406029a3f7f6235cc11d614e16894446b7b1dc86a5": {
