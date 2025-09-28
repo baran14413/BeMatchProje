@@ -137,7 +137,65 @@ export default function ExplorePage() {
         }
     };
     const handleDeletePost = (post: Post) => { /* ... */ };
-    const handleLikeClick = (postId: string) => { /* ... */ };
+    
+    const handleLikeClick = async (postId: string) => {
+      if (!currentUser) {
+        toast({ title: 'Beğenmek için giriş yapmalısınız.', variant: 'destructive' });
+        return;
+      }
+      
+      const postIndex = posts.findIndex(p => p.id === postId);
+      if (postIndex === -1) return;
+      
+      const post = posts[postIndex];
+      const newLikedState = !post.liked;
+      const newLikesCount = post.liked ? post.likes - 1 : post.likes + 1;
+      
+      // Optimistic UI update
+      const updatedPosts = [...posts];
+      updatedPosts[postIndex] = { ...post, liked: newLikedState, likes: newLikesCount };
+      setPosts(updatedPosts);
+      
+      const postRef = doc(db, 'posts', postId);
+      const likeRef = doc(postRef, 'likes', currentUser.uid);
+
+      try {
+        await runTransaction(db, async (transaction) => {
+          if (newLikedState) {
+            transaction.set(likeRef, { likedAt: serverTimestamp() });
+            transaction.update(postRef, { likes: increment(1) });
+          } else {
+            transaction.delete(likeRef);
+            transaction.update(postRef, { likes: increment(-1) });
+          }
+        });
+      } catch (error) {
+        console.error("Error toggling like:", error);
+        // Revert UI on error
+        setPosts(posts);
+        toast({ title: 'Beğenme işlemi başarısız oldu.', variant: 'destructive' });
+      }
+    };
+
+    const handleShare = async (post: Post) => {
+        const shareData = {
+            title: `BeMatch'te bir gönderi`,
+            text: post.caption || post.textContent || `Bu harika gönderiye göz at!`,
+            url: window.location.href, // Or a specific post URL if you have one
+        };
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                 // Fallback for browsers that don't support Web Share API
+                await navigator.clipboard.writeText(shareData.url);
+                toast({ title: 'Bağlantı kopyalandı!', description: 'Gönderi bağlantısı panoya kopyalandı.' });
+            }
+        } catch (error) {
+            console.error('Error sharing:', error);
+            toast({ title: 'Paylaşım başarısız oldu.', variant: 'destructive' });
+        }
+    };
 
 
     // Fetch posts data
@@ -199,7 +257,7 @@ export default function ExplorePage() {
                         <PostSkeleton />
                     ) : posts.length > 0 ? (
                         posts.map((post) => (
-                            <Card key={post.id} className="w-full overflow-hidden shadow-sm border-b rounded-none md:rounded-xl md:border">
+                            <Card key={post.id} className="w-full overflow-hidden rounded-none md:rounded-xl">
                                 <CardContent className="p-0">
                                     <div className="flex items-center justify-between p-3">
                                         <Link href={`/profile/${post.user?.username}`} className="flex items-center gap-3">
@@ -238,7 +296,7 @@ export default function ExplorePage() {
                                                 <MessageCircle className="w-4 h-4" />
                                                 <span className='font-semibold'>Yorum</span>
                                             </Button>
-                                            <Button size="sm" variant="secondary" className="h-8 gap-1.5 rounded-full">
+                                            <Button size="sm" variant="secondary" className="h-8 gap-1.5 rounded-full" onClick={() => handleShare(post)}>
                                                 <Share2 className="w-4 h-4" />
                                                 <span className="font-semibold">Paylaş</span>
                                             </Button>
@@ -268,3 +326,5 @@ export default function ExplorePage() {
         </Suspense>
     );
 }
+
+    
