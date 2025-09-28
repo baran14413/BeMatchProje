@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -22,7 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import AnimatedLogo from '@/components/ui/animated-logo';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
-export default function LoginPage() {
+function LoginComponent() {
   const router = useRouter();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
@@ -65,19 +65,35 @@ export default function LoginPage() {
         const userDocSnap = await getDoc(userDocRef);
 
         if (userDocSnap.exists()) {
-             // Existing user, log them in and redirect
-             toast({
-                title: `Tekrar Hoş Geldin, ${user.displayName?.split(' ')[0]}!`,
-                className: "bg-green-500 text-white",
-            });
-            router.push('/match');
+             // Existing user, check if profile is complete
+             const userData = userDocSnap.data();
+             if (userData.city && userData.age && userData.hobbies?.length > 0) {
+                 toast({
+                    title: `Tekrar Hoş Geldin, ${user.displayName?.split(' ')[0]}!`,
+                    className: "bg-green-500 text-white",
+                });
+                router.push('/match');
+             } else {
+                // Profile is incomplete, redirect to finish setup
+                toast({
+                    title: "Profilini Tamamla",
+                    description: "Harika, şimdi birkaç eksik bilgiyi tamamlayalım...",
+                });
+                 const googleInfo = {
+                    email: user.email,
+                    firstName: user.displayName?.split(' ')[0] || '',
+                    lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+                    photoURL: user.photoURL,
+                };
+                sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
+                router.push('/signup?step=2&source=google&reason=complete_profile');
+             }
         } else {
              // New user via Google, redirect to finish profile setup
             toast({
                 title: "Aramıza Hoş Geldin!",
                 description: "Kaydını tamamlamak için lütfen birkaç adım daha...",
             });
-            // Store google user info to pass to signup page
             const googleInfo = {
                 email: user.email,
                 firstName: user.displayName?.split(' ')[0] || '',
@@ -186,4 +202,12 @@ export default function LoginPage() {
         </Card>
     </div>
   );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div>Yükleniyor...</div>}>
+            <LoginComponent />
+        </Suspense>
+    )
 }

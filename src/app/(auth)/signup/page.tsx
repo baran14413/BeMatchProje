@@ -110,7 +110,8 @@ function SignUpComponent() {
             setStep(parseInt(stepParam, 10));
         }
       } else {
-        router.push('/login'); // No info, can't continue
+        // If we are supposed to be in a Google flow but have no info, redirect to login.
+        router.push('/login');
       }
     } else {
        if (stepParam) {
@@ -719,7 +720,7 @@ function SignUpComponent() {
 
 export default function SignupPage() {
     return (
-        <Suspense fallback={<div>Yükleniyor...</div>}>
+        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}>
             <SignUpComponent />
         </Suspense>
     )

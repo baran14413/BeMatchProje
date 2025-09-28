@@ -160,6 +160,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
       setCurrentUser(user);
       if (user) {
         setupPresence(user.uid);
+        // Only fetch profile if it's not loaded or it's a different user
         if (!currentUserProfile || currentUser?.uid !== user.uid) {
             setLoadingProfile(true);
             try {
@@ -169,23 +170,22 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 const profileData = userDocSnap.data();
 
                  // Check for profile completeness if it's an existing user
-                if (!profileData.city || !profileData.age) {
+                if (!profileData.city || !profileData.age || !profileData.hobbies?.length) {
                   // Profile is incomplete, redirect to finish signup
-                  const googleInfo = {
-                      email: user.email,
-                      firstName: user.displayName?.split(' ')[0] || '',
-                      lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
-                      photoURL: user.photoURL,
-                  };
-                  sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
-                  
-                  // Avoid redirect loop if already on signup page
-                  if (!pathname.startsWith('/signup')) {
+                  // Avoid redirect loop if already on a public/auth page
+                  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/tutorial');
+                  if (!isAuthPage) {
+                     const googleInfo = {
+                          email: user.email,
+                          firstName: user.displayName?.split(' ')[0] || '',
+                          lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+                          photoURL: user.photoURL,
+                      };
+                      sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
                      router.push('/signup?step=2&source=google&reason=complete_profile');
-                     return; // Stop further processing
+                     return; // Stop further processing to allow for redirect
                   }
                 }
-
 
                 setCurrentUserProfile(profileData);
                 if (!sessionStorage.getItem('welcomeMessageShown')) {
