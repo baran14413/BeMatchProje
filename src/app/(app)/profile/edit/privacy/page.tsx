@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -6,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { EyeOff, UserCheck, AtSign, Lock, Loader2 } from 'lucide-react';
+import { EyeOff, UserCheck, AtSign, Lock, Loader2, MessageSquareOff } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
@@ -18,6 +17,7 @@ type PrivacySettings = {
     isGalleryPrivate: boolean;
     showOnlineStatus: boolean;
     allowTagging: boolean;
+    allowMessagesFromNonFollowers: boolean;
 };
 
 const PrivacySwitch = ({ id, icon, title, description, checked, onCheckedChange }: { id: keyof PrivacySettings, icon: React.ReactNode, title: string, description: string, checked: boolean, onCheckedChange: (id: keyof PrivacySettings, checked: boolean) => void }) => (
@@ -46,7 +46,8 @@ export default function PrivacySettingsPage() {
         isPrivateAccount: false,
         isGalleryPrivate: false,
         showOnlineStatus: true,
-        allowTagging: true
+        allowTagging: true,
+        allowMessagesFromNonFollowers: true,
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -67,6 +68,7 @@ export default function PrivacySettingsPage() {
                         isGalleryPrivate: userData.isGalleryPrivate || false,
                         showOnlineStatus: userData.showOnlineStatus !== false,
                         allowTagging: userData.allowTagging !== false,
+                        allowMessagesFromNonFollowers: userData.allowMessagesFromNonFollowers !== false,
                     });
                 }
             } catch (error) {
@@ -167,6 +169,15 @@ export default function PrivacySettingsPage() {
                         />
                          <Separator />
                          <PrivacySwitch 
+                            id="allowMessagesFromNonFollowers"
+                            icon={<MessageSquareOff className="w-5 h-5 text-primary" />}
+                            title="Yabancılardan Mesaj Al"
+                            description="Kapalı olduğunda, sadece takip ettiğiniz kişiler size mesaj gönderebilir."
+                            checked={settings.allowMessagesFromNonFollowers}
+                            onCheckedChange={handleCheckedChange}
+                        />
+                         <Separator />
+                         <PrivacySwitch 
                             id="showOnlineStatus"
                             icon={<UserCheck className="w-5 h-5 text-primary" />}
                             title="Çevrimiçi Durumunu Göster"
@@ -195,5 +206,3 @@ export default function PrivacySettingsPage() {
         </Card>
     );
 }
-
-    
