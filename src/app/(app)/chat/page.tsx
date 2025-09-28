@@ -33,6 +33,7 @@ type UserData = {
     avatarUrl: string;
     isOnline: boolean;
     lastSeen?: Timestamp;
+    allowMessagesFromNonFollowers?: boolean;
 };
 
 type Message = {
@@ -135,9 +136,35 @@ export default function ChatPage() {
     if (userIdToChat && currentUser && !isRedirectingRef.current) {
         const findOrCreateConversation = async () => {
             isRedirectingRef.current = true;
-             setChatLoading(true);
+            setChatLoading(true);
             
             try {
+                // Check if the target user allows messages from non-followers
+                const targetUserDocRef = doc(db, 'users', userIdToChat);
+                const targetUserDocSnap = await getDoc(targetUserDocRef);
+
+                if (targetUserDocSnap.exists()) {
+                    const targetUserData = targetUserDocSnap.data();
+                    // Default to true if the setting doesn't exist
+                    const allowMessages = targetUserData.allowMessagesFromNonFollowers !== false;
+
+                    if (!allowMessages) {
+                        // Check if current user is a follower
+                        const followerDocRef = doc(db, 'users', userIdToChat, 'followers', currentUser.uid);
+                        const followerDocSnap = await getDoc(followerDocRef);
+                        if (!followerDocSnap.exists()) {
+                            toast({
+                                variant: "destructive",
+                                title: "Mesaj Gönderilemedi",
+                                description: "Bu kullanıcı şu anda takip etmediği kişilerden mesaj almıyor.",
+                            });
+                            router.replace('/chat');
+                            return;
+                        }
+                    }
+                }
+
+
                 const conversationId = [currentUser.uid, userIdToChat].sort().join('-');
                 const conversationRef = doc(db, 'conversations', conversationId);
                 const conversationSnap = await getDoc(conversationRef);
