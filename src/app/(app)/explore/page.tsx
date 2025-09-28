@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react
 import Image from 'next/image';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Bookmark, Plus, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Crown, Trash2, Pencil, Users, Loader2, Home, Shuffle, User, Menu, Share2, Send, X, UserCheck as UserCheckIcon, List, Grid3x3 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
@@ -30,6 +30,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { MentionTextarea } from '@/components/ui/mention-textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { AnimatePresence, motion } from 'framer-motion';
+import { buttonVariants } from '@/components/ui/button';
 
 // --- TYPE DEFINITIONS ---
 type User = {
@@ -192,21 +193,21 @@ const ClassicView = ({ posts, handleLikeClick, handleOpenComments, handleShare, 
                             </div>
                         )}
                         <div className="p-4 space-y-3">
-                             <div className='flex items-center gap-4'>
-                                <div className="flex flex-1 items-center justify-around rounded-full bg-muted/50 p-1">
-                                    <div className="flex flex-col items-center gap-1">
+                             <div className='flex items-center justify-between'>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1 p-1 pr-2 rounded-full bg-muted/50">
                                         <Button size="icon" className={cn("h-8 w-8 rounded-full", post.liked && "text-red-500 bg-red-100 dark:bg-red-900/50")} variant="ghost" onClick={() => handleLikeClick(post.id)}>
                                             <Heart className={cn("w-5 h-5", post.liked && "fill-current")} />
                                         </Button>
                                         <span className='text-xs font-semibold text-muted-foreground'>Beğeni</span>
                                     </div>
-                                    <div className="flex flex-col items-center gap-1">
+                                    <div className="flex items-center gap-1 p-1 pr-2 rounded-full bg-muted/50">
                                         <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full" onClick={() => handleOpenComments(post)}>
                                             <MessageCircle className="w-5 h-5" />
                                         </Button>
                                         <span className='text-xs font-semibold text-muted-foreground'>Yorum</span>
                                     </div>
-                                    <div className="flex flex-col items-center gap-1">
+                                    <div className="flex items-center gap-1 p-1 pr-2 rounded-full bg-muted/50">
                                         <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full" onClick={() => handleShare(post)}>
                                             <Share2 className="w-5 h-5" />
                                         </Button>
@@ -662,5 +663,7 @@ export default function ExplorePage() {
 }
 
 
+
+    
 
     
