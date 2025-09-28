@@ -45,49 +45,6 @@ const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { 
     );
 };
 
-const HeartExplosion = ({ isExploding }: { isExploding: boolean }) => {
-    const colors = ['#ff6b6b', '#f94d6a', '#f06595', '#a26af7', '#7048e8', '#4263eb'];
-    const hearts = Array.from({ length: 30 }); // Create 30 hearts
-
-    return (
-        <AnimatePresence>
-            {isExploding && (
-                <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-                    {hearts.map((_, i) => {
-                        const randomXStart = Math.random() * 100; // vw
-                        const randomXEnd = randomXStart + (Math.random() - 0.5) * 50;
-                        const randomDuration = 2 + Math.random() * 2;
-                        const randomDelay = Math.random() * 1;
-                        const randomScale = 0.5 + Math.random();
-                        const randomColor = colors[i % colors.length];
-
-                        return (
-                            <motion.div
-                                key={i}
-                                initial={{ x: `${randomXStart}vw`, y: '110vh', opacity: 1, scale: randomScale }}
-                                animate={{
-                                    x: `${randomXEnd}vw`,
-                                    y: '-10vh',
-                                    opacity: 0,
-                                }}
-                                transition={{
-                                    duration: randomDuration,
-                                    delay: randomDelay,
-                                    ease: "easeOut",
-                                }}
-                                className="absolute"
-                                style={{ color: randomColor }}
-                            >
-                                <Heart className="w-8 h-8" fill="currentColor" />
-                            </motion.div>
-                        );
-                    })}
-                </div>
-            )}
-        </AnimatePresence>
-    );
-};
-
 function LayoutContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -112,7 +69,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const [isClientReady, setIsClientReady] = useState(false);
 
   const [isLocked, setIsLocked] = useState<boolean | null>(null);
-  const [isExploding, setIsExploding] = useState(false);
 
    useEffect(() => {
     // Disable right-click context menu
@@ -353,10 +309,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
     router.push('/login');
   };
   
-  const handleLogoClick = () => {
-      setIsExploding(true);
-      setTimeout(() => setIsExploding(false), 4000);
-  };
 
   if (isLocked === null) {
       return (
@@ -371,7 +323,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
   return (
     <>
-        <HeartExplosion isExploding={isExploding} />
         <div 
             className="flex min-h-screen flex-col bg-background text-foreground"
             style={{
@@ -411,7 +362,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                               className="flex items-center gap-2"
                           >
-                             <AnimatedLogo onClick={handleLogoClick}/>
+                             <AnimatedLogo />
                              <span className='font-headline text-xl'>BeMatch</span>
                           </motion.div>
                       )}
