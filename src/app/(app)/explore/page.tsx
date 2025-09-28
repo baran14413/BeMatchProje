@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Star, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, X as XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin, ArrowLeft, Smile, Mic, ListCollapse, Music, Hash, Globe, ChevronRight, Paperclip, Crown, List as ListIcon } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, X as XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin, ArrowLeft, Smile, Mic, ListCollapse, Music, Hash, Globe, ChevronRight, Paperclip, Crown, List as ListIcon } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -186,7 +186,7 @@ export default function ExplorePage() {
     const [isLikesDialogVisible, setIsLikesDialogVisible] = useState(false);
     const [likers, setLikers] = useState<User[]>([]);
     const [isLikersLoading, setIsLikersLoading] = useState(false);
-    const [showStarAnimation, setShowStarAnimation] = useState<string | null>(null);
+    const [showLikeAnimation, setShowLikeAnimation] = useState<string | null>(null);
     
     // Voters list states
     const [isVotersSheetOpen, setIsVotersSheetOpen] = useState(false);
@@ -353,7 +353,7 @@ export default function ExplorePage() {
                 newPosts[postIndex] = post;
                 return newPosts;
             });
-            toast({ variant: 'destructive', title: 'Yıldızlama işlemi başarısız oldu.' });
+            toast({ variant: 'destructive', title: 'Beğenme işlemi başarısız oldu.' });
         }
     };
     
@@ -366,8 +366,8 @@ export default function ExplorePage() {
             handleLikeClick(postId);
         }
 
-        setShowStarAnimation(postId);
-        setTimeout(() => setShowStarAnimation(null), 800);
+        setShowLikeAnimation(postId);
+        setTimeout(() => setShowLikeAnimation(null), 800);
     }
     
     // Function to flatten the comment tree
@@ -1100,10 +1100,10 @@ export default function ExplorePage() {
                     </div>
                 </div>
                 <div className="flex flex-col items-center gap-0.5">
-                    <Star 
+                    <Heart 
                         className="w-4 h-4 cursor-pointer" 
-                        fill={comment.liked ? 'hsl(var(--yellow-400))' : 'transparent'} 
-                        stroke={comment.liked ? 'hsl(var(--yellow-400))' : 'currentColor'}
+                        fill={comment.liked ? 'hsl(var(--primary))' : 'transparent'} 
+                        stroke={comment.liked ? 'hsl(var(--primary))' : 'currentColor'}
                         onClick={() => handleCommentLikeClick(comment.id)}
                     />
                     <span className="text-xs text-muted-foreground">{comment.likes > 0 ? comment.likes : ''}</span>
@@ -1284,7 +1284,7 @@ export default function ExplorePage() {
                                 </div>
                             )}
                              <AnimatePresence>
-                                {showStarAnimation === post.id && (
+                                {showLikeAnimation === post.id && (
                                     <motion.div
                                         initial={{ scale: 0.5, opacity: 0 }}
                                         animate={{ scale: 1.2, opacity: 1 }}
@@ -1292,7 +1292,7 @@ export default function ExplorePage() {
                                         transition={{ duration: 0.4, ease: 'easeOut' }}
                                         className="absolute inset-0 flex items-center justify-center pointer-events-none"
                                     >
-                                        <Star className="w-24 h-24 text-white drop-shadow-lg" fill="white" />
+                                        <Heart className="w-24 h-24 text-white drop-shadow-lg" fill="white" />
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -1324,9 +1324,9 @@ export default function ExplorePage() {
                         <div className="flex items-center gap-4">
                             <div className="flex flex-col items-center">
                                 <Button variant="ghost" size="icon" onClick={() => handleLikeClick(post.id)}>
-                                    <Star className="w-6 h-6" fill={post.liked ? 'hsl(var(--yellow-400))' : 'transparent'} stroke={post.liked ? 'hsl(var(--yellow-400))' : 'currentColor'}/>
+                                    <Heart className="w-6 h-6" fill={post.liked ? 'hsl(var(--primary))' : 'transparent'} stroke={post.liked ? 'hsl(var(--primary))' : 'currentColor'}/>
                                 </Button>
-                                <span className="text-xs text-muted-foreground">Yıldız</span>
+                                <span className="text-xs text-muted-foreground">Beğen</span>
                             </div>
                              <div className="flex flex-col items-center">
                                 <Button variant="ghost" size="icon" onClick={() => handleOpenComments(post)}>
@@ -1352,7 +1352,7 @@ export default function ExplorePage() {
                                     ))}
                                 </div>
                                  <p className="text-muted-foreground">
-                                    <span className="font-semibold text-foreground">{post.likes.toLocaleString()}</span> yıldız
+                                    <span className="font-semibold text-foreground">{post.likes.toLocaleString()}</span> beğeni
                                 </p>
                             </div>
                         )}
@@ -1600,7 +1600,7 @@ export default function ExplorePage() {
         <Dialog open={isLikesDialogVisible} onOpenChange={setIsLikesDialogVisible}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Yıldızlayanlar</DialogTitle>
+                    <DialogTitle>Beğenenler</DialogTitle>
                 </DialogHeader>
                 <ScrollArea className="max-h-[60vh] -mx-6">
                    <div className='px-6'>
@@ -1619,7 +1619,7 @@ export default function ExplorePage() {
                             ))}
                         </div>
                     ) : (
-                        <p className="text-center text-muted-foreground py-10">Henüz kimse yıldızlamadı.</p>
+                        <p className="text-center text-muted-foreground py-10">Henüz kimse beğenmedi.</p>
                     )}
                    </div>
                 </ScrollArea>

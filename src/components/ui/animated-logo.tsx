@@ -1,8 +1,9 @@
+
 'use client';
 
 import Lottie from 'lottie-react';
 import { cn } from '@/lib/utils';
-import heartAnimation from '@/lib/animations/loaderemir.json';
+import heartAnimation from '@/lib/animations/heart-lottie.json';
 
 interface AnimatedLogoProps {
     className?: string;
