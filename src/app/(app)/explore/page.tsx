@@ -203,7 +203,7 @@ export default function ExplorePage() {
     const [postEmojis, setPostEmojis] = useState(false);
     const pollQuestionMaxLength = 150;
     
-    
+    const isMyProfile = (authorId: string) => currentUser?.uid === authorId;
 
 
     useEffect(() => {
