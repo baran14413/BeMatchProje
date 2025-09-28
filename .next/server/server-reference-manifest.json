@@ -10,6 +10,10 @@
           "moduleId": "[project]/.next-internal/server/app/(app)/explore/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/translate-text-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
         },
+        "app/(app)/location/[location]/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/location/[location]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        },
         "app/(app)/match/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/match/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
@@ -58,6 +62,7 @@
       "layer": {
         "app/(app)/chat/page": "action-browser",
         "app/(app)/explore/page": "action-browser",
+        "app/(app)/location/[location]/page": "action-browser",
         "app/(app)/match/page": "action-browser",
         "app/(app)/profile/[username]/page": "action-browser",
         "app/(app)/profile/edit/appearance/page": "action-browser",
