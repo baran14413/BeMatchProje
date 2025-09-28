@@ -2,19 +2,83 @@
 'use client';
 
 import React, { useState, useEffect, Suspense, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Loader2, Zap, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { findMatch } from '@/ai/flows/find-match-flow';
 import { auth } from '@/lib/firebase';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Progress } from '@/components/ui/progress';
+
+const SEARCH_TIMEOUT = 15; // seconds
+
+function SearchAnimation() {
+    const [countdown, setCountdown] = useState(SEARCH_TIMEOUT);
+    const [progress, setProgress] = useState(0);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCountdown(prev => (prev > 0 ? prev - 1 : 0));
+        }, 1000);
+
+        const progressInterval = setInterval(() => {
+            setProgress(prev => {
+                const newProgress = prev + (100 / SEARCH_TIMEOUT / 10);
+                return newProgress > 100 ? 100 : newProgress;
+            });
+        }, 100);
+
+        return () => {
+            clearInterval(timer);
+            clearInterval(progressInterval);
+        };
+    }, []);
+
+    return (
+        <div className="flex flex-col items-center justify-center text-center p-8 w-full max-w-md">
+            <motion.div
+                 initial={{ opacity: 0, y: -20 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ duration: 0.5 }}
+            >
+                <div className="relative w-32 h-32">
+                    <Loader2 className="w-32 h-32 text-primary/20 animate-spin-slow" />
+                    <div className="absolute inset-0 flex items-center justify-center text-4xl font-bold font-mono text-primary">
+                        {countdown}
+                    </div>
+                </div>
+            </motion.div>
+            <h2 className="text-2xl font-bold mt-6">Sana Uygun Biri Aranıyor...</h2>
+            <p className="text-muted-foreground mt-2">Bu işlem en fazla {SEARCH_TIMEOUT} saniye sürer. Lütfen bekleyin.</p>
+            
+            <div className="w-full mt-8 space-y-2">
+                 <Progress value={progress} showValue={false} className="h-2" />
+                 <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Gerçek kullanıcı aranıyor...</span>
+                    <span>Bot eşleşmesi hazırlanıyor...</span>
+                 </div>
+            </div>
+        </div>
+    );
+}
+
 
 function ShuffleContent() {
     const [isSearching, setIsSearching] = useState(false);
     const router = useRouter();
     const currentUser = auth.currentUser;
     const { toast } = useToast();
+    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Cleanup timeout on component unmount
+    useEffect(() => {
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const handleSearchClick = async () => {
         if (!currentUser) {
@@ -23,37 +87,71 @@ function ShuffleContent() {
         }
 
         setIsSearching(true);
-
+        
         try {
-            const result = await findMatch({ userId: currentUser.uid });
-            
-            if (result && result.conversationId) {
+            // First attempt: try to find an immediate match or get into the pool
+            const immediateResult = await findMatch({ userId: currentUser.uid });
+
+            if (immediateResult && immediateResult.conversationId) {
+                // Immediate match found!
                 toast({
-                    title: result.isBotMatch ? "Sana birini bulduk!" : "Harika biriyle eşleştin!",
+                    title: "Harika biriyle eşleştin!",
                     description: "Sohbete yönlendiriliyorsun...",
                 });
-                router.push(`/random-chat/${result.conversationId}`);
-            } else {
-                throw new Error("Eşleşme akışından bir sohbet ID'si dönmedi.");
+                setIsSearching(false);
+                router.push(`/random-chat/${immediateResult.conversationId}`);
+                return;
             }
+            
+            // No immediate match, now we wait for the timeout
+            searchTimeoutRef.current = setTimeout(async () => {
+                 if (!isSearching) return; // Search was cancelled
+                
+                 try {
+                     // Second attempt: after timeout, this will either find a match that occurred during the wait, or create a bot match
+                    const finalResult = await findMatch({ userId: currentUser.uid });
+                    
+                    if (finalResult && finalResult.conversationId) {
+                         toast({
+                            title: finalResult.isBotMatch ? "Sana birini bulduk!" : "Harika biriyle eşleştin!",
+                            description: "Sohbete yönlendiriliyorsun...",
+                        });
+                        router.push(`/random-chat/${finalResult.conversationId}`);
+                    } else {
+                        // This case should ideally not be reached with the new logic, but as a fallback:
+                        throw new Error("Eşleştirme sunucusundan bir yanıt alınamadı.");
+                    }
+                 } catch (e: any) {
+                     toast({ title: "Eşleşme ararken bir hata oluştu.", description: e.message, variant: "destructive" });
+                 } finally {
+                     setIsSearching(false);
+                 }
+                 
+            }, SEARCH_TIMEOUT * 1000);
 
         } catch (error: any) {
-            console.error("Error during match search: ", error);
+            console.error("Error during initial match search: ", error);
             toast({ title: "Eşleşme ararken bir hata oluştu.", description: error.message, variant: "destructive" });
             setIsSearching(false);
         }
     };
+    
+    const cancelSearch = () => {
+        setIsSearching(false);
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        // We might want to remove the user from the waiting pool here, but for simplicity, we'll let it expire or get matched.
+    }
 
     if (isSearching) {
         return (
-            <div className="flex flex-col items-center justify-center text-center p-8 w-full max-w-md">
-                <Loader2 className="w-16 h-16 text-primary animate-spin" />
-                <h2 className="text-2xl font-bold mt-6">Sana Uygun Biri Aranıyor...</h2>
-                <p className="text-muted-foreground mt-2">Bu işlem genellikle 15 saniye sürer. Lütfen bekleyin.</p>
-                 <Button variant="outline" className="mt-8" onClick={() => setIsSearching(false) /* This is a simple cancel, but won't stop the backend process */}>
+            <>
+                <SearchAnimation />
+                <Button variant="outline" className="mt-8" onClick={cancelSearch}>
                     İptal
                 </Button>
-            </div>
+            </>
         );
     }
 
@@ -89,6 +187,17 @@ export default function ShufflePage() {
     return (
         <div className="flex flex-col items-center justify-center h-full p-4 text-center relative overflow-hidden">
              <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] dark:opacity-[0.05]"></div>
+             <style>
+                {`
+                    @keyframes spin-slow {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                    }
+                    .animate-spin-slow {
+                        animation: spin-slow 3s linear infinite;
+                    }
+                `}
+             </style>
             <Suspense fallback={<Loader2 className="w-12 h-12 text-primary animate-spin" />}>
                 <ShuffleContent />
             </Suspense>
