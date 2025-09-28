@@ -278,10 +278,10 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const isCreatePage = pathname === '/create';
   const isAdminPage = isClientReady && pathname.startsWith('/admin');
   const isExplorePage = pathname === '/explore';
-  const showNavs = isClientReady && !isCreatePage && (!isChatPage || (isChatPage && !isChatViewOpen)) && !isAdminPage && !isRandomChatPage;
-  const isFullScreen = isClientReady && ((isChatPage && isChatViewOpen) || isAdminPage || isRandomChatPage);
+  const showNavs = isClientReady && !isCreatePage && (!isChatPage || (isChatPage && !isChatViewOpen)) && !isAdminPage && !isRandomChatPage && !isExplorePage;
+  const isFullScreen = isClientReady && ((isChatPage && isChatViewOpen) || isAdminPage || isRandomChatPage || isExplorePage);
   
-  const showHeader = showNavs && !isExplorePage;
+  const showHeader = showNavs;
 
 
   useEffect(() => {
@@ -354,12 +354,12 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 !showHeader && "hidden"
             )}>
                <div className="flex flex-1 items-center gap-2">
-                   <Link href="/match" className="flex items-center gap-2">
-                         <Heart className="w-6 h-6 text-red-500 fill-red-500" />
-                        <h1 className="text-2xl font-bold font-headline bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+                    <Link href="/explore" className="flex items-center gap-2">
+                        <h1 className="text-2xl font-bold font-headline bg-gradient-to-r from-red-500 to-purple-500 bg-clip-text text-transparent">
                             BeMatch
                         </h1>
-                   </Link>
+                        <Heart className="w-6 h-6 text-red-500" fill="currentColor" />
+                    </Link>
                   <AnimatePresence initial={false}>
                       {showNotification && lastNotification ? (
                           <motion.div
@@ -443,3 +443,5 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
+
+    

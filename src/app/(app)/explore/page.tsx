@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, X as XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin, ArrowLeft, Smile, Mic, ListCollapse, Music, Hash, Globe, ChevronRight, Paperclip, Crown, List as ListIcon, Users } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Plus, Send, Loader2, Languages, Lock, MoreHorizontal, EyeOff, UserX, Flag, Sparkles, Image as ImageIcon, Type, X as XIcon, Check, Wand2, Gem, Trash2, Pencil, MapPin, ArrowLeft, Smile, Mic, ListCollapse, Music, Hash, Globe, ChevronRight, Paperclip, Crown, List as ListIcon, Users, Play } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -58,14 +58,14 @@ const HashtagAndMentionRenderer = ({ text }: { text: string }) => {
             {parts.map((part, i) => {
                 if (part.startsWith('#')) {
                     return (
-                        <Link key={i} href={`/tag/${part.substring(1)}`} className="text-blue-500 hover:underline" onClick={(e) => e.stopPropagation()}>
+                        <Link key={i} href={`/tag/${part.substring(1)}`} className="text-white font-bold hover:underline" onClick={(e) => e.stopPropagation()}>
                             {part}
                         </Link>
                     );
                 }
                 if (part.startsWith('@')) {
                      return (
-                        <Link key={i} href={`/profile/${part.substring(1)}`} className="text-blue-500 hover:underline" onClick={(e) => e.stopPropagation()}>
+                        <Link key={i} href={`/profile/${part.substring(1)}`} className="text-white font-bold hover:underline" onClick={(e) => e.stopPropagation()}>
                             {part}
                         </Link>
                     );
@@ -148,26 +148,9 @@ type VoterInfo = {
 };
 
 const PostSkeleton = () => (
-    <Card className="w-full max-w-lg mx-auto">
-        <CardHeader>
-            <div className="flex items-center gap-3">
-                <Skeleton className="w-10 h-10 rounded-full" />
-                <div className="space-y-2">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-3 w-16" />
-                </div>
-            </div>
-        </CardHeader>
-        <CardContent>
-            <Skeleton className="h-4 w-full mb-2" />
-            <Skeleton className="h-4 w-3/4" />
-        </CardContent>
-        <Skeleton className="w-full aspect-square" />
-        <CardFooter className="p-2 flex justify-around">
-            <Skeleton className="h-8 w-24" />
-            <Skeleton className="h-8 w-24" />
-        </CardFooter>
-    </Card>
+    <div className="h-screen w-full flex items-center justify-center bg-muted">
+        <Loader2 className="w-12 h-12 text-primary animate-spin" />
+    </div>
 );
 
 export default function ExplorePage() {
@@ -1127,242 +1110,156 @@ export default function ExplorePage() {
     }, [activePostForComments, handleReply, toast, toggleCommentTranslation, currentUser?.uid]);
 
 
-  return (
-    <div className="w-full pb-20 md:pb-0">
-        <div className="container mx-auto max-w-lg space-y-6 pt-4">
-            {loading ? (
-                <>
-                    <PostSkeleton />
-                    <PostSkeleton />
-                </>
-            ) : posts.length > 0 ? (
-                posts.map((post) => (
-                   <Card key={post.id} className="w-full mx-auto">
-                        <AnimatePresence>
-                        {showLikeAnimation === post.id && (
-                            <motion.div
-                                initial={{ scale: 0.5, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 1.2, opacity: 0 }}
-                                transition={{ duration: 0.4, ease: 'easeOut' }}
-                                className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
-                            >
-                                <Heart className="w-24 h-24 text-red-500 drop-shadow-lg animate-pulse-heart" fill="currentColor" />
-                            </motion.div>
-                        )}
-                        </AnimatePresence>
+    return (
+    <div className="w-full h-screen bg-black text-white snap-y snap-mandatory overflow-y-scroll overflow-x-hidden">
+        {loading ? (
+            <PostSkeleton />
+        ) : posts.length > 0 ? (
+            posts.map((post) => (
+                <div key={post.id} className="h-screen w-full relative snap-center flex items-center justify-center">
+                    <AnimatePresence>
+                    {showLikeAnimation === post.id && (
+                        <motion.div
+                            initial={{ scale: 0.5, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 1.2, opacity: 0 }}
+                            transition={{ duration: 0.4, ease: 'easeOut' }}
+                            className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
+                        >
+                            <Heart className="w-24 h-24 text-red-500 drop-shadow-lg" fill="currentColor" />
+                        </motion.div>
+                    )}
+                    </AnimatePresence>
 
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <Link href={`/profile/${post.user?.username}`} className="flex items-center gap-3">
-                                    <Avatar className="w-10 h-10 border-2">
-                                        <AvatarImage src={post.user?.avatarUrl} data-ai-hint={post.user?.aiHint} />
-                                        <AvatarFallback>{post.user?.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
+                    {/* Background Content (Image/Text) */}
+                    {post.isGalleryLocked ? (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-muted">
+                            <Lock className="w-16 h-16 mb-4 text-muted-foreground"/>
+                            <p className="font-semibold text-lg text-foreground">Bu gönderi gizli</p>
+                            <p className="text-sm max-w-xs text-muted-foreground">{post.user?.name}'in gönderilerini görmek için takip etmelisiniz.</p>
+                            <Link href={`/profile/${post.user?.username}`} className="mt-4">
+                                <Button variant="default" size="sm">Profile Git</Button>
+                            </Link>
+                        </div>
+                    ) : post.type === 'photo' && post.url ? (
+                        <Image
+                            src={post.url}
+                            alt={post.caption || `Post by ${post.user?.name}`}
+                            fill
+                            className="object-contain"
+                            data-ai-hint={post.aiHint}
+                            onDoubleClick={() => handleLikeClick(post.id)}
+                        />
+                    ) : post.type === 'text' && post.textContent ? (
+                        <div className="p-8 text-center flex items-center justify-center h-full w-full bg-muted">
+                            <p className="text-2xl md:text-3xl font-bold whitespace-pre-wrap break-words max-w-xl text-foreground">
+                                <HashtagAndMentionRenderer text={post.textContent}/>
+                            </p>
+                        </div>
+                    ) : null }
+
+                    {/* Overlay UI */}
+                    <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 pointer-events-none bg-gradient-to-t from-black/50 via-transparent to-black/30">
+                        {/* Top: Header Info */}
+                        <div></div>
+
+                        {/* Bottom: Info and Actions */}
+                        <div className="flex justify-between items-end pointer-events-auto">
+                            {/* Left Side: Text Info */}
+                            <div className="flex-1 space-y-2 text-shadow-lg">
+                                <div className="flex items-center gap-3">
+                                    <Link href={`/profile/${post.user?.username}`}>
+                                        <Avatar className="w-12 h-12 border-2 border-white">
+                                            <AvatarImage src={post.user?.avatarUrl} />
+                                            <AvatarFallback>{post.user?.name?.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                    </Link>
                                     <div>
-                                        <p className="font-bold text-sm flex items-center gap-2">
+                                        <Link href={`/profile/${post.user?.username}`} className="font-bold text-base flex items-center gap-2">
                                             {post.user?.name}
-                                            {post.user?.isPremium && <Crown className="w-4 h-4 text-yellow-500" />}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">{formatRelativeTime(post.createdAt?.toDate())}</p>
+                                            {post.user?.isPremium && <Crown className="w-4 h-4 text-yellow-400 fill-yellow-400" />}
+                                        </Link>
+                                        <p className="text-sm text-white/80">{formatRelativeTime(post.createdAt?.toDate())}</p>
                                     </div>
-                                </Link>
+                                    {!isMyProfile(post.authorId) && (
+                                        <Button size="sm" variant="secondary" className="ml-2">Takip Et</Button>
+                                    )}
+                                </div>
+                                {(post.caption || post.textContent) && (
+                                    <p className="text-sm max-w-md">
+                                        <HashtagAndMentionRenderer text={post.caption || post.textContent || ''}/>
+                                    </p>
+                                )}
+                                <div className="flex items-center gap-2 text-sm">
+                                    <Music className="w-4 h-4"/>
+                                    <p>{post.user?.name} - Orijinal Ses</p>
+                                </div>
+                            </div>
+
+                            {/* Right Side: Action Buttons */}
+                            <div className="flex flex-col items-center space-y-5">
+                                <button className="flex flex-col items-center" onClick={() => handleLikeClick(post.id)}>
+                                    <div className={cn("bg-black/40 p-3 rounded-full", post.liked && "bg-red-500/80")}>
+                                        <Heart className={cn("w-7 h-7", post.liked && "fill-white text-white")} />
+                                    </div>
+                                    <span className="text-xs font-bold mt-1">{post.likes || 0}</span>
+                                </button>
+                                <button className="flex flex-col items-center" onClick={() => handleOpenComments(post)}>
+                                     <div className="bg-black/40 p-3 rounded-full">
+                                        <MessageCircle className="w-7 h-7" />
+                                    </div>
+                                    <span className="text-xs font-bold mt-1">{post.commentsCount || 0}</span>
+                                </button>
+                                <button className="flex flex-col items-center">
+                                     <div className="bg-black/40 p-3 rounded-full">
+                                        <Bookmark className="w-7 h-7" />
+                                    </div>
+                                    <span className="text-xs font-bold mt-1">Kaydet</span>
+                                </button>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
+                                        <button className="flex flex-col items-center">
+                                            <div className="bg-black/40 p-3 rounded-full">
+                                                <MoreHorizontal className="w-7 h-7" />
+                                            </div>
+                                        </button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        {post.authorId === currentUser?.uid && (
+                                     <DropdownMenuContent align="end">
+                                        {post.authorId === currentUser?.uid ? (
                                             <>
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                                            <Trash2 className="mr-2 h-4 w-4"/>
-                                                            <span>Gönderiyi Sil</span>
-                                                        </DropdownMenuItem>
-                                                    </AlertDialogTrigger>
-                                                     <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Gönderiyi Sil</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                Bu gönderiyi kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>İptal</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => handleDeletePost(post)} className={cn(buttonVariants({variant: "destructive"}))}>
-                                                                Evet, Sil
-                                                            </AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem onClick={() => handleDeletePost(post)}>
+                                                    <Trash2 className="mr-2 h-4 w-4 text-destructive"/>
+                                                    <span className="text-destructive">Gönderiyi Sil</span>
+                                                </DropdownMenuItem>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <DropdownMenuItem><Flag className="mr-2 h-4 w-4"/> Şikayet Et</DropdownMenuItem>
+                                                <DropdownMenuItem><EyeOff className="mr-2 h-4 w-4"/> Bu Gönderiyi Gizle</DropdownMenuItem>
+                                                <DropdownMenuItem><UserX className="mr-2 h-4 w-4"/> {post.user?.name} Adlı Kullanıcıyı Engelle</DropdownMenuItem>
                                             </>
                                         )}
-                                        <DropdownMenuItem><Flag className="mr-2 h-4 w-4"/> Şikayet Et</DropdownMenuItem>
-                                        <DropdownMenuItem><EyeOff className="mr-2 h-4 w-4"/> Bu Gönderiyi Gizle</DropdownMenuItem>
-                                        <DropdownMenuItem><UserX className="mr-2 h-4 w-4"/> {post.user?.name} Adlı Kullanıcıyı Engelle</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
-                        </CardHeader>
-                        
-                        <CardContent>
-                             {post.isGalleryLocked ? (
-                                <div className="relative aspect-video flex flex-col items-center justify-center text-center p-6 bg-muted rounded-lg overflow-hidden">
-                                     <Image
-                                        src={post.url!}
-                                        alt={`Post by ${post.user?.name}`}
-                                        fill
-                                        className="object-cover blur-lg scale-110"
-                                        data-ai-hint={post.aiHint}
-                                    />
-                                    <div className="absolute inset-0 bg-black/30"></div>
-                                    <div className="relative z-10 flex flex-col items-center text-white">
-                                        <Lock className="w-10 h-10 mb-2"/>
-                                        <p className="font-semibold">Bu gönderi gizli</p>
-                                        <p className="text-xs max-w-xs">{post.user?.name}'in gönderilerini görmek için takip etmelisiniz.</p>
-                                         <Link href={`/profile/${post.user?.username}`} className="mt-4">
-                                            <Button variant="secondary" size="sm">Profile Git</Button>
-                                        </Link>
-                                    </div>
-                                </div>
-                             ) : post.type === 'photo' && post.url ? (
-                                <div className="relative w-full aspect-video rounded-lg overflow-hidden" onDoubleClick={() => handleLikeClick(post.id)}>
-                                    <Image
-                                        src={post.url}
-                                        alt={`Post by ${post.user?.name}`}
-                                        fill
-                                        className="object-cover"
-                                        data-ai-hint={post.aiHint}
-                                    />
-                                </div>
-                            ) : post.type === 'text' && post.textContent ? (
-                                <div>
-                                     <p className="text-base whitespace-pre-wrap break-words mb-2"><HashtagAndMentionRenderer text={post.textContent}/></p>
-                                     {(post.lang && post.lang !== 'tr') && (
-                                        <Button variant="ghost" size="sm" onClick={() => togglePostTranslation(post)} disabled={post.isTranslating}>
-                                            {post.isTranslating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Languages className="mr-2 h-4 w-4"/>}
-                                            {post.isTranslating ? "Çevriliyor..." : post.isTranslated ? 'Orijinalini Gör' : 'Çeviriyi Gör'}
-                                        </Button>
-                                     )}
-                                </div>
-                            ) : post.poll ? (
-                                <div className="space-y-3">
-                                    <div className='relative'>
-                                         {post.poll.imageUrl && (
-                                            <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-2">
-                                                <Image src={post.poll.imageUrl} alt="Anket görseli" layout="fill" className="object-cover" />
-                                                <div className="absolute inset-0 bg-black/40"></div>
-                                            </div>
-                                         )}
-                                        <h4 className={cn("font-semibold text-lg text-center", post.poll.imageUrl && "absolute bottom-4 left-4 text-white")}>{post.poll.question}</h4>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        {post.poll.options.map((option, index) => {
-                                            const hasVoted = post.poll?.voters && currentUser && post.poll.voters[currentUser.uid] !== undefined;
-                                            const isMyVote = hasVoted && post.poll?.voters![currentUser.uid] === index;
-                                            const percentage = post.poll.totalVotes > 0 ? (option.votes / post.poll.totalVotes) * 100 : 0;
-
-                                            return (
-                                                <Button
-                                                    key={index}
-                                                    variant="outline"
-                                                    className="w-full h-auto justify-start p-0 overflow-hidden relative"
-                                                    onClick={() => handleVote(post, index)}
-                                                    disabled={hasVoted}
-                                                >
-                                                    <div
-                                                        className={cn("absolute left-0 top-0 h-full bg-primary/20", isMyVote ? "bg-primary/40" : "")}
-                                                        style={{ width: hasVoted ? `${percentage}%` : '0%' }}
-                                                    />
-                                                    <div className="relative z-10 flex items-center justify-between w-full p-3">
-                                                         <div className='flex items-center'>
-                                                            {isMyVote && <Check className="w-4 h-4 mr-2 text-primary" />}
-                                                            <span className="font-medium">{option.text}</span>
-                                                        </div>
-                                                        {hasVoted && <span className="text-sm font-semibold">{Math.round(percentage)}%</span>}
-                                                    </div>
-                                                </Button>
-                                            );
-                                        })}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground flex justify-between">
-                                        <button onClick={() => handleOpenVoters(post)} className="hover:underline">{post.poll.totalVotes} oy</button>
-                                        <span>Anket sona erdi.</span>
-                                    </div>
-                                </div>
-                            ): null}
-                        </CardContent>
-                         {!post.isGalleryLocked && (
-                            <CardFooter className="flex-col items-start gap-3 p-4">
-                                <div className="flex w-full justify-between items-center">
-                                    <div className="flex gap-2">
-                                        <Button 
-                                            variant="ghost" 
-                                            className="h-10 px-3 flex items-center gap-2 rounded-full"
-                                            onClick={() => handleLikeClick(post.id)}
-                                        >
-                                            <Heart className={cn("w-6 h-6", post.liked && "text-red-500 fill-red-500")} />
-                                            <span className={cn("font-semibold", post.liked && "text-red-500")}>Beğen</span>
-                                        </Button>
-                                        <Button variant="ghost" className="h-10 px-3 flex items-center gap-2 rounded-full" onClick={() => handleOpenComments(post)}>
-                                            <MessageCircle className="w-6 h-6" />
-                                            <span className="font-semibold">Yorum</span>
-                                        </Button>
-                                    </div>
-                                    <Button variant="ghost" size="icon" className="rounded-full">
-                                        <Bookmark className="w-6 h-6"/>
-                                    </Button>
-                                </div>
-                                
-                                {post.likes > 0 && (
-                                     <button onClick={() => handleOpenLikes(post.id)} className="flex items-center -space-x-2">
-                                        {post.recentLikers.slice(0, 3).map(liker => (
-                                             <Avatar key={liker.uid} className="w-5 h-5 border-2 border-background">
-                                                <AvatarImage src={liker.avatarUrl} data-ai-hint={liker.name}/>
-                                                <AvatarFallback>{liker.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                        ))}
-                                         <span className="pl-3 text-xs text-muted-foreground">
-                                             {post.recentLikers[0]?.name.split(' ')[0]} ve {post.likes - 1} diğer kişi beğendi
-                                        </span>
-                                    </button>
-                                )}
-
-                                {post.caption && (
-                                    <div className="text-sm whitespace-pre-wrap break-words pt-1">
-                                        <Link href={`/profile/${post.user?.username}`} className="font-bold mr-1">{post.user?.name.split(' ')[0]}</Link>
-                                        <HashtagAndMentionRenderer text={post.caption}/>
-                                    </div>
-                                )}
-                                
-                                {post.commentsCount > 0 && (
-                                    <button onClick={() => handleOpenComments(post)} className="text-sm text-muted-foreground font-semibold">
-                                        {post.commentsCount} yorumun tümünü gör
-                                    </button>
-                                )}
-
-                            </CardFooter>
-                         )}
-                    </Card>
-                ))
-            ) : (
-                !loading && (
-                    <div className="text-center text-muted-foreground py-20 col-span-full">
-                        <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50"/>
-                        <p className="text-lg font-semibold">Henüz hiç gönderi yok.</p>
-                        <p className="text-sm">Takip ettiğiniz kişiler veya sizin için önerilenler burada görünecek.</p>
-                         <Button className="mt-4" onClick={handleCreatePost}>
-                            <Plus className="mr-2 h-4 w-4" /> İlk Gönderiyi Paylaş
-                        </Button>
+                        </div>
                     </div>
-                )
-            )}
-        </div>
+                </div>
+            ))
+        ) : (
+            !loading && (
+                <div className="h-screen w-full flex flex-col items-center justify-center text-center text-muted-foreground">
+                    <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50"/>
+                    <p className="text-lg font-semibold">Henüz hiç gönderi yok.</p>
+                    <p className="text-sm">Takip ettiğiniz kişiler veya sizin için önerilenler burada görünecek.</p>
+                    <Button className="mt-4" onClick={handleCreatePost}>
+                        <Plus className="mr-2 h-4 w-4" /> İlk Gönderiyi Paylaş
+                    </Button>
+                </div>
+            )
+        )}
       
-       <Button className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg md:hidden" size="icon" onClick={handleCreatePost}>
+       <Button className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg md:hidden z-20" size="icon" onClick={handleCreatePost}>
             <Plus className="h-8 w-8" />
             <span className="sr-only">Yeni Gönderi Ekle</span>
        </Button>
@@ -1650,3 +1547,5 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    
