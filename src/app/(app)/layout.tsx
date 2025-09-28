@@ -27,7 +27,6 @@ import { useRouter } from 'next/navigation';
 import { logActivity } from '@/ai/flows/log-activity-flow';
 import { motion, AnimatePresence } from 'framer-motion';
 import AppLockScreen from '@/components/ui/app-lock-screen';
-import AnimatedLogo from '@/components/ui/animated-logo';
 
 const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, isActive: boolean, hasNotification?: boolean }) => {
     return (
@@ -350,10 +349,12 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 isScrolling && "-translate-y-full"
             )}>
                <div className="flex flex-1 items-center gap-2">
-                    <div className="flex items-center gap-1">
-                        <AnimatedLogo />
-                        <span className='font-headline text-xl'>BeMatch</span>
-                    </div>
+                   <Link href="/match" className="flex items-center gap-2">
+                        <Heart className="w-6 h-6 text-primary animate-pulse-heart" fill="hsl(var(--primary))"/>
+                        <h1 className="text-2xl font-bold font-headline bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+                            BeMatch
+                        </h1>
+                   </Link>
                   <AnimatePresence initial={false}>
                       {showNotification && lastNotification ? (
                           <motion.div
@@ -437,5 +438,3 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
-
-    
