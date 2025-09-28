@@ -1108,6 +1108,14 @@ img {
   width: 1px;
 }
 
+.w-\[200px\] {
+  width: 200px;
+}
+
+.w-\[250px\] {
+  width: 250px;
+}
+
 .min-w-0 {
   min-width: 0;
 }
@@ -2073,6 +2081,10 @@ img {
   --tw-gradient-to: #0000004d var(--tw-gradient-to-position);
 }
 
+.to-black\/40 {
+  --tw-gradient-to: #0006 var(--tw-gradient-to-position);
+}
+
 .bg-clip-text {
   background-clip: text;
 }
@@ -2314,6 +2326,14 @@ img {
 
 .pl-3 {
   padding-left: .75rem;
+}
+
+.pr-12 {
+  padding-right: 3rem;
+}
+
+.pt-2 {
+  padding-top: .5rem;
 }
 
 .text-left {

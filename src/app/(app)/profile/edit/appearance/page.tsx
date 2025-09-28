@@ -3,7 +3,7 @@
 
 import { useTheme } from 'next-themes';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Check, Sun, Moon, Laptop, EyeOff } from 'lucide-react';
+import { Check, Sun, Moon, Laptop, EyeOff, List, Columns3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -13,28 +13,44 @@ import { useState, useEffect } from 'react';
 export default function AppearancePage() {
     const { theme, setTheme } = useTheme();
     const [animationsDisabled, setAnimationsDisabled] = useState(false);
+    const [viewMode, setViewMode] = useState('classic');
 
     useEffect(() => {
-        const storedPreference = localStorage.getItem('disableAnimations');
-        if (storedPreference === 'true') {
+        const storedAnimationPref = localStorage.getItem('disableAnimations');
+        if (storedAnimationPref === 'true') {
             setAnimationsDisabled(true);
+        }
+        const savedViewMode = localStorage.getItem('exploreViewMode');
+        if (savedViewMode) {
+            setViewMode(savedViewMode);
         }
     }, []);
 
     const handleAnimationToggle = (checked: boolean) => {
         setAnimationsDisabled(checked);
         localStorage.setItem('disableAnimations', String(checked));
-        // Optional: Dispatch a custom event to notify other components immediately
         window.dispatchEvent(new CustomEvent('animation-preference-changed'));
-         // Reload to apply changes immediately across the layout
         window.location.reload();
     };
+    
+    const handleViewModeChange = (mode: string) => {
+        setViewMode(mode);
+        localStorage.setItem('exploreViewMode', mode);
+        window.dispatchEvent(new CustomEvent('view-mode-changed'));
+        // Optional: reload if needed, but dynamic component should handle it
+        // window.location.reload();
+    }
 
     const themes = [
         { name: 'Gündüz', value: 'light', icon: <Sun className="w-6 h-6" /> },
         { name: 'Gece', value: 'dark', icon: <Moon className="w-6 h-6" /> },
         { name: 'Sistem', value: 'system', icon: <Laptop className="w-6 h-6" /> },
     ];
+    
+    const viewModes = [
+        { name: 'Klasik Akış', value: 'classic', icon: <List className="w-6 h-6" /> },
+        { name: 'Modern Akış', value: 'immersive', icon: <Columns3 className="w-6 h-6" /> },
+    ]
 
     return (
         <Card>
@@ -46,22 +62,33 @@ export default function AppearancePage() {
             </CardHeader>
             <CardContent className="space-y-6">
                 <div>
+                    <Label className="text-base font-medium">Akış Görünümü</Label>
+                     <p className="text-sm text-muted-foreground mb-2">Ana sayfadaki gönderilerin nasıl görüneceğini seçin.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        {viewModes.map((v) => (
+                            <div
+                                key={v.value}
+                                className={cn('p-4 rounded-lg border-2 cursor-pointer flex flex-col items-center justify-center gap-4 transition-colors', viewMode === v.value ? 'border-primary bg-primary/10' : 'border-muted hover:border-primary/50')}
+                                onClick={() => handleViewModeChange(v.value)}
+                            >
+                                <div className="flex-1 flex items-center justify-center">{v.icon}</div>
+                                <div className="flex items-center gap-2 w-full justify-center">
+                                    <span className="font-medium text-sm">{v.name}</span>
+                                    {viewMode === v.value && <Check className="w-4 h-4 text-primary" />}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <Separator />
+                
+                <div>
                     <Label className="text-base font-medium">Tema</Label>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
                         {themes.map((t) => (
-                            <div
-                                key={t.value}
-                                className={cn(
-                                    'p-4 rounded-lg border-2 cursor-pointer flex flex-col items-center justify-center gap-4 transition-colors',
-                                    theme === t.value
-                                        ? 'border-primary bg-primary/10'
-                                        : 'border-muted hover:border-primary/50'
-                                )}
-                                onClick={() => setTheme(t.value)}
-                            >
-                                <div className="flex-1 flex items-center justify-center">
-                                    {t.icon}
-                                </div>
+                            <div key={t.value} className={cn('p-4 rounded-lg border-2 cursor-pointer flex flex-col items-center justify-center gap-4 transition-colors', theme === t.value ? 'border-primary bg-primary/10' : 'border-muted hover:border-primary/50')} onClick={() => setTheme(t.value)} >
+                                <div className="flex-1 flex items-center justify-center">{t.icon}</div>
                                 <div className="flex items-center gap-2 w-full justify-center">
                                     <span className="font-medium text-sm">{t.name}</span>
                                     {theme === t.value && <Check className="w-4 h-4 text-primary" />}
@@ -82,17 +109,12 @@ export default function AppearancePage() {
                                 <span>Animasyonları Devre Dışı Bırak</span>
                             </Label>
                             <p className="text-sm text-muted-foreground">
-                                Gezinme çubuklarının kaybolma animasyonunu kapatır.
+                                Navigasyon çubuklarının kaybolma animasyonunu kapatır.
                             </p>
                         </div>
-                        <Switch 
-                            id="disable-animations" 
-                            checked={animationsDisabled} 
-                            onCheckedChange={handleAnimationToggle}
-                        />
+                        <Switch id="disable-animations" checked={animationsDisabled} onCheckedChange={handleAnimationToggle} />
                     </div>
                  </div>
-
             </CardContent>
         </Card>
     );
