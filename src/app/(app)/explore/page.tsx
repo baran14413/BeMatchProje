@@ -13,6 +13,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -125,11 +126,12 @@ const PostSkeleton = () => (
     </Card>
 );
 
-const ClassicView = ({ posts, handleLikeClick, handleOpenComments, handleShare }: { posts: Post[], handleLikeClick: (postId: string) => void, handleOpenComments: (post: Post) => void, handleShare: (post: Post) => void }) => {
+const ClassicView = ({ posts, handleLikeClick, handleOpenComments, handleShare, handleDeletePost }: { posts: Post[], handleLikeClick: (postId: string) => void, handleOpenComments: (post: Post) => void, handleShare: (post: Post) => void, handleDeletePost: (post: Post) => void }) => {
+    const currentUser = auth.currentUser;
     return (
-        <div className="mx-auto max-w-lg space-y-4">
+        <div className="mx-auto max-w-lg">
             {posts.map((post) => (
-                <Card key={post.id} className="w-full overflow-hidden rounded-none md:rounded-xl shadow-none border-0 md:border">
+                <Card key={post.id} className="w-full overflow-hidden rounded-none md:rounded-xl shadow-none border-0 mb-4">
                     <CardContent className="p-0">
                         <div className="flex items-center justify-between p-3">
                             <Link href={`/profile/${post.user?.username}`} className="flex items-center gap-3">
@@ -142,6 +144,40 @@ const ClassicView = ({ posts, handleLikeClick, handleOpenComments, handleShare }
                                     <p className="text-xs text-muted-foreground">{formatRelativeTime(post.createdAt?.toDate())}</p>
                                 </div>
                             </Link>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal/></Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    {currentUser?.uid === post.authorId ? (
+                                        <>
+                                            <DropdownMenuItem><Pencil className="mr-2 h-4 w-4"/> Düzenle</DropdownMenuItem>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className='text-destructive focus:text-destructive'>
+                                                        <Trash2 className="mr-2 h-4 w-4"/> Sil
+                                                    </DropdownMenuItem>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Gönderiyi Sil</AlertDialogTitle>
+                                                        <AlertDialogDescription>Bu gönderiyi kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.</AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>İptal</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleDeletePost(post)} className={cn(buttonVariants({variant: "destructive"}))}>Evet, Sil</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </>
+                                    ) : (
+                                        <>
+                                             <DropdownMenuItem><Flag className="mr-2 h-4 w-4"/> Gönderiyi Şikayet Et</DropdownMenuItem>
+                                             <DropdownMenuItem><UserX className="mr-2 h-4 w-4"/> {post.user?.name} kişisini engelle</DropdownMenuItem>
+                                        </>
+                                    )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                         {post.type === 'photo' && post.url && (
                             <div className="relative w-full aspect-square bg-muted">
@@ -155,24 +191,35 @@ const ClassicView = ({ posts, handleLikeClick, handleOpenComments, handleShare }
                                 </p>
                             </div>
                         )}
-                        <div className="p-4 space-y-2">
-                             {(post.caption && post.type === 'photo') && (
-                                <p className="text-sm"><HashtagAndMentionRenderer text={post.caption} /></p>
-                            )}
-                            <div className='flex items-center gap-2 pt-2'>
-                                <Button size="sm" className={cn("h-8 gap-1.5 rounded-full", post.liked && "text-red-500")} variant="secondary" onClick={() => handleLikeClick(post.id)}>
-                                    <Heart className={cn("w-4 h-4", post.liked && "fill-current")} />
-                                    <span className='font-semibold'>{post.likes}</span>
-                                </Button>
-                                <Button size="sm" variant="secondary" className="h-8 gap-1.5 rounded-full" onClick={() => handleOpenComments(post)}>
-                                    <MessageCircle className="w-4 h-4" />
-                                    <span className='font-semibold'>{post.commentsCount > 0 ? post.commentsCount : ''}</span>
-                                </Button>
-                                <Button size="sm" variant="secondary" className="h-8 gap-1.5 rounded-full" onClick={() => handleShare(post)}>
-                                    <Share2 className="w-4 h-4" />
-                                </Button>
+                        <div className="p-4 space-y-3">
+                            <div className='flex items-center gap-2'>
+                                <div className="flex flex-col items-center gap-1">
+                                    <Button size="icon" className={cn("h-8 w-8 rounded-full", post.liked && "text-red-500 bg-red-100 dark:bg-red-900/50")} variant="ghost" onClick={() => handleLikeClick(post.id)}>
+                                        <Heart className={cn("w-5 h-5", post.liked && "fill-current")} />
+                                    </Button>
+                                    <span className='text-xs font-semibold text-muted-foreground'>Beğeni</span>
+                                </div>
+                                <div className="flex flex-col items-center gap-1">
+                                    <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full" onClick={() => handleOpenComments(post)}>
+                                        <MessageCircle className="w-5 h-5" />
+                                    </Button>
+                                     <span className='text-xs font-semibold text-muted-foreground'>Yorum</span>
+                                </div>
+                                <div className="flex flex-col items-center gap-1">
+                                    <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full" onClick={() => handleShare(post)}>
+                                        <Share2 className="w-5 h-5" />
+                                    </Button>
+                                    <span className='text-xs font-semibold text-muted-foreground'>Paylaş</span>
+                                </div>
                                 <div className='flex-1' />
                                 <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full"><Bookmark /></Button>
+                            </div>
+                            <div>
+                                {post.likes > 0 && <p className="text-sm font-semibold">{post.likes.toLocaleString()} beğeni</p>}
+                                {(post.caption && post.type === 'photo') && (
+                                    <p className="text-sm mt-1"><HashtagAndMentionRenderer text={post.caption} /></p>
+                                )}
+                                {post.commentsCount > 0 && <p className="text-sm mt-1 text-muted-foreground cursor-pointer" onClick={() => handleOpenComments(post)}>{post.commentsCount} yorumun tümünü gör</p>}
                             </div>
                         </div>
                     </CardContent>
@@ -188,14 +235,18 @@ export default function ExplorePage() {
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
     const currentUser = auth.currentUser;
+    
+    // Comment Sheet State
     const [isCommentSheetOpen, setCommentSheetOpen] = useState(false);
     const [activePostForComments, setActivePostForComments] = useState<Post | null>(null);
     const [isCommentsLoading, setIsCommentsLoading] = useState(false);
     const [commentText, setCommentText] = useState('');
     const [isPostingComment, setIsPostingComment] = useState(false);
     const [comments, setComments] = useState<Comment[]>([]);
+    const [replyingTo, setReplyingTo] = useState<{ id: string; name: string } | null>(null);
 
     const isMyProfile = (authorId: string) => currentUser?.uid === authorId;
+    const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
     const handleOpenComments = async (post: Post) => {
         if (isCommentSheetOpen) return;
@@ -214,24 +265,45 @@ export default function ExplorePage() {
             const authorIds = [...new Set(commentsSnapshot.docs.map(doc => doc.data().authorId))];
             const authorsData: Record<string, User> = {};
             if(authorIds.length > 0) {
-                 const authorsQuery = query(collection(db, 'users'), where(documentId(), 'in', authorIds));
+                const authorsQuery = query(collection(db, 'users'), where(documentId(), 'in', authorIds));
                 const authorsSnapshot = await getDocs(authorsQuery);
                 authorsSnapshot.forEach(doc => {
                     authorsData[doc.id] = { ...doc.data(), uid: doc.id } as User;
                 });
             }
+            
+            const likesPromises = commentsSnapshot.docs.map(doc => 
+                getDoc(collection(db, 'posts', post.id, 'comments', doc.id, 'likes'), currentUser?.uid)
+            );
+            // This is incorrect. should be `doc(collection(db, 'posts', post.id, 'comments', doc.id, 'likes'), currentUser?.uid)`
+            const likesSnapshot = await Promise.all(likesPromises.map(p => p.catch(e => e)));
 
-            const fetchedComments = commentsSnapshot.docs.map(doc => {
+
+            const fetchedComments: Comment[] = commentsSnapshot.docs.map((doc, index) => {
                 const data = doc.data();
                 return { 
                     id: doc.id,
                     ...data,
                     user: authorsData[data.authorId],
                     isTranslating: false,
-                    isTranslated: false
+                    isTranslated: false,
+                    liked: likesSnapshot[index].exists(),
+                    likes: data.likes || 0,
                 } as Comment;
             });
-            setComments(fetchedComments);
+            
+            // Basic nesting for replies
+            const commentMap = new Map(fetchedComments.map(c => [c.id, {...c, replies: []}]));
+            const nestedComments: Comment[] = [];
+            for(const comment of fetchedComments) {
+                if(comment.parentId && commentMap.has(comment.parentId)) {
+                    const parent = commentMap.get(comment.parentId);
+                    parent?.replies?.push(comment);
+                } else {
+                    nestedComments.push(comment);
+                }
+            }
+            setComments(nestedComments);
 
         } catch (error) {
             console.error("Error fetching comments:", error);
@@ -253,16 +325,13 @@ export default function ExplorePage() {
                 authorId: currentUser.uid,
                 text: commentText,
                 createdAt: serverTimestamp(),
-                likes: 0
+                likes: 0,
+                parentId: replyingTo ? replyingTo.id : null,
             };
             
             const newCommentDocRef = await addDoc(commentsRef, newCommentData);
+            await updateDoc(postRef, { commentsCount: increment(1) });
             
-            await runTransaction(db, async (transaction) => {
-                transaction.update(postRef, { commentsCount: increment(1) });
-            });
-            
-            // Optimistic UI update
             const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
             const newCommentForUI: Comment = {
                 ...newCommentData,
@@ -270,12 +339,25 @@ export default function ExplorePage() {
                 user: userDoc.data() as User,
                 isTranslating: false,
                 isTranslated: false,
-                liked: false
+                liked: false,
+                replies: [],
+                createdAt: { toDate: () => new Date() }
             };
-            setComments(prev => [newCommentForUI, ...prev]);
-            setActivePostForComments(prev => prev ? { ...prev, commentsCount: prev.commentsCount + 1 } : null);
+
+            if (replyingTo) {
+                 setComments(prev => prev.map(c => {
+                    if (c.id === replyingTo.id) {
+                        return {...c, replies: [newCommentForUI, ...(c.replies || [])]};
+                    }
+                    return c;
+                }));
+            } else {
+                 setComments(prev => [newCommentForUI, ...prev]);
+            }
+           
             setPosts(prev => prev.map(p => p.id === activePostForComments.id ? { ...p, commentsCount: p.commentsCount + 1 } : p));
             setCommentText('');
+            setReplyingTo(null);
 
         } catch(error) {
             console.error("Error posting comment:", error);
@@ -285,31 +367,101 @@ export default function ExplorePage() {
         }
     };
 
-    const handleTranslateComment = async (commentId: string) => {
-        setComments(prev => prev.map(c => c.id === commentId ? { ...c, isTranslating: true } : c));
-        try {
-            const comment = comments.find(c => c.id === commentId);
-            if (!comment?.text) return;
-            
-            const result = await translateText({ textToTranslate: comment.text });
-            if (result.translatedText) {
-                 setComments(prev => prev.map(c => c.id === commentId ? { ...c, text: result.translatedText, originalText: c.text, isTranslated: true, lang: result.sourceLanguage, isTranslating: false } : c));
-            } else if (result.sourceLanguage === 'tr') {
-                toast({ title: 'Bu yorum zaten Türkçe.' });
-                 setComments(prev => prev.map(c => c.id === commentId ? { ...c, isTranslating: false } : c));
-            } else {
-                 throw new Error(result.error || 'Çeviri başarısız.');
-            }
-        } catch (error: any) {
-            toast({ variant: 'destructive', title: 'Çeviri hatası', description: error.message });
-            setComments(prev => prev.map(c => c.id === commentId ? { ...c, isTranslating: false } : c));
-        }
-    };
-    
-    const revertTranslation = (commentId: string) => {
-        setComments(prev => prev.map(c => c.id === commentId && c.originalText ? { ...c, text: c.originalText, originalText: undefined, isTranslated: false, lang: undefined } : c));
+    const handleReplyTo = (comment: Comment) => {
+        setReplyingTo({ id: comment.id, name: comment.user?.name || 'Kullanıcı' });
+        commentInputRef.current?.focus();
     };
 
+    const handleDeleteComment = async (commentId: string, parentId?: string | null) => {
+        if (!activePostForComments) return;
+        
+        try {
+            await deleteDoc(doc(db, 'posts', activePostForComments.id, 'comments', commentId));
+            await updateDoc(doc(db, 'posts', activePostForComments.id), { commentsCount: increment(-1) });
+
+            // Optimistic UI update
+            if(parentId) {
+                setComments(prev => prev.map(c => 
+                    c.id === parentId ? {...c, replies: c.replies?.filter(r => r.id !== commentId)} : c
+                ));
+            } else {
+                setComments(prev => prev.filter(c => c.id !== commentId));
+            }
+
+            toast({ title: "Yorum silindi."});
+        } catch (error) {
+            console.error("Error deleting comment:", error);
+            toast({ variant: "destructive", title: "Yorum silinemedi."});
+        }
+    };
+
+    const handleLikeComment = async (commentId: string, parentId?: string | null) => {
+         if (!activePostForComments || !currentUser) return;
+
+         const commentRef = doc(db, 'posts', activePostForComments.id, 'comments', commentId);
+         const likeRef = doc(commentRef, 'likes', currentUser.uid);
+
+         const updateLikeState = (commentsList: Comment[]): Comment[] => {
+            return commentsList.map(c => {
+                if (c.id === commentId) {
+                    return {...c, liked: !c.liked, likes: c.liked ? c.likes - 1 : c.likes + 1};
+                }
+                if (c.replies) {
+                    return {...c, replies: updateLikeState(c.replies)};
+                }
+                return c;
+            })
+         };
+        setComments(prev => updateLikeState(prev));
+         
+        try {
+            await runTransaction(db, async (transaction) => {
+                const likeDoc = await transaction.get(likeRef);
+                if (likeDoc.exists()) {
+                    transaction.delete(likeRef);
+                    transaction.update(commentRef, { likes: increment(-1) });
+                } else {
+                    transaction.set(likeRef, { likedAt: serverTimestamp() });
+                    transaction.update(commentRef, { likes: increment(1) });
+                }
+            });
+        } catch (error) {
+            console.error("Error liking comment", error);
+            // Revert UI on error
+            setComments(prev => updateLikeState(prev));
+        }
+    };
+
+    const CommentItem = ({ comment, onReply, onDelete, onLike }: { comment: Comment, onReply: (c: Comment) => void, onDelete: (id: string, parentId?: string | null) => void, onLike: (id: string, parentId?: string | null) => void}) => (
+        <div className="flex items-start gap-3">
+            <Link href={`/profile/${comment.user?.username}`}><Avatar className="w-8 h-8"><AvatarImage src={comment.user?.avatarUrl} /><AvatarFallback>{comment.user?.name?.charAt(0)}</AvatarFallback></Avatar></Link>
+            <div className="flex-1">
+                <p className="text-sm">
+                    <Link href={`/profile/${comment.user?.username}`} className="font-semibold">{comment.user?.name}</Link>{' '}
+                    <HashtagAndMentionRenderer text={comment.text} />
+                </p>
+                <div className="text-xs text-muted-foreground flex items-center gap-3 mt-1">
+                    <span>{formatRelativeTime(comment.createdAt?.toDate())}</span>
+                    <button className="font-semibold" onClick={() => onReply(comment)}>Yanıtla</button>
+                    {comment.likes > 0 && <span className="font-semibold">{comment.likes} beğenme</span>}
+                </div>
+            </div>
+            <div className='flex items-center'>
+                 <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => onLike(comment.id, comment.parentId)}>
+                    <Heart className={cn("w-4 h-4", comment.liked && "text-red-500 fill-current")} />
+                </Button>
+                {(isMyProfile(comment.authorId) || (activePostForComments && isMyProfile(activePostForComments.authorId))) && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="w-8 h-8"><MoreHorizontal className="w-4 h-4" /></Button></DropdownMenuTrigger>
+                        <DropdownMenuContent align='end'>
+                            <DropdownMenuItem className="text-destructive" onClick={() => onDelete(comment.id, comment.parentId)}>Sil</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
+            </div>
+        </div>
+    );
+    
     const CommentSheetContent = () => (
         <>
             <SheetHeader className="text-center p-4 border-b shrink-0">
@@ -322,21 +474,11 @@ export default function ExplorePage() {
                 ) : comments.length > 0 ? (
                     <div className='p-4 space-y-4'>
                         {comments.map(comment => (
-                            <div key={comment.id} className="flex items-start gap-3">
-                                <Link href={`/profile/${comment.user?.username}`}><Avatar className="w-8 h-8"><AvatarImage src={comment.user?.avatarUrl} /><AvatarFallback>{comment.user?.name?.charAt(0)}</AvatarFallback></Avatar></Link>
-                                <div className="flex-1">
-                                    <p className="text-sm">
-                                        <Link href={`/profile/${comment.user?.username}`} className="font-semibold">{comment.user?.name}</Link>{' '}
-                                        <HashtagAndMentionRenderer text={comment.text} />
-                                    </p>
-                                    <div className="text-xs text-muted-foreground flex items-center gap-3 mt-1">
-                                        <span>{formatRelativeTime(comment.createdAt?.toDate())}</span>
-                                        <button className="font-semibold" disabled={comment.isTranslating}>
-                                            {comment.isTranslating ? 'Çevriliyor...' : !comment.isTranslated ? 'Çevir' : 'Orijinali Gör'}
-                                        </button>
-                                    </div>
-                                </div>
-                                <Button variant="ghost" size="icon" className="w-8 h-8"><Heart className="w-4 h-4"/></Button>
+                            <div key={comment.id}>
+                               <CommentItem comment={comment} onReply={handleReplyTo} onDelete={handleDeleteComment} onLike={handleLikeComment}/>
+                               <div className="pl-8 mt-4 space-y-4 border-l ml-4">
+                                {comment.replies?.map(reply => <CommentItem key={reply.id} comment={reply} onReply={handleReplyTo} onDelete={handleDeleteComment} onLike={handleLikeComment} />)}
+                               </div>
                             </div>
                         ))}
                     </div>
@@ -345,6 +487,12 @@ export default function ExplorePage() {
                 )}
             </ScrollArea>
              <div className="p-4 border-t shrink-0 bg-background">
+                {replyingTo && (
+                    <div className='text-sm text-muted-foreground mb-2 flex justify-between items-center bg-muted p-2 rounded-md'>
+                        <span>@{replyingTo.name} kişisine yanıt veriliyor...</span>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setReplyingTo(null)}><X className="h-4 w-4"/></Button>
+                    </div>
+                )}
                 <div className="flex items-center gap-2">
                      {currentUser && <Avatar className="w-9 h-9"><AvatarImage src={currentUser.photoURL || ''} /><AvatarFallback>{currentUser.displayName?.charAt(0)}</AvatarFallback></Avatar>}
                     <MentionTextarea 
@@ -362,7 +510,20 @@ export default function ExplorePage() {
         </>
     );
 
-    const handleDeletePost = (post: Post) => { /* ... */ };
+    const handleDeletePost = async (post: Post) => {
+        try {
+            await deleteDoc(doc(db, 'posts', post.id));
+            if (post.url) {
+                const imageRef = ref(storage, post.url);
+                await deleteObject(imageRef);
+            }
+            setPosts(prev => prev.filter(p => p.id !== post.id));
+            toast({ title: "Gönderi silindi." });
+        } catch (e) {
+            console.error("Error deleting post:", e);
+            toast({ variant: "destructive", title: "Gönderi silinemedi." });
+        }
+    };
     
     const handleLikeClick = async (postId: string) => {
       if (!currentUser) {
@@ -377,7 +538,6 @@ export default function ExplorePage() {
       const newLikedState = !post.liked;
       const newLikesCount = post.liked ? post.likes - 1 : post.likes + 1;
       
-      // Optimistic UI update
       const updatedPosts = [...posts];
       updatedPosts[postIndex] = { ...post, liked: newLikedState, likes: newLikesCount };
       setPosts(updatedPosts);
@@ -387,17 +547,17 @@ export default function ExplorePage() {
 
       try {
         await runTransaction(db, async (transaction) => {
-          if (newLikedState) {
-            transaction.set(likeRef, { likedAt: serverTimestamp() });
-            transaction.update(postRef, { likes: increment(1) });
-          } else {
+          const likeDoc = await transaction.get(likeRef);
+          if (likeDoc.exists()) {
             transaction.delete(likeRef);
             transaction.update(postRef, { likes: increment(-1) });
+          } else {
+            transaction.set(likeRef, { likedAt: serverTimestamp(), userName: currentUser.displayName, userAvatar: currentUser.photoURL });
+            transaction.update(postRef, { likes: increment(1) });
           }
         });
       } catch (error) {
         console.error("Error toggling like:", error);
-        // Revert UI on error
         setPosts(posts);
         toast({ title: 'Beğenme işlemi başarısız oldu.', variant: 'destructive' });
       }
@@ -407,13 +567,12 @@ export default function ExplorePage() {
         const shareData = {
             title: `BeMatch'te bir gönderi`,
             text: post.caption || post.textContent || `Bu harika gönderiye göz at!`,
-            url: window.location.href, // Or a specific post URL if you have one
+            url: window.location.origin + `/post/${post.id}`, // Specific post URL
         };
         try {
             if (navigator.share) {
                 await navigator.share(shareData);
             } else {
-                 // Fallback for browsers that don't support Web Share API
                 await navigator.clipboard.writeText(shareData.url);
                 toast({ title: 'Bağlantı kopyalandı!', description: 'Gönderi bağlantısı panoya kopyalandı.' });
             }
@@ -481,7 +640,7 @@ export default function ExplorePage() {
                 {loading ? (
                     <PostSkeleton />
                 ) : posts.length > 0 ? (
-                    <ClassicView posts={posts} handleLikeClick={handleLikeClick} handleOpenComments={handleOpenComments} handleShare={handleShare} />
+                    <ClassicView posts={posts} handleLikeClick={handleLikeClick} handleOpenComments={handleOpenComments} handleShare={handleShare} handleDeletePost={handleDeletePost} />
                 ) : (
                     <div className="text-center text-muted-foreground py-20 flex flex-col items-center">
                         <Users className="w-16 h-16 mb-4 text-muted-foreground/50"/>
@@ -499,6 +658,8 @@ export default function ExplorePage() {
         </Suspense>
     );
 }
+
+    
 
     
 

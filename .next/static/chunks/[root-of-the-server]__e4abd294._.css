@@ -702,6 +702,10 @@ img {
   margin-top: auto;
 }
 
+.ml-4 {
+  margin-left: 1rem;
+}
+
 .line-clamp-3 {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -1914,6 +1918,11 @@ img {
 .bg-yellow-500 {
   --tw-bg-opacity: 1;
   background-color: rgb(234 179 8 / var(--tw-bg-opacity, 1));
+}
+
+.bg-red-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(254 226 226 / var(--tw-bg-opacity, 1));
 }
 
 .bg-gradient-to-br {
@@ -3486,6 +3495,10 @@ img {
 
 .dark\:bg-yellow-900\/20:is(.dark *) {
   background-color: #713f1233;
+}
+
+.dark\:bg-red-900\/50:is(.dark *) {
+  background-color: #7f1d1d80;
 }
 
 .dark\:from-purple-900\/20:is(.dark *) {
