@@ -166,8 +166,18 @@ function LayoutContent({ children }: { children: ReactNode }) {
                     }).catch(err => console.error("Could not fetch IP for logging:", err));
                 }
               } else {
-                 // This case is handled by the Google Sign-In logic, redirecting to signup
-                 setCurrentUserProfile(null);
+                 // New user via Google, needs to finish signup
+                if (!pathname.startsWith('/signup')) {
+                    const googleInfo = {
+                        email: user.email,
+                        firstName: user.displayName?.split(' ')[0] || '',
+                        lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+                        photoURL: user.photoURL,
+                    };
+                    sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
+                    router.push('/signup?step=1&source=google');
+                }
+                setCurrentUserProfile(null);
               }
             } catch (error) {
                 console.error("Error fetching user profile:", error);
@@ -354,22 +364,17 @@ function LayoutContent({ children }: { children: ReactNode }) {
                             <span className="text-sm font-medium whitespace-nowrap" dangerouslySetInnerHTML={{ __html: lastNotification.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
                           </motion.div>
                       ) : (
-                           <motion.div
-                              key="title"
-                              initial={{ y: -20, opacity: 0 }}
-                              animate={{ y: 0, opacity: 1 }}
-                              exit={{ y: 20, opacity: 0 }}
-                              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                              className="flex items-center gap-2"
-                          >
-                             <AnimatedLogo />
-                             <span className='font-headline text-xl'>BeMatch</span>
-                          </motion.div>
+                        <div/>
                       )}
                   </AnimatePresence>
               </div>
 
                 <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                        <AnimatedLogo />
+                        <span className='font-headline text-xl'>BeMatch</span>
+                    </div>
+
                     <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" asChild>
                         <Link href="/search"><Search className="h-5 w-5" /></Link>
                     </Button>
@@ -433,3 +438,5 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
+
+    
