@@ -508,10 +508,9 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
  * @fileOverview A Genkit flow for matching users for a random chat.
  *
  * This flow provides a robust, transaction-based matchmaking system.
- * - findMatch: Tries to find a waiting user, otherwise adds the current user to the waiting pool.
- */ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$ai$2f$genkit$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/ai/genkit.ts [app-rsc] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$genkit$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/genkit/lib/index.mjs [app-rsc] (ecmascript) <module evaluation>");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$genkit$2f$lib$2f$common$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/genkit/lib/common.js [app-rsc] (ecmascript)");
+ * - findMatch: Tries to find a waiting user. If none, adds the user to the pool.
+ *              If called again for a user still in the pool, it creates a bot match.
+ */ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/zod/lib/index.mjs [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__ = __turbopack_context__.i("[externals]/firebase-admin/firestore [external] (firebase-admin/firestore, esm_import)");
 var __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$29$__ = __turbopack_context__.i("[externals]/firebase-admin/app [external] (firebase-admin/app, esm_import)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$config$2f$bot$2d$config$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/config/bot-config.ts [app-rsc] (ecmascript)");
@@ -527,42 +526,79 @@ var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
 ;
 ;
 ;
-;
-const FindMatchInputSchema = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$genkit$2f$lib$2f$common$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].object({
-    userId: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$genkit$2f$lib$2f$common$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].string().describe('The UID of the user searching for a match.')
+const FindMatchInputSchema = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].object({
+    userId: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].string().describe('The UID of the user searching for a match.')
 });
-const FindMatchOutputSchema = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$genkit$2f$lib$2f$common$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].object({
-    conversationId: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$genkit$2f$lib$2f$common$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].string().nullable().describe('The ID of the conversation, or null if no match was found yet.'),
-    isBotMatch: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$genkit$2f$lib$2f$common$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].boolean().describe('Whether the match is with a bot.')
+const FindMatchOutputSchema = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].object({
+    conversationId: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].string().nullable().describe('The ID of the conversation, or null if no match was found yet.'),
+    isBotMatch: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].boolean().describe('Whether the match is with a bot.')
 });
-async function findMatch(input) {
-    return findMatchFlow(input);
+if (!(0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$29$__["getApps"])().length) {
+    (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$29$__["initializeApp"])();
 }
-const findMatchFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$ai$2f$genkit$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ai"].defineFlow({
-    name: 'findMatchFlow',
-    inputSchema: FindMatchInputSchema,
-    outputSchema: FindMatchOutputSchema
-}, async ({ userId })=>{
-    if (!(0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$29$__["getApps"])().length) {
-        (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$29$__["initializeApp"])();
-    }
-    const db = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["getFirestore"])();
+const db = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["getFirestore"])();
+async function findMatch(input) {
+    const { userId } = input;
     const waitingPoolRef = db.collection('waitingPool');
     try {
-        // Transaction to find and match a user atomically
         const result = await db.runTransaction(async (transaction)=>{
-            const waitingQuery = waitingPoolRef.where('uid', '!=', userId).orderBy('uid') // Order by UID to avoid contention on the same document
-            .orderBy('waitingSince', 'asc').limit(1);
+            const userWaitingDocRef = waitingPoolRef.doc(userId);
+            const userWaitingDoc = await transaction.get(userWaitingDocRef);
+            if (userWaitingDoc.exists()) {
+                // User is already waiting. This means the timer ran out. Create a bot match.
+                const currentUserDoc = await transaction.get(db.doc(`users/${userId}`));
+                if (!currentUserDoc.exists) throw new Error("Current user not found in database.");
+                const currentUserData = currentUserDoc.data();
+                const botId = `bot_${Math.random().toString(36).substring(2, 9)}`;
+                const botName = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$config$2f$bot$2d$config$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["botNames"][Math.floor(Math.random() * __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$config$2f$bot$2d$config$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["botNames"].length)];
+                const botAvatar = `https://avatar.iran.liara.run/public/girl?username=${botName.replace(/\s/g, '')}`;
+                const botConvoId = [
+                    userId,
+                    botId
+                ].sort().join('-');
+                const botConvoRef = db.collection('temporaryConversations').doc(botConvoId);
+                const expiresAt = new Date();
+                expiresAt.setMinutes(expiresAt.getMinutes() + 3);
+                transaction.set(botConvoRef, {
+                    user1: {
+                        uid: currentUserData.uid,
+                        name: currentUserData.name,
+                        avatarUrl: currentUserData.avatarUrl,
+                        heartClicked: false
+                    },
+                    user2: {
+                        uid: botId,
+                        name: botName,
+                        avatarUrl: botAvatar,
+                        heartClicked: false
+                    },
+                    isBotMatch: true,
+                    createdAt: __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["Timestamp"].now(),
+                    expiresAt: __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["Timestamp"].fromDate(expiresAt)
+                });
+                const botMessageRef = botConvoRef.collection('messages').doc();
+                transaction.set(botMessageRef, {
+                    text: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$config$2f$bot$2d$config$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["botOpenerMessages"][Math.floor(Math.random() * __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$config$2f$bot$2d$config$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["botOpenerMessages"].length)],
+                    senderId: botId,
+                    timestamp: __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["Timestamp"].now()
+                });
+                // Remove user from waiting pool
+                transaction.delete(userWaitingDocRef);
+                return {
+                    conversationId: botConvoId,
+                    isBotMatch: true
+                };
+            }
+            // User is not waiting, look for someone else.
+            const waitingQuery = waitingPoolRef.where('uid', '!=', userId).orderBy('uid').orderBy('waitingSince', 'asc').limit(1);
             const waitingSnapshot = await transaction.get(waitingQuery);
             if (!waitingSnapshot.empty) {
-                // Found a waiting user, let's create a match!
+                // Found a waiting user, create a real match!
                 const waitingUserDoc = waitingSnapshot.docs[0];
                 const waitingUserData = waitingUserDoc.data();
-                const currentUserDocRef = db.doc(`users/${userId}`);
-                const currentUserDoc = await transaction.get(currentUserDocRef);
-                if (!currentUserDoc.exists) throw "Current user not found in database.";
+                const currentUserDoc = await transaction.get(db.doc(`users/${userId}`));
+                if (!currentUserDoc.exists) throw new Error("Current user not found in database.");
                 const currentUserData = currentUserDoc.data();
-                // Create a new temporary conversation document
                 const newConvoRef = db.collection('temporaryConversations').doc();
                 const expiresAt = new Date();
                 expiresAt.setMinutes(expiresAt.getMinutes() + 3); // 3 MINUTE LIMIT
@@ -583,96 +619,38 @@ const findMatchFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$ai$
                     createdAt: __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["Timestamp"].now(),
                     expiresAt: __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["Timestamp"].fromDate(expiresAt)
                 });
-                // Remove the waiting user from the pool
                 transaction.delete(waitingUserDoc.ref);
                 return {
                     conversationId: newConvoRef.id,
-                    isBotMatch: false,
-                    status: 'matched'
+                    isBotMatch: false
                 };
             } else {
-                // No one is waiting. Check if the user is ALREADY waiting.
-                const userWaitingDoc = await transaction.get(waitingPoolRef.doc(userId));
-                if (userWaitingDoc.exists()) {
-                    // User has waited long enough, create a bot match.
-                    const currentUserDoc = await transaction.get(db.doc(`users/${userId}`));
-                    if (!currentUserDoc.exists) throw "Current user not found.";
-                    const currentUserData = currentUserDoc.data();
-                    const botId = `bot_${Math.random().toString(36).substring(2, 9)}`;
-                    const botName = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$config$2f$bot$2d$config$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["botNames"][Math.floor(Math.random() * __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$config$2f$bot$2d$config$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["botNames"].length)];
-                    const botAvatar = `https://avatar.iran.liara.run/public/girl?username=${botName.replace(/\s/g, '')}`;
-                    const botConvoId = [
-                        userId,
-                        botId
-                    ].sort().join('-');
-                    const botConvoRef = db.collection('temporaryConversations').doc(botConvoId);
-                    const expiresAt = new Date();
-                    expiresAt.setMinutes(expiresAt.getMinutes() + 3);
-                    transaction.set(botConvoRef, {
-                        user1: {
-                            uid: currentUserData.uid,
-                            name: currentUserData.name,
-                            avatarUrl: currentUserData.avatarUrl,
-                            heartClicked: false
-                        },
-                        user2: {
-                            uid: botId,
-                            name: botName,
-                            avatarUrl: botAvatar,
-                            heartClicked: false
-                        },
-                        isBotMatch: true,
-                        createdAt: __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["Timestamp"].now(),
-                        expiresAt: __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["Timestamp"].fromDate(expiresAt)
-                    });
-                    // Add a first message from the bot
-                    const botMessageRef = botConvoRef.collection('messages').doc();
-                    transaction.set(botMessageRef, {
-                        text: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$config$2f$bot$2d$config$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["botOpenerMessages"][Math.floor(Math.random() * __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$config$2f$bot$2d$config$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["botOpenerMessages"].length)],
-                        senderId: botId,
-                        timestamp: __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["Timestamp"].now()
-                    });
-                    // Remove user from waiting pool
-                    transaction.delete(userWaitingDoc.ref);
-                    return {
-                        conversationId: botConvoId,
-                        isBotMatch: true,
-                        status: 'bot_matched'
-                    };
-                } else {
-                    // User is not waiting, so add them to the pool
-                    const userDocRef = db.doc(`users/${userId}`);
-                    const userDoc = await transaction.get(userDocRef);
-                    if (!userDoc.exists) throw "User document does not exist.";
-                    const newWaitingRef = waitingPoolRef.doc(userId);
-                    transaction.set(newWaitingRef, {
-                        uid: userId,
-                        name: userDoc.data().name,
-                        avatarUrl: userDoc.data().avatarUrl,
-                        waitingSince: __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["Timestamp"].now()
-                    });
-                    return {
-                        conversationId: null,
-                        isBotMatch: false,
-                        status: 'waiting'
-                    };
-                }
+                // No one is waiting. Add the current user to the pool.
+                const userDoc = await transaction.get(db.doc(`users/${userId}`));
+                if (!userDoc.exists) throw new Error("User document does not exist.");
+                transaction.set(userWaitingDocRef, {
+                    uid: userId,
+                    name: userDoc.data().name,
+                    avatarUrl: userDoc.data().avatarUrl,
+                    waitingSince: __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["Timestamp"].now()
+                });
+                return {
+                    conversationId: null,
+                    isBotMatch: false
+                };
             }
         });
-        return {
-            conversationId: result.conversationId,
-            isBotMatch: result.isBotMatch
-        };
+        return result;
     } catch (error) {
         console.error('Matchmaking flow failed:', error);
-        // If the user was added to the pool but the flow failed, try to remove them
-        await waitingPoolRef.doc(userId).delete().catch(()=>{});
+        // Ensure user is removed from pool on failure
+        await db.collection('waitingPool').doc(userId).delete().catch(()=>{});
         return {
             conversationId: null,
             isBotMatch: false
         };
     }
-});
+}
 ;
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ensureServerEntryExports"])([
     findMatch
