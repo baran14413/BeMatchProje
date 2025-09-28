@@ -349,7 +349,11 @@ function LayoutContent({ children }: { children: ReactNode }) {
                 !isOnline || isPoorConnection ? 'top-10' : 'top-0', 
                 isScrolling && "-translate-y-full"
             )}>
-               <div className="flex-1 flex items-center gap-2">
+               <div className="flex flex-1 items-center gap-2">
+                    <div className="flex items-center gap-1">
+                        <AnimatedLogo />
+                        <span className='font-headline text-xl'>BeMatch</span>
+                    </div>
                   <AnimatePresence initial={false}>
                       {showNotification && lastNotification ? (
                           <motion.div
@@ -358,7 +362,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
                               animate={{ y: 0, opacity: 1 }}
                               exit={{ y: -20, opacity: 0 }}
                               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                              className="flex items-center gap-2"
+                              className="hidden md:flex items-center gap-2"
                           >
                             <Bell className="h-5 w-5 text-primary" />
                             <span className="text-sm font-medium whitespace-nowrap" dangerouslySetInnerHTML={{ __html: lastNotification.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
@@ -370,11 +374,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
               </div>
 
                 <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                        <AnimatedLogo />
-                        <span className='font-headline text-xl'>BeMatch</span>
-                    </div>
-
                     <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" asChild>
                         <Link href="/search"><Search className="h-5 w-5" /></Link>
                     </Button>
