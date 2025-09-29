@@ -304,8 +304,10 @@ export default function UserProfilePage() {
             if (!currentUserDoc.exists() || !targetUserDoc.exists()) {
                 throw "User document not found.";
             }
+            
+            const isCurrentlyFollowing = (await transaction.get(followerRef)).exists();
 
-            if (isFollowing) {
+            if (isCurrentlyFollowing) {
                 // Unfollow
                 transaction.delete(followingRef);
                 transaction.delete(followerRef);
@@ -318,7 +320,7 @@ export default function UserProfilePage() {
                 transaction.update(currentUserRef, { 'stats.following': increment(1) });
                 transaction.update(targetUserRef, { 'stats.followers': increment(1) });
                 
-                // Create Notification
+                // Create Notification only on follow
                 const notificationRef = doc(collection(db, 'notifications'));
                 transaction.set(notificationRef, {
                     recipientId: userProfile.uid,
@@ -327,15 +329,16 @@ export default function UserProfilePage() {
                         uid: currentUser.uid,
                         name: currentUser.displayName,
                         avatar: currentUser.photoURL,
-                        aiHint: "current user portrait"
                     },
                     read: false,
                     createdAt: serverTimestamp()
                 });
             }
         });
-
+        
         setIsFollowing(!isFollowing);
+
+        // Optimistically update follower count on UI
         setUserProfile(prev => {
             if (!prev) return null;
             const newFollowerCount = (prev.stats?.followers || 0) + (isFollowing ? -1 : 1);
@@ -355,6 +358,7 @@ export default function UserProfilePage() {
         setIsFollowProcessing(false);
     }
   };
+
 
    const fetchFollowList = async (listType: 'followers' | 'following') => {
     if (!userProfile || !currentUser) return;

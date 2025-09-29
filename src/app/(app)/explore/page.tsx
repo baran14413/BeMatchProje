@@ -127,7 +127,7 @@ const PostSkeleton = () => (
     </Card>
 );
 
-const ClassicView = ({ posts, handleLikeClick, handleOpenComments, handleShare, handleDeletePost }: { posts: Post[], handleLikeClick: (postId: string) => void, handleOpenComments: (post: Post) => void, handleShare: (post: Post) => void, handleDeletePost: (post: Post) => void }) => {
+const ClassicView = ({ posts, handleLikeClick, handleOpenComments, handleShare, handleDeletePost }: { posts: Post[], handleLikeClick: (postId: string, authorId: string) => void, handleOpenComments: (post: Post) => void, handleShare: (post: Post) => void, handleDeletePost: (post: Post) => void }) => {
     const currentUser = auth.currentUser;
     return (
         <div className="mx-auto max-w-lg space-y-4">
@@ -196,7 +196,7 @@ const ClassicView = ({ posts, handleLikeClick, handleOpenComments, handleShare, 
                              <div className='flex items-center justify-between'>
                                 <div className="flex items-center gap-2">
                                     <div className="flex items-center gap-1 p-1 pr-2 rounded-full bg-muted/50">
-                                        <Button size="icon" className={cn("h-8 w-8 rounded-full", post.liked && "text-red-500 bg-red-100 dark:bg-red-900/50")} variant="ghost" onClick={() => handleLikeClick(post.id)}>
+                                        <Button size="icon" className={cn("h-8 w-8 rounded-full", post.liked && "text-red-500 bg-red-100 dark:bg-red-900/50")} variant="ghost" onClick={() => handleLikeClick(post.id, post.authorId)}>
                                             <Heart className={cn("w-5 h-5", post.liked && "fill-current")} />
                                         </Button>
                                         <span className='text-xs font-semibold text-muted-foreground'>Beğeni</span>
@@ -332,8 +332,31 @@ export default function ExplorePage() {
                 parentId: replyingTo ? replyingTo.id : null,
             };
             
-            const newCommentDocRef = await addDoc(commentsRef, newCommentData);
-            await updateDoc(postRef, { commentsCount: increment(1) });
+            const batch = writeBatch(db);
+            
+            const newCommentDocRef = doc(commentsRef);
+            batch.set(newCommentDocRef, newCommentData);
+            batch.update(postRef, { commentsCount: increment(1) });
+
+            if (activePostForComments.authorId !== currentUser.uid) {
+                const notificationRef = doc(collection(db, 'notifications'));
+                batch.set(notificationRef, {
+                    recipientId: activePostForComments.authorId,
+                    type: 'comment',
+                    fromUser: {
+                        uid: currentUser.uid,
+                        name: currentUser.displayName,
+                        avatar: currentUser.photoURL
+                    },
+                    content: commentText.substring(0, 50),
+                    postId: activePostForComments.id,
+                    postType: activePostForComments.type,
+                    read: false,
+                    createdAt: serverTimestamp()
+                });
+            }
+            
+            await batch.commit();
             
             const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
             const newCommentForUI: Comment = {
@@ -528,7 +551,7 @@ export default function ExplorePage() {
         }
     };
     
-    const handleLikeClick = async (postId: string) => {
+    const handleLikeClick = async (postId: string, authorId: string) => {
       if (!currentUser) {
         toast({ title: 'Beğenmek için giriş yapmalısınız.', variant: 'destructive' });
         return;
@@ -559,9 +582,26 @@ export default function ExplorePage() {
             transaction.update(postRef, { likes: increment(1) });
           }
         });
+
+        if (newLikedState && authorId !== currentUser.uid) {
+            await addDoc(collection(db, 'notifications'), {
+                recipientId: authorId,
+                type: 'like',
+                fromUser: {
+                    uid: currentUser.uid,
+                    name: currentUser.displayName,
+                    avatar: currentUser.photoURL
+                },
+                postId: postId,
+                postType: post.type,
+                read: false,
+                createdAt: serverTimestamp()
+            });
+        }
+
       } catch (error) {
         console.error("Error toggling like:", error);
-        setPosts(posts);
+        setPosts(posts); // Revert on error
         toast({ title: 'Beğenme işlemi başarısız oldu.', variant: 'destructive' });
       }
     };
@@ -661,9 +701,3 @@ export default function ExplorePage() {
         </Suspense>
     );
 }
-
-
-
-    
-
-    
