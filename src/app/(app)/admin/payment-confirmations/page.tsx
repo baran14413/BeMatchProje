@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle, Package, User, Mail, Link as LinkIcon, FileText } from 'lucide-react';
 import { db, auth } from '@/lib/firebase';
-import { collection, getDocs, query, orderBy, DocumentData, Timestamp, updateDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, Timestamp, updateDoc, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';

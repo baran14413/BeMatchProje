@@ -2,8 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Server, Smartphone, Brush, Database, Bot } from 'lucide-react';
+import { Bot, Database, Smartphone, Brush } from 'lucide-react';
 
 const techSections = [
     {

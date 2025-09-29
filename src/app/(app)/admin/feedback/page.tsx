@@ -4,14 +4,13 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, Star, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Loader2, Star } from 'lucide-react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, orderBy, DocumentData, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 
 type Feedback = {
   id: string;

@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Users, Newspaper, MessageSquare, Loader2 } from 'lucide-react';
-import { collectionGroup, getCountFromServer } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 const StatCard = ({ title, value, icon, loading }: { title: string; value: number; icon: React.ReactNode; loading: boolean }) => (
@@ -14,7 +14,7 @@ const StatCard = ({ title, value, icon, loading }: { title: string; value: numbe
             {icon}
         </CardHeader>
         <CardContent>
-            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <div className="text-2xl font-bold">{value}</div>}
+            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <div className="text-2xl font-bold">{value.toLocaleString()}</div>}
         </CardContent>
     </Card>
 );
@@ -30,19 +30,22 @@ export default function SystemStatusPage() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const usersQuery = collectionGroup(db, 'users');
-                const usersSnapshot = await getCountFromServer(usersQuery);
-                
-                const postsQuery = collectionGroup(db, 'posts');
-                const postsSnapshot = await getCountFromServer(postsQuery);
-                
-                const messagesQuery = collectionGroup(db, 'messages');
-                const messagesSnapshot = await getCountFromServer(messagesQuery);
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                const postsSnapshot = await getDocs(collection(db, 'posts'));
+                // Note: Counting all messages can be very slow and expensive.
+                // In a real app, this should be a counter updated by cloud functions.
+                // For this example, we'll keep it, but be aware of the performance implications.
+                const messagesSnapshot = await getDocs(collection(db, 'conversations'));
+                let totalMessages = 0;
+                for (const convoDoc of messagesSnapshot.docs) {
+                    const messagesSubColl = await getDocs(collection(db, `conversations/${convoDoc.id}/messages`));
+                    totalMessages += messagesSubColl.size;
+                }
 
                 setStats({
-                    users: usersSnapshot.data().count,
-                    posts: postsSnapshot.data().count,
-                    messages: messagesSnapshot.data().count,
+                    users: usersSnapshot.size,
+                    posts: postsSnapshot.size,
+                    messages: totalMessages,
                 });
             } catch (error) {
                 console.error("Error fetching system stats:", error);

@@ -14,6 +14,10 @@
           "moduleId": "[project]/.next-internal/server/app/(app)/admin/blocked-ips/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/ai/flows/ip-management-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
         },
+        "app/(app)/admin/feedback/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/admin/feedback/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        },
         "app/(app)/admin/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/admin/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
@@ -47,6 +51,7 @@
         "app/(app)/admin-mod/page": "action-browser",
         "app/(app)/admin/activity-logs/page": "action-browser",
         "app/(app)/admin/blocked-ips/page": "action-browser",
+        "app/(app)/admin/feedback/page": "action-browser",
         "app/(app)/admin/page": "action-browser",
         "app/(app)/admin/payment-confirmations/page": "action-browser",
         "app/(app)/admin/system-status/page": "action-browser",
@@ -64,6 +69,10 @@
         },
         "app/(app)/admin/blocked-ips/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/admin/blocked-ips/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/ai/flows/ip-management-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        },
+        "app/(app)/admin/feedback/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/admin/feedback/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
         },
         "app/(app)/admin/page": {
@@ -94,6 +103,7 @@
       "layer": {
         "app/(app)/admin/activity-logs/page": "action-browser",
         "app/(app)/admin/blocked-ips/page": "action-browser",
+        "app/(app)/admin/feedback/page": "action-browser",
         "app/(app)/admin/page": "action-browser",
         "app/(app)/admin/payment-confirmations/page": "action-browser",
         "app/(app)/admin/system-status/page": "action-browser",

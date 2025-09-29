@@ -27,7 +27,7 @@ interface AdminCardProps {
 
 const AdminCard: React.FC<AdminCardProps> = ({ icon, title, description, href }) => {
   return (
-    <Link href={href} className="block group">
+    <Link href={href} className="block group h-full">
       <Card className="h-full hover:border-primary transition-colors hover:shadow-lg">
         <CardHeader>
             <div className="flex justify-between items-start">
@@ -58,7 +58,7 @@ export default function AdminDashboardPage() {
     ];
 
   return (
-    <div className="space-y-6 bg-background">
+    <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {adminFeatures.map((item, index) => (
                 <AdminCard key={index} {...item} />
