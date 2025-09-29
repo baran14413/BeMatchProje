@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="tr" suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#1976d2" />
+        <meta name="theme-color" content="#E53935" />
         <link rel="icon" href="/icons/app-logo.svg" type="image/svg+xml" />
         <link rel="manifest" href="/manifest.json" />
       </head>

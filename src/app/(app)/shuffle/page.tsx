@@ -1,16 +1,16 @@
-
 'use client';
 
 import React, { useState, useEffect, Suspense, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Loader2, Zap, MessageSquare } from 'lucide-react';
+import { Loader2, Zap, MessageSquare, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { findMatch } from '@/ai/flows/find-match-flow';
 import { auth, db } from '@/lib/firebase';
 import { motion } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
 import { doc, deleteDoc } from 'firebase/firestore';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const SEARCH_TIMEOUT_SECONDS = 15;
 
@@ -54,14 +54,28 @@ function SearchAnimation({ onCancel, countdown }: { onCancel: () => void; countd
 function ShuffleContent() {
   const [isSearching, setIsSearching] = useState(false);
   const [countdown, setCountdown] = useState(SEARCH_TIMEOUT_SECONDS);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const currentUser = auth.currentUser;
   const { toast } = useToast();
   const searchIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isFindingMatch = useRef(false);
 
+   useEffect(() => {
+    if (searchParams.get('feedback') === 'true') {
+        toast({
+            title: "Sohbet Sonlandı",
+            description: "Umarız iyi vakit geçirmişsindir! Yeni bir maceraya hazır mısın?",
+        });
+        // Remove the query param from the URL
+        router.replace('/shuffle', { scroll: false });
+    }
+   }, [searchParams, router, toast]);
+
   const stopSearch = async () => {
     setIsSearching(false);
+    setError(null);
     if (searchIntervalRef.current) {
       clearInterval(searchIntervalRef.current);
       searchIntervalRef.current = null;
@@ -78,7 +92,13 @@ function ShuffleContent() {
     setCountdown(SEARCH_TIMEOUT_SECONDS);
     if (searchIntervalRef.current) clearInterval(searchIntervalRef.current);
     searchIntervalRef.current = setInterval(() => {
-      setCountdown((prev) => prev - 1);
+      setCountdown((prev) => {
+          if (prev <= 1) {
+              if (searchIntervalRef.current) clearInterval(searchIntervalRef.current);
+              return 0;
+          }
+          return prev - 1;
+      });
     }, 1000);
   };
   
@@ -90,28 +110,24 @@ function ShuffleContent() {
 
     isFindingMatch.current = true;
     setIsSearching(true); // Show searching UI immediately
+    setError(null);
 
     try {
       const result = await findMatch({ userId: currentUser.uid });
       
-      if (result.conversationId) {
+      if (result?.conversationId) {
         toast({ title: 'Harika biriyle eşleştin!', description: 'Sohbete yönlendiriliyorsun...' });
         stopSearch();
         router.push(`/random-chat/${result.conversationId}`);
       } else {
-        // If no immediate match, start the countdown.
+        // If no immediate match, start the countdown for the polling mechanism
         startCountdown();
       }
 
     } catch (error: any) {
       console.error('Error during initial match search: ', error);
-      toast({ title: 'Eşleşme ararken bir hata oluştu.', description: error.message, variant: 'destructive' });
+      setError("Eşleşme ararken bir hata oluştu. Lütfen tekrar deneyin.");
       stopSearch();
-    } finally {
-      // Don't set isFindingMatch.current to false here if we are waiting for countdown
-      if (!isSearching) {
-          isFindingMatch.current = false;
-      }
     }
   };
 
@@ -132,7 +148,7 @@ function ShuffleContent() {
                  throw new Error("Eşleştirme sunucusundan bir yanıt alınamadı. Lütfen tekrar deneyin.");
             }
         } catch (e: any) {
-            toast({ title: "Eşleşme ararken bir hata oluştu.", description: e.message, variant: "destructive" });
+            setError(e.message || "Eşleşme ararken bir hata oluştu. Lütfen tekrar deneyin.");
         } finally {
             stopSearch();
         }
@@ -164,6 +180,15 @@ function ShuffleContent() {
 
   return (
     <div className="w-full max-w-sm flex flex-col items-center">
+       {error && (
+            <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Hata</AlertTitle>
+                <AlertDescription>
+                    {error}
+                </AlertDescription>
+            </Alert>
+        )}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}

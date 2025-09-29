@@ -1,37 +1,58 @@
 
-// This file should be in the 'public' directory
+// Check if Firebase has been initialized
+if (typeof self.firebase === 'undefined' || !self.firebase.apps.length) {
+    self.importScripts('https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js');
+    self.importScripts('https://www.gstatic.com/firebasejs/9.10.0/firebase-messaging-compat.js');
+}
 
-// Scripts for firebase and firebase messaging
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
-
-// Initialize the Firebase app in the service worker
-// "Default" Firebase app (the app used by your main web app) is automatically
-// initialized based on the default project config values.
-// You can retrieve the firebase config from the environment variables
 const firebaseConfig = {
-  apiKey: self.location.hostname === 'localhost' ? 'your_local_api_key' : process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: self.location.hostname === 'localhost' ? 'your_local_auth_domain' : process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: self.location.hostname === 'localhost' ? 'your_local_project_id' : process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: self.location.hostname === 'localhost' ? 'your_local_storage_bucket' : process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: self.location.hostname === 'localhost' ? 'your_local_messaging_sender_id' : process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: self.location.hostname === 'localhost' ? 'your_local_app_id' : process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    apiKey: "__FIREBASE_API_KEY__",
+    authDomain: "__FIREBASE_AUTH_DOMAIN__",
+    projectId: "__FIREBASE_PROJECT_ID__",
+    storageBucket: "__FIREBASE_STORAGE_BUCKET__",
+    messagingSenderId: "__FIREBASE_MESSAGING_SENDER_ID__",
+    appId: "__FIREBASE_APP_ID__",
+    measurementId: "__FIREBASE_MEASUREMENT_ID__",
 };
 
+// It's safe to re-initialize, it's a no-op if already initialized.
+self.firebase.initializeApp(firebaseConfig);
 
-firebase.initializeApp(firebaseConfig);
-
-// Retrieve an instance of Firebase Messaging so that it can handle background messages.
-const messaging = firebase.messaging();
+const messaging = self.firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  // Customize notification here
+  
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: '/icons/app-logo.svg', // Ensure you have this icon in your public folder
+    icon: '/icons/app-logo.svg', // Main app icon for notifications
+    badge: '/icons/badge-72x72.png', // Badge for Android status bar
+    vibrate: [200, 100, 200], // Vibrate pattern
+    tag: payload.notification.tag || 'bematch-notification', // Group notifications
+    data: payload.data // Pass along data for click actions
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// Handle notification click
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const urlToOpen = event.notification.data?.url || '/'; // Default to home if no URL is provided
+
+  event.waitUntil(
+    clients.matchAll({
+      type: 'window'
+    }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url === urlToOpen && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
 });

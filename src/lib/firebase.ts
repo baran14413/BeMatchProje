@@ -31,7 +31,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const rtdb = getDatabase(app);
-const messaging = (typeof window !== 'undefined') ? getMessaging(app) : null;
+const messaging = (typeof window !== 'undefined' && 'serviceWorker' in navigator) ? getMessaging(app) : null;
 
 
 // Enable offline persistence
@@ -57,11 +57,7 @@ if (typeof window !== 'undefined') {
 
 export const clearCache = async () => {
     try {
-        await terminate(db);
-        // Delete the firebase app to release all resources
-        await deleteApp(getApp());
-        
-        // Unregister all service workers
+        // Unregister all service workers first to release file locks
         if ('serviceWorker' in navigator) {
             const registrations = await navigator.serviceWorker.getRegistrations();
             for (const registration of registrations) {
@@ -69,16 +65,19 @@ export const clearCache = async () => {
             }
         }
         
+        // Terminate Firestore to close DB connections
+        await terminate(db);
+        
         // Clear Cache Storage
         const keys = await caches.keys();
         await Promise.all(keys.map(key => caches.delete(key)));
         
-        // Clear IndexedDB for Firestore
-        const dbName = `firebase-indexeddb-main-` + firebaseConfig.projectId;
-        const deleteRequest = indexedDB.deleteDatabase(dbName);
-
+        // At this point, IndexedDB should be clearable.
+        // In some complex cases, a full page reload after unregistering might be needed
+        // before IndexedDB can be deleted, but we try it directly first.
         return new Promise<void>((resolve, reject) => {
-            deleteRequest.onsuccess = () => {
+             const deleteRequest = indexedDB.deleteDatabase("firebase-firestore-database");
+             deleteRequest.onsuccess = () => {
                 console.log("Firestore IndexedDB cache cleared successfully.");
                 resolve();
             };
@@ -88,7 +87,7 @@ export const clearCache = async () => {
             };
              deleteRequest.onblocked = () => {
                 console.warn("Clearing IndexedDB is blocked. Please close other tabs with this app open.");
-                reject(new Error("Clearing cache is blocked. Close other tabs."));
+                reject(new Error("Cache clear is blocked. Close other tabs and reload."));
             };
         });
 

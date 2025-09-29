@@ -1,51 +1,27 @@
-
 {
-    "name": "BeMatch",
-    "short_name": "BeMatch",
-    "description": "Find your perfect match and walk together.",
-    "start_url": "/",
-    "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#1976d2",
-    "icons": [
-        {
-            "src": "/icons/icon-192x192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "/icons/icon-512x512.png",
-            "sizes": "512x512",
-            "type": "image/png"
-        },
-        {
-            "src": "/icons/maskable_icon.png",
-            "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "maskable"
-        }
-    ],
-    "shortcuts": [
-        {
-            "name": "Sohbetler",
-            "short_name": "Sohbet",
-            "description": "Mesajlarını görüntüle",
-            "url": "/chat",
-            "icons": [{ "src": "/icons/shortcut-messages.png", "sizes": "96x96" }]
-        },
-        {
-            "name": "Keşfet",
-            "short_name": "Keşfet",
-            "description": "Topluluk gönderilerini görüntüle",
-            "url": "/explore",
-            "icons": [{ "src": "/icons/shortcut-explore.png", "sizes": "96x96" }]
-        },
-        {
-            "name": "Yeni Eşleşme Bul",
-            "short_name": "Eşleş",
-            "description": "Yeni bir rastgele eşleşme ara",
-            "url": "/shuffle",
-            "icons": [{ "src": "/icons/shortcut-shuffle.png", "sizes": "96x96" }]
-        }
-    ]
+  "name": "BeMatch",
+  "short_name": "BeMatch",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#E53935",
+  "description": "Find your perfect match and walk together.",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+        "src": "/icons/app-logo.svg",
+        "sizes": "any",
+        "type": "image/svg+xml"
+    }
+  ],
+  "gcm_sender_id": "903324685291"
 }
