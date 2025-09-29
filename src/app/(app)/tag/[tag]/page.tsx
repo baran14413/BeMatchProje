@@ -118,7 +118,7 @@ export default function TagPage() {
     return (
         <div className="container mx-auto max-w-lg p-0 md:p-4 pb-20">
             <header className="flex items-center gap-4 p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10">
-                <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <Button variant="ghost" size="icon" onClick={() => router.back()} className="md:hidden">
                     <ArrowLeft className="w-5 h-5"/>
                 </Button>
                 <div>

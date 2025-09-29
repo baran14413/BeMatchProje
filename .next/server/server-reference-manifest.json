@@ -5,10 +5,15 @@
         "app/(app)/explore/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/explore/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
+        },
+        "app/(app)/kesfet/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/kesfet/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
         }
       },
       "layer": {
-        "app/(app)/explore/page": "action-browser"
+        "app/(app)/explore/page": "action-browser",
+        "app/(app)/kesfet/page": "action-browser"
       }
     }
   },

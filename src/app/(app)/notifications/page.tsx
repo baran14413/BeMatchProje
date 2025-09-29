@@ -166,12 +166,12 @@ export default function NotificationsPage() {
 
     return (
         <div className="bg-background h-full flex flex-col">
-            <header className="flex items-center justify-between p-4 border-b shrink-0 sticky top-0 bg-background/80 backdrop-blur-sm z-10">
+            <header className="flex items-center justify-between p-4 border-b shrink-0 sticky top-0 bg-background/80 backdrop-blur-sm z-10 md:hidden">
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="w-6 h-6" />
                 </Button>
                 <h1 className="text-lg font-bold">Bildirimler</h1>
-                <Button variant="link" className="text-primary p-0">Filtrele</Button>
+                <div className="w-10"></div>
             </header>
             
             <main className="flex-1 overflow-y-auto">
@@ -210,5 +210,3 @@ export default function NotificationsPage() {
         </div>
     );
 }
-
-    

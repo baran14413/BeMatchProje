@@ -31,6 +31,7 @@ import {
   UserCheck as UserCheckIcon,
   List,
   Grid3x3,
+  ArrowLeft,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -424,116 +425,128 @@ export default function UserProfilePage() {
 
 
   return (
-    <div className="container mx-auto max-w-3xl p-4 md:p-6 pb-20">
-      <div className="flex flex-col gap-4">
-
-        {/* Profile Header */}
-        <header className="flex flex-col gap-4">
-            <div className="flex gap-4 items-center">
-                <Avatar className="w-20 h-20 border-2 border-primary shrink-0">
-                    <AvatarImage src={userProfile.avatarUrl} data-ai-hint={userProfile.aiHint} />
-                    <AvatarFallback className="text-3xl">{userProfile.name?.charAt(0)}</AvatarFallback>
-                </Avatar>
-
-                <div className="flex-1 flex items-center justify-around">
-                    <StatItem value={userPosts.length} label="Gönderi" />
-                    <StatItem value={userProfile.stats?.followers} label="Takipçi" onClick={() => fetchFollowList('followers')} />
-                    <StatItem value={userProfile.stats?.following} label="Takip" onClick={() => fetchFollowList('following')} />
-                </div>
-                 {isMyProfile ? (
-                    <Link href="/profile/edit">
-                        <Button variant="ghost" size="icon"><Settings className="h-5 w-5" /></Button>
-                    </Link>
-                ) : (
-                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-5 w-5" />
-                        </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                            <Flag className="mr-2 h-4 w-4" />
-                            <span>Şikayet Et</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive focus:text-destructive">
-                            <Ban className="mr-2 h-4 w-4" />
-                            <span>Engelle</span>
-                        </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                )}
-            </div>
-            {/* Bio Section */}
-            <div className="flex flex-col">
-                 <div className="flex items-center gap-2">
-                    <h1 className="text-lg font-bold">
-                        {userProfile.name.split(' ')[0]}
-                    </h1>
-                     {userProfile.isPremium && <Crown className="w-5 h-5 text-yellow-500" />}
-                </div>
-                <p className="text-muted-foreground text-sm">@{userProfile.username}</p>
-                <p className="text-sm mt-2">{userProfile.bio}</p>
-                <div className="flex flex-wrap gap-2 mt-2">
-                    {userProfile.hobbies?.map((interest: string) => (
-                    <Badge key={interest} variant="secondary" className="text-xs rounded-md">
-                        {interest}
-                    </Badge>
-                    ))}
-                </div>
-            </div>
-             {/* Action Buttons */}
-            {!isMyProfile && (
-                 <div className="flex gap-2 w-full">
-                    <Button className="flex-1" onClick={handleFollowToggle} disabled={isFollowProcessing}>
-                        {isFollowProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 
-                        isFollowing ? <UserCheckIcon className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />
-                        }
-                        {isFollowing ? 'Takip Ediliyor' : 'Takip Et'}
-                    </Button>
-                    <Link href={`/chat?userId=${userProfile.uid}`} className="flex-1">
-                        <Button variant="secondary" className="w-full">
-                            <MessageSquare className="mr-2 h-4 w-4" /> Mesaj
-                        </Button>
-                    </Link>
-                </div>
-            )}
+    <div className="pb-20 md:pb-0">
+        <header className="flex items-center gap-4 p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10 md:hidden">
+            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <ArrowLeft className="w-5 h-5"/>
+            </Button>
+            <h1 className="text-lg font-semibold text-center flex-1">
+                {userProfile?.name}
+            </h1>
+            <div className="w-10"></div>
         </header>
 
-        
-        <Separator className="mt-2"/>
+      <div className="container mx-auto max-w-3xl p-4 md:p-6">
+          <div className="flex flex-col gap-4">
 
-        {/* Posts Section */}
-         <div className="w-full">
-             {showGalleryContent ? (
-                userPosts.length > 0 ? (
-                    <div className="flex flex-col gap-4">
-                        {userPosts.map(post => (
-                           <PostCard key={post.id} post={post} user={userProfile} />
+            {/* Profile Header */}
+            <header className="flex flex-col gap-4">
+                <div className="flex gap-4 items-center">
+                    <Avatar className="w-20 h-20 border-2 border-primary shrink-0">
+                        <AvatarImage src={userProfile.avatarUrl} data-ai-hint={userProfile.aiHint} />
+                        <AvatarFallback className="text-3xl">{userProfile.name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1 flex items-center justify-around">
+                        <StatItem value={userPosts.length} label="Gönderi" />
+                        <StatItem value={userProfile.stats?.followers} label="Takipçi" onClick={() => fetchFollowList('followers')} />
+                        <StatItem value={userProfile.stats?.following} label="Takip" onClick={() => fetchFollowList('following')} />
+                    </div>
+                    {isMyProfile ? (
+                        <Link href="/profile/edit">
+                            <Button variant="ghost" size="icon"><Settings className="h-5 w-5" /></Button>
+                        </Link>
+                    ) : (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-5 w-5" />
+                            </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                                <Flag className="mr-2 h-4 w-4" />
+                                <span>Şikayet Et</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                <Ban className="mr-2 h-4 w-4" />
+                                <span>Engelle</span>
+                            </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
+                </div>
+                {/* Bio Section */}
+                <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-lg font-bold">
+                            {userProfile.name.split(' ')[0]}
+                        </h1>
+                        {userProfile.isPremium && <Crown className="w-5 h-5 text-yellow-500" />}
+                    </div>
+                    <p className="text-muted-foreground text-sm">@{userProfile.username}</p>
+                    <p className="text-sm mt-2">{userProfile.bio}</p>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                        {userProfile.hobbies?.map((interest: string) => (
+                        <Badge key={interest} variant="secondary" className="text-xs rounded-md">
+                            {interest}
+                        </Badge>
                         ))}
                     </div>
-                ) : (
-                    <div className="text-center py-10 text-muted-foreground">
-                        <p>Henüz gönderi yok.</p>
-                    </div>
-                )
-            ) : (
-                 <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4 rounded-lg border-2 border-dashed">
-                    <Lock className="w-12 h-12 text-muted-foreground/50"/>
-                    <h3 className="font-bold text-lg text-foreground">Bu Galeri Gizli</h3>
-                    <p className="text-sm max-w-xs">
-                        {userProfile.name.split(' ')[0]} kullanıcısının gönderilerini görmek için erişim izni istemeniz gerekiyor.
-                    </p>
-                    <Button 
-                        onClick={handleRequestAccess} 
-                        disabled={requestStatus !== 'idle'}
-                    >
-                        {requestStatus === 'loading' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {requestStatus === 'sent' ? 'İstek Gönderildi' : 'İzin İste'}
-                    </Button>
                 </div>
-            )}
-        </div>
+                {/* Action Buttons */}
+                {!isMyProfile && (
+                    <div className="flex gap-2 w-full">
+                        <Button className="flex-1" onClick={handleFollowToggle} disabled={isFollowProcessing}>
+                            {isFollowProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 
+                            isFollowing ? <UserCheckIcon className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />
+                            }
+                            {isFollowing ? 'Takip Ediliyor' : 'Takip Et'}
+                        </Button>
+                        <Link href={`/chat?userId=${userProfile.uid}`} className="flex-1">
+                            <Button variant="secondary" className="w-full">
+                                <MessageSquare className="mr-2 h-4 w-4" /> Mesaj
+                            </Button>
+                        </Link>
+                    </div>
+                )}
+            </header>
+
+            
+            <Separator className="mt-2"/>
+
+            {/* Posts Section */}
+            <div className="w-full">
+                {showGalleryContent ? (
+                    userPosts.length > 0 ? (
+                        <div className="flex flex-col gap-4">
+                            {userPosts.map(post => (
+                            <PostCard key={post.id} post={post} user={userProfile} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-10 text-muted-foreground">
+                            <p>Henüz gönderi yok.</p>
+                        </div>
+                    )
+                ) : (
+                    <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4 rounded-lg border-2 border-dashed">
+                        <Lock className="w-12 h-12 text-muted-foreground/50"/>
+                        <h3 className="font-bold text-lg text-foreground">Bu Galeri Gizli</h3>
+                        <p className="text-sm max-w-xs">
+                            {userProfile.name.split(' ')[0]} kullanıcısının gönderilerini görmek için erişim izni istemeniz gerekiyor.
+                        </p>
+                        <Button 
+                            onClick={handleRequestAccess} 
+                            disabled={requestStatus !== 'idle'}
+                        >
+                            {requestStatus === 'loading' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {requestStatus === 'sent' ? 'İstek Gönderildi' : 'İzin İste'}
+                        </Button>
+                    </div>
+                )}
+            </div>
+          </div>
       </div>
       
        <Sheet open={isListSheetOpen} onOpenChange={setIsListSheetOpen}>
@@ -581,6 +594,3 @@ export default function UserProfilePage() {
     </div>
   );
 }
-
-
-    
