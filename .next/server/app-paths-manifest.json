@@ -1,16 +1,3 @@
 {
-  "/(app)/admin-mod/page": "app/(app)/admin-mod/page.js",
-  "/(app)/admin/activity-logs/page": "app/(app)/admin/activity-logs/page.js",
-  "/(app)/admin/blocked-ips/page": "app/(app)/admin/blocked-ips/page.js",
-  "/(app)/admin/feedback/page": "app/(app)/admin/feedback/page.js",
-  "/(app)/admin/page": "app/(app)/admin/page.js",
-  "/(app)/admin/payment-confirmations/page": "app/(app)/admin/payment-confirmations/page.js",
-  "/(app)/admin/system-status/page": "app/(app)/admin/system-status/page.js",
-  "/(app)/admin/technologies/page": "app/(app)/admin/technologies/page.js",
-  "/(app)/admin/terminal/page": "app/(app)/admin/terminal/page.js",
-  "/(app)/admin/users/page": "app/(app)/admin/users/page.js",
-  "/(app)/explore/page": "app/(app)/explore/page.js",
-  "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js"
 }
