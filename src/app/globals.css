@@ -69,12 +69,14 @@
     -moz-user-select: none; /* Firefox */
     -ms-user-select: none; /* Internet Explorer/Edge */
     user-select: none; /* Standard syntax */
+    -webkit-touch-callout: none; /* iOS Safari - Disables the menu that appears on long-press */
   }
 
   /* Prevent image context menu */
   img {
     -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-drag: none;
+    pointer-events: none; /* Disables click/drag events, might be too strong, but effective */
   }
 }
 

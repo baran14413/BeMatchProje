@@ -294,5 +294,3 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
-
-    

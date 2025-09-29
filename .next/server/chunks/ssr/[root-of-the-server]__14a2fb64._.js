@@ -307,7 +307,7 @@ const logActivityFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$a
     }
     const db = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["getFirestore"])();
     try {
-        await (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["addDoc"])((0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["collection"])(db, 'activityLogs'), {
+        await db.collection('activityLogs').add({
             user: {
                 uid: input.userId,
                 name: input.userName,
@@ -316,7 +316,7 @@ const logActivityFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$a
             activity: input.activity,
             ipAddress: input.ipAddress,
             userAgent: input.userAgent,
-            timestamp: (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["serverTimestamp"])()
+            timestamp: __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["Timestamp"].now()
         });
         return {
             success: true
