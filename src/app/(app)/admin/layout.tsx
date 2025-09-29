@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Home, LogOut, PanelLeft, Search, ShieldAlert, Users, CreditCard, MessageSquareWarning, Star, LineChart, Code, Ban, ShieldCheck, ShieldHalf, Bot } from 'lucide-react';
+import { Home, LogOut, PanelLeft, Search, ShieldAlert, Users, CreditCard, MessageSquareWarning, Star, LineChart, Code, Ban, ShieldCheck, ShieldHalf, Bot, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { auth, db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarProvider,
-  SidebarInset,
 } from "@/components/ui/sidebar";
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -53,15 +52,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             }
         }
         setIsAuthenticated(false);
-    }, [user]);
+        if (pathname !== '/admin/auth') {
+            // router.push('/admin/auth');
+        }
+    }, [user, pathname]);
 
     useEffect(() => {
-        if (user) {
-            verifyAccess();
-        } else {
-            setIsAuthenticated(false);
-        }
-    }, [user, verifyAccess]);
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            if (user) {
+                verifyAccess();
+            } else {
+                setIsAuthenticated(false);
+                 if (pathname !== '/admin/auth') {
+                    // router.push('/admin/auth');
+                }
+            }
+        });
+        return () => unsubscribe();
+    }, [verifyAccess, pathname]);
     
     const handleAuthentication = () => {
         sessionStorage.setItem('adminAuthTimestamp', Date.now().toString());
@@ -142,7 +150,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       </Button>
                     </SheetTrigger>
                     <SheetContent side="left" className="flex flex-col p-0">
-                        <SidebarNavigation />
+                       <SidebarProvider>
+                           <SidebarNavigation />
+                       </SidebarProvider>
                     </SheetContent>
                   </Sheet>
                   <div className="w-full flex-1">
