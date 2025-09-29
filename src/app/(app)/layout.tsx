@@ -61,10 +61,8 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const [lastNotification, setLastNotification] = useState<{ id: string, text: string } | null>(null);
-  const [showNotification, setShowNotification] = useState(false);
   const activityLoggedRef = useRef(false);
   const lastShownNotificationIdRef = useRef<string | null>(null);
-  const notificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const [isClientReady, setIsClientReady] = useState(false);
   const [isLocked, setIsLocked] = useState<boolean | null>(null);
@@ -106,52 +104,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
       setCurrentUser(user);
       if (user) {
         setupPresence(user.uid);
-        if (!currentUserProfile || currentUser?.uid !== user.uid) {
-            setLoadingProfile(true);
-            try {
-              const userDocRef = doc(db, "users", user.uid);
-              const userDocSnap = await getDoc(userDocRef);
-              if (userDocSnap.exists()) {
-                const profileData = userDocSnap.data();
-                const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/tutorial');
-                if (!profileData.username || !profileData.city || !profileData.age || !profileData.hobbies?.length) {
-                  if (!isAuthPage) {
-                     const googleInfo = { email: user.email, firstName: user.displayName?.split(' ')[0] || '', lastName: user.displayName?.split(' ').slice(1).join(' ') || '', photoURL: user.photoURL, };
-                      sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
-                     router.push('/signup?step=1&source=google&reason=complete_profile');
-                     return; 
-                  }
-                }
-                setCurrentUserProfile(profileData);
-                if (!sessionStorage.getItem('welcomeMessageShown')) {
-                    const welcomeText = `Hoş geldin, ${profileData.name?.split(' ')[0]}! ❤️`;
-                    setLastNotification({ id: 'welcome-message', text: welcomeText });
-                    setShowNotification(true);
-                     if (notificationTimeoutRef.current) clearTimeout(notificationTimeoutRef.current);
-                    notificationTimeoutRef.current = setTimeout(() => setShowNotification(false), 6000);
-                    sessionStorage.setItem('welcomeMessageShown', 'true');
-                }
-                if (!activityLoggedRef.current && profileData.name && profileData.avatarUrl) {
-                  fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => {
-                      logActivity({ userId: user.uid, userName: profileData.name, userAvatar: profileData.avatarUrl, ipAddress: data.ip, userAgent: navigator.userAgent, activity: 'Giriş yapıldı' });
-                      activityLoggedRef.current = true;
-                    }).catch(err => console.error("Could not fetch IP for logging:", err));
-                }
-              } else {
-                if (!pathname.startsWith('/signup')) {
-                    const googleInfo = { email: user.email, firstName: user.displayName?.split(' ')[0] || '', lastName: user.displayName?.split(' ').slice(1).join(' ') || '', photoURL: user.photoURL };
-                    sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
-                    router.push('/signup?step=1&source=google');
-                }
-                setCurrentUserProfile(null);
-              }
-            } catch (error) {
-                console.error("Error fetching user profile:", error);
-                setCurrentUserProfile(null);
-            } finally {
-              setLoadingProfile(false);
-            }
-        }
       } else {
         setCurrentUser(null);
         setCurrentUserProfile(null);
@@ -159,19 +111,64 @@ function LayoutContent({ children }: { children: ReactNode }) {
         activityLoggedRef.current = false;
       }
     });
-    return () => {
-        unsubscribeAuth();
-        if (notificationTimeoutRef.current) clearTimeout(notificationTimeoutRef.current);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => unsubscribeAuth();
   }, []);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    setLoadingProfile(true);
+    const userDocRef = doc(db, "users", currentUser.uid);
+    const unsubscribeProfile = onSnapshot(userDocRef, (userDocSnap) => {
+      if (userDocSnap.exists()) {
+        const profileData = userDocSnap.data();
+        const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/tutorial');
+        
+        if (!profileData.username || !profileData.city || !profileData.age || !profileData.hobbies?.length) {
+            if (!isAuthPage) {
+                const googleInfo = { email: currentUser.email, firstName: currentUser.displayName?.split(' ')[0] || '', lastName: currentUser.displayName?.split(' ').slice(1).join(' ') || '', photoURL: currentUser.photoURL };
+                sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
+                router.push('/signup?step=1&source=google&reason=complete_profile');
+                return;
+            }
+        }
+        setCurrentUserProfile(profileData);
+
+        if (!sessionStorage.getItem('welcomeMessageShown')) {
+            const welcomeText = `Hoş geldin, ${profileData.name?.split(' ')[0]}! ❤️`;
+            toast({ title: welcomeText, duration: 6000 });
+            sessionStorage.setItem('welcomeMessageShown', 'true');
+        }
+
+        if (!activityLoggedRef.current && profileData.name && profileData.avatarUrl) {
+            fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => {
+                logActivity({ userId: currentUser.uid, userName: profileData.name, userAvatar: profileData.avatarUrl, ipAddress: data.ip, userAgent: navigator.userAgent, activity: 'Giriş yapıldı' });
+                activityLoggedRef.current = true;
+            }).catch(err => console.error("Could not fetch IP for logging:", err));
+        }
+      } else {
+         if (!pathname.startsWith('/signup')) {
+            const googleInfo = { email: currentUser.email, firstName: currentUser.displayName?.split(' ')[0] || '', lastName: currentUser.displayName?.split(' ').slice(1).join(' ') || '', photoURL: currentUser.photoURL };
+            sessionStorage.setItem('googleSignUpInfo', JSON.stringify(googleInfo));
+            router.push('/signup?step=1&source=google');
+        }
+        setCurrentUserProfile(null);
+      }
+      setLoadingProfile(false);
+    }, (error) => {
+        console.error("Error fetching user profile:", error);
+        setCurrentUserProfile(null);
+        setLoadingProfile(false);
+    });
+
+    return () => unsubscribeProfile();
+}, [currentUser, pathname, router, toast]);
 
   useEffect(() => {
     if (!currentUser) {
         setHasUnreadMessages(false);
         return;
     };
-    if (notificationTimeoutRef.current) clearTimeout(notificationTimeoutRef.current);
 
     const notificationsQuery = query(collection(db, 'notifications'), where('recipientId', '==', currentUser.uid), where('read', '==', false), orderBy('createdAt', 'desc'), limit(1));
     const unsubscribeNotifications = onSnapshot(notificationsQuery, async (snapshot) => {
@@ -182,12 +179,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
         if (newNotifId !== lastShownNotificationIdRef.current) {
           const text = newNotif.type === 'like' ? `**${newNotif.fromUser.name}** bir gönderini beğendi.` : newNotif.type === 'follow' ? `**${newNotif.fromUser.name}** seni takip etmeye başladı.` : `**${newNotif.fromUser.name}** gönderine yorum yaptı.`;
           setLastNotification({ id: newNotifId, text });
-          setShowNotification(true);
           lastShownNotificationIdRef.current = newNotifId;
           const notifRef = doc(db, 'notifications', newNotifId);
           await updateDoc(notifRef, { read: true });
-           if (notificationTimeoutRef.current) clearTimeout(notificationTimeoutRef.current);
-           notificationTimeoutRef.current = setTimeout(() => { setShowNotification(false); }, 4000);
         }
       }
     }, (error) => console.error("Error fetching notification status:", error));
@@ -205,7 +199,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
     return () => {
         unsubscribeNotifications();
         unsubscribeConversations();
-        if (notificationTimeoutRef.current) clearTimeout(notificationTimeoutRef.current);
     };
   }, [currentUser]);
 
@@ -255,14 +248,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
                          <h1 className="text-2xl font-bold font-headline bg-gradient-to-r from-red-500 to-purple-500 bg-clip-text text-transparent">BeMatch</h1>
                         <Heart className="w-6 h-6 text-red-500" fill="currentColor" />
                     </Link>
-                  <AnimatePresence initial={false}>
-                      {showNotification && lastNotification ? (
-                          <motion.div key={lastNotification.id} initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} className="hidden md:flex items-center gap-2">
-                            <Bell className="h-5 w-5 text-primary" />
-                            <span className="text-sm font-medium whitespace-nowrap" dangerouslySetInnerHTML={{ __html: lastNotification.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
-                          </motion.div>
-                      ) : (<div/>)}
-                  </AnimatePresence>
               </div>
 
                 <div className="flex items-center gap-2">
@@ -314,7 +299,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
 export default function AppLayout({ children }: { children: ReactNode }) {
     return (
-        <Suspense fallback={<div>Yükleniyor...</div>}>
+        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}>
             <LayoutContent>{children}</LayoutContent>
         </Suspense>
     )

@@ -3,6 +3,6 @@
   "/(app)/explore/page": "app/(app)/explore/page.js",
   "/(app)/kesfet/page": "app/(app)/kesfet/page.js",
   "/(app)/profile/[username]/page": "app/(app)/profile/[username]/page.js",
-  "/(app)/shuffle/page": "app/(app)/shuffle/page.js",
+  "/(auth)/login/page": "app/(auth)/login/page.js",
   "/page": "app/page.js"
 }

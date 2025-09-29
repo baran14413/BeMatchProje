@@ -247,7 +247,7 @@ const auth = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f
 const db = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getFirestore"])(app);
 const storage = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$storage$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getStorage"])(app);
 const rtdb = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDatabase"])(app);
-const messaging = ("TURBOPACK compile-time truthy", 1) ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$messaging$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getMessaging"])(app) : ("TURBOPACK unreachable", undefined);
+const messaging = "object" !== 'undefined' && 'serviceWorker' in navigator ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$messaging$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getMessaging"])(app) : null;
 // Enable offline persistence
 if ("TURBOPACK compile-time truthy", 1) {
     try {
@@ -270,23 +270,23 @@ if ("TURBOPACK compile-time truthy", 1) {
 }
 const clearCache = async ()=>{
     try {
-        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["terminate"])(db);
-        // Delete the firebase app to release all resources
-        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__["deleteApp"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__["getApp"])());
-        // Unregister all service workers
+        // Unregister all service workers first to release file locks
         if ('serviceWorker' in navigator) {
             const registrations = await navigator.serviceWorker.getRegistrations();
             for (const registration of registrations){
                 await registration.unregister();
             }
         }
+        // Terminate Firestore to close DB connections
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["terminate"])(db);
         // Clear Cache Storage
         const keys = await caches.keys();
         await Promise.all(keys.map((key)=>caches.delete(key)));
-        // Clear IndexedDB for Firestore
-        const dbName = `firebase-indexeddb-main-` + firebaseConfig.projectId;
-        const deleteRequest = indexedDB.deleteDatabase(dbName);
+        // At this point, IndexedDB should be clearable.
+        // In some complex cases, a full page reload after unregistering might be needed
+        // before IndexedDB can be deleted, but we try it directly first.
         return new Promise((resolve, reject)=>{
+            const deleteRequest = indexedDB.deleteDatabase("firebase-firestore-database");
             deleteRequest.onsuccess = ()=>{
                 console.log("Firestore IndexedDB cache cleared successfully.");
                 resolve();
@@ -297,7 +297,7 @@ const clearCache = async ()=>{
             };
             deleteRequest.onblocked = ()=>{
                 console.warn("Clearing IndexedDB is blocked. Please close other tabs with this app open.");
-                reject(new Error("Clearing cache is blocked. Close other tabs."));
+                reject(new Error("Cache clear is blocked. Close other tabs and reload."));
             };
         });
     } catch (error) {
@@ -764,63 +764,130 @@ const useNotification = ()=>{
     _s();
     const { toast } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useToast"])();
     const currentUser = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["auth"].currentUser;
+    const [isSubscribed, setSubscribed] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [isLoading, setIsLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(true);
+    // Check current subscription status on component mount
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "useNotification.useEffect": ()=>{
-            if ("object" === 'undefined' || !('serviceWorker' in navigator) || !currentUser) {
-                return;
-            }
-            const messaging = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$messaging$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getMessaging"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["app"]);
-            // 1. Request Permission
-            const requestPermission = {
-                "useNotification.useEffect.requestPermission": async ()=>{
-                    try {
-                        const permission = await Notification.requestPermission();
-                        if (permission === 'granted') {
-                            // 2. Get Token
-                            const fcmToken = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$messaging$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getToken"])(messaging, {
-                                vapidKey: ("TURBOPACK compile-time value", "BEv3RhiBuZQ8cDg2SAQf41tY_ijOEBJyCDLUY648St78CRgE57v8HWYUDBu6huI_kxzF_gKyelZi3Qbfgs8PMaE")
-                            });
-                            if (fcmToken) {
-                                // 3. Save Token to Firestore
-                                console.log('FCM Token:', fcmToken);
+            if ("object" !== 'undefined' && 'serviceWorker' in navigator && currentUser) {
+                // Check current permission status
+                if (Notification.permission === 'granted') {
+                    const checkToken = {
+                        "useNotification.useEffect.checkToken": async ()=>{
+                            try {
                                 const userDocRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'users', currentUser.uid);
-                                await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["updateDoc"])(userDocRef, {
-                                    fcmToken: fcmToken
-                                });
-                            } else {
-                                console.log('No registration token available. Request permission to generate one.');
+                                const userDoc = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getDoc"])(userDocRef);
+                                if (userDoc.exists() && userDoc.data().fcmToken) {
+                                    setSubscribed(true);
+                                } else {
+                                    setSubscribed(false);
+                                }
+                            } catch (e) {
+                                console.error("Error checking FCM token in Firestore", e);
+                                setSubscribed(false);
+                            } finally{
+                                setIsLoading(false);
                             }
-                        } else {
-                            console.log('Unable to get permission to notify.');
                         }
-                    } catch (error) {
-                        console.error('An error occurred while retrieving token. ', error);
-                    }
+                    }["useNotification.useEffect.checkToken"];
+                    checkToken();
+                } else {
+                    setSubscribed(false);
+                    setIsLoading(false);
                 }
-            }["useNotification.useEffect.requestPermission"];
-            requestPermission();
-            // 4. Handle Foreground Messages
-            const unsubscribe = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$messaging$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["onMessage"])(messaging, {
-                "useNotification.useEffect.unsubscribe": (payload)=>{
-                    console.log('Foreground message received. ', payload);
-                    toast({
-                        title: payload.notification?.title,
-                        description: payload.notification?.body
-                    });
-                }
-            }["useNotification.useEffect.unsubscribe"]);
-            return ({
-                "useNotification.useEffect": ()=>{
-                    unsubscribe();
-                }
-            })["useNotification.useEffect"];
+            } else {
+                setIsLoading(false);
+            }
         }
     }["useNotification.useEffect"], [
+        currentUser
+    ]);
+    // Effect to handle incoming foreground messages
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "useNotification.useEffect": ()=>{
+            if (isSubscribed && "object" !== 'undefined' && 'serviceWorker' in navigator) {
+                const messaging = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$messaging$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getMessaging"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["app"]);
+                const unsubscribe = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$messaging$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["onMessage"])(messaging, {
+                    "useNotification.useEffect.unsubscribe": (payload)=>{
+                        console.log('Foreground message received. ', payload);
+                        toast({
+                            title: payload.notification?.title,
+                            description: payload.notification?.body
+                        });
+                    }
+                }["useNotification.useEffect.unsubscribe"]);
+                return ({
+                    "useNotification.useEffect": ()=>unsubscribe()
+                })["useNotification.useEffect"];
+            }
+        }
+    }["useNotification.useEffect"], [
+        isSubscribed,
+        toast
+    ]);
+    // Function to request permission and get token
+    const requestPermission = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "useNotification.useCallback[requestPermission]": async ()=>{
+            if ("object" === 'undefined' || !('serviceWorker' in navigator) || !currentUser) {
+                toast({
+                    variant: 'destructive',
+                    title: 'Bildirimler desteklenmiyor veya giriş yapılmamış.'
+                });
+                return false;
+            }
+            setIsLoading(true);
+            try {
+                const messaging = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$messaging$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getMessaging"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["app"]);
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    const fcmToken = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$messaging$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getToken"])(messaging, {
+                        vapidKey: ("TURBOPACK compile-time value", "BEv3RhiBuZQ8cDg2SAQf41tY_ijOEBJyCDLUY648St78CRgE57v8HWYUDBu6huI_kxzF_gKyelZi3Qbfgs8PMaE")
+                    });
+                    if (fcmToken) {
+                        const userDocRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["db"], 'users', currentUser.uid);
+                        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["updateDoc"])(userDocRef, {
+                            fcmToken
+                        });
+                        console.log('FCM Token successfully saved to Firestore.');
+                        toast({
+                            title: 'Bildirimlere abone olundu!',
+                            className: 'bg-green-500 text-white'
+                        });
+                        setIsLoading(false);
+                        return true;
+                    } else {
+                        throw new Error('FCM token alınamadı.');
+                    }
+                } else {
+                    toast({
+                        variant: 'destructive',
+                        title: 'Bildirim izni verilmedi.'
+                    });
+                    setIsLoading(false);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error getting notification permission or token:', error);
+                toast({
+                    variant: 'destructive',
+                    title: 'Bildirimler etkinleştirilemedi.'
+                });
+                setIsLoading(false);
+                return false;
+            }
+        }
+    }["useNotification.useCallback[requestPermission]"], [
         currentUser,
         toast
     ]);
+    return {
+        isSubscribed,
+        setSubscribed,
+        requestPermission,
+        isLoading
+    };
 };
-_s(useNotification, "yewiciNAyXv2lON8W2xhwnTnvVo=", false, function() {
+_s(useNotification, "gxyCcbV+03Dnnu1Su2kMk8x4piA=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useToast"]
     ];

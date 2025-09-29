@@ -368,30 +368,30 @@ const auth = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f
 const db = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getFirestore"])(app);
 const storage = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$storage$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getStorage"])(app);
 const rtdb = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getDatabase"])(app);
-const messaging = ("TURBOPACK compile-time falsy", 0) ? ("TURBOPACK unreachable", undefined) : null;
+const messaging = "undefined" !== 'undefined' && 'serviceWorker' in navigator ? ("TURBOPACK unreachable", undefined) : null;
 // Enable offline persistence
 if ("TURBOPACK compile-time falsy", 0) {
     "TURBOPACK unreachable";
 }
 const clearCache = async ()=>{
     try {
-        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["terminate"])(db);
-        // Delete the firebase app to release all resources
-        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["deleteApp"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["getApp"])());
-        // Unregister all service workers
+        // Unregister all service workers first to release file locks
         if ('serviceWorker' in navigator) {
             const registrations = await navigator.serviceWorker.getRegistrations();
             for (const registration of registrations){
                 await registration.unregister();
             }
         }
+        // Terminate Firestore to close DB connections
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["terminate"])(db);
         // Clear Cache Storage
         const keys = await caches.keys();
         await Promise.all(keys.map((key)=>caches.delete(key)));
-        // Clear IndexedDB for Firestore
-        const dbName = `firebase-indexeddb-main-` + firebaseConfig.projectId;
-        const deleteRequest = indexedDB.deleteDatabase(dbName);
+        // At this point, IndexedDB should be clearable.
+        // In some complex cases, a full page reload after unregistering might be needed
+        // before IndexedDB can be deleted, but we try it directly first.
         return new Promise((resolve, reject)=>{
+            const deleteRequest = indexedDB.deleteDatabase("firebase-firestore-database");
             deleteRequest.onsuccess = ()=>{
                 console.log("Firestore IndexedDB cache cleared successfully.");
                 resolve();
@@ -402,7 +402,7 @@ const clearCache = async ()=>{
             };
             deleteRequest.onblocked = ()=>{
                 console.warn("Clearing IndexedDB is blocked. Please close other tabs with this app open.");
-                reject(new Error("Clearing cache is blocked. Close other tabs."));
+                reject(new Error("Cache clear is blocked. Close other tabs and reload."));
             };
         });
     } catch (error) {
@@ -822,20 +822,47 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$
 const useNotification = ()=>{
     const { toast } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useToast"])();
     const currentUser = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["auth"].currentUser;
+    const [isSubscribed, setSubscribed] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [isLoading, setIsLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
+    // Check current subscription status on component mount
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        if ("undefined" !== 'undefined' && 'serviceWorker' in navigator && currentUser) {
+            "TURBOPACK unreachable";
+        } else {
+            setIsLoading(false);
+        }
+    }, [
+        currentUser
+    ]);
+    // Effect to handle incoming foreground messages
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        if (isSubscribed && "undefined" !== 'undefined' && 'serviceWorker' in navigator) {
+            "TURBOPACK unreachable";
+        }
+    }, [
+        isSubscribed,
+        toast
+    ]);
+    // Function to request permission and get token
+    const requestPermission = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])(async ()=>{
         if ("undefined" === 'undefined' || !('serviceWorker' in navigator) || !currentUser) {
-            return;
+            toast({
+                variant: 'destructive',
+                title: 'Bildirimler desteklenmiyor veya giriş yapılmamış.'
+            });
+            return false;
         }
         "TURBOPACK unreachable";
-        const messaging = undefined;
-        // 1. Request Permission
-        const requestPermission = undefined;
-        // 4. Handle Foreground Messages
-        const unsubscribe = undefined;
     }, [
         currentUser,
         toast
     ]);
+    return {
+        isSubscribed,
+        setSubscribed,
+        requestPermission,
+        isLoading
+    };
 };
 }}),
 "[project]/src/app/(app)/layout.tsx [app-ssr] (ecmascript)": ((__turbopack_context__) => {
