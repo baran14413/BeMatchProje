@@ -7,11 +7,41 @@ import { app, auth, db } from '@/lib/firebase';
 import { useToast } from './use-toast';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 
+
+// Extend Navigator interface to include the experimental Badge API
+declare global {
+    interface Navigator {
+        setAppBadge?: (count: number) => Promise<void>;
+        clearAppBadge?: () => Promise<void>;
+    }
+}
+
+
 export const useNotification = () => {
   const { toast } = useToast();
   const currentUser = auth.currentUser;
   const [isSubscribed, setSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const updateBadge = async (count: number) => {
+    if (navigator.setAppBadge) {
+      try {
+        await navigator.setAppBadge(count);
+      } catch (error) {
+        console.error('App badge setting failed', error);
+      }
+    }
+  };
+
+  const clearBadge = async () => {
+    if (navigator.clearAppBadge) {
+      try {
+        await navigator.clearAppBadge();
+      } catch (error) {
+        console.error('App badge clearing failed', error);
+      }
+    }
+  };
 
   // Check current subscription status on component mount
   useEffect(() => {
@@ -45,8 +75,16 @@ export const useNotification = () => {
   }, [currentUser]);
 
 
-  // Effect to handle incoming foreground messages
+  // Effect to handle incoming foreground messages and badge clearing
   useEffect(() => {
+    const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+            clearBadge();
+        }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     if (isSubscribed && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
         const messaging = getMessaging(app);
         const unsubscribe = onMessage(messaging, (payload) => {
@@ -56,8 +94,12 @@ export const useNotification = () => {
                 description: payload.notification?.body,
             });
         });
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
     }
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [isSubscribed, toast]);
 
 
@@ -102,5 +144,5 @@ export const useNotification = () => {
     }
   }, [currentUser, toast]);
 
-  return { isSubscribed, setSubscribed, requestPermission, isLoading };
+  return { isSubscribed, setSubscribed, requestPermission, isLoading, updateBadge, clearBadge };
 };

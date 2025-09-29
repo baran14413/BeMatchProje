@@ -60,55 +60,6 @@ const AppLockScreen: React.FC<AppLockScreenProps> = ({ onUnlock }) => {
     }
   }, [pin, verifyPin]);
   
-   const handleBiometricAuth = useCallback(async () => {
-    try {
-        if (!navigator.credentials || !window.PublicKeyCredential) {
-            toast({ variant: 'destructive', title: 'Biyometrik doğrulama bu tarayıcıda desteklenmiyor.'});
-            return;
-        }
-        
-      // This is a simplified check. A real implementation requires a server challenge.
-      // For this demo, we'll just check if the user can interact with the API.
-      const isSupported = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-      if (!isSupported) {
-          toast({ variant: 'destructive', title: 'Cihazınızda biyometrik doğrulama ayarlı değil.'});
-          return
-      }
-
-      // In a real app, you would get challenge from a server.
-      const challenge = new Uint8Array(32);
-      window.crypto.getRandomValues(challenge);
-      
-      const credential = await navigator.credentials.get({
-        publicKey: {
-          challenge,
-          allowCredentials: [],
-          // In a real app, you would specify your relying party ID (your domain)
-          // rpId: 'example.com',
-          userVerification: 'required',
-        },
-      });
-      
-      if (credential) {
-         toast({ title: 'Kimlik doğrulandı!', className: 'bg-green-500 text-white'});
-         onUnlock();
-      }
-
-    } catch (err) {
-      console.error(err);
-      toast({ variant: 'destructive', title: 'Biyometrik doğrulama başarısız oldu.'});
-    }
-  }, [onUnlock, toast]);
-  
-   useEffect(() => {
-    const configStr = localStorage.getItem('app-lock-config');
-    if (configStr) {
-        const config = JSON.parse(configStr);
-        if (config.isBiometricEnabled) {
-            handleBiometricAuth();
-        }
-    }
-   }, [handleBiometricAuth]);
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">

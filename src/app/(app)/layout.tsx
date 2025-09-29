@@ -68,7 +68,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const [isLocked, setIsLocked] = useState<boolean | null>(null);
 
   // Initialize notification hook
-  useNotification();
+  const { clearBadge } = useNotification();
 
    useEffect(() => {
     const lockConfig = localStorage.getItem('app-lock-config');
@@ -93,11 +93,21 @@ function LayoutContent({ children }: { children: ReactNode }) {
     const storedPreference = localStorage.getItem('disableAnimations');
     setAnimationsDisabled(storedPreference === 'true');
 
+    // Clear badge when app becomes visible
+    const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+            clearBadge();
+        }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+
     return () => {
       document.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []);
+  }, [clearBadge]);
 
    useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {

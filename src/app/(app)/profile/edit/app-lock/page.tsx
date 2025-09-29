@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -7,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Fingerprint, KeyRound, Check, X, Loader2 } from 'lucide-react';
+import { KeyRound, Check, X, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -15,11 +16,13 @@ import { cn } from '@/lib/utils';
 
 const DEFAULT_CONFIG = {
     isEnabled: false,
-    isBiometricEnabled: false,
     pin: null,
 };
 
-type AppLockConfig = typeof DEFAULT_CONFIG;
+type AppLockConfig = {
+    isEnabled: boolean;
+    pin: string | null;
+};
 
 
 export default function AppLockPage() {
@@ -38,7 +41,8 @@ export default function AppLockPage() {
     useEffect(() => {
         const savedConfig = localStorage.getItem('app-lock-config');
         if (savedConfig) {
-            setConfig(JSON.parse(savedConfig));
+            // Merge with default to ensure all keys are present
+            setConfig(prev => ({...prev, ...JSON.parse(savedConfig)}));
         }
         setIsMounted(true);
     }, []);
@@ -64,26 +68,7 @@ export default function AppLockPage() {
             setIsPinModalOpen(true);
         } else {
             saveConfig({ isEnabled });
-            if (!isEnabled) {
-                 saveConfig({ isEnabled: false, isBiometricEnabled: false }); // Also disable biometrics if lock is turned off
-            }
         }
-    };
-    
-    const handleToggleBiometrics = async (isBiometricEnabled: boolean) => {
-        if (isBiometricEnabled) {
-            // Check for browser support
-             if (!navigator.credentials || !window.PublicKeyCredential) {
-                toast({ variant: 'destructive', title: 'Bu tarayıcıda biyometrik doğrulama desteklenmiyor.'});
-                return;
-            }
-             const isSupported = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-            if (!isSupported) {
-                toast({ variant: 'destructive', title: 'Cihazınızda biyometrik doğrulama ayarlı değil.'});
-                return
-            }
-        }
-        saveConfig({ isBiometricEnabled });
     };
 
     const resetPinModal = () => {
@@ -143,7 +128,7 @@ export default function AppLockPage() {
                 <CardHeader>
                     <CardTitle>Uygulama Şifresi</CardTitle>
                     <CardDescription>
-                        Uygulamaya erişimi bir PIN veya biyometrik kimlik doğrulama ile koruyun.
+                        Uygulamaya erişimi bir PIN kodu ile koruyun.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -160,18 +145,6 @@ export default function AppLockPage() {
                     </div>
                     {config.isEnabled && (
                         <>
-                            <Separator />
-                            <div className="flex items-center justify-between p-4 border rounded-lg">
-                                <Label htmlFor="biometric-switch" className="font-semibold flex items-center gap-3">
-                                    <Fingerprint className="h-5 w-5 text-primary" />
-                                    <span>Yüz Tanıma / Parmak İzi ile Aç</span>
-                                </Label>
-                                <Switch
-                                    id="biometric-switch"
-                                    checked={config.isBiometricEnabled}
-                                    onCheckedChange={handleToggleBiometrics}
-                                />
-                            </div>
                             <Separator />
                             <div className="flex justify-between items-center">
                                <p className="text-sm text-muted-foreground">Uygulama şifrenizi değiştirmek için tıklayın.</p>

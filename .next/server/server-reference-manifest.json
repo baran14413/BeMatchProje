@@ -1,32 +1,5 @@
 {
-  "node": {
-    "4089b26089702b1e5adfebade7e2643cec0eef947b": {
-      "workers": {
-        "app/(app)/chat/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/chat/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        },
-        "app/(app)/explore/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/explore/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        },
-        "app/(app)/kesfet/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/kesfet/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        },
-        "app/(app)/profile/[username]/page": {
-          "moduleId": "[project]/.next-internal/server/app/(app)/profile/[username]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        }
-      },
-      "layer": {
-        "app/(app)/chat/page": "action-browser",
-        "app/(app)/explore/page": "action-browser",
-        "app/(app)/kesfet/page": "action-browser",
-        "app/(app)/profile/[username]/page": "action-browser"
-      }
-    }
-  },
+  "node": {},
   "edge": {},
   "encryptionKey": "RR9qWedF7LKg52rPaWB/UVfEmrz1et13H2Cfbow2Pes="
 }
