@@ -60,9 +60,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
-  const [lastNotification, setLastNotification] = useState<{ id: string, text: string } | null>(null);
+  
   const activityLoggedRef = useRef(false);
-  const lastShownNotificationIdRef = useRef<string | null>(null);
+  
   
   const [isClientReady, setIsClientReady] = useState(false);
   const [isLocked, setIsLocked] = useState<boolean | null>(null);
@@ -179,22 +179,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
         setHasUnreadMessages(false);
         return;
     };
-
-    const notificationsQuery = query(collection(db, 'notifications'), where('recipientId', '==', currentUser.uid), where('read', '==', false), orderBy('createdAt', 'desc'), limit(1));
-    const unsubscribeNotifications = onSnapshot(notificationsQuery, async (snapshot) => {
-      if (!snapshot.empty) {
-        const newNotifDoc = snapshot.docs[0];
-        const newNotif = newNotifDoc.data();
-        const newNotifId = newNotifDoc.id;
-        if (newNotifId !== lastShownNotificationIdRef.current) {
-          const text = newNotif.type === 'like' ? `**${newNotif.fromUser.name}** bir gönderini beğendi.` : newNotif.type === 'follow' ? `**${newNotif.fromUser.name}** seni takip etmeye başladı.` : `**${newNotif.fromUser.name}** gönderine yorum yaptı.`;
-          setLastNotification({ id: newNotifId, text });
-          lastShownNotificationIdRef.current = newNotifId;
-          const notifRef = doc(db, 'notifications', newNotifId);
-          await updateDoc(notifRef, { read: true });
-        }
-      }
-    }, (error) => console.error("Error fetching notification status:", error));
     
     const conversationsQuery = query(collection(db, 'conversations'), where('users', 'array-contains', currentUser.uid));
     const unsubscribeConversations = onSnapshot(conversationsQuery, (snapshot) => {
@@ -207,7 +191,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
     }, (error) => { console.error("Error fetching message status:", error); setHasUnreadMessages(false); });
 
     return () => {
-        unsubscribeNotifications();
         unsubscribeConversations();
     };
   }, [currentUser]);
@@ -254,14 +237,17 @@ function LayoutContent({ children }: { children: ReactNode }) {
         {showNavs && (
             <header className={cn("fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-background/70 px-4 backdrop-blur-sm transition-transform duration-300 md:px-6", "h-[var(--header-height)]", !isOnline || isPoorConnection ? 'top-10' : 'top-0', isScrolling && "-translate-y-full")}>
                <div className="flex flex-1 items-center gap-2">
+                    <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" asChild><Link href="/search"><Search className="h-5 w-5" /></Link></Button>
+              </div>
+
+                <div className="flex items-center gap-2">
                     <Link href="/explore" className="flex items-center gap-2">
                          <h1 className="text-2xl font-bold font-headline bg-gradient-to-r from-red-500 to-purple-500 bg-clip-text text-transparent">BeMatch</h1>
                         <Heart className="w-6 h-6 text-red-500" fill="currentColor" />
                     </Link>
-              </div>
+                </div>
 
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" asChild><Link href="/create-post"><Plus className="h-5 w-5" /></Link></Button>
+                <div className="flex flex-1 justify-end items-center gap-2">
                     <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" asChild><Link href="/notifications"><Bell className="h-5 w-5" /></Link></Button>
                     <Button variant="ghost" size="icon" className="relative rounded-full h-8 w-8" asChild>
                        <Link href="/chat">
@@ -288,16 +274,10 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
         {showNavs && (
             <nav className={cn("fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/70 backdrop-blur-sm transition-transform duration-300 md:hidden", "h-[var(--bottom-nav-height)]", isScrolling && "translate-y-full")}>
-                <div className="grid h-full grid-cols-5">
-                    <NavButton href="/explore" icon={<Home />} srText="Ana Sayfa" isActive={pathname === '/explore'} />
-                    <NavButton href="/kesfet" icon={<Globe />} srText="Keşfet" isActive={pathname === '/kesfet'} />
-                     <Link href="/create-post" className="flex items-center justify-center -mt-4">
-                        <div className="bg-primary text-primary-foreground rounded-full h-14 w-14 flex items-center justify-center shadow-lg border-4 border-background">
-                            <Plus className="h-7 w-7" strokeWidth={2.5}/>
-                        </div>
-                    </Link>
-                    <NavButton href="/shuffle" icon={<Shuffle />} srText="Eşleş" isActive={pathname === '/shuffle'} />
-                    <NavButton href={currentUserProfile?.username ? `/profile/${currentUserProfile.username}` : '/profile/edit'} icon={<User />} srText="Profil" isActive={pathname.startsWith('/profile')} />
+                <div className="grid h-full grid-cols-3">
+                    <NavButton href="/shuffle" icon={<Shuffle />} srText="Rastgele Eşleş" isActive={pathname === '/shuffle'} />
+                    <NavButton href="/match" icon={<Home />} srText="Ana Sayfa" isActive={pathname === '/match'} />
+                    <NavButton href="/explore" icon={<Globe />} srText="Keşfet" isActive={pathname === '/explore'} />
                 </div>
             </nav>
         )}
@@ -314,3 +294,5 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Suspense>
     )
 }
+
+    
