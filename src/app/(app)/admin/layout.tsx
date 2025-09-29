@@ -52,10 +52,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             }
         }
         setIsAuthenticated(false);
-        if (pathname !== '/admin/auth') {
-            // router.push('/admin/auth');
-        }
-    }, [user, pathname]);
+    }, [user]);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -63,13 +60,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 verifyAccess();
             } else {
                 setIsAuthenticated(false);
-                 if (pathname !== '/admin/auth') {
-                    // router.push('/admin/auth');
-                }
             }
         });
         return () => unsubscribe();
-    }, [verifyAccess, pathname]);
+    }, [verifyAccess]);
     
     const handleAuthentication = () => {
         sessionStorage.setItem('adminAuthTimestamp', Date.now().toString());
@@ -85,7 +79,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       { href: '/admin/activity-logs', icon: <ShieldCheck />, label: 'Aktivite Kayıtları' },
       { href: '/admin/blocked-ips', icon: <Ban />, label: 'Engellenen IPler' },
       { href: '/admin/system-status', icon: <LineChart />, label: 'Sistem Durumu' },
-       { href: '/admin/gemini-updates', icon: <Bot />, label: 'Gemini & AI' },
+      { href: '/admin/terminal', icon: <Code />, label: 'Terminal' },
+      { href: '/admin/gemini-updates', icon: <Bot />, label: 'Gemini & AI' },
       { href: '/admin/technologies', icon: <Code />, label: 'Teknolojilerimiz' },
     ];
     
