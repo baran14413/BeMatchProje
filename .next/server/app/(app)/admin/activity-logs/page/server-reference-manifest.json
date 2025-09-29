@@ -1,0 +1,38 @@
+{
+  "node": {
+    "4089b26089702b1e5adfebade7e2643cec0eef947b": {
+      "workers": {
+        "app/(app)/admin/activity-logs/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/admin/activity-logs/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/ai/flows/ip-management-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/(app)/admin/activity-logs/page": "action-browser"
+      }
+    },
+    "40680b24048d25ecd6783caec7cb78d07ae0bb6343": {
+      "workers": {
+        "app/(app)/admin/activity-logs/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/admin/activity-logs/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/ai/flows/ip-management-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/(app)/admin/activity-logs/page": "action-browser"
+      }
+    },
+    "40f4bc0511c4e45ed23b95e4331ce96c8e61a66cda": {
+      "workers": {
+        "app/(app)/admin/activity-logs/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/admin/activity-logs/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/ai/flows/ip-management-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/(app)/admin/activity-logs/page": "action-browser"
+      }
+    }
+  },
+  "edge": {}
+}
