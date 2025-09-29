@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const ThemePreviewCard = ({ themeName, isSelected, children }: { themeName: string, isSelected: boolean, children: React.ReactNode}) => (
     <div className={cn('p-1 rounded-lg border-2 flex flex-col items-center justify-center gap-4 transition-colors', isSelected ? 'border-primary bg-primary/10' : 'border-muted hover:border-primary/50')}>
@@ -22,6 +23,57 @@ const ThemePreviewCard = ({ themeName, isSelected, children }: { themeName: stri
         </div>
     </div>
 );
+
+const AnimationPreview = ({ isDisabled }: { isDisabled: boolean }) => {
+    const [view, setView] = useState<'list' | 'grid'>('list');
+
+    return (
+        <div className="flex flex-col items-center gap-2">
+            <div className="flex items-center gap-2">
+                <button
+                    onClick={() => setView('list')}
+                    className={cn('p-2 rounded-md transition-colors', view === 'list' ? 'bg-primary/20 text-primary' : 'bg-muted')}
+                >
+                    <Rows3 className="w-5 h-5" />
+                </button>
+                <button
+                    onClick={() => setView('grid')}
+                    className={cn('p-2 rounded-md transition-colors', view === 'grid' ? 'bg-primary/20 text-primary' : 'bg-muted')}
+                >
+                    <Columns3 className="w-5 h-5" />
+                </button>
+            </div>
+            <div className="w-48 h-24 mt-2 bg-muted rounded-lg overflow-hidden relative flex items-center justify-center">
+                <AnimatePresence initial={false}>
+                    <motion.div
+                        key={view}
+                        initial={{ opacity: 0, y: isDisabled ? 0 : 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: isDisabled ? 0 : -10 }}
+                        transition={{ duration: isDisabled ? 0 : 0.3 }}
+                        className="absolute"
+                    >
+                        {view === 'list' ? (
+                            <div className="space-y-1">
+                                <div className="h-2 w-32 bg-muted-foreground/30 rounded-full"></div>
+                                <div className="h-2 w-24 bg-muted-foreground/30 rounded-full"></div>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 gap-1">
+                                <div className="h-8 w-16 bg-muted-foreground/30 rounded"></div>
+                                <div className="h-8 w-16 bg-muted-foreground/30 rounded"></div>
+                            </div>
+                        )}
+                    </motion.div>
+                </AnimatePresence>
+                <p className="text-xs text-muted-foreground absolute bottom-2">
+                    {isDisabled ? 'Animasyon Kapalı' : 'Animasyon Açık'}
+                </p>
+            </div>
+        </div>
+    );
+};
+
 
 export default function AppearancePage() {
     const { theme, setTheme } = useTheme();
@@ -103,16 +155,22 @@ export default function AppearancePage() {
                  <div>
                     <Label className="text-base font-medium">Erişilebilirlik</Label>
                     <div className="flex items-center justify-between p-4 border rounded-lg mt-2">
-                        <div className="space-y-1">
-                            <Label htmlFor="disable-animations" className="font-semibold flex items-center gap-2">
-                                <EyeOff className="h-5 w-5 text-primary" />
-                                <span>Animasyonları Devre Dışı Bırak</span>
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                                Navigasyon çubuklarının kaybolma animasyonunu kapatır.
-                            </p>
-                        </div>
-                        <Switch id="disable-animations" checked={animationsDisabled} onCheckedChange={handleAnimationToggle} />
+                       <div className="flex-1">
+                            <div className="space-y-1">
+                                <Label htmlFor="disable-animations" className="font-semibold flex items-center gap-2">
+                                    <EyeOff className="h-5 w-5 text-primary" />
+                                    <span>Animasyonları Devre Dışı Bırak</span>
+                                </Label>
+                                <p className="text-sm text-muted-foreground">
+                                    Arayüzdeki geçiş ve kayma animasyonlarını kapatır.
+                                </p>
+                            </div>
+                             <Switch id="disable-animations" checked={animationsDisabled} onCheckedChange={handleAnimationToggle} className="mt-4 sm:hidden" />
+                       </div>
+                       <div className="hidden sm:flex flex-col items-center">
+                           <AnimationPreview isDisabled={animationsDisabled} />
+                       </div>
+                        <Switch id="disable-animations-desktop" checked={animationsDisabled} onCheckedChange={handleAnimationToggle} className="hidden sm:flex ml-4" />
                     </div>
                  </div>
             </CardContent>

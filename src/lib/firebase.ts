@@ -1,6 +1,6 @@
 
 import { initializeApp, getApps, getApp, deleteApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, initializeAuth, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import { getFirestore, doc, setDoc, serverTimestamp as firestoreServerTimestamp, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED, clearIndexedDbPersistence, terminate } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getDatabase, ref, onValue, set, onDisconnect, serverTimestamp as rtdbServerTimestamp, goOffline, goOnline } from 'firebase/database';
@@ -27,7 +27,20 @@ if (!getApps().length) {
     firebase.initializeApp(firebaseConfig);
 }
 
-const auth = getAuth(app);
+// Conditionally set persistence based on PWA mode
+const getFirebaseAuth = () => {
+    if (typeof window !== 'undefined') {
+        const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
+        // For PWA, use session persistence to create a separate session from the browser.
+        // For browser, use local persistence for a consistent logged-in experience.
+        const persistence = isInStandaloneMode ? browserSessionPersistence : browserLocalPersistence;
+        return initializeAuth(app, { persistence });
+    }
+    // For server-side rendering, return the default auth instance
+    return getAuth(app);
+};
+
+const auth = getFirebaseAuth();
 const db = getFirestore(app);
 const storage = getStorage(app);
 const rtdb = getDatabase(app);

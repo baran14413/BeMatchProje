@@ -542,6 +542,10 @@ img {
   top: 50%;
 }
 
+.bottom-2 {
+  bottom: .5rem;
+}
+
 .z-10 {
   z-index: 10;
 }
@@ -1941,6 +1945,14 @@ img {
 .bg-yellow-500 {
   --tw-bg-opacity: 1;
   background-color: rgb(234 179 8 / var(--tw-bg-opacity, 1));
+}
+
+.bg-muted-foreground\/30 {
+  background-color: hsl(var(--muted-foreground) / .3);
+}
+
+.bg-primary\/20 {
+  background-color: hsl(var(--primary) / .2);
 }
 
 .bg-gradient-to-br {
@@ -3590,6 +3602,10 @@ img {
 
   .sm\:flex {
     display: flex;
+  }
+
+  .sm\:hidden {
+    display: none;
   }
 
   .sm\:max-w-\[425px\] {

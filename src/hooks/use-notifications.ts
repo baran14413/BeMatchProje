@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { app, auth, db } from '@/lib/firebase';
 import { useToast } from './use-toast';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
 
 
 // Extend Navigator interface to include the experimental Badge API
@@ -23,17 +23,17 @@ export const useNotification = () => {
   const [isSubscribed, setSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const updateBadge = async (count: number) => {
-    if (navigator.setAppBadge) {
+  const updateBadge = useCallback(async (count?: number) => {
+    if (typeof count === 'number' && navigator.setAppBadge) {
       try {
         await navigator.setAppBadge(count);
       } catch (error) {
         console.error('App badge setting failed', error);
       }
     }
-  };
+  }, []);
 
-  const clearBadge = async () => {
+  const clearBadge = useCallback(async () => {
     if (navigator.clearAppBadge) {
       try {
         await navigator.clearAppBadge();
@@ -41,7 +41,7 @@ export const useNotification = () => {
         console.error('App badge clearing failed', error);
       }
     }
-  };
+  }, []);
 
   // Check current subscription status on component mount
   useEffect(() => {
@@ -93,6 +93,7 @@ export const useNotification = () => {
                 title: payload.notification?.title,
                 description: payload.notification?.body,
             });
+            // Update badge for foreground messages if needed, though typically this is for background
         });
         return () => {
             unsubscribe();
@@ -100,7 +101,27 @@ export const useNotification = () => {
         };
     }
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [isSubscribed, toast]);
+  }, [isSubscribed, toast, clearBadge]);
+
+  // Effect to listen to notification count and update badge
+    useEffect(() => {
+        if (!currentUser || !isSubscribed) return;
+
+        const q = query(
+            collection(db, 'notifications'),
+            where('recipientId', '==', currentUser.uid),
+            where('read', '==', false)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const unreadCount = snapshot.size;
+            updateBadge(unreadCount);
+        }, (error) => {
+            console.error("Error listening to notification count:", error);
+        });
+
+        return () => unsubscribe();
+    }, [currentUser, isSubscribed, updateBadge]);
 
 
   // Function to request permission and get token
