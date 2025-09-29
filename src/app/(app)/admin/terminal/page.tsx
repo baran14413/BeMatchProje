@@ -1,73 +1,95 @@
 
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Terminal as TerminalIcon } from 'lucide-react';
+import { Terminal as TerminalIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getSystemInfo } from '@/ai/flows/get-system-info-flow';
 
 type OutputLine = {
   text: string;
-  type: 'input' | 'output' | 'error' | 'system';
+  type: 'input' | 'output' | 'error' | 'system' | 'header';
 };
 
 export default function TerminalPage() {
     const [input, setInput] = useState('');
     const [output, setOutput] = useState<OutputLine[]>([
-        { text: 'BeMatch Terminal v0.1.0', type: 'system' },
-        { text: 'Type "help" for a list of available commands.', type: 'system' }
+        { text: 'BeMatch Terminal v0.2.0', type: 'system' },
+        { text: '`yardim` yazarak mevcut komutları görebilirsiniz.', type: 'system' }
     ]);
+    const [isProcessing, setIsProcessing] = useState(false);
     const endOfOutputRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         endOfOutputRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [output]);
 
-
+    const addOutput = (lines: OutputLine[]) => {
+        setOutput(prev => [...prev, ...lines]);
+    };
+    
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setInput(e.target.value);
     };
+
+    const processCommand = useCallback(async (command: string) => {
+        const [cmd, ...args] = command.toLowerCase().split(' ');
+        
+        switch(cmd) {
+            case 'yardim':
+                addOutput([
+                    { text: 'Mevcut Komutlar:', type: 'header' },
+                    { text: '  yardim      - Bu yardım menüsünü gösterir', type: 'output' },
+                    { text: '  temizle     - Terminal ekranını temizler', type: 'output' },
+                    { text: '  tarih       - Mevcut tarih ve saati gösterir', type: 'output' },
+                    { text: '  cpu         - Sunucu işlemci durumunu gösterir', type: 'output' },
+                ]);
+                break;
+            case 'temizle':
+                setOutput([]);
+                return;
+            case 'tarih':
+                addOutput([{ text: new Date().toLocaleString('tr-TR'), type: 'output' }]);
+                break;
+            case 'cpu':
+                try {
+                    const result = await getSystemInfo({ infoType: 'cpu' });
+                    if (result.data) {
+                        const { model, cores, usage, load, health } = result.data;
+                        addOutput([
+                            { text: 'CPU Durumu:', type: 'header' },
+                            { text: `  İşlemci Modeli : ${model}`, type: 'output' },
+                            { text: `  Çekirdek Sayısı : ${cores}`, type: 'output' },
+                            { text: `  Anlık Kullanım : ${usage}`, type: 'output' },
+                            { text: `  Ortalama Yük   : ${load}`, type: 'output' },
+                            { text: `  Sağlık         : ${health}`, type: 'output' },
+                        ]);
+                    } else {
+                        throw new Error(result.error || 'CPU bilgisi alınamadı.');
+                    }
+                } catch (error: any) {
+                    addOutput([{ text: `Hata: ${error.message}`, type: 'error' }]);
+                }
+                break;
+            default:
+                addOutput([{ text: `Hata: Komut bulunamadı: '${command}'`, type: 'error' }]);
+                break;
+        }
+    }, []);
     
-    const handleInputKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
+    const handleInputKeyDown = useCallback(async (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && !isProcessing) {
             const command = input.trim();
             if (command) {
-                const newOutput: OutputLine[] = [...output, { text: `> ${command}`, type: 'input' }];
-                setOutput(newOutput);
-                
-                // Process command
-                await processCommand(command, newOutput);
+                addOutput([{ text: `> ${command}`, type: 'input' }]);
+                setIsProcessing(true);
+                await processCommand(command);
+                setIsProcessing(false);
             }
             setInput('');
         }
-    };
-    
-    const processCommand = async (command: string, currentOutput: OutputLine[]) => {
-        const [cmd, ...args] = command.split(' ');
-        let result: OutputLine[];
-
-        switch(cmd) {
-            case 'help':
-                result = [
-                    { text: 'Available commands:', type: 'output' },
-                    { text: '  help     - Shows this help message', type: 'output' },
-                    { text: '  clear    - Clears the terminal screen', type: 'output' },
-                    { text: '  date     - Displays the current date and time', type: 'output' },
-                ];
-                break;
-            case 'clear':
-                setOutput([]);
-                return;
-            case 'date':
-                result = [{ text: new Date().toLocaleString('tr-TR'), type: 'output' }];
-                break;
-            default:
-                result = [{ text: `Error: Command not found: ${command}`, type: 'error' }];
-                break;
-        }
-        
-        setOutput([...currentOutput, ...result]);
-    }
+    }, [input, isProcessing, processCommand]);
 
     return (
         <Card className="h-[75vh] w-full flex flex-col font-mono">
@@ -85,12 +107,14 @@ export default function TerminalPage() {
                             'text-green-400': line.type === 'input',
                             'text-gray-400': line.type === 'system',
                             'text-red-400': line.type === 'error',
+                            'text-cyan-400 font-bold': line.type === 'header',
                             'text-white': line.type === 'output',
                         })}
                     >
                         {line.text}
                     </div>
                 ))}
+                {isProcessing && <div className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin text-yellow-400" /> <span className="text-yellow-400">İşleniyor...</span></div>}
                 <div ref={endOfOutputRef} />
             </CardContent>
              <div className="flex-shrink-0 p-2 bg-black border-t border-gray-700 flex items-center">
@@ -102,7 +126,8 @@ export default function TerminalPage() {
                     onKeyDown={handleInputKeyDown}
                     className="w-full bg-transparent text-white outline-none font-mono"
                     autoFocus
-                    placeholder='Type a command...'
+                    placeholder='Bir komut yazın...'
+                    disabled={isProcessing}
                 />
             </div>
         </Card>
