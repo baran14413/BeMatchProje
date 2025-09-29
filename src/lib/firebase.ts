@@ -4,6 +4,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, setDoc, serverTimestamp as firestoreServerTimestamp, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED, clearIndexedDbPersistence, terminate } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getDatabase, ref, onValue, set, onDisconnect, serverTimestamp as rtdbServerTimestamp, goOffline, goOnline } from 'firebase/database';
+import { getMessaging } from 'firebase/messaging';
 import 'firebase/compat/firestore';
 import firebase from 'firebase/compat/app';
 
@@ -30,6 +31,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const rtdb = getDatabase(app);
+const messaging = (typeof window !== 'undefined') ? getMessaging(app) : null;
 
 
 // Enable offline persistence
@@ -154,4 +156,4 @@ const setupPresence = (userId: string) => {
 };
 
 
-export { app, auth, db, storage, setupPresence };
+export { app, auth, db, storage, messaging, setupPresence };

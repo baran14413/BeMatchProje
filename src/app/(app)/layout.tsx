@@ -27,6 +27,7 @@ import { useRouter } from 'next/navigation';
 import { logActivity } from '@/ai/flows/log-activity-flow';
 import { motion, AnimatePresence } from 'framer-motion';
 import AppLockScreen from '@/components/ui/app-lock-screen';
+import { useNotification } from '@/hooks/use-notifications';
 
 const NavButton = ({ href, icon, srText, isActive, hasNotification = false }: { href: string, icon: React.ReactNode, srText: string, isActive: boolean, hasNotification?: boolean }) => {
     return (
@@ -67,6 +68,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
   
   const [isClientReady, setIsClientReady] = useState(false);
   const [isLocked, setIsLocked] = useState<boolean | null>(null);
+
+  // Initialize notification hook
+  useNotification();
 
    useEffect(() => {
     const lockConfig = localStorage.getItem('app-lock-config');

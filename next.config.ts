@@ -11,42 +11,70 @@ const withPWA = withPWAInit({
   aggressiveFrontEndNavCaching: true,
   runtimeCaching: [
     {
-      urlPattern: /\.(?:png|jpg|jpeg|svg|gif)$/,
+      urlPattern: /\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,
       handler: "CacheFirst",
       options: {
-        cacheName: "images-cache",
+        cacheName: "static-font-assets",
         expiration: {
-          maxEntries: 200,
-          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
+          maxEntries: 4,
+          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
         },
       },
     },
     {
-      urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*/i,
+      urlPattern: /\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,
       handler: "CacheFirst",
       options: {
-        cacheName: "firebase-images-cache",
+        cacheName: "static-image-assets",
         expiration: {
-          maxEntries: 200,
-          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
+          maxEntries: 64,
+          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
         },
-        cacheableResponse: {
-          statuses: [0, 200],
+      },
+    },
+     {
+      urlPattern: /\.(?:js)$/i,
+      handler: "StaleWhileRevalidate",
+      options: {
+        cacheName: "static-js-assets",
+        expiration: {
+          maxEntries: 32,
+          maxAgeSeconds: 24 * 60 * 60, // 24 hours
         },
       },
     },
     {
-      urlPattern: /^https:\/\/lh3\.googleusercontent\.com\/.*/i,
-      handler: "CacheFirst",
+      urlPattern: /\.(?:css|less)$/i,
+      handler: "StaleWhileRevalidate",
       options: {
-        cacheName: "google-user-images-cache",
+        cacheName: "static-style-assets",
         expiration: {
-          maxEntries: 100,
-          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 Days
+          maxEntries: 32,
+          maxAgeSeconds: 24 * 60 * 60, // 24 hours
         },
-        cacheableResponse: {
-          statuses: [0, 200],
+      },
+    },
+    {
+      urlPattern: /\.(?:json|xml|csv)$/i,
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "static-data-assets",
+        expiration: {
+          maxEntries: 32,
+          maxAgeSeconds: 24 * 60 * 60, // 24 hours
         },
+      },
+    },
+    {
+      urlPattern: /.*/i,
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "others",
+        expiration: {
+          maxEntries: 32,
+          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+        },
+        networkTimeoutSeconds: 10,
       },
     },
   ],
