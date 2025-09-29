@@ -1,4 +1,5 @@
 {
+  "/(app)/admin-mod/page": "app/(app)/admin-mod/page.js",
   "/(app)/admin/activity-logs/page": "app/(app)/admin/activity-logs/page.js",
   "/(app)/admin/blocked-ips/page": "app/(app)/admin/blocked-ips/page.js",
   "/(app)/admin/page": "app/(app)/admin/page.js",

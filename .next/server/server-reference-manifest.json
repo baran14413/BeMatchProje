@@ -2,6 +2,10 @@
   "node": {
     "4089b26089702b1e5adfebade7e2643cec0eef947b": {
       "workers": {
+        "app/(app)/admin-mod/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/admin-mod/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        },
         "app/(app)/admin/activity-logs/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/admin/activity-logs/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/ai/flows/ip-management-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
@@ -40,6 +44,7 @@
         }
       },
       "layer": {
+        "app/(app)/admin-mod/page": "action-browser",
         "app/(app)/admin/activity-logs/page": "action-browser",
         "app/(app)/admin/blocked-ips/page": "action-browser",
         "app/(app)/admin/page": "action-browser",
