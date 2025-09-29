@@ -12,7 +12,8 @@ import {
   Star,
   Code,
   CreditCard,
-  ShieldAlert,
+  Bot,
+  ShieldHalf,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,12 +51,15 @@ export default function AdminDashboardPage() {
         { icon: <ShieldCheck className="h-7 w-7 text-primary" />, title: 'Aktivite Kayıtları', description: 'Son kullanıcı aktivitelerini ve IP adreslerini görüntüleyin.', href: '/admin/activity-logs' },
         { icon: <Ban className="h-7 w-7 text-primary" />, title: 'Engellenen IP Adresleri', description: 'Uygulamaya erişimi engellenen IP adreslerini yönetin.', href: '/admin/blocked-ips' },
         { icon: <LineChart className="h-7 w-7 text-primary" />, title: 'Sistem Durumu', description: 'Uygulama metriklerini ve genel performansı izleyin.', href: '/admin/system-status' },
+        { icon: <Code className="h-7 w-7 text-primary" />, title: 'Terminal', description: 'Doğrudan komutları çalıştırın ve logları izleyin.', href: '/admin/terminal' },
+        { icon: <Bot className="h-7 w-7 text-primary" />, title: 'Gemini & AI', description: 'Yapay zeka modellerini ve güncellemelerini yönetin.', href: '/admin/gemini-updates' },
         { icon: <Code className="h-7 w-7 text-primary" />, title: 'Teknolojilerimiz', description: 'Uygulamanın arkasındaki teknoloji ve mimari.', href: '/admin/technologies' },
+        { icon: <ShieldHalf className="h-7 w-7 text-primary" />, title: 'Moderatör Paneli', description: 'İçerik yönetimi ve moderasyon araçları.', href: '/admin-mod' },
     ];
 
   return (
     <div className="space-y-6 bg-background">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {adminFeatures.map((item, index) => (
                 <AdminCard key={index} {...item} />
             ))}
