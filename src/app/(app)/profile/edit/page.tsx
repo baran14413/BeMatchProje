@@ -167,7 +167,6 @@ export default function EditProfilePage() {
     const aboutItems = [
         { icon: <MessageSquareQuote className="h-6 w-6 text-teal-500" />, title: 'Deneyimlerinizi Paylaşın', href: '/profile/edit/feedback' },
         { icon: <HelpCircle className="h-6 w-6 text-teal-500" />, title: 'Uygulama Kılavuzu', href: '/profile/edit/guide' },
-        { icon: <Bot className="h-6 w-6 text-teal-500" />, title: 'Gemini & AI Güncellemeleri', href: '/admin/gemini-updates' },
     ];
 
     const otherItems = [

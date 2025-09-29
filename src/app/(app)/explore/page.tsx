@@ -127,7 +127,7 @@ const PostSkeleton = () => (
     </Card>
 );
 
-const ClassicView = ({ posts, handleLikeClick, handleOpenComments, handleShare, handleDeletePost }: { posts: Post[], handleLikeClick: (postId: string, authorId: string) => void, handleOpenComments: (post: Post) => void, handleShare: (post: Post) => void, handleDeletePost: (post: Post) => void }) => {
+const ClassicView = ({ posts, handleLikeClick, handleOpenComments, handleShare, handleDeletePost, handleReportPost }: { posts: Post[], handleLikeClick: (postId: string, authorId: string) => void, handleOpenComments: (post: Post) => void, handleShare: (post: Post) => void, handleDeletePost: (post: Post) => void, handleReportPost: (post: Post) => void }) => {
     const currentUser = auth.currentUser;
     return (
         <div className="mx-auto max-w-lg space-y-4">
@@ -173,7 +173,9 @@ const ClassicView = ({ posts, handleLikeClick, handleOpenComments, handleShare, 
                                         </>
                                     ) : (
                                         <>
-                                             <DropdownMenuItem><Flag className="mr-2 h-4 w-4"/> Gönderiyi Şikayet Et</DropdownMenuItem>
+                                             <DropdownMenuItem onClick={() => handleReportPost(post)}>
+                                                <Flag className="mr-2 h-4 w-4"/> Gönderiyi Şikayet Et
+                                             </DropdownMenuItem>
                                              <DropdownMenuItem><UserX className="mr-2 h-4 w-4"/> {post.user?.name} kişisini engelle</DropdownMenuItem>
                                         </>
                                     )}
@@ -249,6 +251,26 @@ export default function ExplorePage() {
 
     const isMyProfile = (authorId: string) => currentUser?.uid === authorId;
     const commentInputRef = useRef<HTMLTextAreaElement>(null);
+
+    const handleReportPost = async (post: Post) => {
+        if (!currentUser) {
+          toast({ title: 'Giriş yapmalısınız.', variant: 'destructive' });
+          return;
+        }
+        try {
+          await addDoc(collection(db, 'reportedContent'), {
+            postId: post.id,
+            postAuthorId: post.authorId,
+            reportedBy: currentUser.uid,
+            reportedAt: serverTimestamp(),
+            status: 'pending',
+          });
+          toast({ title: 'Gönderi şikayet edildi.', description: 'İnceleme için ekibimize ilettik.' });
+        } catch (error) {
+          console.error("Error reporting post:", error);
+          toast({ title: 'Şikayet iletilemedi.', variant: 'destructive' });
+        }
+    };
 
     const handleOpenComments = async (post: Post) => {
         if (isCommentSheetOpen) return;
@@ -683,7 +705,7 @@ export default function ExplorePage() {
                 {loading ? (
                     <PostSkeleton />
                 ) : posts.length > 0 ? (
-                    <ClassicView posts={posts} handleLikeClick={handleLikeClick} handleOpenComments={handleOpenComments} handleShare={handleShare} handleDeletePost={handleDeletePost} />
+                    <ClassicView posts={posts} handleLikeClick={handleLikeClick} handleOpenComments={handleOpenComments} handleShare={handleShare} handleDeletePost={handleDeletePost} handleReportPost={handleReportPost}/>
                 ) : (
                     <div className="text-center text-muted-foreground py-20 flex flex-col items-center">
                         <Users className="w-16 h-16 mb-4 text-muted-foreground/50"/>

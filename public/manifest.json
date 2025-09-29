@@ -1,27 +1,62 @@
+
 {
-  "name": "BeMatch",
-  "short_name": "BeMatch",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#E53935",
-  "description": "Find your perfect match and walk together.",
-  "icons": [
-    {
-      "src": "/icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-        "src": "/icons/app-logo.svg",
-        "sizes": "any",
-        "type": "image/svg+xml"
-    }
-  ],
-  "gcm_sender_id": "903324685291"
+    "theme_color": "#E53935",
+    "background_color": "#121212",
+    "display": "standalone",
+    "scope": "/",
+    "start_url": "/",
+    "name": "BeMatch",
+    "short_name": "BeMatch",
+    "description": "Hayatının aşkını bul ve birlikte yürü.",
+    "icons": [
+        {
+            "src": "/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/icons/icon-256x256.png",
+            "sizes": "256x256",
+            "type": "image/png"
+        },
+        {
+            "src": "/icons/icon-384x384.png",
+            "sizes": "384x384",
+            "type": "image/png"
+        },
+        {
+            "src": "/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "/icons/maskable_icon.png",
+            "sizes": "196x196",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Yeni Gönderi",
+            "short_name": "Paylaş",
+            "description": "Yeni bir fotoğraf veya metin gönderisi oluştur.",
+            "url": "/create-post",
+            "icons": [{ "src": "/icons/shortcut-new-post.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "Sohbetler",
+            "short_name": "Sohbet",
+            "description": "Mesajlarını görüntüle.",
+            "url": "/chat",
+            "icons": [{ "src": "/icons/shortcut-chat.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "Profilim",
+            "short_name": "Profil",
+            "description": "Kendi profilini görüntüle.",
+            "url": "/profile/me",
+            "icons": [{ "src": "/icons/shortcut-profile.png", "sizes": "192x192" }]
+        }
+    ]
 }

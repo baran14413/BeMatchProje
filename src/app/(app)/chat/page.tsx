@@ -411,7 +411,9 @@ export default function ChatPage() {
         };
         await addDoc(messagesRef, newMessageData);
         
-        await updateDoc(conversationRef, {
+        const batch = writeBatch(db);
+        
+        batch.update(conversationRef, {
             lastMessage: {
                 text: tempMessageInput,
                 senderId: currentUser.uid,
@@ -419,6 +421,26 @@ export default function ChatPage() {
                 readBy: [currentUser.uid]
             }
         });
+
+        // Create notification if the other user is not online
+        if (!activeChat.otherUser.isOnline) {
+             const notificationRef = doc(collection(db, 'notifications'));
+             batch.set(notificationRef, {
+                recipientId: activeChat.otherUser.uid,
+                type: 'message',
+                fromUser: {
+                    uid: currentUser.uid,
+                    name: currentUser.displayName,
+                    avatar: currentUser.photoURL,
+                },
+                content: tempMessageInput.substring(0, 100),
+                conversationId: activeChat.id,
+                read: false,
+                createdAt: serverTimestamp()
+             });
+        }
+        
+        await batch.commit();
 
     } catch (error) {
          console.error("Error sending message: ", error);

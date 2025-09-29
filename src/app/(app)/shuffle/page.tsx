@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, Suspense, useRef } from 'react';
@@ -117,7 +118,6 @@ function ShuffleContent() {
       
       if (result?.conversationId) {
         toast({ title: 'Harika biriyle eşleştin!', description: 'Sohbete yönlendiriliyorsun...' });
-        stopSearch();
         router.push(`/random-chat/${result.conversationId}`);
       } else {
         // If no immediate match, start the countdown for the polling mechanism
@@ -128,6 +128,10 @@ function ShuffleContent() {
       console.error('Error during initial match search: ', error);
       setError("Eşleşme ararken bir hata oluştu. Lütfen tekrar deneyin.");
       stopSearch();
+    } finally {
+        if (!isSearching) { // If search was cancelled before completing
+            isFindingMatch.current = false;
+        }
     }
   };
 
