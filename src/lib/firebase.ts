@@ -1,6 +1,6 @@
 
 import { initializeApp, getApps, getApp, deleteApp } from 'firebase/app';
-import { getAuth, initializeAuth, browserLocalPersistence, browserSessionPersistence, connectAuthEmulator } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, setDoc, serverTimestamp as firestoreServerTimestamp, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED, clearIndexedDbPersistence, terminate } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getDatabase, ref, onValue, set, onDisconnect, serverTimestamp as rtdbServerTimestamp, goOffline, goOnline } from 'firebase/database';
@@ -27,28 +27,8 @@ if (!getApps().length) {
     firebase.initializeApp(firebaseConfig);
 }
 
-// Conditionally set persistence based on PWA mode
-const getFirebaseAuth = () => {
-    if (typeof window !== 'undefined') {
-        const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
-        const persistence = isInStandaloneMode ? browserSessionPersistence : browserLocalPersistence;
-        
-        try {
-            // Use initializeAuth to ensure we can set persistence.
-            // It's safe to call this multiple times if the config is the same.
-             return initializeAuth(app, { persistence });
-        } catch(e) {
-            // If initializeAuth fails (e.g. already initialized with different persistence),
-            // fall back to getAuth. This can happen during development hot-reloads.
-            return getAuth(app);
-        }
 
-    }
-    // For server-side rendering, return the default auth instance
-    return getAuth(app);
-};
-
-const auth = getFirebaseAuth();
+const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const rtdb = getDatabase(app);
