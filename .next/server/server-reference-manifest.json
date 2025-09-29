@@ -1,5 +1,17 @@
 {
-  "node": {},
+  "node": {
+    "4089b26089702b1e5adfebade7e2643cec0eef947b": {
+      "workers": {
+        "app/(app)/explore/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/explore/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/(app)/explore/page": "action-browser"
+      }
+    }
+  },
   "edge": {},
   "encryptionKey": "RR9qWedF7LKg52rPaWB/UVfEmrz1et13H2Cfbow2Pes="
 }

@@ -21,6 +21,7 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { cn } from '@/lib/utils';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 
 const FIVE_MINUTES = 5 * 60 * 1000;
@@ -62,70 +63,90 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         return <AdminAuthPage onAuthenticated={handleAuthentication} />;
     }
 
-    return (
-        <SidebarProvider>
-            <div className="flex min-h-screen w-full flex-col bg-muted/40">
-                <Sidebar side="left" variant="sidebar" collapsible="icon">
-                    <SidebarHeader>
-                        <Link href="/admin" className="flex items-center gap-2 text-lg font-semibold px-2">
-                            <ShieldAlert className="h-7 w-7 text-primary" />
-                            <span className="font-bold text-foreground">Admin</span>
-                        </Link>
-                    </SidebarHeader>
-                    <SidebarContent>
-                        <SidebarMenu>
-                            {adminNavItems.map(item => (
-                                <SidebarMenuItem key={item.href}>
-                                     <SidebarMenuButton asChild isActive={pathname === item.href}>
-                                        <Link href={item.href}>
-                                            {item.icon}
-                                            <span>{item.label}</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ))}
-                             <SidebarMenuItem>
-                                <SidebarMenuButton asChild>
-                                    <Link href="/admin-mod">
-                                        <ShieldHalf />
-                                        <span>Mod Paneli</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </SidebarMenu>
-                    </SidebarContent>
-                </Sidebar>
-
-                <SidebarInset>
-                    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
-                        <div className="relative flex-1 md:grow-0">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                type="search"
-                                placeholder="Ara..."
-                                className="w-full rounded-lg bg-muted pl-8 md:w-[200px] lg:w-[320px]"
-                            />
-                        </div>
-                        <div className="ml-auto flex items-center gap-2">
-                             <Link href="/explore">
-                                <Button variant="outline" size="icon" className="h-9 w-9">
-                                    <LogOut className="h-4 w-4" />
-                                    <span className="sr-only">Paneleden Çık</span>
-                                </Button>
+    const SidebarNavigation = () => (
+        <div className="flex h-full flex-col">
+            <SidebarHeader>
+                <Link href="/admin" className="flex items-center gap-2 text-lg font-semibold px-2">
+                    <ShieldAlert className="h-7 w-7 text-primary" />
+                    <span className="font-bold text-foreground">Admin</span>
+                </Link>
+            </SidebarHeader>
+            <SidebarContent>
+                <SidebarMenu>
+                    {adminNavItems.map(item => (
+                        <SidebarMenuItem key={item.href}>
+                             <SidebarMenuButton asChild isActive={pathname === item.href}>
+                                <Link href={item.href}>
+                                    {item.icon}
+                                    <span>{item.label}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
+                     <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                            <Link href="/admin-mod">
+                                <ShieldHalf />
+                                <span>Mod Paneli</span>
                             </Link>
-                            {user?.photoURL && (
-                                <Avatar className="w-9 h-9">
-                                    <AvatarImage src={user.photoURL} />
-                                    <AvatarFallback>{user.displayName?.charAt(0) ?? 'A'}</AvatarFallback>
-                                </Avatar>
-                            )}
-                        </div>
-                    </header>
-                    <main className="flex flex-1 flex-col gap-4 p-4 sm:px-8 sm:py-6">
-                        {children}
-                    </main>
-                </SidebarInset>
-            </div>
-        </SidebarProvider>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarContent>
+        </div>
+    );
+
+    return (
+        <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+          <div className="hidden border-r bg-muted/40 md:block">
+            <SidebarNavigation />
+          </div>
+          <div className="flex flex-col">
+            <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0 md:hidden"
+                  >
+                    <PanelLeft className="h-5 w-5" />
+                    <span className="sr-only">Toggle navigation menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="flex flex-col p-0">
+                  <SidebarNavigation />
+                </SheetContent>
+              </Sheet>
+              <div className="w-full flex-1">
+                 <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="search"
+                        placeholder="Ara..."
+                        className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
+                    />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                    <Link href="/explore">
+                        <Button variant="outline" size="icon" className="h-9 w-9">
+                            <LogOut className="h-4 w-4" />
+                            <span className="sr-only">Panelden Çık</span>
+                        </Button>
+                    </Link>
+                    {user?.photoURL && (
+                        <Avatar className="w-9 h-9">
+                            <AvatarImage src={user.photoURL} />
+                            <AvatarFallback>{user.displayName?.charAt(0) ?? 'A'}</AvatarFallback>
+                        </Avatar>
+                    )}
+                </div>
+            </header>
+            <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+              {children}
+            </main>
+          </div>
+        </div>
     );
 }
