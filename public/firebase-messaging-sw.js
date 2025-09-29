@@ -1,58 +1,82 @@
 
-// Check if Firebase has been initialized
-if (typeof self.firebase === 'undefined' || !self.firebase.apps.length) {
-    self.importScripts('https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js');
-    self.importScripts('https://www.gstatic.com/firebasejs/9.10.0/firebase-messaging-compat.js');
-}
+// DO NOT CHANGE: This file is essential for background notifications.
+// It must be in the public folder to be accessible by the browser.
 
+// Import Firebase scripts directly, as module imports can be tricky in service workers.
+importScripts("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js");
+
+// Your web app's Firebase configuration
+// IMPORTANT: These values must be manually kept in sync with your .env file
 const firebaseConfig = {
-    apiKey: "__FIREBASE_API_KEY__",
-    authDomain: "__FIREBASE_AUTH_DOMAIN__",
-    projectId: "__FIREBASE_PROJECT_ID__",
-    storageBucket: "__FIREBASE_STORAGE_BUCKET__",
-    messagingSenderId: "__FIREBASE_MESSAGING_SENDER_ID__",
-    appId: "__FIREBASE_APP_ID__",
-    measurementId: "__FIREBASE_MEASUREMENT_ID__",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// It's safe to re-initialize, it's a no-op if already initialized.
-self.firebase.initializeApp(firebaseConfig);
 
-const messaging = self.firebase.messaging();
+// Initialize Firebase
+if (firebase.apps.length === 0) {
+    firebase.initializeApp(firebaseConfig);
+}
 
-messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
+const messaging = firebase.messaging();
+
+// This event listener handles push notifications when the app is in the background or closed.
+self.addEventListener('push', (event) => {
+  console.log('[Service Worker] Push Received.');
+
+  // The 'data' property of the push event is a PushMessageData object.
+  // We parse it as JSON to get the notification data sent from the server.
+  let notificationData;
+  try {
+    notificationData = event.data.json();
+  } catch (e) {
+    console.error('Push event data is not valid JSON.', e);
+    notificationData = {
+        notification: {
+            title: 'Yeni bir bildirimin var',
+            body: 'Kontrol etmek için dokun.',
+            icon: '/icons/app-logo.svg'
+        }
+    };
+  }
+
+  const { title, body, icon, tag } = notificationData.notification;
   
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/icons/app-logo.svg', // Main app icon for notifications
-    badge: '/icons/badge-72x72.png', // Badge for Android status bar
-    vibrate: [200, 100, 200], // Vibrate pattern
-    tag: payload.notification.tag || 'bematch-notification', // Group notifications
-    data: payload.data // Pass along data for click actions
+  const options = {
+    body: body,
+    icon: icon || '/icons/app-logo.svg', // Default icon if not provided
+    badge: '/icons/badge.png', // Small monochrome icon for the status bar
+    vibrate: [200, 100, 200], // Vibration pattern
+    tag: tag || 'bematch-notification', // Groups notifications
+    renotify: true,
+    actions: [
+        { action: 'open_app', title: 'Uygulamayı Aç' }
+    ]
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  // The waitUntil() method ensures the service worker doesn't terminate
+  // until the notification is shown.
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
 });
 
-// Handle notification click
+// This event listener handles clicks on the notification.
 self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  const urlToOpen = event.notification.data?.url || '/'; // Default to home if no URL is provided
+  console.log('[Service Worker] Notification click Received.');
 
+  event.notification.close();
+
+  // This opens the app to the root page.
+  // You can customize this to open a specific URL.
   event.waitUntil(
-    clients.matchAll({
-      type: 'window'
-    }).then((clientList) => {
-      for (const client of clientList) {
-        if (client.url === urlToOpen && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
-    })
+    clients.openWindow('/')
   );
 });
