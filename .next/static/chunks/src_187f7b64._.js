@@ -2041,13 +2041,9 @@ function AdminLayout({ children }) {
                 }
             }
             setIsAuthenticated(false);
-            if (pathname !== '/admin/auth') {
-            // router.push('/admin/auth');
-            }
         }
     }["AdminLayout.useCallback[verifyAccess]"], [
-        user,
-        pathname
+        user
     ]);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "AdminLayout.useEffect": ()=>{
@@ -2057,9 +2053,6 @@ function AdminLayout({ children }) {
                         verifyAccess();
                     } else {
                         setIsAuthenticated(false);
-                        if (pathname !== '/admin/auth') {
-                        // router.push('/admin/auth');
-                        }
                     }
                 }
             }["AdminLayout.useEffect.unsubscribe"]);
@@ -2068,19 +2061,18 @@ function AdminLayout({ children }) {
             })["AdminLayout.useEffect"];
         }
     }["AdminLayout.useEffect"], [
-        verifyAccess,
-        pathname
+        verifyAccess
     ]);
     const handleAuthentication = ()=>{
         sessionStorage.setItem('adminAuthTimestamp', Date.now().toString());
-        verifyAccess();
+        setIsAuthenticated(true); // Re-render the layout to show admin content
     };
     const adminNavItems = [
         {
             href: '/admin',
             icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$house$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Home$3e$__["Home"], {}, void 0, false, {
                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                lineNumber: 80,
+                lineNumber: 74,
                 columnNumber: 31
             }, this),
             label: 'Genel Bakış'
@@ -2089,7 +2081,7 @@ function AdminLayout({ children }) {
             href: '/admin/users',
             icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$users$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Users$3e$__["Users"], {}, void 0, false, {
                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                lineNumber: 81,
+                lineNumber: 75,
                 columnNumber: 37
             }, this),
             label: 'Kullanıcıları Yönet'
@@ -2098,7 +2090,7 @@ function AdminLayout({ children }) {
             href: '/admin/payment-confirmations',
             icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$credit$2d$card$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__CreditCard$3e$__["CreditCard"], {}, void 0, false, {
                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                lineNumber: 82,
+                lineNumber: 76,
                 columnNumber: 53
             }, this),
             label: 'Ödeme Onayları'
@@ -2107,7 +2099,7 @@ function AdminLayout({ children }) {
             href: '/admin/reported-content',
             icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$message$2d$square$2d$warning$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__MessageSquareWarning$3e$__["MessageSquareWarning"], {}, void 0, false, {
                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                lineNumber: 83,
+                lineNumber: 77,
                 columnNumber: 48
             }, this),
             label: 'Raporlar'
@@ -2116,7 +2108,7 @@ function AdminLayout({ children }) {
             href: '/admin/feedback',
             icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$star$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Star$3e$__["Star"], {}, void 0, false, {
                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                lineNumber: 84,
+                lineNumber: 78,
                 columnNumber: 40
             }, this),
             label: 'Geri Bildirimler'
@@ -2125,7 +2117,7 @@ function AdminLayout({ children }) {
             href: '/admin/activity-logs',
             icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$shield$2d$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ShieldCheck$3e$__["ShieldCheck"], {}, void 0, false, {
                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                lineNumber: 85,
+                lineNumber: 79,
                 columnNumber: 45
             }, this),
             label: 'Aktivite Kayıtları'
@@ -2134,7 +2126,7 @@ function AdminLayout({ children }) {
             href: '/admin/blocked-ips',
             icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$ban$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Ban$3e$__["Ban"], {}, void 0, false, {
                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                lineNumber: 86,
+                lineNumber: 80,
                 columnNumber: 43
             }, this),
             label: 'Engellenen IPler'
@@ -2143,17 +2135,26 @@ function AdminLayout({ children }) {
             href: '/admin/system-status',
             icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chart$2d$line$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__LineChart$3e$__["LineChart"], {}, void 0, false, {
                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                lineNumber: 87,
+                lineNumber: 81,
                 columnNumber: 45
             }, this),
             label: 'Sistem Durumu'
         },
         {
+            href: '/admin/terminal',
+            icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$code$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Code$3e$__["Code"], {}, void 0, false, {
+                fileName: "[project]/src/app/(app)/admin/layout.tsx",
+                lineNumber: 82,
+                columnNumber: 40
+            }, this),
+            label: 'Terminal'
+        },
+        {
             href: '/admin/gemini-updates',
             icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$bot$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Bot$3e$__["Bot"], {}, void 0, false, {
                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                lineNumber: 88,
-                columnNumber: 47
+                lineNumber: 83,
+                columnNumber: 46
             }, this),
             label: 'Gemini & AI'
         },
@@ -2161,7 +2162,7 @@ function AdminLayout({ children }) {
             href: '/admin/technologies',
             icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$code$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Code$3e$__["Code"], {}, void 0, false, {
                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                lineNumber: 89,
+                lineNumber: 84,
                 columnNumber: 44
             }, this),
             label: 'Teknolojilerimiz'
@@ -2174,12 +2175,12 @@ function AdminLayout({ children }) {
                 className: "w-12 h-12 animate-spin text-primary"
             }, void 0, false, {
                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                lineNumber: 93,
+                lineNumber: 88,
                 columnNumber: 82
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/app/(app)/admin/layout.tsx",
-            lineNumber: 93,
+            lineNumber: 88,
             columnNumber: 16
         }, this);
     }
@@ -2188,7 +2189,7 @@ function AdminLayout({ children }) {
             onAuthenticated: handleAuthentication
         }, void 0, false, {
             fileName: "[project]/src/app/(app)/admin/layout.tsx",
-            lineNumber: 97,
+            lineNumber: 92,
             columnNumber: 16
         }, this);
     }
@@ -2203,7 +2204,7 @@ function AdminLayout({ children }) {
                                 className: "h-7 w-7 text-primary"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                lineNumber: 104,
+                                lineNumber: 99,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2211,18 +2212,18 @@ function AdminLayout({ children }) {
                                 children: "Admin"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                lineNumber: 105,
+                                lineNumber: 100,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                        lineNumber: 103,
+                        lineNumber: 98,
                         columnNumber: 17
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                    lineNumber: 102,
+                    lineNumber: 97,
                     columnNumber: 13
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sidebar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SidebarContent"], {
@@ -2242,23 +2243,23 @@ function AdminLayout({ children }) {
                                                     children: item.label
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                                    lineNumber: 115,
+                                                    lineNumber: 110,
                                                     columnNumber: 37
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                            lineNumber: 113,
+                                            lineNumber: 108,
                                             columnNumber: 33
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                        lineNumber: 112,
+                                        lineNumber: 107,
                                         columnNumber: 30
                                     }, this)
                                 }, item.href, false, {
                                     fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                    lineNumber: 111,
+                                    lineNumber: 106,
                                     columnNumber: 25
                                 }, this)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sidebar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SidebarMenuItem"], {
@@ -2272,41 +2273,41 @@ function AdminLayout({ children }) {
                                                 className: "h-5 w-5"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                                lineNumber: 123,
+                                                lineNumber: 118,
                                                 columnNumber: 33
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 children: "Mod Paneli"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                                lineNumber: 124,
+                                                lineNumber: 119,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                        lineNumber: 122,
+                                        lineNumber: 117,
                                         columnNumber: 29
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                    lineNumber: 121,
+                                    lineNumber: 116,
                                     columnNumber: 25
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                lineNumber: 120,
+                                lineNumber: 115,
                                 columnNumber: 22
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                        lineNumber: 109,
+                        lineNumber: 104,
                         columnNumber: 17
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                    lineNumber: 108,
+                    lineNumber: 103,
                     columnNumber: 13
                 }, this)
             ]
@@ -2322,12 +2323,12 @@ function AdminLayout({ children }) {
                     className: "hidden md:flex",
                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(SidebarNavigation, {}, void 0, false, {
                         fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                        lineNumber: 137,
+                        lineNumber: 132,
                         columnNumber: 19
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                    lineNumber: 136,
+                    lineNumber: 131,
                     columnNumber: 15
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2349,7 +2350,7 @@ function AdminLayout({ children }) {
                                                         className: "h-5 w-5"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                                        lineNumber: 148,
+                                                        lineNumber: 143,
                                                         columnNumber: 25
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2357,18 +2358,18 @@ function AdminLayout({ children }) {
                                                         children: "Toggle navigation menu"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                                        lineNumber: 149,
+                                                        lineNumber: 144,
                                                         columnNumber: 25
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                                lineNumber: 143,
+                                                lineNumber: 138,
                                                 columnNumber: 23
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                            lineNumber: 142,
+                                            lineNumber: 137,
                                             columnNumber: 21
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SheetContent"], {
@@ -2377,23 +2378,23 @@ function AdminLayout({ children }) {
                                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sidebar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SidebarProvider"], {
                                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(SidebarNavigation, {}, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                                    lineNumber: 154,
+                                                    lineNumber: 149,
                                                     columnNumber: 28
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                                lineNumber: 153,
+                                                lineNumber: 148,
                                                 columnNumber: 24
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                            lineNumber: 152,
+                                            lineNumber: 147,
                                             columnNumber: 21
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                    lineNumber: 141,
+                                    lineNumber: 136,
                                     columnNumber: 19
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2405,7 +2406,7 @@ function AdminLayout({ children }) {
                                                 className: "absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                                lineNumber: 160,
+                                                lineNumber: 155,
                                                 columnNumber: 25
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -2414,18 +2415,18 @@ function AdminLayout({ children }) {
                                                 className: "w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                                lineNumber: 161,
+                                                lineNumber: 156,
                                                 columnNumber: 25
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                        lineNumber: 159,
+                                        lineNumber: 154,
                                         columnNumber: 22
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                    lineNumber: 158,
+                                    lineNumber: 153,
                                     columnNumber: 19
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2442,7 +2443,7 @@ function AdminLayout({ children }) {
                                                         className: "h-4 w-4"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                                        lineNumber: 171,
+                                                        lineNumber: 166,
                                                         columnNumber: 33
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2450,18 +2451,18 @@ function AdminLayout({ children }) {
                                                         children: "Panelden Çık"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                                        lineNumber: 172,
+                                                        lineNumber: 167,
                                                         columnNumber: 33
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                                lineNumber: 170,
+                                                lineNumber: 165,
                                                 columnNumber: 29
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                            lineNumber: 169,
+                                            lineNumber: 164,
                                             columnNumber: 25
                                         }, this),
                                         user?.photoURL && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Avatar"], {
@@ -2471,32 +2472,32 @@ function AdminLayout({ children }) {
                                                     src: user.photoURL
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                                    lineNumber: 177,
+                                                    lineNumber: 172,
                                                     columnNumber: 33
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AvatarFallback"], {
                                                     children: user.displayName?.charAt(0) ?? 'A'
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                                    lineNumber: 178,
+                                                    lineNumber: 173,
                                                     columnNumber: 33
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                            lineNumber: 176,
+                                            lineNumber: 171,
                                             columnNumber: 29
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                                    lineNumber: 168,
+                                    lineNumber: 163,
                                     columnNumber: 19
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                            lineNumber: 140,
+                            lineNumber: 135,
                             columnNumber: 17
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -2504,24 +2505,24 @@ function AdminLayout({ children }) {
                             children: children
                         }, void 0, false, {
                             fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                            lineNumber: 183,
+                            lineNumber: 178,
                             columnNumber: 17
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/(app)/admin/layout.tsx",
-                    lineNumber: 139,
+                    lineNumber: 134,
                     columnNumber: 15
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/(app)/admin/layout.tsx",
-            lineNumber: 135,
+            lineNumber: 130,
             columnNumber: 13
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/app/(app)/admin/layout.tsx",
-        lineNumber: 134,
+        lineNumber: 129,
         columnNumber: 9
     }, this);
 }

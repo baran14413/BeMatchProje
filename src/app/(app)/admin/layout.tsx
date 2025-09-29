@@ -67,7 +67,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     
     const handleAuthentication = () => {
         sessionStorage.setItem('adminAuthTimestamp', Date.now().toString());
-        setIsAuthenticated(true); // Re-render the layout to show admin content
+        setIsAuthenticated(true);
     };
 
     const adminNavItems = [

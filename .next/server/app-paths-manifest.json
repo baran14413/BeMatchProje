@@ -5,6 +5,7 @@
   "/(app)/admin/payment-confirmations/page": "app/(app)/admin/payment-confirmations/page.js",
   "/(app)/admin/system-status/page": "app/(app)/admin/system-status/page.js",
   "/(app)/admin/technologies/page": "app/(app)/admin/technologies/page.js",
+  "/(app)/admin/terminal/page": "app/(app)/admin/terminal/page.js",
   "/(app)/admin/users/page": "app/(app)/admin/users/page.js",
   "/(app)/explore/page": "app/(app)/explore/page.js",
   "/(auth)/login/page": "app/(auth)/login/page.js",

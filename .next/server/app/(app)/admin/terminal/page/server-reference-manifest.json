@@ -1,0 +1,27 @@
+{
+  "node": {
+    "4089b26089702b1e5adfebade7e2643cec0eef947b": {
+      "workers": {
+        "app/(app)/admin/terminal/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/admin/terminal/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/(app)/admin/terminal/page": "action-browser"
+      }
+    },
+    "40680b24048d25ecd6783caec7cb78d07ae0bb6343": {
+      "workers": {
+        "app/(app)/admin/terminal/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/admin/terminal/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/(app)/admin/terminal/page": "action-browser"
+      }
+    }
+  },
+  "edge": {}
+}

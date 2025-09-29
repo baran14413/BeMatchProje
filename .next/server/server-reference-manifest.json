@@ -26,6 +26,10 @@
           "moduleId": "[project]/.next-internal/server/app/(app)/admin/technologies/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
         },
+        "app/(app)/admin/terminal/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/admin/terminal/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        },
         "app/(app)/admin/users/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/admin/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/ai/flows/delete-user-data-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
@@ -42,6 +46,7 @@
         "app/(app)/admin/payment-confirmations/page": "action-browser",
         "app/(app)/admin/system-status/page": "action-browser",
         "app/(app)/admin/technologies/page": "action-browser",
+        "app/(app)/admin/terminal/page": "action-browser",
         "app/(app)/admin/users/page": "action-browser",
         "app/(app)/explore/page": "action-browser"
       }
@@ -72,6 +77,10 @@
           "moduleId": "[project]/.next-internal/server/app/(app)/admin/technologies/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
         },
+        "app/(app)/admin/terminal/page": {
+          "moduleId": "[project]/.next-internal/server/app/(app)/admin/terminal/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        },
         "app/(app)/admin/users/page": {
           "moduleId": "[project]/.next-internal/server/app/(app)/admin/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/log-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/log-suspicious-activity-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/ai/flows/delete-user-data-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
@@ -84,6 +93,7 @@
         "app/(app)/admin/payment-confirmations/page": "action-browser",
         "app/(app)/admin/system-status/page": "action-browser",
         "app/(app)/admin/technologies/page": "action-browser",
+        "app/(app)/admin/terminal/page": "action-browser",
         "app/(app)/admin/users/page": "action-browser"
       }
     },
